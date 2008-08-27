@@ -1,0 +1,38 @@
+2008-05-07:  Lubomir Rintel  <lkundrak@fedoraproject.org>
+
+        * genmk.rb: replace strip with objcopy, so unstripped files are
+        left untouched for debugging purposes.
+
+diff -urp grub2.orig/genmk.rb grub2/genmk.rb
+--- grub2.orig/genmk.rb	2008-08-07 21:37:29.000000000 +0200
++++ grub2/genmk.rb	2008-08-07 23:31:19.000000000 +0200
+@@ -101,10 +101,11 @@ class PModule
+     mod_obj = mod_src.suffix('o')
+     defsym = 'def-' + @name.suffix('lst')
+     undsym = 'und-' + @name.suffix('lst')
++    exec = @name.suffix('elf')
+     mod_name = File.basename(@name, '.mod')
+     symbolic_name = mod_name.sub(/\.[^\.]*$/, '')
+     
+-    "CLEANFILES += #{@name} #{mod_obj} #{mod_src} #{pre_obj} #{objs_str} #{undsym}
++    "CLEANFILES += #{@name} #{mod_obj} #{mod_src} #{pre_obj} #{objs_str} #{undsym} #{exec}
+ ifneq ($(#{prefix}_EXPORTS),no)
+ CLEANFILES += #{defsym}
+ DEFSYMFILES += #{defsym}
+@@ -112,11 +113,14 @@ endif
+ MOSTLYCLEANFILES += #{deps_str}
+ UNDSYMFILES += #{undsym}
+ 
+-#{@name}: #{pre_obj} #{mod_obj} $(TARGET_OBJ2ELF)
++#{@name}: #{exec}
++	-rm -f $@
++	$(OBJCOPY) --strip-unneeded -K grub_mod_init -K grub_mod_fini -K _grub_mod_init -K _grub_mod_fini -R .note -R .comment $^ $@
++
++#{exec}: #{pre_obj} #{mod_obj} $(TARGET_OBJ2ELF)
+ 	-rm -f $@
+ 	$(TARGET_CC) $(#{prefix}_LDFLAGS) $(TARGET_LDFLAGS) $(MODULE_LDFLAGS) -Wl,-r,-d -o $@ #{pre_obj} #{mod_obj}
+ 	if test ! -z $(TARGET_OBJ2ELF); then ./$(TARGET_OBJ2ELF) $@ || (rm -f $@; exit 1); fi
+-	$(STRIP) --strip-unneeded -K grub_mod_init -K grub_mod_fini -K _grub_mod_init -K _grub_mod_fini -R .note -R .comment $@
+ 
+ #{pre_obj}: $(#{prefix}_DEPENDENCIES) #{objs_str}
+ 	-rm -f $@

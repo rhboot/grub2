@@ -1,0 +1,162 @@
+Transformations. Anyone, please tell upstream it's useful not to have
+them half-baked. This is so that we do not conflict with grub.
+
+Lubomir Rintel <lkundrak@v3.sk>
+
+diff -urp grub2.orig/Makefile.in grub2/Makefile.in
+--- grub2.orig/Makefile.in	2008-08-07 21:37:29.000000000 +0200
++++ grub2/Makefile.in	2008-08-08 07:43:10.000000000 +0200
+@@ -215,12 +215,12 @@ install-local: all
+ 	  dest="`echo $$file | sed 's,.*/,,' | sed '$(transform)'`"; \
+ 	  $(INSTALL_DATA) $$dir$$file $(DESTDIR)$(sysconfdir)/grub.d/$$dest; \
+ 	done
+-	$(mkinstalldirs) $(DESTDIR)$(libdir)/grub
++	$(mkinstalldirs) $(DESTDIR)$(libdir)/`echo grub | sed '$(transform)'`
+ 	@list='$(lib_DATA)'; \
+ 	for file in $$list; do \
+ 	  if test -f "$$file"; then dir=; else dir="$(srcdir)/"; fi; \
+ 	  dest="`echo $$file | sed 's,.*/,,'`"; \
+-	  $(INSTALL_DATA) $$dir$$file $(DESTDIR)$(libdir)/grub/$$dest; \
++	  $(INSTALL_DATA) $$dir$$file $(DESTDIR)$(libdir)/`echo grub | sed '$(transform)'`/$$dest; \
+ 	done
+ 
+ install-strip:
+diff -urp grub2.orig/util/grub.d/00_header.in grub2/util/grub.d/00_header.in
+--- grub2.orig/util/grub.d/00_header.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/grub.d/00_header.in	2008-08-08 07:43:10.000000000 +0200
+@@ -23,7 +23,7 @@ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+ grub_prefix=`echo /boot/grub | sed ${transform}`
+ 
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub | sed ${transform}`/update-grub_lib
+ 
+ # Do this as early as possible, since other commands might depend on it.
+ # (e.g. the `font' command might need lvm or raid modules)
+diff -urp grub2.orig/util/grub.d/10_hurd.in grub2/util/grub.d/10_hurd.in
+--- grub2.orig/util/grub.d/10_hurd.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/grub.d/10_hurd.in	2008-08-08 07:44:29.000000000 +0200
+@@ -16,10 +16,12 @@
+ # You should have received a copy of the GNU General Public License
+ # along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+ 
++transform="@program_transform_name@"
++
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub |sed ${transform}`/update-grub_lib
+ 
+ if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
+   OS=GNU
+diff -urp grub2.orig/util/grub.d/10_linux.in grub2/util/grub.d/10_linux.in
+--- grub2.orig/util/grub.d/10_linux.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/grub.d/10_linux.in	2008-08-08 07:43:10.000000000 +0200
+@@ -16,10 +16,12 @@
+ # You should have received a copy of the GNU General Public License
+ # along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+ 
++transform="@program_transform_name@"
++
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub | sed ${transform}`/update-grub_lib
+ 
+ if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
+   OS=GNU/Linux
+diff -urp grub2.orig/util/grub.d/10_windows.in grub2/util/grub.d/10_windows.in
+--- grub2.orig/util/grub.d/10_windows.in	2008-08-07 21:37:27.000000000 +0200
++++ grub2/util/grub.d/10_windows.in	2008-08-08 07:44:13.000000000 +0200
+@@ -16,10 +16,12 @@
+ # You should have received a copy of the GNU General Public License
+ # along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+ 
++transform="@program_transform_name@"
++
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub |sed ${transform}`/update-grub_lib
+ 
+ case "`uname 2>/dev/null`" in
+   CYGWIN*)  ;;
+diff -urp grub2.orig/util/i386/pc/grub-install.in grub2/util/i386/pc/grub-install.in
+--- grub2.orig/util/i386/pc/grub-install.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/i386/pc/grub-install.in	2008-08-08 07:43:10.000000000 +0200
+@@ -36,7 +36,7 @@ grub_mkimage=${bindir}/`echo grub-mkimag
+ grub_mkdevicemap=${sbindir}/`echo grub-mkdevicemap | sed ${transform}`
+ grub_probe=${sbindir}/`echo grub-probe | sed ${transform}`
+ rootdir=
+-grub_prefix=`echo /boot/grub | sed ${transform}`
++grub_prefix=/boot/`echo grub | sed ${transform}`
+ modules=
+ 
+ install_device=
+@@ -118,7 +118,7 @@ for option in "$@"; do
+ done
+ 
+ # for make_system_path_relative_to_its_root()
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub | sed ${transform}`/update-grub_lib
+ 
+ if test "x$install_device" = x; then
+     echo "install_device not specified." 1>&2
+diff -urp grub2.orig/util/powerpc/ieee1275/grub-mkrescue.in grub2/util/powerpc/ieee1275/grub-mkrescue.in
+--- grub2.orig/util/powerpc/ieee1275/grub-mkrescue.in	2008-08-07 21:37:27.000000000 +0200
++++ grub2/util/powerpc/ieee1275/grub-mkrescue.in	2008-08-08 07:43:10.000000000 +0200
+@@ -100,7 +100,7 @@ grub.img        Raw     'UNIX'    'tbxi'
+ EOF
+ 
+ iso_dir=`mktemp -d`
+-boot_dir=${iso_dir}/boot/grub
++boot_dir=${iso_dir}/boot/`echo grub | sed ${transform}`
+ mkdir ${iso_dir}/boot
+ mkdir ${boot_dir}
+ core_img=${boot_dir}/grub.img
+diff -urp grub2.orig/util/update-grub.in grub2/util/update-grub.in
+--- grub2.orig/util/update-grub.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/update-grub.in	2008-08-08 07:43:10.000000000 +0200
+@@ -23,7 +23,7 @@ exec_prefix=@exec_prefix@
+ sbindir=@sbindir@
+ libdir=@libdir@
+ sysconfdir=@sysconfdir@
+-grub_prefix=`echo /boot/grub | sed ${transform}`
++grub_prefix=/boot/`echo /grub | sed ${transform}`
+ grub_cfg=${grub_prefix}/grub.cfg
+ update_grub_dir=${sysconfdir}/grub.d
+ 
+@@ -65,7 +65,7 @@ for option in "$@"; do
+     esac
+ done
+ 
+-. ${libdir}/grub/update-grub_lib
++. ${libdir}/`echo grub | sed ${transform}`/update-grub_lib
+ 
+ if [ "x$EUID" = "x" ] ; then
+   EUID=`id -u`
+@@ -107,7 +107,7 @@ fi
+ mkdir -p ${grub_prefix}
+ 
+ if test -e ${grub_prefix}/device.map ; then : ; else
+-  grub-mkdevicemap
++  ${grub_mkdevicemap}
+ fi
+ 
+ # Device containing our userland.  Typically used for root= parameter.
+diff -urp grub2.orig/util/update-grub_lib.in grub2/util/update-grub_lib.in
+--- grub2.orig/util/update-grub_lib.in	2008-08-07 21:37:28.000000000 +0200
++++ grub2/util/update-grub_lib.in	2008-08-08 07:43:10.000000000 +0200
+@@ -145,7 +145,8 @@ prepare_grub_to_access_device ()
+ 
+ font_path ()
+ {
+-  for dir in ${pkgdatadir} /boot/grub /usr/share/grub ; do
++  for dir in ${pkgdatadir} ${pkgdatadir}/`echo grub | sed ${transform}` \
++             /boot/`echo grub | sed ${transform}`; do
+     # FIXME: We prefer ascii because loading complete fonts is too slow (and
+     # we don't yet provide the gettext magic that would make unicode useful).
+     for basename in ascii unicode unifont ; do

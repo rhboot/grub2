@@ -1,0 +1,36 @@
+#! /bin/sh -e
+
+# update-grub helper script.
+# Copyright (C) 2008  Free Software Foundation, Inc.
+#
+# GRUB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GRUB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+
+# The output of this script is copied from part of grub.cfg
+# that correspond to itself. The achievement is that user can
+# modify that part of grub.cfg directly, and it will be persistent
+# across update-grub runs.
+
+transform="s&^&&;s,grub,grub2,"
+ME=$(echo $0 |sed 's,/,\\/,g')
+GRUBCFG=/boot/`echo grub | sed ${transform}`/grub.cfg
+
+# Exit gracefully if there's no configuration file yet
+[ -f ${GRUBCFG} ] || exit 0
+
+awk "
+	BEGIN {echo = 0}
+	/### BEGIN $ME ###/ {echo = 1; next}
+	/### END $ME ###/ {echo = 0; next}
+	{if (echo) print}
+" ${GRUBCFG}

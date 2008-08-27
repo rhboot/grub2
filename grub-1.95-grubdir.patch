@@ -1,0 +1,17 @@
+This should ideally be done using transformations.
+Alternatively, /boot/grub may be used, no grub's files there should conflict
+with grub2 and they both can share the same device.map.
+
+Lubomir Rintel <lkundrak@v3.sk>
+
+--- grub2.orig/include/grub/util/misc.h	2007-11-28 14:10:01.000000000 +0100
++++ grub2/include/grub/util/misc.h	2007-11-28 14:10:20.000000000 +0100
+@@ -28,7 +28,7 @@
+ /* NetBSD uses /boot for its boot block.  */
+ # define DEFAULT_DIRECTORY	"/grub"
+ #else
+-# define DEFAULT_DIRECTORY	"/boot/grub"
++# define DEFAULT_DIRECTORY	"/boot/grub2"
+ #endif
+ 
+ #define DEFAULT_DEVICE_MAP	DEFAULT_DIRECTORY "/device.map"

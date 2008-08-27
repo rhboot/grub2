@@ -1,0 +1,17 @@
+The configuration file can potentially contain sensitive data, ...
+well, passwords are not yet implemented.
+
+Lubomir Rintel <lkundrak@v3.sk>
+
+diff -urp grub2.orig/util/update-grub.in grub2/util/update-grub.in
+--- grub2.orig/util/update-grub.in	2008-08-07 21:58:17.000000000 +0200
++++ grub2/util/update-grub.in	2008-08-07 22:01:44.000000000 +0200
+@@ -170,7 +170,7 @@ exec > ${grub_cfg}.new
+ 
+ # Allow this to fail, since /boot/grub/ might need to be fatfs to support some
+ # firmware implementations (e.g. OFW or EFI).
+-chmod 444 ${grub_cfg}.new || true
++chmod 600 ${grub_cfg}.new || true
+ 
+ echo "Updating ${grub_cfg} ..." >&2
+ 

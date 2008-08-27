@@ -1,0 +1,52 @@
+http://lists.gnu.org/archive/html/grub-devel/2008-04/msg00079.html
+
+Self-explainable. Make update-grub ignore rpm leftover files and VIM
+swap files.
+
+2008-04-15  Lubomir Kundrak  <lkundrak@redhat.com>
+
+        * util/update-grub.in: replace the junk file switch with
+        unconditional call to grub_file_is_not_garbage
+        * util/update-grub_lib.in (grub_file_is_not_garbage): ignore
+        also rpm leftover files and editor backup files
+
+diff -urp grub-1.96.orig/util/update-grub.in grub-1.96/util/update-grub.in
+--- grub-1.96.orig/util/update-grub.in  2008-04-15 00:16:12.000000000 +0200
++++ grub-1.96/util/update-grub.in       2008-04-15 00:17:06.000000000 +0200
+@@ -145,18 +145,12 @@ cat << EOF
+ EOF
+ 
+ for i in ${update_grub_dir}/* ; do
+-  case "$i" in
+-    # emacsen backup files. FIXME: support other editors
+-    *~) ;;
+-    *)
+-      if grub_file_is_not_garbage "$i" && test -x "$i" ; then
+-        echo
+-        echo "### BEGIN $i ###"
+-        "$i"
+-        echo "### END $i ###"
+-      fi
+-    ;;
+-  esac
++  if grub_file_is_not_garbage "$i" && test -x "$i" ; then
++    echo
++    echo "### BEGIN $i ###"
++    "$i"
++    echo "### END $i ###"
++  fi
+ done
+ 
+ # none of the children aborted with error, install the new grub.cfg
+diff -urp grub-1.96.orig/util/update-grub_lib.in grub-1.96/util/update-grub_lib.in
+--- grub-1.96.orig/util/update-grub_lib.in      2008-04-15 00:16:12.000000000 +0200
++++ grub-1.96/util/update-grub_lib.in   2008-04-15 00:15:04.000000000 +0200
+@@ -115,6 +115,8 @@ grub_file_is_not_garbage ()
+   if test -f "$1" ; then
+     case "$1" in
+       *.dpkg-dist|*.dpkg-old|*.dpkg-tmp) return 1 ;; # debian dpkg
++      *.rpmnew|*.rpmsave) return 1 ;; # Fedora rpm
++      *.bak|*~|.*.swp) return 1 ;;    # backup and swap files from editors
+     esac
+   else
+     return 1

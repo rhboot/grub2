@@ -1,0 +1,30 @@
+2008-05-07:  Lubomir Rintel  <lkundrak@fedoraproject.org>
+
+        * kern/dl.c (grub_dl_resolve_symbols): Let the
+        grub_gdb_trapvec symbol be resolved correctly (instead of 0).
+
+--- grub2/kern/dl.c	2008-01-26 21:34:58.000000000 +0100
++++ grub2-gdb/kern/dl.c	2008-05-07 09:27:08.000000000 +0200
+@@ -352,16 +352,18 @@ grub_dl_resolve_symbols (grub_dl_t mod, 
+ 	{
+ 	case STT_NOTYPE:
+ 	  /* Resolve a global symbol.  */
+-	  if (sym->st_name != 0 && sym->st_shndx == 0)
++	  if (sym->st_name == 0)
++	    break;
++
++	  if (sym->st_shndx == 0) /* external */
+ 	    {
+ 	      sym->st_value = (Elf_Addr) grub_dl_resolve_symbol (name);
+ 	      if (! sym->st_value)
+ 		return grub_error (GRUB_ERR_BAD_MODULE,
+ 				   "the symbol `%s' not found", name);
+-	    }
+-	  else
+-	    sym->st_value = 0;
+ 	  break;
++	    }
++	  /* nonexternal, same as STT_OBJECT */
+ 
+ 	case STT_OBJECT:
+ 	  sym->st_value += (Elf_Addr) grub_dl_get_section_addr (mod,

@@ -1,0 +1,36 @@
+Until we're able to decide which kernel to make default (e.g with grubby),
+pick the most recent one.
+
+Lubomir Rintel <lkundrak@v3.sk>
+
+Index: util/grub.d/10_linux.in
+===================================================================
+--- util/grub.d/10_linux.in	(revision 1797)
++++ util/grub.d/10_linux.in	(working copy)
+@@ -82,23 +82,9 @@
+   return $?
+ }
+ 
+-find_latest ()
+-{
+-  local a=""
+-  for i in $@ ; do
+-    if test_gt "$i" "$a" ; then
+-      a="$i"
+-    fi
+-  done
+-  echo "$a"
+-}
+-
+-list=`for i in /boot/vmlinu[xz]-* /vmlinu[xz]-* ; do
+-        if grub_file_is_not_garbage "$i" ; then echo -n "$i " ; fi
+-      done`
+-
+-while [ "x$list" != "x" ] ; do
+-  linux=`find_latest $list`
++ls -c /boot/vmlinu[xz]-* /vmlinu[xz]-* 2>/dev/null |while read linux
++do
++  grub_file_is_not_garbage "$linux" || continue
+   echo "Found linux image: $linux" >&2
+   basename=`basename $linux`
+   dirname=`dirname $linux`

@@ -1,0 +1,22 @@
+We're not GNU/Linux. Tell them.
+
+Lubomir Rintel <lkundrak@v3.sk>
+
+diff -urp grub2.orig/util/grub.d/10_linux.in grub2/util/grub.d/10_linux.in
+--- grub2.orig/util/grub.d/10_linux.in	2008-08-08 07:12:30.000000000 +0200
++++ grub2/util/grub.d/10_linux.in	2008-08-08 07:12:53.000000000 +0200
+@@ -23,11 +23,9 @@ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+ . ${libdir}/`echo grub | sed ${transform}`/update-grub_lib
+ 
+-if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
+-  OS=GNU/Linux
+-else
+-  OS="${GRUB_DISTRIBUTOR} GNU/Linux"
+-fi
++OS=$(sed 's/ release.*//' /etc/redhat-release)
++[ -z "$OS" ] && OS=$(uname -o)
++[ -z "$OS" ] && OS=Linux
+ 
+ # loop-AES arranges things so that /dev/loop/X can be our root device, but
+ # the initrds that Linux uses don't like that.
