@@ -4,11 +4,11 @@ configuration.
 
 Lubomir Rintel <lkundrak@v3.sk>
 
-diff -Nurp grub2.orig/conf/common.rmk grub2/conf/common.rmk
---- grub2.orig/conf/common.rmk	2008-08-07 21:37:16.000000000 +0200
-+++ grub2/conf/common.rmk	2008-08-08 07:14:01.000000000 +0200
-@@ -123,6 +123,12 @@ CLEANFILES += update-grub_lib
- update-grub_SCRIPTS = 00_header 10_linux 10_hurd 10_windows 30_os-prober 40_custom
+diff -up grub2/conf/common.rmk.persistent grub2/conf/common.rmk
+--- grub2/conf/common.rmk.persistent	2008-08-27 10:49:16.000000000 +0200
++++ grub2/conf/common.rmk	2008-08-27 13:51:33.000000000 +0200
+@@ -138,6 +138,12 @@ endif
+ 
  CLEANFILES += $(update-grub_SCRIPTS)
  
 +90_persistent: util/grub.d/90_persistent.in config.status
@@ -20,9 +20,9 @@ diff -Nurp grub2.orig/conf/common.rmk grub2/conf/common.rmk
  update-grub_DATA += util/grub.d/README
  
  
-diff -Nurp grub2.orig/util/grub.d/90_persistent.in grub2/util/grub.d/90_persistent.in
---- grub2.orig/util/grub.d/90_persistent.in	1970-01-01 01:00:00.000000000 +0100
-+++ grub2/util/grub.d/90_persistent.in	2008-08-08 07:14:01.000000000 +0200
+diff -up /dev/null grub2/util/grub.d/90_persistent.in
+--- /dev/null	2008-08-24 16:09:23.777049452 +0200
++++ grub2/util/grub.d/90_persistent.in	2008-08-27 13:51:33.000000000 +0200
 @@ -0,0 +1,37 @@
 +#! /bin/sh -e
 +
@@ -61,9 +61,9 @@ diff -Nurp grub2.orig/util/grub.d/90_persistent.in grub2/util/grub.d/90_persiste
 +	/### END $ME ###/ {echo = 0; next}
 +	{if (echo) print}
 +" ${GRUBCFG}
-diff -Nurp grub2.orig/util/update-grub.in grub2/util/update-grub.in
---- grub2.orig/util/update-grub.in	2008-08-08 07:13:41.000000000 +0200
-+++ grub2/util/update-grub.in	2008-08-08 07:14:01.000000000 +0200
+diff -up grub2/util/update-grub.in.persistent grub2/util/update-grub.in
+--- grub2/util/update-grub.in.persistent	2008-08-27 13:51:33.000000000 +0200
++++ grub2/util/update-grub.in	2008-08-27 13:51:33.000000000 +0200
 @@ -176,11 +176,12 @@ echo "Updating ${grub_cfg} ..." >&2
  
  cat << EOF

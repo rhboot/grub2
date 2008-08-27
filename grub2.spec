@@ -98,7 +98,7 @@ file that is part of this package's documentation for more information.
 %patch5 -p1 -b .os
 %patch6 -p1 -b .cfgmode
 %patch7 -p1 -b .garbage
-%patch8 -F2 -p1 -b .persistent
+%patch8 -p1 -b .persistent
 %patch9 -p0 -b .linuxsort
 %patch10 -p1 -b .dlsym
 %patch13 -p1 -b .preserve-symbols
