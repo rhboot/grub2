@@ -21,7 +21,6 @@ grub2-editenv
 grub2-mkimage
 grub2-mkelfimage
 grub2-mkrescue
-grub2-pe2elf
 grub2-emu
 grub2-install
 grub2-mkdevicemap

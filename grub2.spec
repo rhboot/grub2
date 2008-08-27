@@ -212,7 +212,6 @@ update-%{name}
 %{_bindir}/%{name}-mkelfimage
 %{_bindir}/%{name}-mkrescue
 %{_bindir}/%{name}-editenv
-%{_bindir}/%{name}-pe2elf
 %dir %{_sysconfdir}/grub.d
 %config %{_sysconfdir}/grub.d/??_*
 %{_sysconfdir}/grub.d/README
