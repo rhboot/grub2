@@ -38,18 +38,19 @@
 
 Name:           grub2
 Version:        1.98
-Release:        0.2.20080807svn%{?dist}
+Release:        0.3.20080827svn%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
 License:        GPLv3+
 URL:            http://www.gnu.org/software/grub/
 #Source0:        http://alpha.gnu.org/pub/gnu/grub/grub-%{version}.tar.gz
-# svn -r1797 co svn://svn.sv.gnu.org/grub/trunk/grub2
+# svn -r1829 co svn://svn.sv.gnu.org/grub/trunk/grub2
 # tar czf grub2.tar.gz --exclude .svn grub2
 Source0:        grub2.tar.gz
 Source1:        90_persistent
 Source2:        grub.default
+Source3:        README.Fedora
 Patch1:         grub-1.98-prototypes.patch
 Patch2:         grub-1.98-transform.patch
 Patch4:         grub-1.95-grubdir.patch
@@ -81,6 +82,12 @@ a highly configurable and customizable bootloader with modular
 architecture.  It support rich scale of kernel formats, file systems,
 computer architectures and hardware devices.
 
+PLEASE NOTE: This is a development snapshot, and as such will not
+replace grub if you install it, but will be merely added as another
+kernel to your existing GRUB menu. Do not replace GRUB (grub package)
+with it unless you know what are you doing. Refer to README.Fedora
+file that is part of this package's documentation for more information.
+
 
 %prep
 %setup -q -n grub2
@@ -91,10 +98,13 @@ computer architectures and hardware devices.
 %patch5 -p1 -b .os
 %patch6 -p1 -b .cfgmode
 %patch7 -p1 -b .garbage
-%patch8 -p1 -b .persistent
+%patch8 -F2 -p1 -b .persistent
 %patch9 -p0 -b .linuxsort
 %patch10 -p1 -b .dlsym
 %patch13 -p1 -b .preserve-symbols
+
+# README.Fedora
+cp %{SOURCE3} .
 
 
 %build
@@ -199,6 +209,7 @@ update-%{name}
 %{_sbindir}/%{name}-setup
 %{_sbindir}/update-%{name}
 %{_bindir}/%{name}-mkimage
+%{_bindir}/%{name}-mkelfimage
 %{_bindir}/%{name}-mkrescue
 %{_bindir}/%{name}-editenv
 %{_bindir}/%{name}-pe2elf
@@ -211,11 +222,15 @@ update-%{name}
 # Actually, this is replaced by update-grub from scriptlets,
 # but it takes care of modified persistent part
 %config(noreplace) /boot/%{name}/grub.cfg
-%doc COPYING INSTALL NEWS README THANKS TODO ChangeLog
+%doc COPYING INSTALL NEWS README THANKS TODO ChangeLog README.Fedora
 %exclude %{_mandir}
 
 
 %changelog
+* Wed Aug 27 2008 Lubomir Rintel <lkundrak@v3.sk> - 1.98-0.3.20080827svn
+- Updated SVN snapshot
+- Added huge fat warnings
+
 * Fri Aug 08 2008 Lubomir Rintel <lkundrak@v3.sk> - 1.98-0.2.20080807svn
 - Correct scriptlet dependencies, trigger on kernel-PAE (thanks to Till Maas)
 - Fix build on x86_64 (thanks to Marek Mahut)

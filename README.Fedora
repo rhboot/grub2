@@ -1,0 +1,56 @@
+Using GNU GRUB 2 in Fedora
+==========================
+
+Though GRUB 2 provides various feature enhancements over previous GRUB
+version (referred to as "GRUB", or "GRUB Legacy"), it did not reach its
+stability and feature completness yet, and thus is not ready to replace
+it for the whole user base. This package is primarily intended to
+encourage testing and accelerate distribution integration.
+
+It is generally safe to install the package. It is able to co-exist with
+existing GRUB installation and adds itself to the GRUB menu upon
+installation, so you'll able to select GRUB 2 from GRUB menu during
+the boot.
+
+Utilities
+---------
+
+The GRUB 2 utilities are prefixed (or postfixed) with 'grub2':
+
+grub2-editenv
+grub2-mkimage
+grub2-mkelfimage
+grub2-mkrescue
+grub2-pe2elf
+grub2-emu
+grub2-install
+grub2-mkdevicemap
+grub2-probe
+grub2-setup
+update-grub2
+
+Documentation
+-------------
+
+The GRUB 2 lacks documentation. While you are encouraged to contribute
+the documentation, you can use the GRUB 2 Wiki [1] as primary source of
+information pertaining to this development snapshot.
+
+[1] http://grub.enbug.org/
+
+If you intend to install grub2 as your primary boot loader refer to
+the GRUB 2 Wiki for information on how to set it up.
+
+Support channels
+----------------
+
+If you find a bug in this package, report them to the Red Hat Bugzilla [2].
+For talk about using grub2, use IRC channel #grub on freenode Network [3].
+You can meet this package maintainer there (nick lkundrak).
+
+[2] http://bugzilla.redhat.com/
+[3] http://freenode.net/
+
+--
+Lubomir Rintel <lkundrak@v3.sk>
+Fedora Project
