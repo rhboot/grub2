@@ -38,7 +38,7 @@
 
 Name:           grub2
 Version:        1.98
-Release:        0.4.20080827svn%{?dist}
+Release:        0.5.20080827svn%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -67,7 +67,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  flex bison ruby binutils
 BuildRequires:  ncurses-devel lzo-devel
-BuildRequires:  /usr/lib/crt1.o
+BuildRequires:  /usr/lib/crt1.o glibc-static
 
 # grubby
 Requires(pre):  mkinitrd
@@ -226,6 +226,9 @@ update-%{name}
 
 
 %changelog
+* Sun Mar 01 2009 Lubomir Rintel <lkundrak@v3.sk> - 1.98-0.4.20080827svn
+- Add missing BR
+
 * Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.98-0.4.20080827svn
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
