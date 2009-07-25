@@ -38,7 +38,7 @@
 
 Name:           grub2
 Version:        1.98
-Release:        0.5.20080827svn%{?dist}
+Release:        0.6.20080827svn%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -226,6 +226,9 @@ update-%{name}
 
 
 %changelog
+* Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.98-0.6.20080827svn
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
 * Sun Mar 01 2009 Lubomir Rintel <lkundrak@v3.sk> - 1.98-0.4.20080827svn
 - Add missing BR
 
