@@ -12,17 +12,15 @@
 %endif
 
 Name:           grub2
-Version:        1.98
-Release:        0.6.20090911svn%{?dist}
+Epoch:          1
+Version:        1.97.1
+Release:        1%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
 License:        GPLv3+
 URL:            http://www.gnu.org/software/grub/
-#Source0:        http://alpha.gnu.org/pub/gnu/grub/grub-%{version}.tar.gz
-# svn -r2587 co svn://svn.sv.gnu.org/grub/trunk/grub2
-# tar czf grub2.tar.gz --exclude .svn grub2
-Source0:        grub2.tar.gz
+Source0:        ftp://alpha.gnu.org/gnu/grub/grub-%{version}.tar.gz
 Source1:        90_persistent
 Source2:        grub.default
 Source3:        README.Fedora
@@ -62,7 +60,7 @@ file that is part of this package's documentation for more information.
 
 
 %prep
-%setup -q -n grub2
+%setup -q -n grub-%{version}
 
 %patch0 -p1 -b .grubdir
 %patch1 -p1 -b .dlsym
@@ -201,6 +199,10 @@ exec >/dev/null 2>&1
 
 
 %changelog
+* Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-1
+- update to 1.97.1 release
+- introduce epoch for upgrades
+
 * Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1.98-0.7.20090911svn
 - fix BR
 
