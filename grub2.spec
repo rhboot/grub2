@@ -33,7 +33,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  flex bison ruby binutils
 BuildRequires:  ncurses-devel lzo-devel
-BuildRequires:  freetype2-devel libusb-devel
+BuildRequires:  freetype-devel libusb-devel
 %ifarch %{sparc}
 BuildRequires:  /usr/lib64/crt1.o glibc-static
 %else
@@ -201,7 +201,10 @@ exec >/dev/null 2>&1
 
 
 %changelog
-* Fri Sep 11 2009 Dennis Gilmore <dennis@ausil.us - 1.9-0.6.20090911svn
+* Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1.98-0.7.20090911svn
+- fix BR
+
+* Fri Sep 11 2009 Dennis Gilmore <dennis@ausil.us> - 1.98-0.6.20090911svn
 - update to new svn snapshot
 - add sparc support
 
