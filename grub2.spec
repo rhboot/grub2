@@ -14,7 +14,7 @@
 Name:           grub2
 Epoch:          1
 Version:        1.97.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -40,10 +40,10 @@ BuildRequires:  /usr/lib/crt1.o glibc-static
 BuildRequires:  autoconf automake
 
 # grubby
-Requires(pre):  mkinitrd
-Requires(post): mkinitrd
+Requires(pre):  mkinitrd dracut
+Requires(post): mkinitrd dracut
 
-# TODO: ppc and sparc
+# TODO: ppc
 ExclusiveArch:  %{ix86} x86_64 %{sparc}
 
 %description
@@ -181,7 +181,12 @@ exec >/dev/null 2>&1
 %{_bindir}/%{name}-editenv
 %{_bindir}/%{name}-fstest
 %{_bindir}/%{name}-mkfont
+%ifnarch %{sparc}
 %{_bindir}/%{name}-mkrescue
+%endif
+%ifarch %{sparc}
+%{_sbindir}/%{name}-ofpathname
+%endif
 %dir %{_sysconfdir}/grub.d
 %config %{_sysconfdir}/grub.d/??_*
 %{_sysconfdir}/grub.d/README
@@ -197,6 +202,11 @@ exec >/dev/null 2>&1
 
 
 %changelog
+* Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-3
+- no mkrescue on sparc arches
+- ofpathname on sparc arches
+- Requires dracut, not sure if we should just drop mkinitrd for dracut
+
 * Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-2
 - update filelists
 
