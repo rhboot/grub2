@@ -14,7 +14,7 @@
 Name:           grub2
 Epoch:          1
 Version:        1.97.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -175,13 +175,13 @@ exec >/dev/null 2>&1
 %{_sbindir}/%{name}-emu
 %{_sbindir}/%{name}-probe
 %{_sbindir}/%{name}-setup
-%{_sbindir}/%{name}-dumpbios
 %{_sbindir}/%{name}-mkconfig
-%{_sbindir}/%{name}-ofpathname
 %{_bindir}/%{name}-mkimage
 %{_bindir}/%{name}-mkelfimage
 %{_bindir}/%{name}-editenv
-%{_bindir}/%{name}-fstest                     
+%{_bindir}/%{name}-fstest
+%{_bindir}/%{name}-mkfont
+%{_bindir}/%{name}-mkrescue
 %dir %{_sysconfdir}/grub.d
 %config %{_sysconfdir}/grub.d/??_*
 %{_sysconfdir}/grub.d/README
@@ -194,11 +194,12 @@ exec >/dev/null 2>&1
 %doc COPYING INSTALL NEWS README THANKS TODO ChangeLog README.Fedora
 %exclude %{_mandir}
 
-%{_includedir}/grub/
-%{_includedir}/multiboot*.h
 
 
 %changelog
+* Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-2
+- update filelists
+
 * Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-1
 - update to 1.97.1 release
 - introduce epoch for upgrades
