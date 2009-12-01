@@ -1,0 +1,13 @@
+diff -uNr grub-1.97.1-orig/util/grub.d/10_linux.in grub-1.97.1/util/grub.d/10_linux.in
+--- grub-1.97.1-orig/util/grub.d/10_linux.in	2009-11-09 09:48:16.000000000 -0600
++++ grub-1.97.1/util/grub.d/10_linux.in	2009-12-01 15:28:16.000000000 -0600
+@@ -78,7 +78,8 @@
+   initrd=
+   for i in "initrd.img-${version}" "initrd-${version}.img" \
+ 	   "initrd-${version}" "initrd.img-${alt_version}" \
+-	   "initrd-${alt_version}.img" "initrd-${alt_version}"; do
++	   "initrd-${alt_version}.img" "initrd-${alt_version}" \
++           "initramfs-${version}.img" ; do
+     if test -e "${dirname}/${i}" ; then
+       initrd="$i"
+       break

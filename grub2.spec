@@ -14,7 +14,7 @@
 Name:           grub2
 Epoch:          1
 Version:        1.97.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -25,7 +25,8 @@ Source1:        90_persistent
 Source2:        grub.default
 Source3:        README.Fedora
 Patch0:         grub-1.95-grubdir.patch
-Patch1:        http://fedorapeople.org/~lkundrak/grub2/grub2-dlsym-v4.patch
+Patch1:         http://fedorapeople.org/~lkundrak/grub2/grub2-dlsym-v4.patch
+Patch2:         grub-1.97.1-initramfs.patch
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -64,6 +65,7 @@ file that is part of this package's documentation for more information.
 
 %patch0 -p1 -b .grubdir
 %patch1 -p1 -b .dlsym
+%patch2 -p1 -b .initramfs
 
 # README.Fedora
 cp %{SOURCE3} .
@@ -202,6 +204,9 @@ exec >/dev/null 2>&1
 
 
 %changelog
+* Tue Dec 01 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-4
+- add patch so that grub2 finds fedora's initramfs
+
 * Tue Nov 10 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-3
 - no mkrescue on sparc arches
 - ofpathname on sparc arches
