@@ -14,7 +14,7 @@
 Name:           grub2
 Epoch:          1
 Version:        1.97.1
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -41,8 +41,8 @@ BuildRequires:  /usr/lib/crt1.o glibc-static
 BuildRequires:  autoconf automake
 
 # grubby
-Requires(pre):  mkinitrd dracut
-Requires(post): mkinitrd dracut
+Requires(pre):  dracut
+Requires(post): dracut
 
 # TODO: ppc
 ExclusiveArch:  %{ix86} x86_64 %{sparc}
@@ -204,6 +204,9 @@ exec >/dev/null 2>&1
 
 
 %changelog
+* Wed Jan 20 2010 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-5
+- drop requires on mkinitrd
+
 * Tue Dec 01 2009 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-4
 - add patch so that grub2 finds fedora's initramfs
 
