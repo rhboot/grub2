@@ -13,8 +13,8 @@
 
 Name:           grub2
 Epoch:          1
-Version:        1.97.1
-Release:        5%{?dist}
+Version:        1.97.2
+Release:        1%{?dist}
 Summary:        Bootloader with support for Linux, Multiboot and more
 
 Group:          System Environment/Base
@@ -204,6 +204,9 @@ exec >/dev/null 2>&1
 
 
 %changelog
+* Fri Feb 12 2010 Dennis Gilmore <dennis@ausil.us> - 1:1.97.2-1
+- update to 1.97.2
+
 * Wed Jan 20 2010 Dennis Gilmore <dennis@ausil.us> - 1:1.97.1-5
 - drop requires on mkinitrd
 
