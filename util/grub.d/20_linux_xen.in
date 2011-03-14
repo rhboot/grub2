@@ -29,9 +29,9 @@ export TEXTDOMAINDIR="@localedir@"
 CLASS="--class gnu-linux --class gnu --class os --class xen"
 
 if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
-  OS=GNU/Linux
+  OS="$(sed 's, release .*$,,g' /etc/system-release)"
 else
-  OS="${GRUB_DISTRIBUTOR} GNU/Linux"
+  OS="${GRUB_DISTRIBUTOR}"
   CLASS="--class $(echo ${GRUB_DISTRIBUTOR} | tr 'A-Z' 'a-z' | cut -d' ' -f1|LC_ALL=C sed 's,[^[:alnum:]_],_,g') ${CLASS}"
 fi
 

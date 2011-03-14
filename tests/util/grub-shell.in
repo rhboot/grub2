@@ -243,7 +243,7 @@ for option in "$@"; do
 	usage
 	exit 0 ;;
     -v | --version)
-	echo "$0 (GNU GRUB ${PACKAGE_VERSION})"
+	echo "$0 (GRUB ${PACKAGE_VERSION})"
 	exit 0 ;;
     --trim)
 	trim=1 ;;
