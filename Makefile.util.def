@@ -488,6 +488,13 @@ script = {
 };
 
 script = {
+  name = '20_ppc_terminfo';
+  common = util/grub.d/20_ppc_terminfo.in;
+  installdir = grubconf;
+  condition = COND_HOST_LINUX;
+};
+
+script = {
   name = '30_os-prober';
   common = util/grub.d/30_os-prober.in;
   installdir = grubconf;
