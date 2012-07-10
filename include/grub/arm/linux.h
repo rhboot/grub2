@@ -20,6 +20,7 @@
 #ifndef GRUB_ARM_LINUX_HEADER
 #define GRUB_ARM_LINUX_HEADER 1
 
+#include <grub/efi/pe32.h>
 #include "system.h"
 
 #define GRUB_LINUX_ARM_MAGIC_SIGNATURE 0x016f2818
@@ -34,9 +35,17 @@ struct linux_arm_kernel_header {
   grub_uint32_t hdr_offset;
 };
 
+struct grub_arm_linux_pe_header
+{
+  grub_uint32_t magic;
+  struct grub_pe32_coff_header coff;
+  struct grub_pe32_optional_header opt;
+};
+
 #if defined(__arm__)
 # define GRUB_LINUX_ARMXX_MAGIC_SIGNATURE GRUB_LINUX_ARM_MAGIC_SIGNATURE
 # define linux_arch_kernel_header linux_arm_kernel_header
+# define grub_armxx_linux_pe_header grub_arm_linux_pe_header
 #endif
 
 #if defined GRUB_MACHINE_UBOOT

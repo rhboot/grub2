@@ -266,7 +266,6 @@ xen_boot (void)
     return err;
 
   return grub_arch_efi_linux_boot_image (xen_hypervisor->start,
-					  xen_hypervisor->size,
 					  xen_hypervisor->cmdline);
 }
 
