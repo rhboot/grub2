@@ -20,6 +20,7 @@
 #define GRUB_ARM64_LINUX_HEADER 1
 
 #include <grub/efi/efi.h>
+#include <grub/efi/pe32.h>
 
 #define GRUB_LINUX_ARM64_MAGIC_SIGNATURE 0x644d5241 /* 'ARM\x64' */
 
@@ -41,5 +42,11 @@ struct linux_arm64_kernel_header
 grub_err_t grub_arm64_uefi_check_image (struct linux_arm64_kernel_header *lh);
 grub_err_t grub_arm64_uefi_boot_image (grub_addr_t addr, grub_size_t size,
                                        char *args);
+struct grub_arm64_linux_pe_header
+{
+  grub_uint32_t magic;
+  struct grub_pe32_coff_header coff;
+  struct grub_pe64_optional_header opt;
+};
 
 #endif /* ! GRUB_ARM64_LINUX_HEADER */
