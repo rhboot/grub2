@@ -1626,13 +1626,6 @@ module = {
   enable = i386_pc;
 };
 
-
-module = {
-  name = linux16;
-  common = loader/i386/pc/linux.c;
-  enable = x86;
-};
-
 module = {
   name = ntldr;
   i386_pc = loader/i386/pc/ntldr.c;
@@ -1685,7 +1678,9 @@ module = {
 
 module = {
   name = linux;
-  x86 = loader/i386/linux.c;
+  i386_pc = loader/i386/pc/linux.c;
+  x86_64_efi = loader/i386/efi/linux.c;
+  i386_efi = loader/i386/efi/linux.c;
   xen = loader/i386/xen.c;
   i386_pc = lib/i386/pc/vesa_modes_table.c;
   mips = loader/mips/linux.c;
@@ -1696,9 +1691,14 @@ module = {
   arm_efi = loader/arm64/linux.c;
   arm_uboot = loader/arm/linux.c;
   arm64 = loader/arm64/linux.c;
+  emu = loader/emu/linux.c;
+  fdt = lib/fdt.c;
+
   common = loader/linux.c;
   common = lib/cmdline.c;
   enable = noemu;
+
+  efi = loader/efi/linux.c;
 };
 
 module = {
