@@ -750,6 +750,16 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
   if (! ldp)
     return 0;
 
+  if (GRUB_EFI_DEVICE_PATH_TYPE (ldp) == GRUB_EFI_MEDIA_DEVICE_PATH_TYPE &&
+      (GRUB_EFI_DEVICE_PATH_SUBTYPE (ldp) == GRUB_EFI_CDROM_DEVICE_PATH_SUBTYPE))
+    {
+      ldp->type = GRUB_EFI_END_DEVICE_PATH_TYPE;
+      ldp->subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
+      ldp->length[0] = 4;
+      ldp->length[1] = 0;
+      ldp = find_last_device_path(dp);
+    }
+
   if (GRUB_EFI_DEVICE_PATH_TYPE (ldp) == GRUB_EFI_MEDIA_DEVICE_PATH_TYPE
       && (GRUB_EFI_DEVICE_PATH_SUBTYPE (ldp)
 	  == GRUB_EFI_HARD_DRIVE_DEVICE_PATH_SUBTYPE))
