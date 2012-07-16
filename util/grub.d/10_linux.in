@@ -139,9 +139,16 @@ linux_entry ()
     printf '%s\n' "${prepare_boot_cache}" | sed "s/^/$submenu_indentation/"
   fi
   message="$(gettext_printf "Loading Linux %s ..." ${version})"
+  if [ -d /sys/firmware/efi ]; then
+    linuxcmd=linuxefi
+    initrdcmd=initrdefi
+  else
+    linuxcmd=linux
+    initrdcmd=initrd
+  fi
   sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
-	linux	${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
+	${linuxcmd}	${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
 EOF
   if test -n "${initrd}" ; then
     # TRANSLATORS: ramdisk isn't identifier. Should be translated.
@@ -152,7 +159,7 @@ EOF
     done
     sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
-	initrd	$(echo $initrd_path)
+	${initrdcmd}	$(echo $initrd_path)
 EOF
   fi
   sed "s/^/$submenu_indentation/" << EOF
