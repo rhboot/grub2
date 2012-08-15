@@ -546,6 +546,9 @@ grub_efidisk_read (struct grub_disk *disk, grub_disk_addr_t sector,
   struct grub_efidisk_data *d;
   grub_efi_block_io_t *bio;
   grub_efi_status_t status;
+  grub_size_t remaining = size;
+  grub_size_t read = 0;
+  grub_size_t chunk = 0x500;
 
   d = disk->data;
   bio = d->block_io;
@@ -554,14 +557,29 @@ grub_efidisk_read (struct grub_disk *disk, grub_disk_addr_t sector,
 		"reading 0x%lx sectors at the sector 0x%llx from %s\n",
 		(unsigned long) size, (unsigned long long) sector, disk->name);
 
+  while (remaining > chunk) {
+    status = efi_call_5 (bio->read_blocks, bio, bio->media->media_id,
+			 (grub_efi_uint64_t) sector + read,
+			 (grub_efi_uintn_t) chunk << disk->log_sector_size,
+			 buf + (read << disk->log_sector_size));
+    if (status != GRUB_EFI_SUCCESS)
+      return grub_error (GRUB_ERR_READ_ERROR,
+			 N_("failure reading sector 0x%llx from `%s'"),
+			 (unsigned long long) sector + read,
+			 disk->name);
+    read += chunk;
+    remaining -= chunk;
+  }
+
   status = efi_call_5 (bio->read_blocks, bio, bio->media->media_id,
-		       (grub_efi_uint64_t) sector,
-		       (grub_efi_uintn_t) size << disk->log_sector_size,
-		       buf);
+		       (grub_efi_uint64_t) sector + read,
+		       (grub_efi_uintn_t) remaining << disk->log_sector_size,
+		       buf + (read << disk->log_sector_size));
+
   if (status != GRUB_EFI_SUCCESS)
     return grub_error (GRUB_ERR_READ_ERROR,
 		       N_("failure reading sector 0x%llx from `%s'"),
-		       (unsigned long long) sector,
+		       (unsigned long long) sector + read,
 		       disk->name);
 
   return GRUB_ERR_NONE;
