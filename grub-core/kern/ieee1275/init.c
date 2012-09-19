@@ -82,7 +82,7 @@ void (*grub_ieee1275_net_config) (const char *dev,
 void
 grub_machine_get_bootlocation (char **device, char **path)
 {
-  char bootpath[64]; /* XXX check length */
+  char bootpath[256]; /* Max device path length */
   char *filename;
   char *type;
    
