@@ -588,3 +588,66 @@ grub_ieee1275_get_boot_dev (void)
 
   return bootpath;
 }
+
+/* Check if it's a CAS reboot. If so, set the script to be executed.  */
+int
+grub_ieee1275_cas_reboot (char *script)
+{
+  grub_uint32_t ibm_ca_support_reboot;
+  grub_uint32_t ibm_fw_nbr_reboots;
+  char property_value[10];
+  grub_ssize_t actual;
+  grub_ieee1275_ihandle_t options;
+
+  if (grub_ieee1275_finddevice ("/options", &options) < 0)
+    return -1;
+
+  /* Check two properties, one is enough to get cas reboot value */
+  ibm_ca_support_reboot = 0;
+  if (grub_ieee1275_get_integer_property (grub_ieee1275_chosen,
+                                          "ibm,client-architecture-support-reboot",
+                                          &ibm_ca_support_reboot,
+                                          sizeof (ibm_ca_support_reboot),
+                                          &actual) >= 0)
+    grub_dprintf("ieee1275", "ibm,client-architecture-support-reboot: %u\n",
+                 ibm_ca_support_reboot);
+
+  ibm_fw_nbr_reboots = 0;
+  if (grub_ieee1275_get_property (options, "ibm,fw-nbr-reboots",
+                                  property_value, sizeof (property_value),
+                                  &actual) >= 0)
+    {
+      property_value[sizeof (property_value) - 1] = 0;
+      ibm_fw_nbr_reboots = (grub_uint8_t) grub_strtoul (property_value, 0, 10);
+      grub_dprintf("ieee1275", "ibm,fw-nbr-reboots: %u\n", ibm_fw_nbr_reboots);
+    }
+
+  if (ibm_ca_support_reboot || ibm_fw_nbr_reboots)
+    {
+      if (! grub_ieee1275_get_property_length (options, "boot-last-label", &actual))
+        {
+          if (actual > 1024)
+            script = grub_realloc (script, actual + 1);
+          grub_ieee1275_get_property (options, "boot-last-label", script, actual,
+                                      &actual);
+          return 0;
+        }
+    }
+
+  grub_ieee1275_set_boot_last_label ("");
+
+  return -1;
+}
+
+int grub_ieee1275_set_boot_last_label (const char *text)
+{
+  grub_ieee1275_ihandle_t options;
+  grub_ssize_t actual;
+
+  grub_dprintf("ieee1275", "set boot_last_label (size: %u)\n", grub_strlen(text));
+  if (! grub_ieee1275_finddevice ("/options", &options) &&
+      options != (grub_ieee1275_ihandle_t) -1)
+    grub_ieee1275_set_property (options, "boot-last-label", text,
+                                grub_strlen (text), &actual);
+  return 0;
+}
