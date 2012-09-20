@@ -252,6 +252,8 @@ int EXPORT_FUNC(grub_ieee1275_devalias_next) (struct grub_ieee1275_devalias *ali
 void EXPORT_FUNC(grub_ieee1275_children_peer) (struct grub_ieee1275_devalias *alias);
 void EXPORT_FUNC(grub_ieee1275_children_first) (const char *devpath,
 						struct grub_ieee1275_devalias *alias);
+int EXPORT_FUNC(grub_ieee1275_cas_reboot) (char *script);
+int EXPORT_FUNC(grub_ieee1275_set_boot_last_label) (const char *text);
 
 char *EXPORT_FUNC(grub_ieee1275_get_boot_dev) (void);
 
