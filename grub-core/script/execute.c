@@ -27,6 +27,9 @@
 #include <grub/normal.h>
 #include <grub/extcmd.h>
 #include <grub/i18n.h>
+#ifdef GRUB_MACHINE_IEEE1275
+#include <grub/ieee1275/ieee1275.h>
+#endif
 
 /* Max digits for a char is 3 (0xFF is 255), similarly for an int it
    is sizeof (int) * 3, and one extra for a possible -ve sign.  */
@@ -876,6 +879,10 @@ grub_script_execute_sourcecode (const char *source)
 {
   grub_err_t ret = 0;
   struct grub_script *parsed_script;
+
+#ifdef GRUB_MACHINE_IEEE1275
+  grub_ieee1275_set_boot_last_label (source);
+#endif
 
   while (source)
     {
