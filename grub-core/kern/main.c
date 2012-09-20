@@ -127,16 +127,15 @@ grub_set_prefix_and_root (void)
 
   grub_machine_get_bootlocation (&fwdevice, &fwpath);
 
-  if (fwdevice)
+  if (fwdevice && fwpath)
     {
-      char *cmdpath;
+      char *fw_path;
 
-      cmdpath = grub_xasprintf ("(%s)%s", fwdevice, fwpath ? : "");
-      if (cmdpath)
+      fw_path = grub_xasprintf ("(%s)/%s", fwdevice, fwpath);
+      if (fw_path)
 	{
-	  grub_env_set ("cmdpath", cmdpath);
-	  grub_env_export ("cmdpath");
-	  grub_free (cmdpath);
+	  grub_env_set ("fw_path", fw_path);
+	  grub_free (fw_path);
 	}
     }
 

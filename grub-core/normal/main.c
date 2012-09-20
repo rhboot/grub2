@@ -338,7 +338,30 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
       /* Guess the config filename. It is necessary to make CONFIG static,
 	 so that it won't get broken by longjmp.  */
       char *config;
-      const char *prefix;
+      const char *prefix, *fw_path;
+
+      fw_path = grub_env_get ("fw_path");
+      if (fw_path)
+	{
+	  config = grub_xasprintf ("%s/grub.cfg", fw_path);
+	  if (config)
+	    {
+	      grub_file_t file;
+
+	      file = grub_file_open (config);
+	      if (file)
+		{
+		  grub_file_close (file);
+		  grub_enter_normal_mode (config);
+		}
+              else
+                {
+                  /*  Ignore all errors.  */
+                  grub_errno = 0;
+                }
+	      grub_free (config);
+	    }
+	}
 
       prefix = grub_env_get ("prefix");
       if (prefix)
