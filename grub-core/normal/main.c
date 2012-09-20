@@ -32,6 +32,9 @@
 #include <grub/i18n.h>
 #include <grub/charset.h>
 #include <grub/script_sh.h>
+#ifdef GRUB_MACHINE_IEEE1275
+#include <grub/ieee1275/ieee1275.h>
+#endif
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -266,6 +269,22 @@ grub_normal_execute (const char *config, int nested, int batch)
   if (config)
     {
       menu = read_config_file (config);
+
+#ifdef GRUB_MACHINE_IEEE1275
+      int boot;
+      boot = 0;
+      char *script;
+      script = grub_malloc (1024);
+      if (! grub_ieee1275_cas_reboot (script))
+        {
+          char *dummy[1] = { NULL };
+          if (! grub_script_execute_sourcecode (script, 0, dummy))
+            boot = 1;
+        }
+      grub_free (script);
+      if (boot)
+        grub_command_execute ("boot", 0, 0);
+#endif
 
       /* Ignore any error.  */
       grub_errno = GRUB_ERR_NONE;
