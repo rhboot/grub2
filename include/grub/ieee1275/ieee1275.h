@@ -208,5 +208,7 @@ int EXPORT_FUNC(grub_ieee1275_devices_iterate) (int (*hook)
 char *EXPORT_FUNC(grub_ieee1275_get_aliasdevname) (const char *path);
 char *EXPORT_FUNC(grub_ieee1275_canonicalise_devname) (const char *path);
 char *EXPORT_FUNC(grub_ieee1275_get_device_type) (const char *path);
+int EXPORT_FUNC(grub_ieee1275_cas_reboot) (char *script);
+int EXPORT_FUNC(grub_ieee1275_set_boot_last_label) (const char *text);
 
 #endif /* ! GRUB_IEEE1275_HEADER */
