@@ -34,6 +34,14 @@ struct dns_cache_element
 #define DNS_CACHE_SIZE 1021
 #define DNS_HASH_BASE 423
 
+typedef enum grub_dns_qtype_id
+  {
+    GRUB_DNS_QTYPE_A = 1,
+    GRUB_DNS_QTYPE_AAAA = 28
+  } grub_dns_qtype_id_t;
+
+static grub_dns_option_t dns_type_option = DNS_OPTION_PREFER_IPV4;
+
 static struct dns_cache_element dns_cache[DNS_CACHE_SIZE];
 static struct grub_net_network_level_address *dns_servers;
 static grub_size_t dns_nservers, dns_servers_alloc;
@@ -410,13 +418,13 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
   return GRUB_ERR_NONE;
 }
 
-grub_err_t
-grub_net_dns_lookup (const char *name,
+static grub_err_t
+grub_net_dns_lookup_qtype (const char *name,
 		     const struct grub_net_network_level_address *servers,
 		     grub_size_t n_servers,
 		     grub_size_t *naddresses,
 		     struct grub_net_network_level_address **addresses,
-		     int cache)
+		     int cache, grub_dns_qtype_id_t qtype)
 {
   grub_size_t send_servers = 0;
   grub_size_t i, j;
@@ -471,8 +479,7 @@ grub_net_dns_lookup (const char *name,
 			   + GRUB_NET_MAX_LINK_HEADER_SIZE
 			   + GRUB_NET_UDP_HEADER_SIZE
 			   + sizeof (struct dns_header)
-			   + grub_strlen (name) + 2 + 4
-			   + 2 + 4);
+			   + grub_strlen (name) + 2 + 4);
   if (!nb)
     {
       grub_free (data.name);
@@ -482,7 +489,7 @@ grub_net_dns_lookup (const char *name,
 			+ GRUB_NET_MAX_LINK_HEADER_SIZE
 			+ GRUB_NET_UDP_HEADER_SIZE);
   grub_netbuff_put (nb, sizeof (struct dns_header)
-		    + grub_strlen (name) + 2 + 4 + 2 + 4);
+		    + grub_strlen (name) + 2 + 4);
   head = (struct dns_header *) nb->data;
   optr = (grub_uint8_t *) (head + 1);
   for (iptr = name; *iptr; )
@@ -509,18 +516,7 @@ grub_net_dns_lookup (const char *name,
 
   /* Type: A.  */
   *optr++ = 0;
-  *optr++ = 1;
-
-  /* Class.  */
-  *optr++ = 0;
-  *optr++ = 1;
-
-  /* Compressed name.  */
-  *optr++ = 0xc0;
-  *optr++ = 0x0c;
-  /* Type: AAAA.  */
-  *optr++ = 0;
-  *optr++ = 28;
+  *optr++ = qtype;
 
   /* Class.  */
   *optr++ = 0;
@@ -529,7 +525,7 @@ grub_net_dns_lookup (const char *name,
   head->id = data.id;
   head->flags = FLAGS_RD;
   head->ra_z_r_code = 0;
-  head->qdcount = grub_cpu_to_be16_compile_time (2);
+  head->qdcount = grub_cpu_to_be16_compile_time (1);
   head->ancount = grub_cpu_to_be16_compile_time (0);
   head->nscount = grub_cpu_to_be16_compile_time (0);
   head->arcount = grub_cpu_to_be16_compile_time (0);
@@ -587,16 +583,47 @@ grub_net_dns_lookup (const char *name,
   if (*data.naddresses)
     return GRUB_ERR_NONE;
   if (data.dns_err)
-    return grub_error (GRUB_ERR_NET_NO_DOMAIN,
-		       N_("no DNS record found"));
-    
+    {
+      grub_dprintf ("dns", "%s. QTYPE: %u QNAME: %s\n",
+                    N_("no DNS record found"), qtype, name);
+      return GRUB_ERR_NET_NO_DOMAIN;
+    }
   if (err)
     {
       grub_errno = err;
       return err;
     }
-  return grub_error (GRUB_ERR_TIMEOUT,
-		     N_("no DNS reply received"));
+  grub_dprintf ("dns", "%s. QTYPE: %u QNAME: %s\n",
+                N_("no DNS reply received"), qtype, name);
+  return GRUB_ERR_TIMEOUT;
+}
+
+grub_err_t
+grub_net_dns_lookup (const char *name,
+		     const struct grub_net_network_level_address *servers,
+		     grub_size_t n_servers,
+		     grub_size_t *naddresses,
+		     struct grub_net_network_level_address **addresses,
+		     int cache)
+{
+  if (dns_type_option == DNS_OPTION_IPV6 || dns_type_option == DNS_OPTION_PREFER_IPV6)
+      grub_net_dns_lookup_qtype (name, servers, n_servers, naddresses,
+                                 addresses, cache, GRUB_DNS_QTYPE_AAAA);
+  else
+      grub_net_dns_lookup_qtype (name, servers, n_servers, naddresses,
+                                 addresses, cache, GRUB_DNS_QTYPE_A);
+  if (!*naddresses)
+    {
+      if (dns_type_option == DNS_OPTION_PREFER_IPV4)
+          grub_net_dns_lookup_qtype (name, servers, n_servers, naddresses,
+                                     addresses, cache, GRUB_DNS_QTYPE_AAAA);
+      else if (dns_type_option == DNS_OPTION_PREFER_IPV6)
+          grub_net_dns_lookup_qtype (name, servers, n_servers, naddresses,
+                                     addresses, cache, GRUB_DNS_QTYPE_A);
+    }
+  if (!*naddresses)
+      return GRUB_ERR_NET_NO_DOMAIN;
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -604,22 +631,28 @@ grub_cmd_nslookup (struct grub_command *cmd __attribute__ ((unused)),
 		   int argc, char **args)
 {
   grub_err_t err;
-  grub_size_t naddresses, i;
+  struct grub_net_network_level_address cmd_server;
+  struct grub_net_network_level_address *servers;
+  grub_size_t nservers, i, naddresses = 0;
   struct grub_net_network_level_address *addresses = 0;
   if (argc != 2 && argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("two arguments expected"));
   if (argc == 2)
     {
-      struct grub_net_network_level_address server;
-      err = grub_net_resolve_address (args[1], &server);
+      err = grub_net_resolve_address (args[1], &cmd_server);
       if (err)
 	return err;
-      err = grub_net_dns_lookup (args[0], &server, 1, &naddresses,
-				 &addresses, 0);
+      servers = &cmd_server;
+      nservers = 1;
     }
   else
-    err = grub_net_dns_lookup (args[0], dns_servers, dns_nservers, &naddresses,
-			       &addresses, 0);
+    {
+      servers = dns_servers;
+      nservers = dns_nservers;
+    }
+
+  grub_net_dns_lookup (args[0], servers, nservers, &naddresses,
+                       &addresses, 0);
 
   for (i = 0; i < naddresses; i++)
     {
@@ -628,7 +661,9 @@ grub_cmd_nslookup (struct grub_command *cmd __attribute__ ((unused)),
       grub_printf ("%s\n", buf);
     }
   grub_free (addresses);
-  return GRUB_ERR_NONE;
+  if (naddresses)
+    return GRUB_ERR_NONE;
+  return grub_error (GRUB_ERR_NET_NO_DOMAIN, N_("no DNS record found"));
 }
 
 static grub_err_t
