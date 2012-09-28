@@ -506,6 +506,15 @@ grub_err_t
 grub_net_link_layer_resolve (struct grub_net_network_level_interface *inf,
 			     const grub_net_network_level_address_t *proto_addr,
 			     grub_net_link_level_address_t *hw_addr);
+
+typedef enum
+  {
+    DNS_OPTION_IPV4,
+    DNS_OPTION_IPV6,
+    DNS_OPTION_PREFER_IPV4,
+    DNS_OPTION_PREFER_IPV6
+  } grub_dns_option_t;
+
 grub_err_t
 grub_net_dns_lookup (const char *name,
 		     const struct grub_net_network_level_address *servers,
