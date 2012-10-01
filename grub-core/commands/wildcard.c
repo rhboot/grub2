@@ -462,6 +462,12 @@ check_file (const char *dir, const char *basename)
   return ctx.found;
 }
 
+static int
+is_hex(char c)
+{
+  return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
+}
+
 static void
 unescape (char *out, const char *in, const char *end)
 {
@@ -470,7 +476,15 @@ unescape (char *out, const char *in, const char *end)
 
   for (optr = out, iptr = in; iptr < end;)
     {
-      if (*iptr == '\\' && iptr + 1 < end)
+      if (*iptr == '\\' && iptr + 3 < end && iptr[1] == 'x' && is_hex(iptr[2]) && is_hex(iptr[3]))
+	{
+	  *optr++ = *iptr++;
+	  *optr++ = *iptr++;
+	  *optr++ = *iptr++;
+	  *optr++ = *iptr++;
+	  continue;
+	}
+      else if (*iptr == '\\' && iptr + 1 < end)
 	{
 	  *optr++ = iptr[1];
 	  iptr += 2;
