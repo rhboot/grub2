@@ -32,6 +32,7 @@
 #include <grub/env.h>
 #include <grub/cache.h>
 #include <grub/i18n.h>
+#include <grub/kernel.h>
 
 /* Platforms where modules are in a readonly area of memory.  */
 #if defined(GRUB_MACHINE_QEMU)
@@ -51,6 +52,7 @@
 #pragma GCC diagnostic ignored "-Wcast-align"
 
 grub_dl_t grub_dl_head = 0;
+char grub_use_stale_modules = 0;
 
 grub_err_t
 grub_dl_add (grub_dl_t mod);
@@ -663,6 +665,57 @@ grub_dl_load_core (void *addr, grub_size_t size)
   return mod;
 }
 
+/* Load a module from core using a symbolic name.  */
+grub_dl_t
+grub_dl_load_core_by_name (const char *name)
+{
+  struct grub_module_header *header;
+  grub_dl_t mod;
+  char *module_addr;
+
+  mod = (grub_dl_t) grub_zalloc (sizeof (*mod));
+  if (! mod)
+    return 0;
+
+  grub_use_stale_modules = 1;
+
+  FOR_MODULES (header)
+    {
+      /* Not an ELF module, skip.  */
+      if ((header->type != OBJ_TYPE_ELF) &&
+          (header->type != OBJ_TYPE_ELF_STALE))
+        continue;
+
+      module_addr = (char *) header + sizeof (struct grub_module_header);
+      grub_dl_resolve_name (mod, (Elf_Ehdr *) module_addr);
+
+      if (grub_strcmp(name, mod->name) == 0)
+        {
+          grub_printf ("WARNING: You are using the built-in '%s' module!\n", name);
+
+          mod = grub_dl_load_core ((char *) header + sizeof (struct grub_module_header),
+                                   (header->size - sizeof (struct grub_module_header)));
+
+          break;
+        }
+      else
+        mod = 0;
+    }
+
+  if (! mod)
+    return 0;
+  else
+    {
+      if (grub_errno == GRUB_ERR_IO)
+        grub_errno = GRUB_ERR_NONE;
+    }
+
+  if (grub_strcmp (mod->name, name) != 0)
+    grub_error (GRUB_ERR_BAD_MODULE, "mismatched names");
+
+  return mod;
+}
+
 /* Load a module from the file FILENAME.  */
 grub_dl_t
 grub_dl_load_file (const char *filename)
@@ -735,13 +788,19 @@ grub_dl_load (const char *name)
     return 0;
   }
 
+  /* First, try to load module from the grub directory */
   filename = grub_xasprintf ("%s/" GRUB_TARGET_CPU "-" GRUB_PLATFORM "/%s.mod",
 			     grub_dl_dir, name);
-  if (! filename)
-    return 0;
+  if (filename)
+    {
+      mod = grub_dl_load_file (filename);
+      grub_free (filename);
+    }
 
-  mod = grub_dl_load_file (filename);
-  grub_free (filename);
+  /* If the module isn't loaded, check if there is a stale module available and
+   * use it*/
+  if (! mod && grub_use_stale_modules)
+      mod = grub_dl_load_core_by_name (name);
 
   if (! mod)
     return 0;

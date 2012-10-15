@@ -271,3 +271,60 @@ grub_util_resolve_dependencies (const char *prefix,
     return prev;
   }
 }
+
+struct grub_util_path_list *
+grub_util_create_complementary_module_list (const char *prefix,
+				const char *dep_list_file,
+				struct grub_util_path_list *path_list)
+{
+  char *path;
+  FILE *fp;
+  struct grub_util_path_list *path_list_comp = 0;
+  struct grub_util_path_list *new_path;
+  char skip;
+
+  path = grub_util_get_path (prefix, dep_list_file);
+  fp = fopen (path, "r");
+  if (! fp)
+    grub_util_error (_("cannot open `%s': %s"), path, strerror (errno));
+
+  while (fgets (buf, sizeof (buf), fp))
+    {
+      char *p;
+      struct grub_util_path_list *pl;
+
+      skip = 0;
+
+      /* Get the target name.  */
+      p = strchr (buf, ':');
+      if (! p)
+	grub_util_error (_("invalid line format: %s"), buf);
+
+      *p++ = '\0';
+
+      /* kernel is not a module */
+      if (strcmp(buf, "kernel") == 0)
+        continue;
+
+      /* Check if the module is already in the core. */
+      for (pl = path_list; pl; pl = pl->next)
+        {
+          if (strcmp(buf, get_module_name(pl->name)) == 0)
+            {
+              skip = 1;
+              break;
+            }
+        }
+
+      if (skip)
+          continue;
+
+      /* Add the new path.  */
+      new_path = (struct grub_util_path_list *) xmalloc (sizeof (*new_path));
+      new_path->name = get_module_path (prefix, buf);
+      new_path->next = path_list_comp;
+      path_list_comp = new_path;
+    }
+
+  return path_list_comp;
+}

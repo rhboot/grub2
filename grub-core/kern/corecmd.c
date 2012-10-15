@@ -89,6 +89,9 @@ grub_core_cmd_insmod (struct grub_command *cmd __attribute__ ((unused)),
   else
     mod = grub_dl_load (argv[0]);
 
+  if (!mod)
+    grub_dl_load_core_by_name (argv[0]);
+
   if (mod)
     grub_dl_ref (mod);
 

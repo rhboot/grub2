@@ -711,7 +711,7 @@ generate_image (const char *dir, const char *prefix,
   size_t prefix_size = 0;
   char *kernel_path;
   size_t offset;
-  struct grub_util_path_list *path_list, *p, *next;
+  struct grub_util_path_list *path_list, *path_list_comp = 0, *p, *next;
   grub_size_t bss_size;
   grub_uint64_t start_address;
   void *rel_section = 0;
@@ -726,6 +726,10 @@ generate_image (const char *dir, const char *prefix,
     comp = COMPRESSION_LZMA;
 
   path_list = grub_util_resolve_dependencies (dir, "moddep.lst", mods);
+
+  if (image_target->id == IMAGE_PPC)
+    path_list_comp = grub_util_create_complementary_module_list (dir,
+                                              "moddep.lst", path_list);
 
   kernel_path = grub_util_get_path (dir, "kernel.img");
 
@@ -758,6 +762,10 @@ generate_image (const char *dir, const char *prefix,
     }
 
   for (p = path_list; p; p = p->next)
+    total_module_size += (ALIGN_ADDR (grub_util_get_image_size (p->name))
+			  + sizeof (struct grub_module_header));
+
+  for (p = path_list_comp; p; p = p->next)
     total_module_size += (ALIGN_ADDR (grub_util_get_image_size (p->name))
 			  + sizeof (struct grub_module_header));
 
@@ -827,6 +835,25 @@ generate_image (const char *dir, const char *prefix,
       header = (struct grub_module_header *) (kernel_img + offset);
       memset (header, 0, sizeof (struct grub_module_header));
       header->type = grub_host_to_target32 (OBJ_TYPE_ELF);
+      header->size = grub_host_to_target32 (mod_size + sizeof (*header));
+      offset += sizeof (*header);
+      memset (kernel_img + offset + orig_size, 0, mod_size - orig_size);
+
+      grub_util_load_image (p->name, kernel_img + offset);
+      offset += mod_size;
+    }
+
+  for (p = path_list_comp; p; p = p->next)
+    {
+      struct grub_module_header *header;
+      size_t mod_size, orig_size;
+
+      orig_size = grub_util_get_image_size (p->name);
+      mod_size = ALIGN_ADDR (orig_size);
+
+      header = (struct grub_module_header *) (kernel_img + offset);
+      memset (header, 0, sizeof (struct grub_module_header));
+      header->type = grub_host_to_target32 (OBJ_TYPE_ELF_STALE);
       header->size = grub_host_to_target32 (mod_size + sizeof (*header));
       offset += sizeof (*header);
       memset (kernel_img + offset + orig_size, 0, mod_size - orig_size);
@@ -1638,6 +1665,14 @@ generate_image (const char *dir, const char *prefix,
       free ((void *) path_list->name);
       free (path_list);
       path_list = next;
+    }
+
+  while (path_list_comp)
+    {
+      next = path_list_comp->next;
+      free ((void *) path_list_comp->name);
+      free (path_list_comp);
+      path_list_comp = next;
     }
 }
 
