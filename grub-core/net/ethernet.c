@@ -23,6 +23,7 @@
 #include <grub/net/arp.h>
 #include <grub/net/netbuff.h>
 #include <grub/net.h>
+#include <grub/env.h>
 #include <grub/time.h>
 #include <grub/net/arp.h>
 
@@ -56,10 +57,19 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
 {
   struct etherhdr *eth;
   grub_err_t err;
+  grub_uint32_t vlantag = 0;
+  grub_uint8_t etherhdr_size;
 
-  COMPILE_TIME_ASSERT (sizeof (*eth) < GRUB_NET_MAX_LINK_HEADER_SIZE);
+  etherhdr_size = sizeof (*eth);
+  COMPILE_TIME_ASSERT (sizeof (*eth) + 4 < GRUB_NET_MAX_LINK_HEADER_SIZE);
 
-  err = grub_netbuff_push (nb, sizeof (*eth));
+  const char *vlantag_text = grub_env_get ("vlan-tag");
+  if (vlantag_text != 0) {
+      etherhdr_size += 4;
+      vlantag = grub_strtoul (vlantag_text, 0, 16);
+  }
+
+  err = grub_netbuff_push (nb, etherhdr_size);
   if (err)
     return err;
   eth = (struct etherhdr *) nb->data;
@@ -76,6 +86,19 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
 	return err;
       inf->card->opened = 1;
     }
+
+  /* Check if a vlan-tag is needed. */
+  if (vlantag != 0)
+    {
+      /* Move eth type to the right */
+      grub_memcpy((char *) nb->data + etherhdr_size - 2,
+                  (char *) nb->data + etherhdr_size - 6, 2);
+
+      /* Add the tag in the middle */
+      grub_memcpy((char *) nb->data + etherhdr_size - 6,
+                  &vlantag, 4);
+    }
+
   return inf->card->driver->send (inf->card, nb);
 }
 
@@ -90,10 +113,23 @@ grub_net_recv_ethernet_packet (struct grub_net_buff *nb,
   grub_net_link_level_address_t hwaddress;
   grub_net_link_level_address_t src_hwaddress;
   grub_err_t err;
+  grub_uint8_t etherhdr_size = sizeof (*eth);
+
+  grub_uint16_t vlantag_identifier = 0;
+  grub_memcpy (&vlantag_identifier, nb->data + etherhdr_size - 2, 2);
+
+  /* Check if a vlan-tag is present. */
+  if (vlantag_identifier == VLANTAG_IDENTIFIER)
+    {
+      etherhdr_size += 4;
+      /* Move eth type to the original position */
+      grub_memcpy((char *) nb->data + etherhdr_size - 6,
+                  (char *) nb->data + etherhdr_size - 2, 2);
+    }
 
   eth = (struct etherhdr *) nb->data;
   type = grub_be_to_cpu16 (eth->type);
-  err = grub_netbuff_pull (nb, sizeof (*eth));
+  err = grub_netbuff_pull (nb, etherhdr_size);
   if (err)
     return err;
 
