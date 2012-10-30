@@ -23,6 +23,7 @@
 #include <grub/mm.h>
 #include <grub/ieee1275/ieee1275.h>
 #include <grub/net.h>
+#include <grub/env.h>
 
 enum grub_ieee1275_parse_type
 {
@@ -449,6 +450,35 @@ grub_ieee1275_parse_args (const char *path, enum grub_ieee1275_parse_type ptype)
 fail:
   grub_free (device);
   return ret;
+}
+
+int
+grub_ieee1275_parse_net_options (const char *path)
+{
+  char *comma;
+  char *args;
+  char *option = 0;
+
+  args = grub_ieee1275_get_devargs (path);
+  if (!args)
+    /* There is no option.  */
+    return -1;
+
+  do
+    {
+      comma = grub_strchr (args, ',');
+      if (! comma)
+        option = grub_strdup (args);
+      else
+        option = grub_strndup (args, (grub_size_t)(comma - args));
+      args = comma + 1;
+
+      if (! grub_strncmp(option, "vtag", 4))
+          grub_env_set ("vlan-tag", option + grub_strlen("vtag="));
+
+    } while (comma);
+
+  return 0;
 }
 
 char *
