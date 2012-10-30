@@ -235,6 +235,7 @@ void EXPORT_FUNC(grub_ieee1275_children_first) (const char *devpath,
 						struct grub_ieee1275_devalias *alias);
 int EXPORT_FUNC(grub_ieee1275_cas_reboot) (char *script);
 int EXPORT_FUNC(grub_ieee1275_set_boot_last_label) (const char *text);
+int EXPORT_FUNC(grub_ieee1275_parse_net_options) (const char *path);
 
 #define FOR_IEEE1275_DEVALIASES(alias) for (grub_ieee1275_devalias_init_iterator (&(alias)); grub_ieee1275_devalias_next (&(alias));)
 

@@ -118,6 +118,7 @@ grub_machine_get_bootlocation (char **device, char **path)
       char *dev, *canon;
       char *ptr;
       dev = grub_ieee1275_get_aliasdevname (bootpath);
+      grub_ieee1275_parse_net_options (bootpath);
       canon = grub_ieee1275_canonicalise_devname (dev);
       ptr = canon + grub_strlen (canon) - 1;
       while (ptr > canon && (*ptr == ',' || *ptr == ':'))
