@@ -60,6 +60,14 @@ set_env_limn_ro (const char *intername, const char *suffix,
   grub_free (varvalue);
 }
 
+static char
+hexdigit (grub_uint8_t val)
+{
+  if (val < 10)
+    return val + '0';
+  return val + 'a' - 10;
+}
+
 static void
 parse_dhcp_vendor (const char *name, const void *vend, int limit, int *mask)
 {
@@ -89,6 +97,9 @@ parse_dhcp_vendor (const char *name, const void *vend, int limit, int *mask)
 	return;
 
       taglength = *ptr++;
+
+      grub_dprintf("net", "DHCP option %u (0x%02x) found with length %u.\n",
+                   tagtype, tagtype, taglength);
 
       switch (tagtype)
 	{
@@ -150,6 +161,39 @@ parse_dhcp_vendor (const char *name, const void *vend, int limit, int *mask)
 	case GRUB_NET_BOOTP_EXTENSIONS_PATH:
 	  set_env_limn_ro (name, "extensionspath", (const char *) ptr, taglength);
 	  break;
+
+        case GRUB_NET_BOOTP_CLIENT_ID:
+	  set_env_limn_ro (name, "clientid", (char *) ptr, taglength);
+          break;
+
+        case GRUB_NET_BOOTP_CLIENT_UUID:
+            {
+              if (taglength != 17)
+                break;
+
+              /* The format is 9cfe245e-d0c8-bd45-a79f-54ea5fbd3d97 */
+
+              ptr += 1;
+              taglength -= 1;
+
+              char *val = grub_malloc (2 * taglength + 4 + 1);
+              int i = 0;
+              int j = 0;
+              for (i = 0; i < taglength; i++)
+                {
+                  val[2 * i + j] = hexdigit (ptr[i] >> 4);
+                  val[2 * i + 1 + j] = hexdigit (ptr[i] & 0xf);
+
+                  if ((i == 3) || (i == 5) || (i == 7) || (i == 9))
+                    {
+                      j++;
+                      val[2 * i + 1+ j] = '-';
+                    }
+                }
+
+              set_env_limn_ro (name, "clientuuid", (char *) val, 2 * taglength + 4);
+            }
+          break;
 
 	  /* If you need any other options please contact GRUB
 	     development team.  */
@@ -317,14 +361,6 @@ grub_net_process_dhcp (struct grub_net_buff *nb,
 	    break;
 	  }
     }
-}
-
-static char
-hexdigit (grub_uint8_t val)
-{
-  if (val < 10)
-    return val + '0';
-  return val + 'a' - 10;
 }
 
 static grub_err_t
