@@ -566,4 +566,7 @@ extern char *grub_net_default_server;
 
 #define VLANTAG_IDENTIFIER 0x8100
 
+grub_err_t
+grub_net_search_configfile (char *config);
+
 #endif /* ! GRUB_NET_HEADER */
