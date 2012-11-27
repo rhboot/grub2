@@ -1735,6 +1735,124 @@ grub_net_restore_hw (void)
   return GRUB_ERR_NONE;
 }
 
+grub_err_t
+grub_net_search_configfile (char *config)
+{
+  grub_size_t config_len;
+  char *suffix;
+
+  auto int search_through (grub_size_t num_tries, grub_size_t slice_size);
+  int search_through (grub_size_t num_tries, grub_size_t slice_size)
+    {
+      while (num_tries-- > 0)
+        {
+	  grub_dprintf ("net", "probe %s\n", config);
+
+          grub_file_t file;
+          file = grub_file_open (config);
+
+          if (file)
+            {
+              grub_file_close (file);
+              grub_dprintf ("net", "found!\n");
+              return 0;
+            }
+          else
+            {
+              if (grub_errno == GRUB_ERR_IO)
+                grub_errno = GRUB_ERR_NONE;
+            }
+
+          if (grub_strlen (suffix) < slice_size)
+            break;
+
+          config[grub_strlen (config) - slice_size] = '\0';
+        }
+
+      return 1;
+    }
+
+  config_len = grub_strlen (config);
+  config[config_len] = '-';
+  suffix = config + config_len + 1;
+
+  struct grub_net_network_level_interface *inf;
+  FOR_NET_NETWORK_LEVEL_INTERFACES (inf)
+    {
+      /* By the Client UUID. */
+
+      char client_uuid_var[sizeof ("net_") + grub_strlen (inf->name) +
+                           sizeof ("_clientuuid") + 1];
+      grub_snprintf (client_uuid_var, sizeof (client_uuid_var),
+                     "net_%s_clientuuid", inf->name);
+
+      const char *client_uuid;
+      client_uuid = grub_env_get (client_uuid_var);
+
+      if (client_uuid)
+        {
+          grub_strcpy (suffix, client_uuid);
+          if (search_through (1, 0) == 0) return GRUB_ERR_NONE;
+        }
+
+      /* By the MAC address. */
+
+      /* Add ethernet type */
+      grub_strcpy (suffix, "01-");
+
+      grub_net_hwaddr_to_str (&inf->hwaddress, suffix + 3);
+
+      char *ptr;
+      for (ptr = suffix; *ptr; ptr++)
+        if (*ptr == ':')
+          *ptr = '-';
+
+      if (search_through (1, 0) == 0) return GRUB_ERR_NONE;
+
+      /* By IP address */
+
+      switch ((&inf->address)->type)
+        {
+        case GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4:
+            {
+              grub_uint32_t n = grub_be_to_cpu32 ((&inf->address)->ipv4);
+              grub_snprintf (suffix, GRUB_NET_MAX_STR_ADDR_LEN, "%02X%02X%02X%02X", \
+                             ((n >> 24) & 0xff), ((n >> 16) & 0xff), \
+                             ((n >> 8) & 0xff), ((n >> 0) & 0xff));
+
+              if (search_through (8, 1) == 0) return GRUB_ERR_NONE;
+              break;
+            }
+        case GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6:
+            {
+              char buf[GRUB_NET_MAX_STR_ADDR_LEN];
+              struct grub_net_network_level_address base;
+              base.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
+              grub_memcpy (&base.ipv6, ((&inf->address)->ipv6), 16);
+              grub_net_addr_to_str (&base, buf);
+
+              for (ptr = buf; *ptr; ptr++)
+                if (*ptr == ':')
+                  *ptr = '-';
+
+              grub_snprintf (suffix, GRUB_NET_MAX_STR_ADDR_LEN, "%s", buf);
+              if (search_through (1, 0) == 0) return GRUB_ERR_NONE;
+              break;
+            }
+        case GRUB_NET_NETWORK_LEVEL_PROTOCOL_DHCP_RECV:
+          return grub_error (GRUB_ERR_BUG, "shouldn't reach here");
+        default:
+          return grub_error (GRUB_ERR_BUG,
+                             "unsupported address type %d", (&inf->address)->type);
+        }
+    }
+
+  /* Remove the remaining minus sign at the end. */
+  config[config_len] = '\0';
+
+  return GRUB_ERR_NONE;
+}
+
 static struct grub_preboot *fini_hnd;
 
 static grub_command_t cmd_addaddr, cmd_deladdr, cmd_addroute, cmd_delroute;
