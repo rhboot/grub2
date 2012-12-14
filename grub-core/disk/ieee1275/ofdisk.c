@@ -213,6 +213,35 @@ scan (void)
     return grub_children_iterate (alias->path, dev_iterate);
   }
 
+  char *bootpath;
+  int bootpath_size;
+  char *type;
+
+  if (grub_ieee1275_get_property_length (grub_ieee1275_chosen, "bootpath",
+					 &bootpath_size)
+      || bootpath_size <= 0)
+    {
+      /* Should never happen.  */
+      grub_printf ("/chosen/bootpath property missing!\n");
+      return;
+    }
+
+  bootpath = (char *) grub_malloc ((grub_size_t) bootpath_size + 64);
+  if (! bootpath)
+    {
+      grub_print_error ();
+      return;
+    }
+  grub_ieee1275_get_property (grub_ieee1275_chosen, "bootpath", bootpath,
+                              (grub_size_t) bootpath_size + 1, 0);
+  bootpath[bootpath_size] = '\0';
+
+  type = grub_ieee1275_get_device_type (bootpath);
+  if (type && grub_strcmp (type, "block") == 0)
+      dev_iterate_real (bootpath, bootpath);
+
+  grub_free (bootpath);
+
   grub_devalias_iterate (dev_iterate_alias);
   grub_children_iterate ("/", dev_iterate);
 }
