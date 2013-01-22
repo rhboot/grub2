@@ -20,6 +20,16 @@
 #ifndef GRUB_MENU_HEADER
 #define GRUB_MENU_HEADER 1
 
+struct bls_entry
+{
+  struct bls_entry *next;
+  struct bls_entry *prev;
+  struct keyval **keyvals;
+  int nkeyvals;
+  char *filename;
+  int visible;
+};
+
 struct grub_menu_entry_class
 {
   char *name;
@@ -60,6 +70,9 @@ struct grub_menu_entry
 
   /* The next element.  */
   struct grub_menu_entry *next;
+
+  /* BLS used to populate the entry */
+  struct bls_entry *bls;
 };
 typedef struct grub_menu_entry *grub_menu_entry_t;
 
