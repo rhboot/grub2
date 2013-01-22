@@ -78,7 +78,7 @@ grub_normal_add_menu_entry (int argc, const char **args,
 			    char **classes, const char *id,
 			    const char *users, const char *hotkey,
 			    const char *prefix, const char *sourcecode,
-			    int submenu)
+			    int submenu, int *index, struct bls_entry *bls)
 {
   int menu_hotkey = 0;
   char **menu_args = NULL;
@@ -149,9 +149,12 @@ grub_normal_add_menu_entry (int argc, const char **args,
   if (! menu_title)
     goto fail;
 
+  grub_dprintf ("menu", "id:\"%s\"\n", id);
+  grub_dprintf ("menu", "title:\"%s\"\n", menu_title);
   menu_id = grub_strdup (id ? : menu_title);
   if (! menu_id)
     goto fail;
+  grub_dprintf ("menu", "menu_id:\"%s\"\n", menu_id);
 
   /* Save argc, args to pass as parameters to block arg later. */
   menu_args = grub_malloc (sizeof (char*) * (argc + 1));
@@ -170,8 +173,12 @@ grub_normal_add_menu_entry (int argc, const char **args,
   }
 
   /* Add the menu entry at the end of the list.  */
+  int ind=0;
   while (*last)
-    last = &(*last)->next;
+    {
+      ind++;
+      last = &(*last)->next;
+    }
 
   *last = grub_zalloc (sizeof (**last));
   if (! *last)
@@ -188,8 +195,11 @@ grub_normal_add_menu_entry (int argc, const char **args,
   (*last)->args = menu_args;
   (*last)->sourcecode = menu_sourcecode;
   (*last)->submenu = submenu;
+  (*last)->bls = bls;
 
   menu->size++;
+  if (index)
+    *index = ind;
   return GRUB_ERR_NONE;
 
  fail:
@@ -286,7 +296,8 @@ grub_cmd_menuentry (grub_extcmd_context_t ctxt, int argc, char **args)
 				       users,
 				       ctxt->state[2].arg, 0,
 				       ctxt->state[3].arg,
-				       ctxt->extcmd->cmd->name[0] == 's');
+				       ctxt->extcmd->cmd->name[0] == 's',
+				       NULL, NULL);
 
   src = args[argc - 1];
   args[argc - 1] = NULL;
@@ -303,7 +314,8 @@ grub_cmd_menuentry (grub_extcmd_context_t ctxt, int argc, char **args)
 				  ctxt->state[0].args, ctxt->state[4].arg,
 				  users,
 				  ctxt->state[2].arg, prefix, src + 1,
-				  ctxt->extcmd->cmd->name[0] == 's');
+				  ctxt->extcmd->cmd->name[0] == 's', NULL,
+				  NULL);
 
   src[len - 1] = ch;
   args[argc - 1] = src;
