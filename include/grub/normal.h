@@ -145,7 +145,7 @@ grub_normal_add_menu_entry (int argc, const char **args, char **classes,
 			    const char *id,
 			    const char *users, const char *hotkey,
 			    const char *prefix, const char *sourcecode,
-			    int submenu);
+			    int submenu, int *index, struct bls_entry *bls);
 
 grub_err_t
 grub_normal_set_password (const char *user, const char *password);
