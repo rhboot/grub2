@@ -56,4 +56,6 @@
 #  define CLANG_PREREQ(maj,min) 0
 #endif
 
+#define UNUSED __attribute__((__unused__))
+
 #endif /* ! GRUB_COMPILER_HEADER */
