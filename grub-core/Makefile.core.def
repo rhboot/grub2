@@ -769,6 +769,14 @@ module = {
 };
 
 module = {
+  name = blscfg;
+  common = commands/blscfg.c;
+  enable = i386_efi;
+  enable = x86_64_efi;
+  enable = i386_pc;
+};
+
+module = {
   name = boot;
   common = commands/boot.c;
   i386_pc = lib/i386/pc/biosnum.c;
