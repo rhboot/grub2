@@ -240,17 +240,19 @@ while [ "x$list" != "x" ] ; do
     linux_root_device_thisversion=${GRUB_DEVICE}
   fi
 
-  if [ "x$is_first_entry" = xtrue ]; then
-    linux_entry "${OS}" "${version}" simple \
-    "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
+  if [ "x${GRUB_DISABLE_SUBMENU}" = x ]; then
+    if [ "x$is_first_entry" = xtrue ]; then
+      linux_entry "${OS}" "${version}" simple \
+      "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 
-    submenu_indentation="$grub_tab"
+      submenu_indentation="$grub_tab"
     
-    if [ -z "$boot_device_id" ]; then
-	boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
+      if [ -z "$boot_device_id" ]; then
+	  boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
+      fi
+      # TRANSLATORS: %s is replaced with an OS name
+      echo "submenu '$(gettext_printf "Advanced options for %s" "${OS}" | grub_quote)' \$menuentry_id_option 'gnulinux-advanced-$boot_device_id' {"
     fi
-    # TRANSLATORS: %s is replaced with an OS name
-    echo "submenu '$(gettext_printf "Advanced options for %s" "${OS}" | grub_quote)' \$menuentry_id_option 'gnulinux-advanced-$boot_device_id' {"
   fi
 
   linux_entry "${OS}" "${version}" advanced \
@@ -266,8 +268,10 @@ done
 
 # If at least one kernel was found, then we need to
 # add a closing '}' for the submenu command.
-if [ x"$is_first_entry" != xtrue ]; then
-  echo '}'
+if [ "x${GRUB_DISABLE_SUBMENU}" = x ]; then
+  if [ x"$is_first_entry" != xtrue ]; then
+    echo '}'
+  fi
 fi
 
 echo "$title_correction_code"
