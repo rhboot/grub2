@@ -289,6 +289,14 @@ AC_SUBST(grubdirname)
 AC_DEFINE_UNQUOTED(GRUB_DIR_NAME, "$grubdirname",
     [Default grub directory name])
 
+PKG_PROG_PKG_CONFIG
+AS_IF([$($PKG_CONFIG --exists bash-completion)], [
+	bashcompletiondir=$($PKG_CONFIG --variable=completionsdir bash-completion)
+] , [
+	bashcompletiondir=${datadir}/bash-completion/completions
+])
+AC_SUBST(bashcompletiondir)
+
 #
 # Checks for build programs.
 #
@@ -497,6 +505,9 @@ HOST_CFLAGS="$HOST_CFLAGS $grub_cv_cc_w_extra_flags"
 #
 # Check for target programs.
 #
+
+# This makes sure pkg.m4 is available.
+m4_pattern_forbid([^_?PKG_[A-Z_]+$],[*** pkg.m4 missing, please install pkg-config])
 
 # Find tools for the target.
 if test "x$target_alias" != x && test "x$host_alias" != "x$target_alias"; then
