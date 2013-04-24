@@ -151,7 +151,7 @@ grub_terminfo_set_current (struct grub_term_output *term,
       /* Clear the screen.  Using serial console, screen(1) only recognizes the
        * ANSI escape sequence.  Using video console, Apple Open Firmware
        * (version 3.1.1) only recognizes the literal ^L.  So use both.  */
-      data->cls               = grub_strdup ("\e[2J");
+      data->cls               = grub_strdup ("\x0c\e[2J\e[m");
       data->reverse_video_on  = grub_strdup ("\e[7m");
       data->reverse_video_off = grub_strdup ("\e[m");
       if (grub_strcmp ("ieee1275", str) == 0)
