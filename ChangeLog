@@ -1,3 +1,8 @@
+2013-05-14  Vladimir Serbinenko  <phcoder@gmail.com>
+
+	Progressively skip menu elements on small terminals rather
+	than crashing.
+
 2013-05-08  Vladimir Serbinenko  <phcoder@gmail.com>
 
 	* conf/Makefile.common: Poison float and double on non-emu.
