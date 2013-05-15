@@ -249,9 +249,6 @@ real_start:
 	/* save drive reference first thing! */
 	pushw	%dx
 
-	/* print a notification message on the screen */
-	MSG(notification_string)
-
 	/* set %si to the disk address packet */
 	movw	$disk_address_packet, %si
 

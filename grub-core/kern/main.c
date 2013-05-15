@@ -268,11 +268,6 @@ grub_main (void)
 
   grub_boot_time ("After machine init.");
 
-  /* Hello.  */
-  grub_setcolorstate (GRUB_TERM_COLOR_HIGHLIGHT);
-  grub_printf ("Welcome to GRUB!\n\n");
-  grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
-
   grub_load_config ();
 
   grub_boot_time ("Before loading embedded modules.");
