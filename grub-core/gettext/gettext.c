@@ -433,13 +433,9 @@ grub_gettext_env_write_lang (struct grub_env_var *var
   grub_err_t err;
   err = grub_gettext_init_ext (&main_context, val, grub_env_get ("locale_dir"),
 			       grub_env_get ("prefix"));
-  if (err)
-    grub_print_error ();
 
   err = grub_gettext_init_ext (&secondary_context, val,
 			       grub_env_get ("secondary_locale_dir"), 0);
-  if (err)
-    grub_print_error ();
 
   return grub_strdup (val);
 }
@@ -451,8 +447,6 @@ grub_gettext_reread_prefix (const char *val)
   err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"), 
 			       grub_env_get ("locale_dir"),
 			       val);
-  if (err)
-    grub_print_error ();
 }
 
 static char *
@@ -462,8 +456,6 @@ read_main (struct grub_env_var *var
   grub_err_t err;
   err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"), val,
 			       grub_env_get ("prefix"));
-  if (err)
-    grub_print_error ();
   return grub_strdup (val);
 }
 
@@ -474,9 +466,6 @@ read_secondary (struct grub_env_var *var
   grub_err_t err;
   err = grub_gettext_init_ext (&secondary_context, grub_env_get ("lang"), val,
 			       0);
-  if (err)
-    grub_print_error ();
-
   return grub_strdup (val);
 }
 
@@ -502,12 +491,8 @@ GRUB_MOD_INIT (gettext)
 
   err = grub_gettext_init_ext (&main_context, lang, grub_env_get ("locale_dir"),
 			       grub_env_get ("prefix"));
-  if (err)
-    grub_print_error ();
   err = grub_gettext_init_ext (&secondary_context, lang,
 			       grub_env_get ("secondary_locale_dir"), 0);
-  if (err)
-    grub_print_error ();
 
   grub_register_variable_hook ("locale_dir", NULL, read_main);
   grub_register_variable_hook ("secondary_locale_dir", NULL, read_secondary);
