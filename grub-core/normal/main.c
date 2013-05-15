@@ -202,15 +202,16 @@ read_config_file (const char *config)
 /* Initialize the screen.  */
 void
 grub_normal_init_page (struct grub_term_output *term,
-		       int y)
+		       int y __attribute__((__unused__)))
 {
+  grub_term_cls (term);
+
+#if 0
   grub_ssize_t msg_len;
   int posx;
   char *msg_formatted;
   grub_uint32_t *unicode_msg;
   grub_uint32_t *last_position;
- 
-  grub_term_cls (term);
 
   msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
   if (!msg_formatted)
@@ -235,6 +236,7 @@ grub_normal_init_page (struct grub_term_output *term,
   grub_putcode ('\n', term);
   grub_putcode ('\n', term);
   grub_free (unicode_msg);
+#endif
 }
 
 static void
