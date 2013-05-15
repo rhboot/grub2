@@ -50,11 +50,6 @@ _start:
 	/* save drive reference first thing! */
 	pushw	%dx
 
-	/* print a notification message on the screen */
-	pushw	%si
-	MSG(notification_string)
-	popw	%si
-
 	/* this sets up for the first run through "bootloop" */
 	movw	$LOCAL(firstlist), %di
 
