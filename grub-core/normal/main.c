@@ -212,6 +212,7 @@ grub_normal_init_page (struct grub_term_output *term,
  
   grub_term_cls (term);
 
+#if 0
   msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
   if (!msg_formatted)
     return;
@@ -235,6 +236,7 @@ grub_normal_init_page (struct grub_term_output *term,
   grub_putcode ('\n', term);
   grub_putcode ('\n', term);
   grub_free (unicode_msg);
+#endif
 }
 
 static void
