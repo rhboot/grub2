@@ -372,7 +372,7 @@ grub_menu_init_page (int nested, int edit,
   if (bottom_message)
     {
       grub_term_gotoxy (term,
-			(struct grub_term_coordinate) { GRUB_TERM_MARGIN,
+			(struct grub_term_coordinate) { STANDARD_MARGIN,
 			    geo->timeout_y });
 
       print_message (nested, edit, term, 0);
@@ -407,14 +407,14 @@ menu_text_print_timeout (int timeout, void *dataptr)
   if (data->timeout_msg == TIMEOUT_UNKNOWN)
     {
       data->timeout_msg = grub_print_message_indented_real (msg_translated,
-							    3, 1, data->term, 1)
+							    STANDARD_MARGIN, 1, data->term, 1)
 	<= data->geo.timeout_lines ? TIMEOUT_NORMAL : TIMEOUT_TERSE;
       if (data->timeout_msg == TIMEOUT_TERSE)
 	{
 	  grub_free (msg_translated);
 	  msg_translated = grub_xasprintf (_("%ds"), timeout);
 	  if (grub_term_width (data->term) < 10)
-	    data->timeout_msg = TIMEOUT_TERSE_NO_MARGIN;
+	    data->timeout_msg = STANDARD_MARGIN;
 	}
     }
 
