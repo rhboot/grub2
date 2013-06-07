@@ -116,16 +116,14 @@ print_message (int nested, int edit, struct grub_term_output *term, int dry_run)
 
   if (edit)
     {
-      ret += grub_print_message_indented_real (_("Minimum Emacs-like screen editing is \
-supported. TAB lists completions. Press Ctrl-x or F10 to boot, Ctrl-c or F2 for a \
-command-line or ESC to discard edits and return to the GRUB menu."),
+      ret += grub_print_message_indented_real (_("Press Ctrl-x or F10 to start, Ctrl-c or F2 for a \
+command prompt or Escape to discard edits and return to the menu. Pressing Tab lists possible completions."),
 					       STANDARD_MARGIN, STANDARD_MARGIN,
 					       term, dry_run);
     }
   else
     {
-      const char *msg = _("Use the %C and %C keys to select which "
-			  "entry is highlighted.");
+      const char *msg = _("Use the %C and %C keys to change the selection.");
       char *msg_translated;
 
       msg_translated = grub_xasprintf (msg, GRUB_UNICODE_UPARROW,
@@ -140,17 +138,15 @@ command-line or ESC to discard edits and return to the GRUB menu."),
       if (nested)
 	{
 	  ret += grub_print_message_indented_real
-	    (_("Press enter to boot the selected OS, "
-	       "`e' to edit the commands before booting "
-	       "or `c' for a command-line. ESC to return previous menu."),
+	    (_("Press 'e' to edit the selected item, "
+	       "or 'c' for a command prompt. Press Escape to return to the previous menu."),
 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
 	}
       else
 	{
 	  ret += grub_print_message_indented_real
-	    (_("Press enter to boot the selected OS, "
-	       "`e' to edit the commands before booting "
-	       "or `c' for a command-line."),
+	    (_("Press 'e' to edit the selected item, "
+	       "or 'c' for a command prompt."),
 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
 	}	
     }
@@ -381,7 +377,7 @@ static void
 menu_text_print_timeout (int timeout, void *dataptr)
 {
   const char *msg =
-    _("The highlighted entry will be executed automatically in %ds.");
+    _("The selected entry will be started automatically in %d seconds.");
   const char *msg_terse = _("%ds");
   struct menu_viewer_data *data = dataptr;
   char *msg_translated = 0;
