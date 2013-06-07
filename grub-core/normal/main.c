@@ -426,8 +426,8 @@ grub_normal_reader_init (int nested)
     grub_normal_init_page (term, 1);
     grub_term_setcursor (term, 1);
 
-    if (grub_term_width (term) > 3 + STANDARD_MARGIN + 20)
-      grub_print_message_indented (msg_formatted, 3, STANDARD_MARGIN, term);
+    if (grub_term_width (term) > 2 * STANDARD_MARGIN + 20)
+      grub_print_message_indented (msg_formatted, STANDARD_MARGIN, STANDARD_MARGIN, term);
     else
       grub_print_message_indented (msg_formatted, 0, 0, term);
     grub_putcode ('\n', term);
