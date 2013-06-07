@@ -366,7 +366,7 @@ grub_menu_init_page (int nested, int edit,
     + geo->border + empty_lines;
   if (bottom_message)
     {
-      grub_term_gotoxy (term, GRUB_TERM_MARGIN,
+      grub_term_gotoxy (term, STANDARD_MARGIN,
 			geo->timeout_y);
 
       print_message (nested, edit, term, 0);
@@ -403,7 +403,7 @@ menu_text_print_timeout (int timeout, void *dataptr)
   if (data->timeout_msg == TIMEOUT_UNKNOWN)
     {
       data->timeout_msg = grub_print_message_indented_real (msg_translated,
-							    3, 1, data->term, 1)
+							    STANDARD_MARGIN, 1, data->term, 1)
 	<= data->geo.timeout_lines ? TIMEOUT_NORMAL : TIMEOUT_TERSE;
       if (data->timeout_msg == TIMEOUT_TERSE)
 	{
@@ -415,7 +415,7 @@ menu_text_print_timeout (int timeout, void *dataptr)
     }
 
   grub_print_message_indented (msg_translated,
-			       data->timeout_msg == TIMEOUT_TERSE_NO_MARGIN ? 0 : 3,
+			       data->timeout_msg == TIMEOUT_TERSE_NO_MARGIN ? 0 : STANDARD_MARGIN,
 			       data->timeout_msg == TIMEOUT_TERSE_NO_MARGIN ? 0 : 1,
 			       data->term);
   grub_free (msg_translated);
