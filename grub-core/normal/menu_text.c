@@ -239,7 +239,8 @@ print_entry (int y, int highlight, grub_menu_entry_t entry,
       unicode_title[i] = ' ';
 
   if (data->geo.num_entries > 1)
-    grub_putcode (' ', data->term);
+    for (i = 0; i < STANDARD_MARGIN; i++)
+      grub_putcode (' ', data->term);
 
   grub_print_ucs4_menu (unicode_title,
 			unicode_title + len,
