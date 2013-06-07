@@ -331,12 +331,12 @@ grub_menu_init_page (int nested, int edit,
   int empty_lines = 1;
   int version_msg = 1;
 
-  geo->border = 1;
-  geo->first_entry_x = 1 /* margin */ + 1 /* border */;
+  geo->border = 0;
+  geo->first_entry_x = 0 /* margin */ + 0 /* border */;
   geo->entry_width = grub_term_width (term) - 5;
 
   geo->first_entry_y = 2 /* two empty lines*/
-    + 1 /* GNU GRUB version text  */ + 1 /* top border */;
+    + 0 /* GNU GRUB version text  */ + 1 /* top border */;
 
   geo->timeout_lines = 2;
 
