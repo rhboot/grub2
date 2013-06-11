@@ -352,9 +352,12 @@ static struct grub_video_adapter grub_video_ieee1275_adapter =
 
 GRUB_MOD_INIT(ieee1275_fb)
 {
-  find_display ();
-  if (display)
-    grub_video_register (&grub_video_ieee1275_adapter);
+  if (! grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_DISABLE_VIDEO_SUPPORT))
+    {
+      find_display ();
+      if (display)
+        grub_video_register (&grub_video_ieee1275_adapter);
+    }
 }
 
 GRUB_MOD_FINI(ieee1275_fb)
