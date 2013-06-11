@@ -148,6 +148,8 @@ enum grub_ieee1275_flag
   GRUB_IEEE1275_FLAG_CURSORONOFF_ANSI_BROKEN,
 
   GRUB_IEEE1275_FLAG_RAW_DEVNAMES,
+  
+  GRUB_IEEE1275_FLAG_DISABLE_VIDEO_SUPPORT
 };
 
 extern int EXPORT_FUNC(grub_ieee1275_test_flag) (enum grub_ieee1275_flag flag);
