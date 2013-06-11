@@ -90,7 +90,10 @@ grub_ieee1275_find_options (void)
   }
 
   if (rc >= 0 && grub_strncmp (tmp, "IBM", 3) == 0)
-    grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_NO_TREE_SCANNING_FOR_DISKS);
+    {
+      grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_NO_TREE_SCANNING_FOR_DISKS);
+      grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_DISABLE_VIDEO_SUPPORT);
+    }
 
   /* Old Macs have no key repeat, newer ones have fully working one.
      The ones inbetween when repeated key generates an escaoe sequence
