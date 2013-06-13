@@ -28,8 +28,8 @@
 
 void (*EXPORT_VAR (grub_grubnet_fini)) (void);
 
-grub_file_filter_t grub_file_filters_all[GRUB_FILE_FILTER_MAX];
-grub_file_filter_t grub_file_filters_enabled[GRUB_FILE_FILTER_MAX];
+grub_file_filter_t grub_file_filters_all[GRUB_FILE_FILTER_MAX] = {NULL, NULL, NULL, NULL};
+grub_file_filter_t grub_file_filters_enabled[GRUB_FILE_FILTER_MAX] = {NULL, NULL, NULL, NULL};
 
 /* Get the device part of the filename NAME. It is enclosed by parentheses.  */
 char *
