@@ -334,7 +334,7 @@ grub_menu_init_page (int nested, int edit,
 
   geo->border = 0;
   geo->first_entry_x = 0; /* no margin */
-  geo->entry_width = grub_term_width (term) - 1;
+  geo->entry_width = grub_term_width (term) - 2;
 
   geo->first_entry_y = 3; /* three empty lines*/
 
