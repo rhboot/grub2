@@ -43,6 +43,8 @@ if [ "x${GRUB_DEFAULT_BUTTON}" = "xsaved" ] ; then GRUB_DEFAULT_BUTTON='${saved_
 if [ "x${GRUB_TIMEOUT_BUTTON}" = "x" ] ; then GRUB_TIMEOUT_BUTTON="$GRUB_TIMEOUT" ; fi
 
 cat << EOF
+set pager=1
+
 if [ -s \$prefix/grubenv ]; then
   load_env
 fi
