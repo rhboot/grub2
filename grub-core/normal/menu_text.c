@@ -157,7 +157,7 @@ print_message (int nested, int edit, struct grub_term_output *term, int dry_run)
 
   if (edit)
     {
-      ret += grub_print_message_indented_real (_("Press Ctrl-x or F10 to start, Ctrl-c or F2 for a \
+      ret += grub_print_message_indented_real (_("Press Ctrl-x to start, Ctrl-c for a \
 command prompt or Escape to discard edits and return to the menu. Pressing Tab lists possible completions."),
 					       STANDARD_MARGIN, STANDARD_MARGIN,
 					       term, dry_run);
