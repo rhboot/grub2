@@ -76,6 +76,11 @@ linux_entry ()
   type="$3"
   args="$4"
 
+  sixteenbit=""
+  case "$machine" in
+    i?86|x86_64) sixteenbit="16" ;;
+  esac
+
   if [ -z "$boot_device_id" ]; then
       boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
   fi
@@ -137,7 +142,7 @@ EOF
   else
     sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
-	linux	${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
+	linux${sixteenbit}	${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
 EOF
   fi
   if test -n "${initrd}" ; then
@@ -151,7 +156,7 @@ EOF
     else
       sed "s/^/$submenu_indentation/" << EOF
 	echo	'$message'
-	initrd	${rel_dirname}/${initrd}
+	initrd${sixteenbit}	${rel_dirname}/${initrd}
 EOF
     fi
   fi
