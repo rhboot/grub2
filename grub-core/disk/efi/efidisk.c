@@ -582,7 +582,7 @@ grub_efidisk_read (struct grub_disk *disk, grub_disk_addr_t sector,
 
   status = grub_efidisk_readwrite (disk, sector, size, buf, 0);
 
-  if (status != GRUB_EFI_SUCCESS)
+  if (status != GRUB_EFI_SUCCESS && status != GRUB_EFI_NO_MEDIA)
     return grub_error (GRUB_ERR_READ_ERROR,
 		       N_("failure reading sector 0x%llx from `%s'"),
 		       (unsigned long long) sector,
