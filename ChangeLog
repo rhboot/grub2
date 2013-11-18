@@ -1,3 +1,10 @@
+2013-11-18  Josh Triplett  <josh@joshtriplett.org>
+
+	* grub-core/mmap/efi/mmap.c (grub_mmap_register): Round up/down to
+	4k page boundaries as expected by firmware rather than 1k
+	boundaries.
+	(grub_mmap_malign_and_register): Likewise.
+
 2013-05-14  Vladimir Serbinenko  <phcoder@gmail.com>
 
 	Progressively skip menu elements on small terminals rather
