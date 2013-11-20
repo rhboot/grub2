@@ -323,7 +323,7 @@ grub_cmd_multiboot (grub_command_t cmd __attribute__ ((unused)),
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
 
-  file = grub_file_open (argv[0]);
+  file = grub_file_open (argv[0], GRUB_FILE_TYPE_MULTIBOOT_KERNEL);
   if (! file)
     return grub_errno;
 
@@ -389,10 +389,8 @@ grub_cmd_module (grub_command_t cmd __attribute__ ((unused)),
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
 		       N_("you need to load the kernel first"));
 
-  if (nounzip)
-    grub_file_filter_disable_compression ();
-
-  file = grub_file_open (argv[0]);
+  file = grub_file_open (argv[0], GRUB_FILE_TYPE_MULTIBOOT_MODULE
+			 | (nounzip ? GRUB_FILE_TYPE_NO_DECOMPRESS : GRUB_FILE_TYPE_NONE));
   if (! file)
     return grub_errno;
 

@@ -183,7 +183,6 @@ grub_initrd_init (int argc, char *argv[],
 	  eptr = grub_strchr (ptr, ':');
 	  if (eptr)
 	    {
-	      grub_file_filter_disable_compression ();
 	      grub_size_t dir_size, name_len;
 
 	      initrd_ctx->components[i].newc_name = grub_strndup (ptr, eptr - ptr);
@@ -215,8 +214,9 @@ grub_initrd_init (int argc, char *argv[],
 	  root = 0;
 	  newc = 0;
 	}
-      grub_file_filter_disable_compression ();
-      initrd_ctx->components[i].file = grub_file_open (fname);
+      initrd_ctx->components[i].file = grub_file_open (fname,
+						       GRUB_FILE_TYPE_LINUX_INITRD
+						       | GRUB_FILE_TYPE_NO_DECOMPRESS);
       if (!initrd_ctx->components[i].file)
 	{
 	  grub_initrd_close (initrd_ctx);
