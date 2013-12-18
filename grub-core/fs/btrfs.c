@@ -2694,6 +2694,8 @@ GRUB_MOD_INIT (btrfs)
                                subvol_set_env);
   grub_register_variable_hook ("btrfs_subvolid", subvolid_get_env,
                                subvolid_set_env);
+  grub_env_export ("btrfs_subvol");
+  grub_env_export ("btrfs_subvolid");
 }
 
 GRUB_MOD_FINI (btrfs)
