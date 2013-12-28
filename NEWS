@@ -63,6 +63,8 @@ New in 2.02:
   * New `efifwsetup' and `lsefi' commands on EFI platforms.
   * New `cmosdump' and `cmosset' commands on platforms with CMOS support.
   * New command `pcidump' for PCI platforms.
+  * New `cbmemc', `coreboot_boottime', and `lscoreboot' commands on
+    coreboot.
   * Improve opcode parsing in ACPI halt implementation.
   * Use the TSC as a possible time source on i386-ieee1275.
   * Merge PowerPC grub-mkrescue implementation with the common one.
