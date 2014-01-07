@@ -1,3 +1,7 @@
+2014-01-07  Leif Lindholm <leif.lindholm@linaro.org>
+
+	* grub-core/loader/arm64/linux.c: correctly set device path end length.
+
 2013-12-24  Vladimir Serbinenko  <phcoder@gmail.com>
 
 	* configure.ac: Set version to 2.02~beta2.
