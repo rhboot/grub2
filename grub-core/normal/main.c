@@ -281,7 +281,7 @@ grub_normal_execute (const char *config, int nested, int batch)
       if (! grub_ieee1275_cas_reboot (script))
         {
           char *dummy[1] = { NULL };
-          if (! grub_script_execute_sourcecode (script, 0, dummy))
+          if (! grub_script_execute_sourcecode (script))
             boot = 1;
         }
       grub_free (script);
