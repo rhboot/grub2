@@ -530,6 +530,12 @@ script = {
 };
 
 script = {
+  name = '30_uefi-firmware';
+  common = util/grub.d/30_uefi-firmware.in;
+  installdir = grubconf;
+};
+
+script = {
   name = '40_custom';
   common = util/grub.d/40_custom.in;
   installdir = grubconf;
