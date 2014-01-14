@@ -162,9 +162,7 @@ EOF
     fi
   fi
   if test -n "${fdt}" ; then
-    message="$(gettext_printf "Loading fdt ...")"
     sed "s/^/$submenu_indentation/" << EOF
-	echo	'$(echo "$message" | grub_quote)'
 	devicetree	${rel_dirname}/${fdt}
 EOF
   fi
