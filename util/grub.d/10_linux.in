@@ -75,8 +75,18 @@ linux_entry ()
   args="$4"
 
   sixteenbit=""
+  linuxefi="linux"
+  initrdefi="initrd"
   case "$machine" in
-    i?86|x86_64) sixteenbit="16" ;;
+    i?86|x86_64)
+	sixteenbit="16"
+	linuxefi="linuxefi"
+	initrdefi="initrdefi"
+	;;
+    aarch64)
+	linuxefi="linux"
+	initrdefi="initrd"
+	;;
   esac
 
   if [ -z "$boot_device_id" ]; then
@@ -133,7 +143,7 @@ linux_entry ()
   fi
   if [ -d /sys/firmware/efi ]; then
     sed "s/^/$submenu_indentation/" << EOF
-	linuxefi ${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
+	${linuxefi} ${rel_dirname}/${basename} root=${linux_root_device_thisversion} ro ${args}
 EOF
   else
     sed "s/^/$submenu_indentation/" << EOF
@@ -143,13 +153,20 @@ EOF
   if test -n "${initrd}" ; then
     if [ -d /sys/firmware/efi ]; then
       sed "s/^/$submenu_indentation/" << EOF
-	initrdefi ${rel_dirname}/${initrd}
+	${initrdefi} ${rel_dirname}/${initrd}
 EOF
     else
       sed "s/^/$submenu_indentation/" << EOF
 	initrd${sixteenbit} ${rel_dirname}/${initrd}
 EOF
     fi
+  fi
+  if test -n "${fdt}" ; then
+    message="$(gettext_printf "Loading fdt ...")"
+    sed "s/^/$submenu_indentation/" << EOF
+	echo	'$(echo "$message" | grub_quote)'
+	devicetree	${rel_dirname}/${fdt}
+EOF
   fi
   sed "s/^/$submenu_indentation/" << EOF
 }
@@ -207,6 +224,14 @@ while [ "x$list" != "x" ] ; do
 	   "initramfs-genkernel-${GENKERNEL_ARCH}-${alt_version}"; do
     if test -e "${dirname}/${i}" ; then
       initrd="$i"
+      break
+    fi
+  done
+
+  fdt=
+  for i in "dtb-${version}" "dtb-${alt_version}"; do
+    if test -e "${dirname}/${i}/foundation-v8.dtb" ; then
+      fdt="${i}/foundation-v8.dtb"
       break
     fi
   done
