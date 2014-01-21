@@ -272,7 +272,8 @@ and /etc/grub.d/* files or please file a bug report with
     echo >&2
   else
     # none of the children aborted with error, install the new grub.cfg
-    mv -f ${grub_cfg}.new ${grub_cfg}
+    cat ${grub_cfg}.new > ${grub_cfg}
+    rm -f ${grub_cfg}.new
   fi
 fi
 
