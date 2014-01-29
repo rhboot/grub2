@@ -1,3 +1,7 @@
+2014-01-29  Paulo Flabiano Smorigo  <pfsmorigo@br.ibm.com>
+
+	* .gitignore: add missing files and .exe variants.
+
 2014-01-26  Vladimir Serbinenko  <phcoder@gmail.com>
 
 	* grub-core/term/at_keyboard.c: Tolerate missing keyboard.
@@ -1113,7 +1117,7 @@
 
 2013-12-14  Vladimir Serbinenko  <phcoder@gmail.com>
 
-	* .gitignore: Add .exe variants. Add missing files. Remove few outdated
+	* .gitignore: add .exe variants. add missing files. remove few outdated
 	entries.
 
 2013-12-14  Vladimir Serbinenko  <phcoder@gmail.com>
