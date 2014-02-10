@@ -228,8 +228,8 @@ while [ "x$list" != "x" ] ; do
 
   fdt=
   for i in "dtb-${version}" "dtb-${alt_version}"; do
-    if test -e "${dirname}/${i}/foundation-v8.dtb" ; then
-      fdt="${i}/foundation-v8.dtb"
+    if test -e "${dirname}/${i}/apm-mustang.dtb" ; then
+      fdt="${i}/apm-mustang.dtb"
       break
     fi
   done
