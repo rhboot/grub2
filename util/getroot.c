@@ -153,6 +153,7 @@ convert_system_partition_to_system_disk (const char *os_dev, int *is_part)
 {
 #if GRUB_UTIL_FD_STAT_IS_FUNCTIONAL
   struct stat st;
+  char *path = xmalloc(PATH_MAX);
 
   if (stat (os_dev, &st) < 0)
     {
@@ -163,6 +164,24 @@ convert_system_partition_to_system_disk (const char *os_dev, int *is_part)
       return 0;
     }
 
+  *is_part = 0;
+
+  if (realpath(os_dev, path))
+    {
+      if ((strncmp ("/dev/nvme", path, 9) == 0))
+	{
+	  char *p = path + 5;
+	  p = strchr(p, 'p');
+	  if (p)
+	    {
+	      *is_part = 1;
+	      *p = '\0';
+	    }
+	  return path;
+	}
+    }
+
+  grub_free (path);
   *is_part = 0;
 
   if (grub_util_device_is_mapped_stat (&st))
