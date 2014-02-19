@@ -343,7 +343,7 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
       char *config;
       const char *prefix, *fw_path;
 
-      fw_path = grub_env_get ("fw_path");
+      prefix = fw_path = grub_env_get ("fw_path");
       if (fw_path)
 	{
 	  config = grub_xasprintf ("%s/grub.cfg", fw_path);
@@ -366,7 +366,8 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
 	    }
 	}
 
-      prefix = grub_env_get ("prefix");
+      if (! prefix)
+	      prefix = grub_env_get ("prefix");
       if (prefix)
         {
           grub_size_t config_len;
