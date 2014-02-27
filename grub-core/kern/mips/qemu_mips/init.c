@@ -75,7 +75,7 @@ grub_machine_fini (int flags __attribute__ ((unused)))
 }
 
 void
-grub_exit (void)
+grub_exit (int rc __attribute__((unused)))
 {
   grub_halt ();
 }
