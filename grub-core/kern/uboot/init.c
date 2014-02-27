@@ -43,9 +43,9 @@ extern grub_uint32_t grub_uboot_machine_type;
 extern grub_addr_t grub_uboot_boot_data;
 
 void
-grub_exit (void)
+grub_exit (int rc)
 {
-  grub_uboot_return (0);
+  grub_uboot_return (rc < 0 ? 1 : rc);
 }
 
 grub_uint32_t
@@ -94,7 +94,7 @@ grub_machine_init (void)
   if (!ver)
     {
       /* Don't even have a console to log errors to... */
-      grub_exit ();
+      grub_exit (-1);
     }
   else if (ver > API_SIG_VERSION)
     {

@@ -66,6 +66,12 @@ grub_reboot (void)
 }
 
 void
+grub_exit (int retval __attribute__((unused)))
+{
+  grub_reboot ();
+}
+
+void
 grub_machine_init (void)
 {
 }

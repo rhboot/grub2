@@ -549,7 +549,7 @@ grub_machine_init (void)
 }
 
 void
-grub_exit (void)
+grub_exit (int rc __attribute__((unused)))
 {
   struct sched_shutdown arg;
 
