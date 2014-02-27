@@ -39,9 +39,9 @@ extern grub_size_t grub_total_module_size;
 static unsigned long timer_start;
 
 void
-grub_exit (void)
+grub_exit (int rc)
 {
-  grub_uboot_return (0);
+  grub_uboot_return (rc < 0 ? 1 : rc);
 }
 
 static grub_uint64_t
@@ -78,7 +78,7 @@ grub_machine_init (void)
   if (!ver)
     {
       /* Don't even have a console to log errors to... */
-      grub_exit ();
+      grub_exit (-1);
     }
   else if (ver > API_SIG_VERSION)
     {

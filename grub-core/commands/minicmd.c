@@ -176,12 +176,24 @@ grub_mini_cmd_lsmod (struct grub_command *cmd __attribute__ ((unused)),
 }
 
 /* exit */
-static grub_err_t __attribute__ ((noreturn))
+static grub_err_t
 grub_mini_cmd_exit (struct grub_command *cmd __attribute__ ((unused)),
-		    int argc __attribute__ ((unused)),
-		    char *argv[] __attribute__ ((unused)))
+		    int argc, char *argv[])
 {
-  grub_exit ();
+  int retval = -1;
+  unsigned long n;
+
+  if (argc < 0 || argc > 1)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));
+
+  if (argc == 1)
+    {
+      n = grub_strtoul (argv[0], 0, 10);
+      if (n != ~0UL)
+	retval = n;
+    }
+
+  grub_exit (retval);
   /* Not reached.  */
 }
 
