@@ -158,7 +158,7 @@ grub_exit (void)
 {
   grub_efi_fini ();
   efi_call_4 (grub_efi_system_table->boot_services->exit,
-              grub_efi_image_handle, GRUB_EFI_SUCCESS, 0, 0);
+              grub_efi_image_handle, GRUB_EFI_LOAD_ERROR, 0, 0);
   for (;;) ;
 }
 
