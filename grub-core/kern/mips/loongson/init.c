@@ -304,7 +304,7 @@ grub_halt (void)
 }
 
 void
-grub_exit (void)
+grub_exit (int rc __attribute__((unused)))
 {
   grub_halt ();
 }
