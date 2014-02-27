@@ -67,7 +67,7 @@ grub_reboot (void)
 }
 
 void
-grub_exit (void)
+grub_exit (int retval __attribute__((unused)))
 {
   grub_reboot ();
 }
