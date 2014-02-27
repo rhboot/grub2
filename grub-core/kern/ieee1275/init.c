@@ -114,7 +114,7 @@ grub_addr_t grub_ieee1275_original_stack;
 #define BYTE22              (DY_MEM_V2 | DRC_INFO)
 
 void
-grub_exit (void)
+grub_exit (int rc __attribute__((unused)))
 {
   grub_ieee1275_exit ();
 }
