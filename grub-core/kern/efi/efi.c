@@ -175,11 +175,16 @@ grub_reboot (void)
 }
 
 void
-grub_exit (void)
+grub_exit (int retval)
 {
+  int rc = GRUB_EFI_LOAD_ERROR;
+
+  if (retval == 0)
+    rc = GRUB_EFI_SUCCESS;
+
   grub_machine_fini (GRUB_LOADER_FLAG_NORETURN);
   grub_efi_system_table->boot_services->exit (grub_efi_image_handle,
-					      GRUB_EFI_SUCCESS, 0, 0);
+					      rc, 0, 0);
   for (;;) ;
 }
 
