@@ -1,0 +1,54 @@
+.TH GRUB-BIOS-SETUP 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-bios-setup\fR \(em Set up images to boot from a device.
+
+.SH SYNOPSIS
+\fBgrub-bios-setup\fR [-a | --allow-floppy] [-b | --boot-image=\fIFILE\fR]
+.RS 17
+[-c | --core-image=\fIFILE\fR] [-d | --directory=\fIDIR\fR]
+.RE
+.RS 17
+[-f | --force] [-m | --device-map=\fIFILE\fR]
+.RE
+.RS 17
+[-s | --skip-fs-probe] [-v | --verbose] \fIDEVICE\fR
+
+.SH DESCRIPTION
+You should not normally run this program directly.  Use grub-install instead.
+
+.SH OPTIONS
+.TP
+\fB--allow-floppy\fR
+Make the device also bootable as a floppy.  This option is the default for
+/dev/fdX devices.  Some BIOSes will not boot images created with this option.
+
+.TP
+\fB--boot-image\fR=\fIFILE\fR
+Use FILE as the boot image.  The default value is \fBboot.img\fR.
+
+.TP
+\fB--core-image\fR=\fIFILE\fR
+Use FILE as ther core image.  The default value is \fBcore.img\fR.
+
+.TP
+\fB--directory\fR=\fIDIR\fR
+Use GRUB files in the directory DIR.  The default value is \fB/boot/grub\fR.
+
+.TP
+\fB--force\fR
+Install even if problems are detected.
+
+.TP
+\fB--device-map\fR=\fIFILE\fR
+Use FILE as the device map.  The default value is /boot/grub/device.map .
+
+.TP
+\fB--skip-fs-probe\fR
+Do not probe DEVICE for filesystems.
+
+.TP
+\fB--verbose\fR
+Print verbose messages.
+
+.SH SEE ALSO
+.BR "info grub"

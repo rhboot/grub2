@@ -1,0 +1,99 @@
+.TH GRUB-FSTEST 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-fstest\fR — Debug tool for GRUB's filesystem driver.
+
+.SH SYNOPSIS
+\fBgrub-fstest\fR [-c | --diskcount=\fINUM\fR] [-C | --crypto]
+.RS 13
+[-d | --debug=\fISTRING\fR] [-K | --zfs-key=\fIFILE\fR|\fIprompt\fR]
+.RE
+.RS 13
+[-n | --length=\fINUM\fR] [-r | --root=\fIDEVICE_NAME\fR]
+.RE
+.RS 13
+[-s | --skip=\fINUM\fR] [-u | --uncompress] [-v | --verbose]
+.RE
+.RS 13
+\fIIMAGE_PATH\fR <blocklist \fIFILE\fR | cat \fIFILE\fR |
+.RE
+.RS 13
+cmp \fIFILE\fR \fILOCAL\fR | cp \fIFILE\fR \fILOCAL\fR | crc \fIFILE\fR |
+.RE
+.RS 13
+hex \fIFILE\fR | ls \fIPATH\fR | xnu_uuid \fIDEVICE\fR>
+
+.SH DESCRIPTION
+\fBgrub-fstest\fR is a tool for testing GRUB's filesystem drivers.  You should not normally need to run this program.
+
+.SH OPTIONS
+.TP
+\fB--diskcount\fR=\fINUM\fR
+Specify the number of input files.
+
+.TP
+\fB--crypto\fR
+Mount cryptographic devices.
+
+.TP
+\fB--debug\fR=\fISTRING\fR
+Set debug environment variable.
+
+.TP
+\fB--zfs-key\fR=\fIFILE\fR|\fIprompt\fR
+Load ZFS cryptographic key.
+
+.TP
+\fB--length\fR=\fINUM\fR
+Handle NUM bytes in output file.
+
+.TP
+\fB--root\fR=\fIDEVICE_NAME\fR
+Set root device.
+
+.TP
+\fB--skip\fR=\fINUM\fR
+Skip NUM bytes from output file.
+
+.TP
+\fB--uncompress\fR
+Uncompress data.
+
+.TP
+\fB--verbose\fR
+Print verbose messages.
+
+.SH COMMANDS
+.TP
+\fBblocklist\fR \fIFILE\fR
+Display block list of \fIFILE\fR.
+
+.TP
+\fBcat\fR \fIFILE\fR
+Display \fIFILE\fR on standard output.
+
+.TP
+\fBcmp\fR \fIFILE\fR \fILOCAL\fR
+Compare \fIFILE\fR with local file \fILOCAL\fR.
+
+.TP
+\fBcp\fR \fIFILE\fR \fILOCAL\fR
+Copy \fIFILE\fR to local file \fILOCAL\fR.
+
+.TP
+\fBcrc\fR \fIFILE\fR
+Display the CRC-32 checksum of \fIFILE\fR.
+
+.TP
+\fBhex\fR \fIFILE\fR
+Display contents of \fIFILE\fR in hexidecimal.
+
+.TP
+\fBls\fR \fIPATH\fR
+List files at \fIPATH\fR.
+
+.TP
+\fBxnu_uuid\fR \fIDEVICE\fR
+Display the XNU UUID of \fIDEVICE\fR.
+
+.SH SEE ALSO
+.BR "info grub"

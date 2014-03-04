@@ -1,0 +1,165 @@
+.TH GRUB-FILE 1 "Web Feb 26 2014"
+.SH NAME
+\fBgrub-file\fR \(em Check if FILE is of specified type.
+
+.SH SYNOPSIS
+\fBgrub-file\fR (--is-i386-xen-pae-domu | --is-x86_64-xen-domu |
+.RS 11
+--is-x86-xen-dom0 | --is-x86-multiboot |
+.RE
+.RS 11
+--is-x86-multiboot2 | --is-arm-linux | --is-arm64-linux |
+.RE
+.RS 11
+--is-ia64-linux | --is-mips-linux | --is-mipsel-linux |
+.RE
+.RS 11
+--is-sparc64-linux | --is-powerpc-linux | --is-x86-linux |
+.RE
+.RS 11
+--is-x86-linux32 | --is-x86-kfreebsd | --is-i386-kfreebsd |
+.RE
+.RS 11
+--is-x86_64-kfreebsd | --is-x86-knetbsd |
+.RE
+.RS 11
+--is-i386-knetbsd | --is-x86_64-knetbsd | --is-i386-efi |
+.RE
+.RS 11
+--is-x86_64-efi | --is-ia64-efi | --is-arm64-efi |
+.RE
+.RS 11
+--is-arm-efi | --is-hibernated-hiberfil | --is-x86_64-xnu |
+.RE
+.RS 11
+--is-i386-xnu | --is-xnu-hibr | --is-x86-bios-bootsector)
+.RE
+.RS 11
+\fIFILE\fR
+
+.SH DESCRIPTION
+\fBgrub-file\fR is used to check if \fIFILE\fR is of a specified type.
+
+.SH OPTIONS
+.TP
+--is-i386-xen-pae-domu
+Check if FILE can be booted as i386 PAE Xen unprivileged guest kernel
+
+.TP
+--is-x86_64-xen-domu
+Check if FILE can be booted as x86_64 Xen unprivileged guest kernel
+
+.TP
+--is-x86-xen-dom0
+Check if FILE can be used as Xen x86 privileged guest kernel
+
+.TP
+--is-x86-multiboot
+Check if FILE can be used as x86 multiboot kernel
+
+.TP
+--is-x86-multiboot2
+Check if FILE can be used as x86 multiboot2 kernel
+
+.TP
+--is-arm-linux
+Check if FILE is ARM Linux
+
+.TP
+--is-arm64-linux
+Check if FILE is ARM64 Linux
+
+.TP
+--is-ia64-linux
+Check if FILE is IA64 Linux
+
+.TP
+--is-mips-linux
+Check if FILE is MIPS Linux
+
+.TP
+--is-mipsel-linux
+Check if FILE is MIPSEL Linux
+
+.TP
+--is-sparc64-linux
+Check if FILE is SPARC64 Linux
+
+.TP
+--is-powerpc-linux
+Check if FILE is POWERPC Linux
+
+.TP
+--is-x86-linux
+Check if FILE is x86 Linux
+
+.TP
+--is-x86-linux32
+Check if FILE is x86 Linux supporting 32-bit protocol
+
+.TP
+--is-x86-kfreebsd
+Check if FILE is x86 kFreeBSD
+
+.TP
+--is-i386-kfreebsd
+Check if FILE is i386 kFreeBSD
+
+.TP
+--is-x86_64-kfreebsd
+Check if FILE is x86_64 kFreeBSD
+
+.TP
+--is-x86-knetbsd
+Check if FILE is x86 kNetBSD
+
+.TP
+--is-i386-knetbsd
+Check if FILE is i386 kNetBSD
+
+.TP
+--is-x86_64-knetbsd
+Check if FILE is x86_64 kNetBSD
+
+.TP
+--is-i386-efi
+Check if FILE is i386 EFI file
+
+.TP
+--is-x86_64-efi
+Check if FILE is x86_64 EFI file
+
+.TP
+--is-ia64-efi
+Check if FILE is IA64 EFI file
+
+.TP
+--is-arm64-efi
+Check if FILE is ARM64 EFI file
+
+.TP
+--is-arm-efi
+Check if FILE is ARM EFI file
+
+.TP
+--is-hibernated-hiberfil
+Check if FILE is hiberfil.sys in hibernated state
+
+.TP
+--is-x86_64-xnu
+Check if FILE is x86_64 XNU (Mac OS X kernel)
+
+.TP
+--is-i386-xnu
+Check if FILE is i386 XNU (Mac OS X kernel)
+
+.TP
+--is-xnu-hibr
+Check if FILE is XNU (Mac OS X kernel) hibernated image
+
+.TP
+--is-x86-bios-bootsector
+Check if FILE is BIOS bootsector
+
+.SH SEE ALSO
+.BR "info grub"

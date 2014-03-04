@@ -1,0 +1,87 @@
+.TH GRUB-MKFONT 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-mkfont\fR \(em Convert common font file formats into the PF2 format.
+
+.SH SYNOPSIS
+\fBgrub-mkfont\fR [--ascii-bitmaps] [-a | --force-autohint]
+.RS 13
+[-b | --bold] [-c | --asce=\fINUM\fR] [-d | --desc=\fINUM\fR]
+.RE
+.RS 13
+[-i | --index=\fINUM\fR] [-n | --name=\fINAME\fR] [--no-bitmap]
+.RE
+.RS 13
+[--no-hinting] <-o | --output=\fIFILE\fR>
+.RE
+.RS 13
+[-r | --range=\fIFROM-TO\fR[\fI,FROM-TO\fR]] [-s | --size=\fISIZE\fR]
+.RE
+.RS 13
+[-v | --verbose] [--width-spec] \fIFONT_FILES\fR
+
+.SH DESCRIPTION
+\fBgrub-mkfont\fR converts font files from common formats into the PF2 format used by GRUB.
+
+.SH OPTIONS
+.TP
+--ascii-bitmaps
+Save only bitmaps for ASCII characters.
+
+.TP
+--force-autohint
+Force generation of automatic hinting.
+
+.TP
+--bold
+Convert font to bold.
+
+.TP
+--asce=\fINUM\fR
+Set font ascent to \fINUM\fR.
+
+.TP
+--desc=\fINUM\fR
+Set font descent to \fINUM\fR.
+
+.TP
+--index=\fINUM\fR
+Select face index \fINUM\fR.
+
+.TP
+--name=\fINAME\fR
+Set font family to \fINAME\fR.
+
+.TP
+--no-bitmap
+Ignore bitmap strikes when loading.
+
+.TP
+--no-hinting
+Disable hinting.
+
+.TP
+--output=\fIFILE\fR
+Save ouptut to \fIFILE\fR.  This argument is required.
+
+.TP
+--range=\fIFROM-TO\fR\fI,FROM-TO\fR
+Set the font ranges to each pair of \fIFROM\fR,\fITO\fR.
+
+.TP
+--size=\fISIZE\fR
+Set font size to \fISIZE\fR.
+
+.TP
+--verbose
+Print verbose messages.
+
+.TP
+--width-spec
+Create a width summary file.
+
+.TP
+\fIFONT_FILES\fR
+The input files to be converted.
+
+.SH SEE ALSO
+.BR "info grub"
