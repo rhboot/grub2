@@ -802,10 +802,7 @@ def manpage(defn, adddeps):
 
     output("if COND_MAN_PAGES\n")
     gvar_add("man_MANS", name + "." + mansection)
-    rule(name + "." + mansection, name + " " + adddeps, """
-chmod a+x """ + name + """
-PATH=$(builddir):$$PATH pkgdatadir=$(builddir) $(HELP2MAN) --section=""" + mansection + """ -i $(top_srcdir)/docs/man/""" + name + """.h2m -o $@ """ + name + """
-""")
+    rule(name + "." + mansection, name + " " + adddeps, "cat $(top_srcdir)/util/" + name + "." + mansection + " | $(top_builddir)/config.status --file=$@:-")
     gvar_add("CLEANFILES", name + "." + mansection)
     output("endif\n")
 

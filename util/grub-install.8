@@ -1,0 +1,129 @@
+.TH GRUB-INSTALL 1 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-install\fR \(em Install GRUB on a device.
+
+.SH SYNOPSIS
+\fBgrub-install\fR [--modules=\fIMODULES\fR] [--install-modules=\fIMODULES\fR]
+.RS 14
+[--themes=\fITHEMES\fR] [--fonts=\fIFONTS\fR] [--locales=\fILOCALES\fR]
+.RE
+.RS 14
+[--compress[=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR]] [-d | --directory=\fIDIR\fR]
+.RE
+.RS 14
+[--grub-mkimage=\fIFILE\fR] [--boot-directory=\fIDIR\fR]
+.RE
+.RS 14
+[--target=\fITARGET\fR] [--grub-setup=\fIFILE\fR]
+.RE
+.RS 14
+[--grub-mkrelpath=\fIFILE\fR] [--grub-probe=\fIFILE\fR]
+.RE
+.RS 14
+[--allow-floppy] [--recheck] [--force] [--force-file-id]
+.RE
+.RS 14
+[--disk-module=\fIMODULE\fR] [--no-nvram] [--removable]
+.RE
+.RS 14
+[--bootloader-id=\fIID\fR] [--efi-directory=\fIDIR\fR] \fIINSTALL_DEVICE\fR
+
+.SH DESCRIPTION
+\fBgrub-install\fR installs GRUB onto a device.  This includes copying GRUB images into the target directory (generally \fI/boot/grub\fR), and on some platforms may also include installing GRUB onto a boot sector.
+
+.SH OPTIONS
+.TP
+\fB--modules\fR=\fIMODULES\fR\!
+Pre-load modules specified by \fIMODULES\fR.
+
+.TP
+\fB--install-modules\fR=\fIMODULES\fR
+Install only \fIMODULES\fR and their dependencies.  The default is to install all available modules.
+
+.TP
+\fB--themes\fR=\fITHEMES\fR
+Install \fITHEMES\fR.  The default is to install the \fIstarfield\fR theme, if available.
+
+.TP
+\fB--fonts\fR=\fIFONTS\fR
+Install \fIFONTS\fR.  The default is to install the \fIunicode\fR font.
+
+.TP
+\fB--locales\fR=\fILOCALES\fR
+Install only locales listed in \fILOCALES\fR.  The default is to install all available locales.
+
+.TP
+\fB--compress\fR=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR
+Compress GRUB files using the specified compression algorithm.
+
+.TP
+\fB--directory\fR=\fIDIR\fR
+Use images and modules in \fIDIR\fR.
+
+.TP
+\fB--grub-mkimage\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-mkimage\fR.  The default is \fI/usr/bin/grub-mkimage\fR.
+
+.TP
+\fB--boot-directory\fR=\fIDIR\fR
+Use \fIDIR\fR as the boot directory.  The default is \fI/boot\fR.  GRUB will put its files in a subdirectory of this directory named \fIgrub\fR.
+
+.TP
+\fB--target\fR=\fITARGET\fR
+Install GRUB for \fITARGET\fR platform.  The default is the platform \fBgrub-install\fR is running on.
+
+.TP
+\fB--grub-setup\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-setup\fR.  The default is \fI/usr/bin/grub-setup\fR.
+
+.TP
+\fB--grub-mkrelpath\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-mkrelpath\fR.  The default is \fI/usr/bin/grub-mkrelpath\fR.
+
+.TP
+\fB--grub-probe\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-probe\fR.  The default is \fI/usr/bin/grub-mkrelpath\fR.
+
+.TP
+\fB--allow-floppy
+Make the device also bootable as a floppy.  This option is the default for /dev/fdX devices. Some BIOSes will not boot images created with this option.
+
+.TP
+\fB--recheck
+Delete any existing device map and create a new one if necessary.
+
+.TP
+\fB--force
+Install even if problems are detected.
+
+.TP
+\fB--force-file-id
+Use identifier file even if UUID is available.
+
+.TP
+\fB--disk-module\fR=\fIMODULE\fR
+Use \fIMODULE\fR for disk access.  This allows you to manually specify either \fIbiosdisk\fR or \fInative\fR disk access.  This option is only available on the BIOS target platform.
+
+.TP
+\fB--no-nvram
+Do not update the \fIboot-device\fR NVRAM variable.  This option is only available on IEEE1275 target platforms.
+
+.TP
+\fB--removable
+Treat the target device as if it is removeable.  This option is only available on the EFI target platform.
+
+.TP
+\fB--bootloader-id\fR=\fIID\fR
+Use \fIID\fR as the bootloader ID.  This opption is only available on the EFI target platform.
+
+.TP
+\fB--efi-directory\fR=\fIDIR\fR
+Use \fIDIR\fR as the EFI System Partition root.  This opption is only available on the EFI ta
+rget platform.
+
+.TP
+\fIINSTALL_DEVICE\fR
+Install GRUB to the block device \fIINSTALL_DEVICE\fR.
+
+.SH SEE ALSO
+.BR "info grub"

@@ -1,0 +1,31 @@
+.TH GRUB-GLUE-EFI 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-glue-efi\fR \(em Create an Apple fat EFI binary.
+
+.SH SYNOPSIS
+\fBgrub-glue-efi\fR <-3 | --input32=\fIFILE\fR> <-6 | --input64=\fIFILE\fR>
+.RS 15
+<-o | --output=\fIFILE\fR> [-v | --verbose]
+
+.SH DESCRIPTION
+\fBgrub-glue-efi\fR creates an Apple fat EFI binary from two EFI binaries.
+
+.SH OPTIONS
+.TP
+\fB--input32\fR=\fIFILE\fR
+Read 32-bit binary from \fIFILE\fR.
+
+.TP
+\fB--input64\fR=\fIFILE\fR
+Read 64-bit binary from \fIFILE\fR.
+
+.TP
+\fB--output\fR=\fIFILE\fR
+Write resulting fat binary to \fIFILE\fR.
+
+.TP
+\fB--verbose\fR
+Print verbose messages.
+
+.SH SEE ALSO
+.BR "info grub"

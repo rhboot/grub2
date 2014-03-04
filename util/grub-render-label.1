@@ -1,0 +1,51 @@
+.TH GRUB-RENDER-LABEL 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-render-label\fR \(em Render an Apple disk label.
+
+.SH SYNOPSIS
+\fBgrub-render-label\fR [-b | --bgcolor=\fICOLOR\fR] [-c | --color=\fICOLOR\fR]
+.RS 19
+[-f | --font=\fIFILE\fR] [-i | --input=\fIFILE\fR]
+.RE
+.RS 19
+[-o | --output=\fIFILE\fR] [-t | --text=\fISTRING\fR]
+.RE
+.RS 19
+[-v | --verbose]
+
+.SH DESCRIPTION
+\fBgrub-render-label\fR renders an Apple disk label (.disk_label) file.
+
+
+.SH OPTIONS
+.TP
+\fB--color\fR=\fICOLOR\fR
+Use \fICOLOR\fI as the color for generated labels.
+
+.TP
+\fB--bgcolor\fR=\fICOLOR\fR
+Use \fICOLOR\fR as the background color for generated labels.
+
+.TP
+\fB--font\fR=\fIFILE\fR
+Use \fIFILE\fR as the font file for generated labels.
+
+.TP
+--input=\fIFILE\fR
+Read input text from \fIFILE\fR.
+
+.TP
+--output=\fIFILE\fR
+Render output to \fIFILE\fR.
+
+.TP
+--text=\fISTRING\fR
+Use \fISTRING\fR as input text.
+
+.TP
+--verbose
+Print verbose output.
+
+
+.SH SEE ALSO
+.BR "info grub"
