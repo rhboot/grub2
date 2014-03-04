@@ -1,0 +1,123 @@
+.TH GRUB-MKRESCUE 3 "Wed Feb 26 2014"
+.SH NAME
+grub-mkrescue \(em Generate a GRUB rescue image using GNU Xorriso.
+
+.SH SYNOPSIS
+\fBgrub-mkrescue\fR [-o | --output=\fIFILE\fR] [--modules=\fIMODULES\fR]
+.RS 15
+[--install-modules=\fIMODULES\fR] [--themes=\fITHEMES\fR]
+.RE
+.RS 15
+[--fonts=\fIFONTS\fR] [--locales=\fILOCALES\fR]
+.RE
+.RS 15
+[--compress[=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR]] [-d | --directory=\fIDIR\fR]
+.RE
+.RS 15
+[--grub-mkimage=\fIFILE\fR] [--rom-directory=\fIDIR\fR]
+.RE
+.RS 15
+[--xorriso=\fIFILE\fR] [--grub-glue-efi=\fIFILE\fR]
+.RE
+.RS 15
+[--grub-render-label=\fIFILE\fR] [--label-font=\fIFILE\fR]
+.RE
+.RS 15
+[--label-color=\fICOLOR\fR] [--label-bgcolor=\fIFILE\fR]
+.RE
+.RS 15
+[--product-name=\fISTRING\fR] [--product-version=\fISTRING\fR]
+.RE
+.RS 15
+[--sparc-boot] [--arcs-boot]
+
+.SH DESCRIPTION
+\fBgrub-mkrescue\fR can be used to generate a rescue image with the GRUB bootloader.
+
+.SH OPTIONS
+.TP
+\fB--output\fR=\fIFILE\fR
+Write the generated file to \fIFILE\fR.  The default is to write to standard output.
+
+.TP
+\fB--modules\fR=\fIMODULES\fR
+Pre-load modules specified by \fIMODULES\fR.
+
+.TP
+\fB--install-modules\fR=\fIMODULES\fR
+Install only \fIMODULES\fR and their dependencies.  The default is to install all available modules.
+
+.TP
+\fB--themes\fR=\fITHEMES\fR
+Install \fITHEMES\fR.  The default is to install the \fIstarfield\fR theme, if available.
+
+.TP
+\fB--fonts\fR=\fIFONTS\fR
+Install \fIFONTS\fR.  The default is to install the \fIunicode\fR font.
+
+.TP
+\fB--locales\fR=\fILOCALES\fR
+Install only locales listed in \fILOCALES\fR.  The default is to install all available locales.
+
+.TP
+\fB--compress\fR[=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR]
+Compress GRUB files using the specified compression algorithm.
+
+.TP
+\fB--directory\fR=\fIDIR\fR
+Use images and modules in \fIDIR\fR.
+
+.TP
+\fB--grub-mkimage\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-mkimage\fR(1).  The default is \fI/usr/bin/grub-mkimage\fR.
+
+.TP
+\fB--rom-directory\fR=\fIDIR\fR
+Save ROM images in \fIDIR\fR.
+
+.TP
+\fB--xorriso\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBxorriso\fI.
+
+.TP
+\fB--grub-glue-efi\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-glue-efi\fR(3).
+
+.TP
+\fB--grub-render-label\fR=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-render-label\fR(3).
+
+.TP
+\fB--label-font\fR=\fIFILE\fR
+Use \fIFILE\fR as the font file for generated labels.
+
+.TP
+\fB--label-color\fR=\fICOLOR\fR
+Use \fICOLOR\fI as the color for generated labels.
+
+.TP
+\fB--label-bgcolor\fR=\fICOLOR\fR
+Use \fICOLOR\fR as the background color for generated labels.
+
+.TP
+\fB--product-name\fR=\fISTRING\fR
+Use \fISTRING\fR as the product name in generated labels.
+
+.TP
+\fB--product-version\fR=\fISTRING\fR
+Use \fISTRING\fR as the product version in generated labels.
+
+.TP
+\fB--sparc-boot\fR
+Enable booting the SPARC platform.  This disables HFS+, APM, ARCS, and "boot as disk image" on the \fIi386-pc\fR target platform.
+
+.TP
+\fB--arcs-boot\fR
+Enable ARCS booting.  This is typically for big-endian MIPS machines, and disables HFS+, APM, sparc64, and "boot as disk image" on the \fIi386-pc\fR target platform.
+
+.TP
+\fB--\fR
+All options after a \fB--\fR will be passed directly to xorriso's command line when generating the image.
+
+.SH SEE ALSO
+.BR "info grub"

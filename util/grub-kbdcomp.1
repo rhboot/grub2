@@ -1,0 +1,19 @@
+.TH GRUB-KBDCOMP 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-kbdcomp\fR \(em Generate a GRUB keyboard layout file.
+
+.SH SYNOPSIS
+\fBgrub-kbdcomp\fR <-o | --output=\fIFILE\fR> \fICKBMAP_ARGUMENTS\fR
+
+.SH DESCRIPTION
+\fBgrub-kbdcomp\fR processes an X keyboard layout description in
+\fBkeymaps\fR(5) format into a format that can be used by GRUB's \fBkeymap\fR
+command.
+
+.SH OPTIONS
+.TP
+\fB--output\fR=\fIFILE\fR
+Write output to \fIFILE\fR.
+
+.SH SEE ALSO
+.BR "info grub"
