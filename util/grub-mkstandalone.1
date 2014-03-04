@@ -1,0 +1,100 @@
+.TH GRUB-MKSTANDALONE 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-mkstandalone\fR \(em Generate a standalone image in the selected format.
+
+.SH SYNOPSIS
+\fBgrub-mkstandalone\fR [-o | --output=\fIFILE\fR] [-O | --format=\fIFORMAT\fR]
+.RS 19
+[-C | --compression=(\fIxz\fR|\fInone\fR|\fIauto\fR)]
+.RE
+.RS 19
+[--modules=\fIMODULES\fR] [--install-modules=\fIMODULES\fR]
+.RE
+.RS 19
+[--themes=\fITHEMES\fR] [--fonts=\fIFONTS\fR]
+.RE
+.RS 19
+[--locales=\fILOCALES\fR] [--compress[=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR]]
+.RE
+.RS 19
+[-d | --directory=\fIDIR\fR] [--grub-mkimage=\fIFILE\fR]
+.RE
+.RS 19
+\fISOURCE...\fR
+
+.SH DESCRIPTION
+
+.SH OPTIONS
+.TP
+--output=\fIFILE\fR
+Write the generated file to \fIFILE\fR.  The default is to write to standard output.
+
+.TP
+--format=\fIFORMAT\fR
+Generate an image in the specified \fIFORMAT\fR.  Valid values are:
+.RS
+.RS 4
+.P
+i386-coreboot,
+i386-multiboot,
+i386-pc,
+i386-pc-pxe,
+i386-efi,
+i386-ieee1275,
+i386-qemu,
+x86_64-efi,
+mipsel-yeeloong-flash,
+mipsel-fuloong2f-flash,
+mipself-loongson-elf,
+powerpc-ieee1275,
+sparc64-ieee1275-raw,
+sparc64-ieee1275-cdcore,
+sparc64-ieee1275-aout,
+ia64-efi,
+mips-arc,
+mipsel-arc,
+mipsel-qemu_mips-elf,
+mips-qemu_mips-flash,
+mipsel-qemu_mips-flash,
+mips-qemu_mips-elf
+.RE
+.RE
+
+.TP
+--compression=(\fIxz\fR|\fInone\fR|\fIauto\fR)
+Use one of \fIxz\fR, \fInone\fR, or \fIauto\fR as the compression method for the core image.
+
+.TP
+--modules=\fIMODULES\fR
+Pre-load modules specified by \fIMODULES\fR.
+
+.TP
+--install-modules=\fIMODULES\fR
+Install only \fIMODULES\fR and their dependencies.  The default is to install all available modules.
+
+.TP
+--themes=\fITHEMES\fR
+Install \fITHEMES\fR.  The default is to install the \fIstarfield\fR theme, if available.
+
+.TP
+--fonts=\fIFONTS\fR
+Install \fIFONTS\fR.  The default is to install the \fIunicode\fR font.
+
+.TP
+--locales=\fILOCALES\fR
+Install only locales listed in \fILOCALES\fR.  The default is to install all available locales.
+
+.TP
+--compress[=\fIno\fR,\fIxz\fR,\fIgz\fR,\fIlzo\fR]
+Compress GRUB files using the specified compression algorithm.
+
+.TP
+--directory=\fIDIR\fR
+Use images and modules in \fIDIR\fR.
+
+.TP
+--grub-mkimage=\fIFILE\fR
+Use \fIFILE\fR as \fBgrub-mkimage\fR.  The default is \fI/usr/bin/grub-mkimage\fR.
+
+.SH SEE ALSO
+.BR "info grub"
