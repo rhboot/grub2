@@ -1,0 +1,80 @@
+.TH GRUB-PROBE 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-probe\fR \(em Probe device information for a given path.
+
+.SH SYNOPSIS
+\fBgrub-probe\fR \[-d | --device] [-m | --device-map=\fIFILE\fR]
+.RS 12
+[-t | --target=(fs|fs_uuid|fs_label|drive|device|partmap|
+.RE
+.RS 28
+abstraction|cryptodisk_uuid|
+.RE
+.RS 28
+msdos_parttype)]
+.RE
+.RS 12
+[-v | --verbose] (PATH|DEVICE)
+
+.SH DESCRIPTION
+\fBgrub-probe\fR probes a path or device for filesystem and related information.
+
+.SH OPTIONS
+.TP
+--device
+Final option represents a \fIDEVICE\fR, rather than a filesystem \fIPATH\fR.
+.TP
+--device-map=\fIFILE\fR
+Use \fIFILE\fR as the device map.  The default value is \fI/boot/grub/device.map\fR.
+
+.TP
+--target=(fs|fs_uuid|fs_label|drive|device|partmap|msdos_parttype)
+Select among various output definitions.  The default is \fIfs\fR.
+.RS
+.TP
+\fIfs\fR
+filesystem module
+
+.TP
+\fIfs_uuid\fR
+filesystem UUID
+
+.TP
+\fIfs_label\fR
+filesystem label
+
+.TP
+\fIdrive\fR
+GRUB drive name
+
+.TP
+\fIdevice\fR
+System device
+
+.TP
+\fIpartmap\fR
+partition map module
+
+.TP
+\fIabstraction\fR
+abstraction module
+
+.TP
+\fIcryptodisk_uuid\fR
+cryptographic container
+
+.TP
+\fImsdos_partmap\fR
+MS-DOS partition map
+.RE
+
+.TP
+--verbose
+Print verbose output.
+
+.TP
+(\fIPATH\fR|\fIDEVICE\fR)
+If --device is passed, a block \fIDEVICE\fR.  Otherwise, the \fIPATH\fR of a file on the filesystem.
+
+.SH SEE ALSO
+.BR "info grub"

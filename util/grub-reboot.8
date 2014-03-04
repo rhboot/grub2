@@ -1,0 +1,21 @@
+.TH GRUB-REBOOT 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-reboot\fR \(em Set the default boot menu entry for the next boot only.
+
+.SH SYNOPSIS
+\fBgrub-reboot\fR [--boot-directory=\fIDIR\fR] \fIMENU_ENTRY\fR
+
+.SH DESCRIPTION
+\fBgrub-reboot\fR sets the default boot menu entry for the next boot, but not further boots after that.  This command only works for GRUB configuration files created with \fIGRUB_DEFAULT=saved\fR in \fI/etc/default/grub\fR.
+
+.SH OPTIONS
+.TP
+--boot-directory=\fIDIR\fR
+Find GRUB images under \fIDIR/grub\fR.  The default value is \fI/boot\fR, resulting in grub images being search for at \fI/boot/grub\fR.
+
+.TP
+\fIMENU_ENTRY\fR
+A number, a menu item title or a menu item identifier.
+
+.SH SEE ALSO
+.BR "info grub"
