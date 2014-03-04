@@ -1,0 +1,46 @@
+.TH GRUB-EDITENV 1 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-editenv\fR \(em Manage the GRUB environment block.
+
+.SH SYNOPSIS
+\fBgrub-editenv\fR [-v | --verbose] [\fIFILE\fR]
+.RS 14
+<create | list | set \fINAME\fR=\fIVALUE\fR | unset \fINAME\fR>
+
+.SH DESCRIPTION
+\fBgrub-editenv\fR is a command line tool to manage GRUB's stored environment.
+
+.SH OPTIONS
+.TP
+\fB--verbose\fR
+Print verbose messages.
+
+.TP
+\fBFILE\fR
+.RS 7
+File name to use for grub environment.  Default is /boot/grub/grubenv .
+.RE
+
+.SH COMMANDS
+.TP
+\fBcreate\fR
+.RS 7
+Create a blank environment block file.
+.RE
+
+.TP
+\fBlist\fR
+.RS 7
+List the current variables.
+.RE
+
+.TP
+\fBset\fR [\fINAME\fR=\fIVALUE\fR ...]
+Set variables.
+
+.TP
+\fBunset [\fINAME\fR ...]
+Delete variables.
+
+.SH SEE ALSO
+.BR "info grub"
