@@ -1,0 +1,27 @@
+.TH GRUB-MKPASSWD-PBKDF2 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-mkpasswd-pbkdf2\fR \(em Generate a PBKDF2 password hash.
+
+.SH SYNOPSIS
+\fBgrub-mkpasswd-pbkdf2\fR [-c | --iteration-count=\fINUM\fR] [-l | --buflen=\fINUM\fR]
+.RS 22
+[-s | --salt=\fINUM\fR]
+
+.SH DESCRIPTION
+\fBgrub-mkpasswd-pbkdf2\fR generates a PBKDF2 password string suitable for use in a GRUB configuration file.
+
+.SH OPTIONS
+.TP
+--iteration-count=\fINUM\fR
+Number of PBKDF2 iterations.
+
+.TP
+--buflen=\fINUM\fR
+Length of generated hash.
+
+.TP
+--salt=\fINUM\fR
+Length of salt to use.
+
+.SH SEE ALSO
+.BR "info grub"
