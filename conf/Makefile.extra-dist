@@ -11,7 +11,6 @@ EXTRA_DIST += unicode
 EXTRA_DIST += util/import_gcry.py
 EXTRA_DIST += util/import_unicode.py
 
-EXTRA_DIST += docs/man
 EXTRA_DIST += docs/autoiso.cfg
 EXTRA_DIST += docs/grub.cfg
 EXTRA_DIST += docs/osdetect.cfg
