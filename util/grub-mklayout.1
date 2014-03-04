@@ -1,0 +1,27 @@
+.TH GRUB-MKLAYOUT 3 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-mklayout\fR \(em Generate a GRUB keyboard layout file.
+
+.SH SYNOPSIS
+\fBgrub-mklayout\fR [-i | --input=\fIFILE\fR] [-o | --output=\fIFILE\fR]
+.RS 15
+[-v | --verbose]
+
+.SH DESCRIPTION
+\fBgrub-mklayout\fR generates a GRUB keyboard layout description which corresponds with the Linux console layout description given as input.
+
+.SH OPTIONS
+.TP
+--input=\fIFILE\fR
+Use \fIFILE\fR as the input.  The default value is the standard input device.
+
+.TP
+--output=\fIFILE\fR
+Use \fIFILE\fR as the output.  The default value is the standard output device.
+
+.TP
+--verbose
+Print verbose messages.
+
+.SH SEE ALSO
+.BR "info grub"
