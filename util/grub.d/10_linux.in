@@ -261,7 +261,11 @@ while [ "x$list" != "x" ] ; do
     fi
   fi
 
-  if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xy ]; then
+  if [ "x${GRUB_DISABLE_SUBMENU}" = "xyes" ] || [ "x${GRUB_DISABLE_SUBMENU}" = "xy" ]; then
+    GRUB_DISABLE_SUBMENU="true"
+  fi
+
+  if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xtrue ]; then
     linux_entry "${OS}" "${version}" simple \
     "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 
