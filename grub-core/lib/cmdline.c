@@ -98,16 +98,7 @@ grub_create_loader_cmdline (int argc, char *argv[], char *buf,
 
       while (*c)
 	{
-	  if (*c == ' ')
-	    {
-	      *buf++ = '\\';
-	      *buf++ = 'x';
-	      *buf++ = '2';
-	      *buf++ = '0';
-	      c++;
-	      continue;
-	    }
-	  else if (*c == '\\' && *(c+1) == 'x' &&
+	  if (*c == '\\' && *(c+1) == 'x' &&
 		   is_hex(*(c+2)) && is_hex(*(c+3)))
 	    {
 	      *buf++ = *c++;
