@@ -48,4 +48,65 @@
 #  define WARN_UNUSED_RESULT
 #endif
 
+#include "types.h"
+
+union component64
+{
+  grub_uint64_t full;
+  struct
+  {
+#ifdef GRUB_CPU_WORDS_BIGENDIAN
+    grub_uint32_t high;
+    grub_uint32_t low;
+#else
+    grub_uint32_t low;
+    grub_uint32_t high;
+#endif
+  };
+};
+
+#if defined (__powerpc__)
+grub_uint64_t EXPORT_FUNC (__lshrdi3) (grub_uint64_t u, int b);
+grub_uint64_t EXPORT_FUNC (__ashrdi3) (grub_uint64_t u, int b);
+grub_uint64_t EXPORT_FUNC (__ashldi3) (grub_uint64_t u, int b);
+int EXPORT_FUNC(__ucmpdi2) (grub_uint64_t a, grub_uint64_t b);
+void EXPORT_FUNC (_restgpr_14_x) (void);
+void EXPORT_FUNC (_restgpr_15_x) (void);
+void EXPORT_FUNC (_restgpr_16_x) (void);
+void EXPORT_FUNC (_restgpr_17_x) (void);
+void EXPORT_FUNC (_restgpr_18_x) (void);
+void EXPORT_FUNC (_restgpr_19_x) (void);
+void EXPORT_FUNC (_restgpr_20_x) (void);
+void EXPORT_FUNC (_restgpr_21_x) (void);
+void EXPORT_FUNC (_restgpr_22_x) (void);
+void EXPORT_FUNC (_restgpr_23_x) (void);
+void EXPORT_FUNC (_restgpr_24_x) (void);
+void EXPORT_FUNC (_restgpr_25_x) (void);
+void EXPORT_FUNC (_restgpr_26_x) (void);
+void EXPORT_FUNC (_restgpr_27_x) (void);
+void EXPORT_FUNC (_restgpr_28_x) (void);
+void EXPORT_FUNC (_restgpr_29_x) (void);
+void EXPORT_FUNC (_restgpr_30_x) (void);
+void EXPORT_FUNC (_restgpr_31_x) (void);
+void EXPORT_FUNC (_savegpr_14) (void);
+void EXPORT_FUNC (_savegpr_15) (void);
+void EXPORT_FUNC (_savegpr_16) (void);
+void EXPORT_FUNC (_savegpr_17) (void);
+void EXPORT_FUNC (_savegpr_18) (void);
+void EXPORT_FUNC (_savegpr_19) (void);
+void EXPORT_FUNC (_savegpr_20) (void);
+void EXPORT_FUNC (_savegpr_21) (void);
+void EXPORT_FUNC (_savegpr_22) (void);
+void EXPORT_FUNC (_savegpr_23) (void);
+void EXPORT_FUNC (_savegpr_24) (void);
+void EXPORT_FUNC (_savegpr_25) (void);
+void EXPORT_FUNC (_savegpr_26) (void);
+void EXPORT_FUNC (_savegpr_27) (void);
+void EXPORT_FUNC (_savegpr_28) (void);
+void EXPORT_FUNC (_savegpr_29) (void);
+void EXPORT_FUNC (_savegpr_30) (void);
+void EXPORT_FUNC (_savegpr_31) (void);
+
+#endif
+
 #endif /* ! GRUB_COMPILER_HEADER */
