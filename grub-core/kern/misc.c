@@ -1345,3 +1345,110 @@ grub_real_boot_time (const char *file,
   grub_error_pop ();
 }
 #endif
+
+#if defined (NO_LIBGCC)
+
+/* Based on libgcc2.c from gcc suite.  */
+int
+__ucmpdi2 (grub_uint64_t a, grub_uint64_t b)
+{
+  union component64 ac, bc;
+  ac.full = a;
+  bc.full = b;
+
+  if (ac.high < bc.high)
+    return 0;
+  else if (ac.high > bc.high)
+    return 2;
+
+  if (ac.low < bc.low)
+    return 0;
+  else if (ac.low > bc.low)
+    return 2;
+  return 1;
+}
+
+
+/* Based on libgcc2.c from gcc suite.  */
+grub_uint64_t
+__lshrdi3 (grub_uint64_t u, int b)
+{
+  if (b == 0)
+    return u;
+
+  const union component64 uu = {.full = u};
+  const int bm = 32 - b;
+  union component64 w;
+
+  if (bm <= 0)
+    {
+      w.high = 0;
+      w.low = (grub_uint32_t) uu.high >> -bm;
+    }
+  else
+    {
+      const grub_uint32_t carries = (grub_uint32_t) uu.high << bm;
+
+      w.high = (grub_uint32_t) uu.high >> b;
+      w.low = ((grub_uint32_t) uu.low >> b) | carries;
+    }
+
+  return w.full;
+}
+
+/* Based on libgcc2.c from gcc suite.  */
+grub_uint64_t
+__ashrdi3 (grub_uint64_t u, int b)
+{
+  if (b == 0)
+    return u;
+
+  const union component64 uu = {.full = u};
+  const int bm = 32 - b;
+  union component64 w;
+
+  if (bm <= 0)
+    {
+      /* w.high = 1..1 or 0..0 */
+      w.high = uu.high >> (32 - 1);
+      w.low = uu.high >> -bm;
+    }
+  else
+    {
+      const grub_uint32_t carries = (grub_uint32_t) uu.high << bm;
+
+      w.high = uu.high >> b;
+      w.low = ((grub_uint32_t) uu.low >> b) | carries;
+    }
+
+  return w.full;
+}
+
+/* Based on libgcc2.c from gcc suite.  */
+grub_uint64_t
+__ashldi3 (grub_uint64_t u, int b)
+{
+  if (b == 0)
+    return u;
+
+  const union component64 uu = {.full = u};
+  const int bm = 32 - b;
+  union component64 w;
+
+  if (bm <= 0)
+    {
+      w.low = 0;
+      w.high = (grub_uint32_t) uu.low << -bm;
+    }
+  else
+    {
+      const grub_uint32_t carries = (grub_uint32_t) uu.low >> bm;
+
+      w.low = (grub_uint32_t) uu.low << b;
+      w.high = ((grub_uint32_t) uu.high << b) | carries;
+    }
+
+  return w.full;
+}
+
+#endif
