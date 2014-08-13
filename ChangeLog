@@ -2,6 +2,11 @@
 	* grub-core/kern/emu/hostfs.c: use _DEFAULT_SOURCE in addition to
 	_BSD_SOURCE to avoid warnings under glibc 2.20+.
 
+2014-08-13  Vladimir Serbinenko  <phcoder@gmail.com>
+
+	* grub-core/term/at_keyboard.c: Retry probing keyboard if
+	scancode setup failed.
+
 2014-06-21  Роман Пехов <roman_pekhov>
 
 	* grub-core/commands/loadenv.c (check_blocklists): Fix overlap check.
