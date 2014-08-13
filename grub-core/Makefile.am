@@ -84,7 +84,9 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/time.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/mm_private.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/net.h
 if !COND_clang
+if !COND_powerpc_le
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/libgcc.h
+endif
 endif
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/memory.h
 
