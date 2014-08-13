@@ -142,6 +142,7 @@ if test "x$with_platform" = x; then
     x86_64-*) platform=pc ;;
     powerpc-*) platform=ieee1275 ;;
     powerpc64-*) platform=ieee1275 ;;
+    powerpc64le-*) platform=ieee1275 ;;
     sparc64-*) platform=ieee1275 ;;
     mipsel-*) platform=loongson ;;
     mips-*) platform=arc ;;
@@ -160,6 +161,7 @@ case "$target_cpu"-"$platform" in
   x86_64-xen) ;;
   x86_64-*) target_cpu=i386 ;;
   powerpc64-ieee1275) target_cpu=powerpc ;;
+  powerpc64le-ieee1275) target_cpu=powerpc ;;
 esac
 
 # Check if the platform is supported, make final adjustments.
@@ -602,6 +604,13 @@ fi
 
 if test "x$target_cpu" = xi386 && test "x$platform" != xemu; then
   TARGET_CFLAGS="$TARGET_CFLAGS -march=i386"
+fi
+
+if test x$target_cpu = xpowerpc && test x$ac_cv_c_bigendian = xno; then
+	LD_FORCE_LE=1
+	TARGET_CFLAGS="$TARGET_CFLAGS -mbig-endian -DNO_LIBGCC=1"
+	TARGET_CCASFLAGS="$TARGET_CCASFLAGS -mbig-endian"
+	TARGET_LDFLAGS="$TARGET_LDFLAGS -static -mbig-endian"
 fi
 
 if test "x$target_m32" = x1; then
@@ -1047,7 +1056,8 @@ else
 CFLAGS="$TARGET_CFLAGS -nostdlib -Wno-error"
 fi
 CPPFLAGS="$TARGET_CPPFLAGS"
-if test x$target_cpu = xi386 || test x$target_cpu = xx86_64 || test "x$grub_cv_cc_target_clang" = xyes ; then
+if test x$target_cpu = xi386 || test x$target_cpu = xx86_64 || test "x$grub_cv_cc_target_clang" = xyes \
+	|| ( test x$target_cpu = xpowerpc && test x$ac_cv_c_bigendian = xno ); then
 TARGET_LIBGCC=
 else
 TARGET_LIBGCC=-lgcc
@@ -1631,7 +1641,9 @@ if test x"$enable_werror" != xno ; then
   HOST_CFLAGS="$HOST_CFLAGS -Werror"
 fi
 
-if test "x$grub_cv_cc_target_clang" = xno; then
+# if not clang or power LE, use static libgcc
+if test "x$grub_cv_cc_target_clang" = xno \
+   || ! ( test x$target_cpu = xpowerpc && test x$ac_cv_c_bigendian = xno ); then
    TARGET_LDFLAGS_STATIC_LIBGCC="-static-libgcc"
 else
    TARGET_LDFLAGS_STATIC_LIBGCC=
@@ -1694,6 +1706,7 @@ AM_CONDITIONAL([COND_mips_arc], [test "(" x$target_cpu = xmips -o x$target_cpu =
 AM_CONDITIONAL([COND_sparc64_ieee1275], [test x$target_cpu = xsparc64 -a x$platform = xieee1275])
 AM_CONDITIONAL([COND_sparc64_emu], [test x$target_cpu = xsparc64 -a x$platform = xemu])
 AM_CONDITIONAL([COND_powerpc_ieee1275], [test x$target_cpu = xpowerpc -a x$platform = xieee1275])
+AM_CONDITIONAL([COND_powerpc_le], [test x$target_cpu = xpowerpc -a x$ac_cv_c_bigendian = xno])
 AM_CONDITIONAL([COND_mips], [test x$target_cpu = xmips -o x$target_cpu = xmipsel])
 AM_CONDITIONAL([COND_mipsel], [test x$target_cpu = xmipsel])
 AM_CONDITIONAL([COND_mipseb], [test x$target_cpu = xmips])
