@@ -28,6 +28,11 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+void grub_elf32_check_endianess (grub_elf_t elf);
+void grub_elf64_check_endianess (grub_elf_t elf);
+grub_err_t grub_elf32_check_version (grub_elf_t elf);
+grub_err_t grub_elf64_check_version (grub_elf_t elf);
+
 /* Check if EHDR is a valid ELF header.  */
 static grub_err_t
 grub_elf_check_header (grub_elf_t elf)
@@ -38,9 +43,21 @@ grub_elf_check_header (grub_elf_t elf)
       || e->e_ident[EI_MAG1] != ELFMAG1
       || e->e_ident[EI_MAG2] != ELFMAG2
       || e->e_ident[EI_MAG3] != ELFMAG3
-      || e->e_ident[EI_VERSION] != EV_CURRENT
-      || e->e_version != EV_CURRENT)
+      || e->e_ident[EI_VERSION] != EV_CURRENT)
     return grub_error (GRUB_ERR_BAD_OS, N_("invalid arch-independent ELF magic"));
+
+  if (grub_elf_is_elf32 (elf))
+    {
+      grub_elf32_check_endianess (elf);
+      grub_elf32_check_version (elf);
+    }
+  else if (grub_elf_is_elf64 (elf))
+    {
+      grub_elf64_check_endianess (elf);
+      grub_elf64_check_version (elf);
+    }
+  else
+    return grub_error (GRUB_ERR_BAD_OS, N_("invalid arch-dependent ELF magic"));
 
   return GRUB_ERR_NONE;
 }
@@ -127,7 +144,20 @@ grub_elf_open (const char *name)
 #define grub_elf_is_elfXX grub_elf_is_elf32
 #define grub_elfXX_load_phdrs grub_elf32_load_phdrs
 #define ElfXX_Phdr Elf32_Phdr
+#define ElfXX_Ehdr Elf32_Ehdr
 #define grub_uintXX_t grub_uint32_t
+#define grub_be_to_halfXX grub_be_to_cpu16
+#define grub_be_to_wordXX grub_be_to_cpu32
+#define grub_be_to_addrXX grub_be_to_cpu32
+#define grub_be_to_offXX grub_be_to_cpu32
+#define grub_be_to_XwordXX grub_be_to_wordXX
+#define grub_le_to_halfXX grub_le_to_cpu16
+#define grub_le_to_wordXX grub_le_to_cpu32
+#define grub_le_to_addrXX grub_le_to_cpu32
+#define grub_le_to_offXX grub_le_to_cpu32
+#define grub_le_to_XwordXX grub_le_to_wordXX
+#define grub_elfXX_check_endianess grub_elf32_check_endianess
+#define grub_elfXX_check_version grub_elf32_check_version
 
 #include "elfXX.c"
 
@@ -140,7 +170,20 @@ grub_elf_open (const char *name)
 #undef grub_elf_is_elfXX
 #undef grub_elfXX_load_phdrs
 #undef ElfXX_Phdr
+#undef ElfXX_Ehdr
 #undef grub_uintXX_t
+#undef grub_be_to_halfXX
+#undef grub_be_to_wordXX
+#undef grub_be_to_addrXX
+#undef grub_be_to_offXX
+#undef grub_be_to_XwordXX
+#undef grub_le_to_halfXX
+#undef grub_le_to_wordXX
+#undef grub_le_to_addrXX
+#undef grub_le_to_offXX
+#undef grub_le_to_XwordXX
+#undef grub_elfXX_check_endianess
+#undef grub_elfXX_check_version
 
 
 /* 64-bit */
@@ -153,6 +196,19 @@ grub_elf_open (const char *name)
 #define grub_elf_is_elfXX grub_elf_is_elf64
 #define grub_elfXX_load_phdrs grub_elf64_load_phdrs
 #define ElfXX_Phdr Elf64_Phdr
+#define ElfXX_Ehdr Elf64_Ehdr
 #define grub_uintXX_t grub_uint64_t
+#define grub_be_to_halfXX grub_be_to_cpu16
+#define grub_be_to_wordXX grub_be_to_cpu32
+#define grub_be_to_addrXX grub_be_to_cpu64
+#define grub_be_to_offXX grub_be_to_cpu64
+#define grub_be_to_XwordXX grub_be_to_cpu64
+#define grub_le_to_halfXX grub_le_to_cpu16
+#define grub_le_to_wordXX grub_le_to_cpu32
+#define grub_le_to_addrXX grub_le_to_cpu64
+#define grub_le_to_offXX grub_le_to_cpu64
+#define grub_le_to_XwordXX grub_le_to_cpu64
+#define grub_elfXX_check_endianess grub_elf64_check_endianess
+#define grub_elfXX_check_version grub_elf64_check_version
 
 #include "elfXX.c"
