@@ -27,6 +27,14 @@ export TEXTDOMAINDIR="@localedir@"
 
 . "$pkgdatadir/grub-mkconfig_lib"
 
+if [ "x${SUSE_BTRFS_SNAPSHOT_BOOTING}" = "xtrue" ] &&
+   [ "x${GRUB_FS}" = "xbtrfs" ] ; then
+    cat <<EOF
+set btrfs_relative_path="y"
+export btrfs_relative_path
+EOF
+fi
+
 # Do this as early as possible, since other commands might depend on it.
 # (e.g. the `loadfont' command might need lvm or raid modules)
 for i in ${GRUB_PRELOAD_MODULES} ; do
@@ -45,7 +53,9 @@ if [ "x${GRUB_TIMEOUT_BUTTON}" = "x" ] ; then GRUB_TIMEOUT_BUTTON="$GRUB_TIMEOUT
 cat << EOF
 set pager=1
 
-if [ -s \$prefix/grubenv ]; then
+if [ -f \${config_directory}/grubenv ]; then
+  load_env -f \${config_directory}/grubenv
+elif [ -s \$prefix/grubenv ]; then
   load_env
 fi
 EOF
@@ -355,4 +365,16 @@ fi
 
 if [ "x${GRUB_BADRAM}" != "x" ] ; then
   echo "badram ${GRUB_BADRAM}"
+fi
+
+if [ "x${SUSE_BTRFS_SNAPSHOT_BOOTING}" = "xtrue" ] &&
+   [ "x${GRUB_FS}" = "xbtrfs" ] ; then
+    # Note: No $snapshot_num on *read-only* rollback!  (bsc#901487)
+    cat <<EOF
+if [ -n "\$extra_cmdline" ]; then
+  submenu "Bootable snapshot #\$snapshot_num" {
+    menuentry "If OK, run 'snapper rollback' and reboot." { true; }
+  }
+fi
+EOF
 fi
