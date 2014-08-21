@@ -52,7 +52,11 @@ grub_warn ()
 
 make_system_path_relative_to_its_root ()
 {
+  if [ "x${SUSE_BTRFS_SNAPSHOT_BOOTING}" = "xtrue" ] ; then
+  "${grub_mkrelpath}" -r "$1"
+  else
   "${grub_mkrelpath}" "$1"
+  fi
 }
 
 is_path_readable_by_grub ()
