@@ -376,6 +376,7 @@ get_btrfs_fs_prefix (const char *mount_path)
   return NULL;
 }
 
+int use_relative_path_on_btrfs = 0;
 
 char **
 grub_find_root_devices_from_mountinfo (const char *dir, char **relroot)
@@ -519,6 +520,12 @@ again:
 	{
 	  ret = grub_find_root_devices_from_btrfs (dir);
 	  fs_prefix = get_btrfs_fs_prefix (entries[i].enc_path);
+	  if (use_relative_path_on_btrfs)
+	    {
+	      if (fs_prefix)
+	        free (fs_prefix);
+	      fs_prefix = xstrdup ("/");
+	    }
 	}
       else if (!retry && grub_strcmp (entries[i].fstype, "autofs") == 0)
 	{
