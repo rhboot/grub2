@@ -82,6 +82,19 @@ grub_util_load_config (struct grub_util_config *cfg)
   if (v)
     cfg->grub_distributor = xstrdup (v);
 
+  v = getenv ("SUSE_BTRFS_SNAPSHOT_BOOTING");
+  if (v)
+    {
+      if (grub_strncmp(v, "true", sizeof ("true") - 1) == 0)
+        {
+          cfg->is_suse_btrfs_snapshot_enabled = 1;
+        }
+      else
+        {
+          cfg->is_suse_btrfs_snapshot_enabled = 0;
+        }
+    }
+
   cfgfile = grub_util_get_config_filename ();
   if (!grub_util_is_regular (cfgfile))
     return;
@@ -105,8 +118,8 @@ grub_util_load_config (struct grub_util_config *cfg)
       *ptr++ = *iptr;
     }
 
-  strcpy (ptr, "'; printf \"GRUB_ENABLE_CRYPTODISK=%s\\nGRUB_DISTRIBUTOR=%s\\n\" "
-	  "\"$GRUB_ENABLE_CRYPTODISK\" \"$GRUB_DISTRIBUTOR\"");
+  strcpy (ptr, "'; printf \"GRUB_ENABLE_CRYPTODISK=%s\\nGRUB_DISTRIBUTOR=%s\\nSUSE_BTRFS_SNAPSHOT_BOOTING=%s\\n\" "
+	  "\"$GRUB_ENABLE_CRYPTODISK\" \"$GRUB_DISTRIBUTOR\" \"$SUSE_BTRFS_SNAPSHOT_BOOTING\"");
 
   argv[2] = script;
   argv[3] = '\0';
