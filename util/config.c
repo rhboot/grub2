@@ -42,6 +42,16 @@ grub_util_parse_config (FILE *f, struct grub_util_config *cfg, int simple)
 	    cfg->is_cryptodisk_enabled = 1;
 	  continue;
 	}
+      if (grub_strncmp (ptr, "SUSE_BTRFS_SNAPSHOT_BOOTING=",
+			sizeof ("SUSE_BTRFS_SNAPSHOT_BOOTING=") - 1) == 0)
+	{
+	  ptr += sizeof ("SUSE_BTRFS_SNAPSHOT_BOOTING=") - 1;
+	  if (*ptr == '"' || *ptr == '\'')
+	    ptr++;
+	  if (grub_strncmp(ptr, "true", sizeof ("true") - 1) == 0)
+	    cfg->is_suse_btrfs_snapshot_enabled = 1;
+	  continue;
+	}
       if (grub_strncmp (ptr, "GRUB_DISTRIBUTOR=",
 			sizeof ("GRUB_DISTRIBUTOR=") - 1) == 0)
 	{
