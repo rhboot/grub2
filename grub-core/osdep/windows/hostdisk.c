@@ -353,6 +353,12 @@ grub_util_mkdir (const char *dir)
   free (windows_name);
 }
 
+ssize_t
+grub_util_readlink (const char *name, char *buf, size_t bufsize)
+{
+  return readlink(name, buf, bufsize);
+}
+
 int
 grub_util_rename (const char *from, const char *to)
 {
