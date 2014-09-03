@@ -37,6 +37,7 @@ grub_util_create_envblk_file (const char *name)
   FILE *fp;
   char *buf;
   char *namenew;
+  char *rename_target = xstrdup(name);
 
   buf = xmalloc (DEFAULT_ENVBLK_SIZE);
 
@@ -59,7 +60,48 @@ grub_util_create_envblk_file (const char *name)
   free (buf);
   fclose (fp);
 
-  if (grub_util_rename (namenew, name) < 0)
-    grub_util_error (_("cannot rename the file %s to %s"), namenew, name);
+  ssize_t size = 1;
+  while (1)
+    {
+      char *linkbuf;
+      ssize_t retsize;
+
+      linkbuf = xmalloc(size+1);
+      retsize = grub_util_readlink (rename_target, linkbuf, size);
+      if (retsize < 0 && (errno == ENOENT || errno == EINVAL))
+	{
+	  free (linkbuf);
+	  break;
+	}
+      else if (retsize < 0)
+	{
+	  grub_util_error (_("cannot rename the file %s to %s: %m"), namenew, name);
+	  free (linkbuf);
+	  free (namenew);
+	  return;
+	}
+      else if (retsize == size)
+	{
+	  free(linkbuf);
+	  size += 128;
+	  continue;
+	}
+
+      free (rename_target);
+      linkbuf[retsize] = '\0';
+      rename_target = linkbuf;
+    }
+
+  int rc = grub_util_rename (namenew, rename_target);
+  if (rc < 0 && errno == EXDEV)
+    {
+      rc = grub_install_copy_file (namenew, rename_target, 1);
+      grub_util_unlink (namenew);
+    }
+
+  if (rc < 0)
+    grub_util_error (_("cannot rename the file %s to %s: %m"), namenew, name);
+
   free (namenew);
+  free (rename_target);
 }
