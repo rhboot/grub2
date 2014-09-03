@@ -60,10 +60,13 @@ AC_DEFUN([gl_EARLY],
   # Code from module getopt-posix:
   # Code from module gettext:
   # Code from module gettext-h:
+  # Code from module gettimeofday:
   # Code from module havelib:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module langinfo:
+  # Code from module largefile:
+  AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module localcharset:
   # Code from module locale:
   # Code from module localeconv:
@@ -81,8 +84,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module nl_langinfo:
   # Code from module nocrash:
+  # Code from module pathmax:
   # Code from module progname:
   # Code from module rawmemchr:
+  # Code from module readlink:
   # Code from module realloc-posix:
   # Code from module regex:
   # Code from module size_max:
@@ -92,6 +97,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module snippet/c++defs:
   # Code from module snippet/warn-on-use:
   # Code from module ssize_t:
+  # Code from module stat:
   # Code from module stdalign:
   # Code from module stdbool:
   # Code from module stddef:
@@ -108,8 +114,11 @@ AC_DEFUN([gl_EARLY],
   # Code from module strndup:
   # Code from module strnlen:
   # Code from module strnlen1:
+  # Code from module sys_stat:
+  # Code from module sys_time:
   # Code from module sys_types:
   # Code from module sysexits:
+  # Code from module time:
   # Code from module unistd:
   # Code from module unitypes:
   # Code from module uniwidth/base:
@@ -211,7 +220,14 @@ AC_DEFUN([gl_INIT],
   AM_GNU_GETTEXT_VERSION([0.18.1])
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
+  gl_FUNC_GETTIMEOFDAY
+  if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
+    AC_LIBOBJ([gettimeofday])
+    gl_PREREQ_GETTIMEOFDAY
+  fi
+  gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
   gl_LANGINFO_H
+  AC_REQUIRE([gl_LARGEFILE])
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(abs_top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
@@ -284,6 +300,7 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([nl_langinfo])
   fi
   gl_LANGINFO_MODULE_INDICATOR([nl_langinfo])
+  gl_PATHMAX
   AC_CHECK_DECLS([program_invocation_name], [], [], [#include <errno.h>])
   AC_CHECK_DECLS([program_invocation_short_name], [], [], [#include <errno.h>])
   gl_FUNC_RAWMEMCHR
@@ -292,6 +309,12 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_RAWMEMCHR
   fi
   gl_STRING_MODULE_INDICATOR([rawmemchr])
+  gl_FUNC_READLINK
+  if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+    AC_LIBOBJ([readlink])
+    gl_PREREQ_READLINK
+  fi
+  gl_UNISTD_MODULE_INDICATOR([readlink])
   gl_FUNC_REALLOC_POSIX
   if test $REPLACE_REALLOC = 1; then
     AC_LIBOBJ([realloc])
@@ -309,6 +332,12 @@ AC_DEFUN([gl_INIT],
   fi
   gl_UNISTD_MODULE_INDICATOR([sleep])
   gt_TYPE_SSIZE_T
+  gl_FUNC_STAT
+  if test $REPLACE_STAT = 1; then
+    AC_LIBOBJ([stat])
+    gl_PREREQ_STAT
+  fi
+  gl_SYS_STAT_MODULE_INDICATOR([stat])
   gl_STDALIGN_H
   AM_STDBOOL_H
   gl_STDDEF_H
@@ -355,9 +384,14 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STRNLEN
   fi
   gl_STRING_MODULE_INDICATOR([strnlen])
+  gl_HEADER_SYS_STAT_H
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_TIME_H
+  AC_PROG_MKDIR_P
   gl_SYS_TYPES_H
   AC_PROG_MKDIR_P
   gl_SYSEXITS
+  gl_HEADER_TIME_H
   gl_UNISTD_H
   gl_LIBUNISTRING_LIBHEADER([0.9], [unitypes.h])
   gl_LIBUNISTRING_LIBHEADER([0.9], [uniwidth.h])
@@ -562,6 +596,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getopt1.c
   lib/getopt_int.h
   lib/gettext.h
+  lib/gettimeofday.c
   lib/intprops.h
   lib/itold.c
   lib/langinfo.in.h
@@ -587,6 +622,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/msvc-nothrow.c
   lib/msvc-nothrow.h
   lib/nl_langinfo.c
+  lib/pathmax.h
   lib/printf-args.c
   lib/printf-args.h
   lib/printf-parse.c
@@ -595,6 +631,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/progname.h
   lib/rawmemchr.c
   lib/rawmemchr.valgrind
+  lib/readlink.c
   lib/realloc.c
   lib/ref-add.sin
   lib/ref-del.sin
@@ -606,6 +643,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/regexec.c
   lib/size_max.h
   lib/sleep.c
+  lib/stat.c
   lib/stdalign.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
@@ -627,8 +665,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strnlen.c
   lib/strnlen1.c
   lib/strnlen1.h
+  lib/sys_stat.in.h
+  lib/sys_time.in.h
   lib/sys_types.in.h
   lib/sysexits.in.h
+  lib/time.in.h
   lib/unistd.c
   lib/unistd.in.h
   lib/unitypes.in.h
@@ -667,6 +708,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/getline.m4
   m4/getopt.m4
   m4/gettext.m4
+  m4/gettimeofday.m4
   m4/glibc2.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
@@ -681,6 +723,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/inttypes-pri.m4
   m4/inttypes_h.m4
   m4/langinfo_h.m4
+  m4/largefile.m4
   m4/lcmessage.m4
   m4/lib-ld.m4
   m4/lib-link.m4
@@ -712,16 +755,19 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/nls.m4
   m4/nocrash.m4
   m4/off_t.m4
+  m4/pathmax.m4
   m4/po.m4
   m4/printf-posix.m4
   m4/printf.m4
   m4/progtest.m4
   m4/rawmemchr.m4
+  m4/readlink.m4
   m4/realloc.m4
   m4/regex.m4
   m4/size_max.m4
   m4/sleep.m4
   m4/ssize_t.m4
+  m4/stat.m4
   m4/stdalign.m4
   m4/stdbool.m4
   m4/stddef_h.m4
@@ -737,9 +783,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/strndup.m4
   m4/strnlen.m4
   m4/sys_socket_h.m4
+  m4/sys_stat_h.m4
+  m4/sys_time_h.m4
   m4/sys_types_h.m4
   m4/sysexits.m4
   m4/threadlib.m4
+  m4/time_h.m4
   m4/uintmax_t.m4
   m4/unistd_h.m4
   m4/vasnprintf.m4

@@ -68,6 +68,12 @@ grub_util_rename (const char *from, const char *to)
   return rename (from, to);
 }
 
+static inline ssize_t
+grub_util_readlink (const char *name, char *buf, size_t bufsize)
+{
+  return readlink(name, buf, bufsize);
+}
+
 #define grub_util_mkdir(a) mkdir ((a), 0755)
 
 struct grub_util_fd
