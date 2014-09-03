@@ -27,7 +27,7 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=grub-core/gnulib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --no-conditional-dependencies --no-libtool --macro-prefix=gl --no-vc-files argp error fnmatch getdelim getline gettext progname regex
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=grub-core/gnulib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --no-conditional-dependencies --no-libtool --macro-prefix=gl --no-vc-files argp error fnmatch getdelim getline gettext progname readlink regex
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -39,6 +39,7 @@ gl_MODULES([
   getline
   gettext
   progname
+  readlink
   regex
 ])
 gl_AVOID([])
