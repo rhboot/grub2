@@ -249,6 +249,14 @@ version_test_gt ()
     *.old:*.old) ;;
     *.old:*) version_test_gt_a="`echo "$version_test_gt_a" | sed -e 's/\.old$//'`" ; version_test_gt_cmp=gt ;;
     *:*.old) version_test_gt_b="`echo "$version_test_gt_b" | sed -e 's/\.old$//'`" ; version_test_gt_cmp=ge ;;
+    *-rescue*:*-rescue*) ;;
+    *?debug:*?debug) ;;
+    *-rescue*:*?debug) return 1 ;;
+    *?debug:*-rescue*) return 0 ;;
+    *-rescue*:*) return 1 ;;
+    *:*-rescue*) return 0 ;;
+    *?debug:*) return 1 ;;
+    *:*?debug) return 0 ;;
   esac
   version_test_numeric "$version_test_gt_a" "$version_test_gt_cmp" "$version_test_gt_b"
   return "$?"
