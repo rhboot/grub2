@@ -156,7 +156,7 @@ prepare_grub_to_access_device ()
   if [ "x$fs_hint" != x ]; then
     echo "set root='$fs_hint'"
   fi
-  if fs_uuid="`"${grub_probe}" --device $@ --target=fs_uuid 2> /dev/null`" ; then
+  if [ "x$GRUB_DISABLE_UUID" != "xtrue" ] && fs_uuid="`"${grub_probe}" --device $@ --target=fs_uuid 2> /dev/null`" ; then
     hints="`"${grub_probe}" --device $@ --target=hints_string 2> /dev/null`" || hints=
     echo "if [ x\$feature_platform_search_hint = xy ]; then"
     echo "  search --no-floppy --fs-uuid --set=root ${hints} ${fs_uuid}"
@@ -173,7 +173,7 @@ grub_get_device_id ()
   IFS='
 '
   device="$1"
-  if fs_uuid="`"${grub_probe}" --device ${device} --target=fs_uuid 2> /dev/null`" ; then
+  if [ "x$GRUB_DISABLE_UUID" != "xtrue" ] && fs_uuid="`"${grub_probe}" --device ${device} --target=fs_uuid 2> /dev/null`" ; then
     echo "$fs_uuid";
   else
     echo $device |sed 's, ,_,g'
