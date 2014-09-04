@@ -1441,6 +1441,13 @@ enable the use of partition UUIDs, set this option to @samp{false}.
 If this option is set to @samp{true}, disable the generation of recovery
 mode menu entries.
 
+@item GRUB_DISABLE_UUID
+Normally, @command{grub-mkconfig} will generate menu entries that use
+universally-unique identifiers (UUIDs) to identify various filesystems to
+search for files.  This is usually more reliable, but in some cases it may
+not be appropriate.  To disable this use of UUIDs, set this option to
+@samp{true}.
+
 @item GRUB_VIDEO_BACKEND
 If graphical video support is required, either because the @samp{gfxterm}
 graphical terminal is in use or because @samp{GRUB_GFXPAYLOAD_LINUX} is set,
