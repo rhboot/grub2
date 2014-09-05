@@ -163,12 +163,35 @@ grub_menu_set_timeout (int timeout)
     }
 }
 
+static int
+menuentry_eq (const char *id, const char *spec)
+{
+  const char *ptr1, *ptr2;
+  ptr1 = id;
+  ptr2 = spec;
+  while (1)
+    {
+      if (*ptr2 == '>' && ptr2[1] != '>' && *ptr1 == 0)
+	return 1;
+      if (*ptr2 == '>' && ptr2[1] != '>')
+	return 0;
+      if (*ptr2 == '>')
+	ptr2++;
+      if (*ptr1 != *ptr2)
+	return 0;
+      if (*ptr1 == 0)
+	return 1;
+      ptr1++;
+      ptr2++;
+    }
+}
+
 /* Get the first entry number from the value of the environment variable NAME,
    which is a space-separated list of non-negative integers.  The entry number
    which is returned is stripped from the value of NAME.  If no entry number
    can be found, -1 is returned.  */
 static int
-get_and_remove_first_entry_number (const char *name)
+get_and_remove_first_entry_number (grub_menu_t menu, const char *name)
 {
   const char *val;
   char *tail;
@@ -182,9 +205,32 @@ get_and_remove_first_entry_number (const char *name)
 
   entry = (int) grub_strtoul (val, &tail, 0);
 
+  if (grub_errno == GRUB_ERR_BAD_NUMBER)
+    {
+      /* See if the variable matches the title of a menu entry.  */
+      grub_menu_entry_t e = menu->entry_list;
+      int i;
+
+      grub_errno = GRUB_ERR_NONE;
+
+      for (i = 0; e; i++)
+	{
+	  if (menuentry_eq (e->title, val)
+	      || menuentry_eq (e->id, val))
+	    {
+	      entry = i;
+	      break;
+	    }
+	  e = e->next;
+	}
+
+      if (! e)
+	entry = -1;
+    }
+
   if (grub_errno == GRUB_ERR_NONE)
     {
-      /* Skip whitespace to find the next digit.  */
+      /* Skip whitespace to find the next entry.  */
       while (*tail && grub_isspace (*tail))
 	tail++;
       grub_env_set (name, tail);
@@ -347,7 +393,7 @@ grub_menu_execute_with_fallback (grub_menu_t menu,
   grub_menu_execute_entry (entry, 1);
 
   /* Deal with fallback entries.  */
-  while ((fallback_entry = get_and_remove_first_entry_number ("fallback"))
+  while ((fallback_entry = get_and_remove_first_entry_number (menu, "fallback"))
 	 >= 0)
     {
       grub_print_error ();
@@ -464,30 +510,6 @@ grub_menu_register_viewer (struct grub_menu_viewer *viewer)
   viewer->next = viewers;
   viewers = viewer;
 }
-
-static int
-menuentry_eq (const char *id, const char *spec)
-{
-  const char *ptr1, *ptr2;
-  ptr1 = id;
-  ptr2 = spec;
-  while (1)
-    {
-      if (*ptr2 == '>' && ptr2[1] != '>' && *ptr1 == 0)
-	return 1;
-      if (*ptr2 == '>' && ptr2[1] != '>')
-	return 0;
-      if (*ptr2 == '>')
-	ptr2++;
-      if (*ptr1 != *ptr2)
-	return 0;
-      if (*ptr1 == 0)
-	return 1;
-      ptr1++;
-      ptr2++;
-    }
-}
-
 
 /* Get the entry number from the variable NAME.  */
 static int
