@@ -26,6 +26,7 @@
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 #include <grub/efi/efi.h>
+#include <grub/efi/linux.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -40,52 +41,18 @@ static char *linux_cmdline;
 
 #define BYTES_TO_PAGES(bytes)   (((bytes) + 0xfff) >> 12)
 
-#define SHIM_LOCK_GUID \
-  { 0x605dab50, 0xe046, 0x4300, {0xab, 0xb6, 0x3d, 0xd8, 0x10, 0xdd, 0x8b, 0x23} }
-
-struct grub_efi_shim_lock
-{
-  grub_efi_status_t (*verify) (void *buffer, grub_uint32_t size);
-};
-typedef struct grub_efi_shim_lock grub_efi_shim_lock_t;
-
-static grub_efi_boolean_t
-grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
-{
-  grub_efi_guid_t guid = SHIM_LOCK_GUID;
-  grub_efi_shim_lock_t *shim_lock;
-
-  shim_lock = grub_efi_locate_protocol(&guid, NULL);
-
-  if (!shim_lock)
-    return 1;
-
-  if (shim_lock->verify(data, size) == GRUB_EFI_SUCCESS)
-    return 1;
-
-  return 0;
-}
-
-typedef void(*handover_func)(void *, grub_efi_system_table_t *, struct linux_kernel_params *);
-
 static grub_err_t
 grub_linuxefi_boot (void)
 {
-  handover_func hf;
   int offset = 0;
 
 #ifdef __x86_64__
   offset = 512;
 #endif
-
-  hf = (handover_func)((char *)kernel_mem + handover_offset + offset);
-
   asm volatile ("cli");
 
-  hf (grub_efi_image_handle, grub_efi_system_table, params);
-
-  /* Not reached */
-  return GRUB_ERR_NONE;
+  return grub_efi_linux_boot ((char *)kernel_mem, handover_offset + offset,
+			      params);
 }
 
 static grub_err_t

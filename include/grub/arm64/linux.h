@@ -20,6 +20,7 @@
 #define GRUB_LINUX_CPU_HEADER 1
 
 #include <grub/efi/efi.h>
+#include <grub/efi/pe32.h>
 
 #define GRUB_ARM64_LINUX_MAGIC 0x644d5241 /* 'ARM\x64' */
 
@@ -36,6 +37,13 @@ struct grub_arm64_linux_kernel_header
   grub_uint64_t res4;		/* reserved */
   grub_uint32_t magic;		/* Magic number, little endian, "ARM\x64" */
   grub_uint32_t hdr_offset;	/* Offset of PE/COFF header */
+};
+
+struct grub_arm64_linux_pe_header
+{
+  grub_uint32_t magic;
+  struct grub_pe32_coff_header coff;
+  struct grub_pe64_optional_header opt;
 };
 
 #endif /* ! GRUB_LINUX_CPU_HEADER */
