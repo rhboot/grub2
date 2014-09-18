@@ -1670,6 +1670,8 @@ module = {
   ia64_efi = loader/ia64/efi/linux.c;
   arm = loader/arm/linux.c;
   arm64 = loader/arm64/linux.c;
+  arm64 = loader/efi/linux.c;
+  fdt = lib/fdt.c;
   common = loader/linux.c;
   common = lib/cmdline.c;
   enable = noemu;
@@ -1737,6 +1739,7 @@ module = {
   name = linuxefi;
   efi = loader/i386/efi/linux.c;
   efi = lib/cmdline.c;
+  efi = loader/efi/linux.c;
   enable = i386_efi;
   enable = x86_64_efi;
 };
