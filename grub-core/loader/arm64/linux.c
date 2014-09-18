@@ -27,6 +27,7 @@
 #include <grub/types.h>
 #include <grub/cpu/linux.h>
 #include <grub/efi/efi.h>
+#include <grub/efi/linux.h>
 #include <grub/efi/pe32.h>
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
@@ -38,6 +39,7 @@ static int loaded;
 
 static void *kernel_addr;
 static grub_uint64_t kernel_size;
+static grub_uint32_t handover_offset;
 
 static char *linux_args;
 static grub_uint32_t cmdline_size;
@@ -132,7 +134,9 @@ finalize_params_linux (void)
   grub_efi_boot_services_t *b;
   grub_efi_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
   grub_efi_status_t status;
+  grub_efi_loaded_image_t *loaded_image = NULL;
   int node, retval;
+  int len;
 
   if (!grub_linux_get_fdt ())
     goto failure;
@@ -168,6 +172,23 @@ finalize_params_linux (void)
   grub_dprintf ("linux", "Installed/updated FDT configuration table @ %p\n",
 		fdt);
 
+  /* Convert command line to UCS-2 */
+  loaded_image = grub_efi_get_loaded_image (grub_efi_image_handle);
+  if (!loaded_image)
+    goto failure;
+
+  loaded_image->load_options_size = len =
+    (grub_strlen (linux_args) + 1) * sizeof (grub_efi_char16_t);
+  loaded_image->load_options =
+    grub_efi_allocate_pages (0,
+			     BYTES_TO_PAGES (loaded_image->load_options_size));
+  if (!loaded_image->load_options)
+    return grub_error(GRUB_ERR_BAD_OS, "failed to create kernel parameters");
+
+  loaded_image->load_options_size =
+    2 * grub_utf8_to_utf16 (loaded_image->load_options, len,
+			    (grub_uint8_t *) linux_args, len, NULL);
+
   return GRUB_ERR_NONE;
 
 failure:
@@ -175,6 +196,23 @@ failure:
 		       BYTES_TO_PAGES (grub_fdt_get_totalsize (fdt)));
   fdt = NULL;
   return grub_error(GRUB_ERR_BAD_OS, "failed to install/update FDT");
+}
+
+static void
+free_params (void)
+{
+  grub_efi_loaded_image_t *loaded_image = NULL;
+
+  loaded_image = grub_efi_get_loaded_image (grub_efi_image_handle);
+  if (loaded_image)
+    {
+      if (loaded_image->load_options)
+	grub_efi_free_pages ((grub_efi_physical_address_t)
+			      loaded_image->load_options,
+			     BYTES_TO_PAGES (loaded_image->load_options_size));
+      loaded_image->load_options = NULL;
+      loaded_image->load_options_size = 0;
+    }
 }
 
 static grub_err_t
@@ -194,6 +232,10 @@ grub_cmd_devicetree (grub_command_t cmd __attribute__ ((unused)),
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
+
+  if (grub_efi_secure_boot ())
+    return grub_error (GRUB_ERR_INVALID_COMMAND,
+		       N_("Not loading devicetree - Secure Boot is enabled"));
 
   if (loaded_fdt)
     grub_free (loaded_fdt);
@@ -236,73 +278,22 @@ out:
   return grub_errno;
 }
 
-grub_err_t
-grub_arm64_uefi_boot_image (grub_addr_t addr, grub_size_t size, char *args)
-{
-  grub_efi_memory_mapped_device_path_t *mempath;
-  grub_efi_handle_t image_handle;
-  grub_efi_boot_services_t *b;
-  grub_efi_status_t status;
-  grub_efi_loaded_image_t *loaded_image;
-  int len;
-
-  mempath = grub_malloc (2 * sizeof (grub_efi_memory_mapped_device_path_t));
-  if (!mempath)
-    return grub_errno;
-
-  mempath[0].header.type = GRUB_EFI_HARDWARE_DEVICE_PATH_TYPE;
-  mempath[0].header.subtype = GRUB_EFI_MEMORY_MAPPED_DEVICE_PATH_SUBTYPE;
-  mempath[0].header.length = grub_cpu_to_le16_compile_time (sizeof (*mempath));
-  mempath[0].memory_type = GRUB_EFI_LOADER_DATA;
-  mempath[0].start_address = addr;
-  mempath[0].end_address = addr + size;
-
-  mempath[1].header.type = GRUB_EFI_END_DEVICE_PATH_TYPE;
-  mempath[1].header.subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
-  mempath[1].header.length = sizeof (grub_efi_device_path_t);
-
-  b = grub_efi_system_table->boot_services;
-  status = b->load_image (0, grub_efi_image_handle,
-			  (grub_efi_device_path_t *) mempath,
-			  (void *) addr, size, &image_handle);
-  if (status != GRUB_EFI_SUCCESS)
-    return grub_error (GRUB_ERR_BAD_OS, "cannot load image");
-
-  grub_dprintf ("linux", "linux command line: '%s'\n", args);
-
-  /* Convert command line to UCS-2 */
-  loaded_image = grub_efi_get_loaded_image (image_handle);
-  loaded_image->load_options_size = len =
-    (grub_strlen (args) + 1) * sizeof (grub_efi_char16_t);
-  loaded_image->load_options =
-    grub_efi_allocate_pages (0,
-			     BYTES_TO_PAGES (loaded_image->load_options_size));
-  if (!loaded_image->load_options)
-    return grub_errno;
-
-  loaded_image->load_options_size =
-    2 * grub_utf8_to_utf16 (loaded_image->load_options, len,
-			    (grub_uint8_t *) args, len, NULL);
-
-  grub_dprintf ("linux", "starting image %p\n", image_handle);
-  status = b->start_image (image_handle, 0, NULL);
-
-  /* When successful, not reached */
-  b->unload_image (image_handle);
-  grub_efi_free_pages ((grub_efi_physical_address_t) loaded_image->load_options,
-		       BYTES_TO_PAGES (loaded_image->load_options_size));
-
-  return grub_errno;
-}
-
 static grub_err_t
 grub_linux_boot (void)
 {
+  grub_err_t retval;
+
   if (finalize_params_linux () != GRUB_ERR_NONE)
     return grub_errno;
 
-  return (grub_arm64_uefi_boot_image((grub_addr_t)kernel_addr,
-                                     kernel_size, linux_args));
+  grub_dprintf ("linux", "linux command line: '%s'\n", linux_args);
+
+  retval = grub_efi_linux_boot ((grub_addr_t)kernel_addr, handover_offset,
+				linux_args);
+
+  /* Never reached... */
+  free_params();
+  return retval;
 }
 
 static grub_err_t
@@ -383,6 +374,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 {
   grub_file_t file = 0;
   struct grub_arm64_linux_kernel_header lh;
+  struct grub_arm64_linux_pe_header *pe;
 
   grub_dl_ref (my_mod);
 
@@ -427,6 +419,15 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   grub_dprintf ("linux", "kernel @ %p\n", kernel_addr);
 
+  if (!grub_linuxefi_secure_validate (kernel_addr, kernel_size))
+    {
+      grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"), argv[0]);
+      goto fail;
+    }
+
+  pe = (void *)((unsigned long)kernel_addr + lh.hdr_offset);
+  handover_offset = pe->opt.entry_addr;
+
   cmdline_size = grub_loader_cmdline_size (argc, argv) + sizeof (LINUX_IMAGE);
   linux_args = grub_malloc (cmdline_size);
   if (!linux_args)
@@ -464,7 +465,6 @@ fail:
 
   return grub_errno;
 }
-
 
 static grub_command_t cmd_linux, cmd_initrd, cmd_devicetree;
 
