@@ -201,7 +201,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
       if (grub_le_to_cpu16 (lh.version) >= 0x0201)
 	{
-	  lh.heap_end_ptr = grub_cpu_to_le32_compile_time (GRUB_LINUX_HEAP_END_OFFSET);
+	  lh.heap_end_ptr = grub_cpu_to_le16_compile_time (GRUB_LINUX_HEAP_END_OFFSET);
 	  lh.loadflags |= GRUB_LINUX_FLAG_CAN_USE_HEAP;
 	}
 
@@ -209,17 +209,17 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 	lh.cmd_line_ptr = grub_linux_real_target + GRUB_LINUX_CL_OFFSET;
       else
 	{
-	  lh.cl_magic = grub_cpu_to_le32_compile_time (GRUB_LINUX_CL_MAGIC);
-	  lh.cl_offset = grub_cpu_to_le32_compile_time (GRUB_LINUX_CL_OFFSET);
-	  lh.setup_move_size = grub_cpu_to_le32_compile_time (GRUB_LINUX_CL_OFFSET
+	  lh.cl_magic = grub_cpu_to_le16_compile_time (GRUB_LINUX_CL_MAGIC);
+	  lh.cl_offset = grub_cpu_to_le16_compile_time (GRUB_LINUX_CL_OFFSET);
+	  lh.setup_move_size = grub_cpu_to_le16_compile_time (GRUB_LINUX_CL_OFFSET
 						 + maximal_cmdline_size);
 	}
     }
   else
     {
       /* Your kernel is quite old...  */
-      lh.cl_magic = grub_cpu_to_le32_compile_time (GRUB_LINUX_CL_MAGIC);
-      lh.cl_offset = grub_cpu_to_le32_compile_time (GRUB_LINUX_CL_OFFSET);
+      lh.cl_magic = grub_cpu_to_le16_compile_time (GRUB_LINUX_CL_MAGIC);
+      lh.cl_offset = grub_cpu_to_le16_compile_time (GRUB_LINUX_CL_OFFSET);
 
       setup_sects = GRUB_LINUX_DEFAULT_SETUP_SECTS;
 
