@@ -80,6 +80,7 @@ grub_TRANSFORM([grub-get-kernel-settings.3])
 grub_TRANSFORM([grub-glue-efi.3])
 grub_TRANSFORM([grub-install.1])
 grub_TRANSFORM([grub-kbdcomp.3])
+grub_TRANSFORM([grub-macbless.8])
 grub_TRANSFORM([grub-menulst2cfg.1])
 grub_TRANSFORM([grub-mkconfig.1])
 grub_TRANSFORM([grub-mkfont.3])
@@ -98,6 +99,7 @@ grub_TRANSFORM([grub-render-label.3])
 grub_TRANSFORM([grub-script-check.3])
 grub_TRANSFORM([grub-set-default.1])
 grub_TRANSFORM([grub-sparc64-setup.3])
+grub_TRANSFORM([grub-syslinux2cfg.1])
 
 # Optimization flag.  Allow user to override.
 if test "x$TARGET_CFLAGS" = x; then
