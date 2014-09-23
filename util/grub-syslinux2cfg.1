@@ -1,0 +1,65 @@
+.TH GRUB-SYSLINUX2CFG 1 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-syslinux2cfg\fR \(em Transform a syslinux config file into a GRUB config.
+
+.SH SYNOPSIS
+\fBgrub-syslinux2cfg\fR [-c | --cwd=\fRDIR\fI] [-r | --root=\fIDIR\fR] [-v | --verbose]
+.RE
+.RS 25
+[-t | --target-root=\fIDIR\fR] [-T | --target-cwd=\fIDIR\fR]
+.RE
+.RS 25
+[-o | --output=\fIFILE\fR] [[-i | --isolinux] |
+.RE
+.RS 46
+ [-s | --syslinux] |
+.RE
+.RS 46
+ [-p | --pxelinux]] \fIFILE\fR
+
+.SH DESCRIPTION
+\fBgrub-syslinux2cfg\fR builds a GRUB configuration file out of an existing
+syslinux configuration file.
+
+.SH OPTIONS
+.TP
+--cwd=\fIDIR\fR
+Set \fIDIR\fR as syslinux's working directory.  The default is to use the
+parent directory of the input file.
+
+.TP
+--root=\fIDIR\fR
+Set \fIDIR\fR as the root directory of the syslinux disk.  The default value
+is "/".
+
+.TP
+--verbose
+Print verbose messages.
+
+.TP
+--target-root=\fIDIR\fR
+Root directory as it will be seen at runtime.  The default value is "/".
+
+.TP
+--target-cwd=\fIDIR\fR
+Working directory of syslinux as it will be seen at runtime.  The default
+value is the parent directory of the input file.
+
+.TP
+--output=\fIFILE\fR
+Write the new config file to \fIFILE\fR.  The default value is standard output.
+
+.TP
+--isolinux
+Assume that the input file is an isolinux configuration file.
+
+.TP
+--pxelinux
+Assume that the input file is a pxelinux configuration file.
+
+.TP
+--syslinux
+Assume that the input file is a syslinux configuration file.
+
+.SH SEE ALSO
+.BR "info grub"
