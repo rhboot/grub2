@@ -1,0 +1,26 @@
+.TH GRUB-MACBLESS 1 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-macbless\fR \(em Mac-style bless utility for HFS or HFS+
+
+.SH SYNOPSIS
+\fBgrub-macbless\fR [-p | --ppc] [-v | --verbose] [-x | --x86] \fIFILE\fR
+
+.SH DESCRIPTION
+\fBgrub-mkimage\fR blesses a file on an HFS or HFS+ file system, so that it
+can be used to boot a Mac.
+
+.SH OPTIONS
+.TP
+--ppc
+Bless the file for use on PPC-based Macs.
+
+.TP
+--verbose
+Print verbose messages.
+
+.TP
+--x86
+Bless the file for use on x86-based Macs.
+
+.SH SEE ALSO
+.BR "info grub"
