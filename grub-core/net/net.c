@@ -1850,7 +1850,7 @@ grub_net_search_configfile (char *config)
   /* Remove the remaining minus sign at the end. */
   config[config_len] = '\0';
 
-  return GRUB_ERR_NONE;
+  return GRUB_ERR_FILE_NOT_FOUND;
 }
 
 static struct grub_preboot *fini_hnd;

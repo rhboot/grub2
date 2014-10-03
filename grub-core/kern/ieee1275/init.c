@@ -124,23 +124,25 @@ grub_machine_get_bootlocation (char **device, char **path)
       grub_free (canon);
     }
   else
-    *device = grub_ieee1275_encode_devname (bootpath);
-  grub_free (type);
-
-  filename = grub_ieee1275_get_filename (bootpath);
-  if (filename)
     {
-      char *lastslash = grub_strrchr (filename, '\\');
-
-      /* Truncate at last directory.  */
-      if (lastslash)
+      filename = grub_ieee1275_get_filename (bootpath);
+      if (filename)
         {
-	  *lastslash = '\0';
-	  grub_translate_ieee1275_path (filename);
+          char *lastslash = grub_strrchr (filename, '\\');
 
-	  *path = filename;
-	}
+          /* Truncate at last directory.  */
+          if (lastslash)
+            {
+              *lastslash = '\0';
+              grub_translate_ieee1275_path (filename);
+
+              *path = filename;
+            }
+        }
+      *device = grub_ieee1275_encode_devname (bootpath);
     }
+
+  grub_free (type);
   grub_free (bootpath);
 }
 
