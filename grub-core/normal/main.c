@@ -331,74 +331,72 @@ grub_enter_normal_mode (const char *config)
   grub_boot_time ("Exiting normal mode");
 }
 
+static grub_err_t
+grub_try_normal (const char *variable)
+{
+    char *config;
+    const char *prefix;
+    grub_err_t err = GRUB_ERR_FILE_NOT_FOUND;
+
+    prefix = grub_env_get (variable);
+    if (!prefix)
+      return GRUB_ERR_FILE_NOT_FOUND;
+
+    if (grub_strncmp (prefix + 1, "tftp", sizeof ("tftp") - 1) == 0)
+      {
+	grub_size_t config_len;
+	config_len = grub_strlen (prefix) +
+	  sizeof ("/grub.cfg-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
+	config = grub_malloc (config_len);
+
+	if (! config)
+	  return GRUB_ERR_FILE_NOT_FOUND;
+
+	grub_snprintf (config, config_len, "%s/grub.cfg", prefix);
+	err = grub_net_search_configfile (config);
+      }
+
+    if (err != GRUB_ERR_NONE)
+      {
+	config = grub_xasprintf ("%s/grub.cfg", prefix);
+	if (config)
+	  {
+	    grub_file_t file;
+	    file = grub_file_open (config);
+	    if (file)
+	      {
+		grub_file_close (file);
+		err = GRUB_ERR_NONE;
+	      }
+	  }
+      }
+
+    if (err == GRUB_ERR_NONE)
+      grub_enter_normal_mode (config);
+
+    grub_errno = 0;
+    grub_free (config);
+    return err;
+}
+
 /* Enter normal mode from rescue mode.  */
 static grub_err_t
 grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
 		 int argc, char *argv[])
 {
-  if (argc == 0)
-    {
-      /* Guess the config filename. It is necessary to make CONFIG static,
-	 so that it won't get broken by longjmp.  */
-      char *config;
-      const char *prefix;
-
-      prefix = grub_env_get ("fw_path");
-      if (! prefix)
-	      prefix = grub_env_get ("prefix");
-
-      if (prefix)
-	{
-	  if (grub_strncmp (prefix + 1, "tftp", sizeof ("tftp") - 1) == 0)
-	    {
-	      grub_size_t config_len;
-	      config_len = grub_strlen (prefix) +
-		sizeof ("/grub.cfg-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
-	      config = grub_malloc (config_len);
-
-	      if (! config)
-		goto quit;
-
-	      grub_snprintf (config, config_len, "%s/grub.cfg", prefix);
-
-	      grub_net_search_configfile (config);
-
-	      grub_enter_normal_mode (config);
-	      grub_free (config);
-	      config = NULL;
-	    }
-
-	  if (!config)
-	    {
-	      config = grub_xasprintf ("%s/grub.cfg", prefix);
-	      if (config)
-		{
-		  grub_file_t file;
-
-		  file = grub_file_open (config);
-		  if (file)
-		    {
-		      grub_file_close (file);
-		      grub_enter_normal_mode (config);
-		    }
-		  else
-		    {
-		      /*  Ignore all errors.  */
-		      grub_errno = 0;
-		    }
-		  grub_free (config);
-		}
-	    }
-	}
-      else
-	{
-	  grub_enter_normal_mode (0);
-	}
-    }
-  else
+  if (argc)
     grub_enter_normal_mode (argv[0]);
+  else
+    {
+      /* Guess the config filename. */
+      grub_err_t err;
+      err = grub_try_normal ("fw_path");
+      if (err == GRUB_ERR_FILE_NOT_FOUND)
+        err = grub_try_normal ("prefix");
+      if (err == GRUB_ERR_FILE_NOT_FOUND)
+        grub_enter_normal_mode (0);
+    }
 
-quit:
   return 0;
 }
 
