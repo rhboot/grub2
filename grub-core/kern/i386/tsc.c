@@ -26,9 +26,14 @@
 #include <grub/i386/tsc.h>
 #include <grub/i386/cpuid.h>
 #ifdef GRUB_MACHINE_XEN
-#include <grub/xen.h>
+# include <grub/xen.h>
 #else
-#include <grub/i386/pit.h>
+# ifdef GRUB_MACHINE_EFI
+#  include <grub/efi/efi.h>
+#  include <grub/efi/api.h>
+# else
+#  include <grub/i386/pit.h>
+# endif
 #endif
 #include <grub/cpu/io.h>
 
@@ -72,8 +77,14 @@ grub_cpu_is_tsc_supported (void)
 #ifndef GRUB_MACHINE_XEN
 
 static void
-grub_pit_wait (grub_uint16_t tics)
+grub_stall (grub_uint16_t tics)
 {
+# ifdef GRUB_MACHINE_EFI
+  grub_uint64_t microseconds;
+
+  microseconds = (grub_uint64_t)tics * 1000 * 1000 * 3 / 3579545;
+  efi_call_1 (grub_efi_system_table->boot_services->stall, microseconds);
+# else
   /* Disable timer2 gate and speaker.  */
   grub_outb (grub_inb (GRUB_PIT_SPEAKER_PORT)
 	     & ~ (GRUB_PIT_SPK_DATA | GRUB_PIT_SPK_TMR2),
@@ -97,6 +108,7 @@ grub_pit_wait (grub_uint16_t tics)
   grub_outb (grub_inb (GRUB_PIT_SPEAKER_PORT)
 	     & ~ (GRUB_PIT_SPK_DATA | GRUB_PIT_SPK_TMR2),
              GRUB_PIT_SPEAKER_PORT);
+# endif
 }
 #endif
 
@@ -119,7 +131,7 @@ calibrate_tsc (void)
   grub_uint64_t end_tsc;
 
   tsc_boot_time = grub_get_tsc ();
-  grub_pit_wait (0xffff);
+  grub_stall (0xffff);
   end_tsc = grub_get_tsc ();
 
   grub_tsc_rate = grub_divmod64 ((55ULL << 32), end_tsc - tsc_boot_time, 0);
