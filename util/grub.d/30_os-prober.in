@@ -135,6 +135,28 @@ for OS in ${OSPROBED} ; do
     LONGNAME="${LABEL}"
   fi
 
+  sixteenbit=""
+  linuxefi="linux"
+  initrdefi="initrd"
+  case "$machine" in
+    i?86|x86_64)
+      sixteenbit="16"
+      linuxefi="linuxefi"
+      initrdefi="initrdefi"
+      ;;
+    aarch64)
+      linuxefi="linux"
+      initrdefi="initrd"
+  esac
+  linux="linux${sixteenbit}"
+  initrd="initrd${sixteenbit}"
+  # there's no way to tell that the /other/ os is booting through UEFI,
+  # but if we are it's an okay bet...
+  if [ -d /sys/firmware/efi ]; then
+    linux=$linuxefi
+    initrd=$initrdefi
+  fi
+
   gettext_printf "Found %s on %s\n" "${LONGNAME}" "${DEVICE}" >&2
 
   case ${BOOT} in
@@ -235,11 +257,11 @@ EOF
 	    save_default_entry | grub_add_tab
 	    printf '%s\n' "${prepare_boot_cache}"
 	    cat <<  EOF
-	linux ${LKERNEL} ${LPARAMS}
+	${linux} ${LKERNEL} ${LPARAMS}
 EOF
             if [ -n "${LINITRD}" ] ; then
           cat << EOF
-	initrd ${LINITRD}
+	${initrd} ${LINITRD}
 EOF
             fi
         cat << EOF
@@ -255,11 +277,11 @@ EOF
 	save_default_entry | sed -e "s/^/$grub_tab$grub_tab/"
 	printf '%s\n' "${prepare_boot_cache}" | grub_add_tab
 	cat <<  EOF
-		linux ${LKERNEL} ${LPARAMS}
+		${linux} ${LKERNEL} ${LPARAMS}
 EOF
         if [ -n "${LINITRD}" ] ; then
             cat << EOF
-		initrd ${LINITRD}
+		${initrd} ${LINITRD}
 EOF
         fi
         cat << EOF
