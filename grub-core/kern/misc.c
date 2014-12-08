@@ -1265,7 +1265,7 @@ grub_abort (void)
       grub_getkey ();
     }
 
-  grub_exit ();
+  grub_exit (1);
 }
 
 #if defined (__clang__) && !defined (GRUB_UTIL)

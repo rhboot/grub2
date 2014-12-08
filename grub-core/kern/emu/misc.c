@@ -135,9 +135,9 @@ xasprintf (const char *fmt, ...)
 #endif
 
 void
-grub_exit (void)
+grub_exit (int rc)
 {
-  exit (1);
+  exit (rc < 0 ? 1 : rc);
 }
 
 grub_uint64_t
