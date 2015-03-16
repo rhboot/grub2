@@ -105,6 +105,8 @@ grub-*.tar.*
 /grub*-reboot.8
 /grub*-render-label
 /grub*-render-label.1
+/grub*-rpm-sort
+/grub*-rpm-sort.8
 /grub*-script-check
 /grub*-script-check.1
 /grub*-set-default
