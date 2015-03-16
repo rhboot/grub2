@@ -2493,6 +2493,48 @@ grub-mknetdir --net-directory=/srv/tftp --subdir=/boot/grub -d /usr/lib/grub/i38
 Then follow instructions printed out by grub-mknetdir on configuring your DHCP
 server.
 
+The grub.cfg file is placed in the same directory as the path output by
+grub-mknetdir hereafter referred to as FWPATH. GRUB will search for its 
+configuration files in order using the following rules where the appended
+value corresponds to a value on the client machine.
+
+@example
+@group
+@samp{(FWPATH)}/grub.cfg-@samp{(UUID OF NIC)}
+@samp{(FWPATH)}/grub.cfg-@samp{(MAC ADDRESS OF NIC)}
+@samp{(FWPATH)}/grub.cfg-@samp{(IPv4 OR IPv6 ADDRESS)}
+@samp{(FWPATH)}/grub.cfg
+@end group
+@end example
+
+The client will only attempt to look up an IPv6 address config once, however,
+it will try the IPv4 multiple times. The concrete example below shows what
+would happen under the IPv4 case.
+
+@example
+@group
+UUID: 7726a678-7fc0-4853-a4f6-c85ac36a120a
+MAC:  52:54:00:ec:33:81
+IPV4: 10.0.0.130 (0A000082)
+@end group
+@end example
+
+@example
+@group
+@samp{(FWPATH)}/grub.cfg-7726a678-7fc0-4853-a4f6-c85ac36a120a
+@samp{(FWPATH)}/grub.cfg-52-54-00-ec-33-81
+@samp{(FWPATH)}/grub.cfg-0A000082
+@samp{(FWPATH)}/grub.cfg-0A00008
+@samp{(FWPATH)}/grub.cfg-0A0000
+@samp{(FWPATH)}/grub.cfg-0A000
+@samp{(FWPATH)}/grub.cfg-0A00
+@samp{(FWPATH)}/grub.cfg-0A0
+@samp{(FWPATH)}/grub.cfg-0A
+@samp{(FWPATH)}/grub.cfg-0
+@samp{(FWPATH)}/grub.cfg
+@end group
+@end example
+
 After GRUB has started, files on the TFTP server will be accessible via the
 @samp{(tftp)} device.
 
