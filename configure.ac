@@ -72,6 +72,7 @@ grub_TRANSFORM([grub-mkrelpath])
 grub_TRANSFORM([grub-mkrescue])
 grub_TRANSFORM([grub-probe])
 grub_TRANSFORM([grub-reboot])
+grub_TRANSFORM([grub-rpm-sort])
 grub_TRANSFORM([grub-script-check])
 grub_TRANSFORM([grub-set-default])
 grub_TRANSFORM([grub-sparc64-setup])
@@ -95,6 +96,7 @@ grub_TRANSFORM([grub-mkrescue.1])
 grub_TRANSFORM([grub-mkstandalone.3])
 grub_TRANSFORM([grub-ofpathname.3])
 grub_TRANSFORM([grub-probe.3])
+grub_TRANSFORM([grub-rpm-sort.8])
 grub_TRANSFORM([grub-reboot.3])
 grub_TRANSFORM([grub-render-label.3])
 grub_TRANSFORM([grub-script-check.3])
@@ -1860,6 +1862,35 @@ fi
 
 AC_SUBST([LIBDEVMAPPER])
 
+AC_ARG_ENABLE([rpm-sort],
+              [AS_HELP_STRING([--enable-rpm-sort],
+                              [enable native rpm sorting of kernels in grub (default=guessed)])])
+if test x"$enable_rpm_sort" = xno ; then
+  rpm_sort_excuse="explicitly disabled"
+else
+  enable_rpm_sort=yes
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+  # Check for rpmlib header.
+  AC_CHECK_HEADER([rpm/rpmlib.h], [],
+               [rpm_sort_excuse="need rpm/rpmlib header"])
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+  # Check for rpmio library.
+  AC_CHECK_LIB([rpmio], [rpmvercmp], [],
+               [rpm_sort_excuse="rpmio missing rpmvercmp"])
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+   LIBRPM="-lrpmio";
+   AC_DEFINE([HAVE_RPMIO], [1],
+             [Define to 1 if you have the rpmio library.])
+fi
+
+AC_SUBST([LIBRPM])
+
 LIBGEOM=
 if test x$host_kernel = xkfreebsd; then
   AC_CHECK_LIB([geom], [geom_gettree], [],
@@ -2047,6 +2078,7 @@ AM_CONDITIONAL([COND_GRUB_EMU_SDL], [test x$enable_grub_emu_sdl = xyes])
 AM_CONDITIONAL([COND_GRUB_EMU_PCI], [test x$enable_grub_emu_pci = xyes])
 AM_CONDITIONAL([COND_GRUB_MKFONT], [test x$enable_grub_mkfont = xyes])
 AM_CONDITIONAL([COND_GRUB_MOUNT], [test x$enable_grub_mount = xyes])
+AM_CONDITIONAL([COND_GRUB_RPM_SORT], [test x$enable_rpm_sort = xyes])
 AM_CONDITIONAL([COND_HAVE_FONT_SOURCE], [test x$FONT_SOURCE != x])
 if test x$FONT_SOURCE != x ; then
    HAVE_FONT_SOURCE=1
@@ -2167,6 +2199,11 @@ if [ x"$grub_mount_excuse" = x ]; then
 echo grub-mount: Yes
 else
 echo grub-mount: No "($grub_mount_excuse)"
+fi
+if [ x"$rpm_sort_excuse" = x ]; then
+echo grub-rpm-sort: Yes
+else
+echo grub-rpm-sort: No "($rpm_sort_excuse)"
 fi
 if [ x"$starfield_excuse" = x ]; then
 echo starfield theme: Yes
