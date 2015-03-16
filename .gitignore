@@ -124,6 +124,7 @@ grub-ofpathname
 grub-probe
 grub-reboot
 grub-render-label
+grub-rpm-sort
 grub-script-check
 grub-set-default
 grub-shell
