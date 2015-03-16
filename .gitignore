@@ -80,6 +80,7 @@ grub-mount
 grub-core/build-grub-pe2elf.exe
 /grub-probe
 /grub-probe.exe
+grub-rpm-sort
 grub_probe_init.c
 grub_probe_init.h
 /grub-reboot
