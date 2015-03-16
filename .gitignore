@@ -237,6 +237,7 @@ po/POTFILES.in
 po/POTFILES-shell.in
 /grub-glue-efi
 /grub-render-label
+grub-rpm-sort
 /grub-glue-efi.exe
 /grub-render-label.exe
 grub-core/gnulib/locale.h
