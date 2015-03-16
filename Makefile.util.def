@@ -685,6 +685,22 @@ program = {
   ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBUTIL) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM)';
 };
 
+program = {
+  name = grub-rpm-sort;
+  mansection = 8;
+  installdir = sbin;
+
+  common = grub-core/kern/emu/misc.c;
+  common = grub-core/kern/emu/argp_common.c;
+  common = grub-core/osdep/init.c;
+  common = util/misc.c;
+  common = util/grub-rpm-sort.c;
+
+  ldadd = grub-core/gnulib/libgnu.a;
+  ldadd = libgrubkern.a;
+  ldadd = '$(LIBDEVMAPPER) $(LIBRPM)';
+};
+
 script = {
   name = grub-mkconfig;
   common = util/grub-mkconfig.in;
