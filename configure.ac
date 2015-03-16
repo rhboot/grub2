@@ -65,6 +65,7 @@ grub_TRANSFORM([grub-mkrelpath])
 grub_TRANSFORM([grub-mkrescue])
 grub_TRANSFORM([grub-probe])
 grub_TRANSFORM([grub-reboot])
+grub_TRANSFORM([grub-rpm-sort])
 grub_TRANSFORM([grub-script-check])
 grub_TRANSFORM([grub-set-default])
 grub_TRANSFORM([grub-sparc64-setup])
@@ -88,6 +89,7 @@ grub_TRANSFORM([grub-mkrescue.1])
 grub_TRANSFORM([grub-mkstandalone.3])
 grub_TRANSFORM([grub-ofpathname.3])
 grub_TRANSFORM([grub-probe.3])
+grub_TRANSFORM([grub-rpm-sort.8])
 grub_TRANSFORM([grub-reboot.3])
 grub_TRANSFORM([grub-render-label.3])
 grub_TRANSFORM([grub-script-check.3])
@@ -1789,6 +1791,33 @@ if test x"$device_mapper_excuse" = x ; then
 fi
 
 AC_SUBST([LIBDEVMAPPER])
+
+AC_ARG_ENABLE([rpm-sort],
+              [AS_HELP_STRING([--enable-rpm-sort],
+                              [enable native rpm sorting of kernels in grub (default=guessed)])])
+if test x"$enable_rpm-sort" = xno ; then
+  rpm_sort_excuse="explicitly disabled"
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+  # Check for rpmlib header.
+  AC_CHECK_HEADER([rpm/rpmlib.h], [],
+               [rpm_sort_excuse="need rpm/rpmlib header"])
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+  # Check for rpm library.
+  AC_CHECK_LIB([rpm], [rpmvercmp], [],
+               [rpm_sort_excuse="rpmlib missing rpmvercmp"])
+fi
+
+if test x"$rpm_sort_excuse" = x ; then
+   LIBRPM="-lrpm";
+   AC_DEFINE([HAVE_RPM], [1],
+             [Define to 1 if you have the rpm library.])
+fi
+
+AC_SUBST([LIBRPM])
 
 LIBGEOM=
 if test x$host_kernel = xkfreebsd; then

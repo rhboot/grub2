@@ -214,6 +214,12 @@ version_sort ()
    esac
 }
 
+if [ "x$RPMLIB" = x ]; then
+  kernel_sort=version_sort
+else
+  kernel_sort="${sbindir}/grub-rpm-sort"
+fi
+
 version_test_numeric ()
 {
   version_test_numeric_a="$1"
@@ -230,7 +236,7 @@ version_test_numeric ()
     version_test_numeric_a="$version_test_numeric_b"
     version_test_numeric_b="$version_test_numeric_c"
   fi
-  if (echo "$version_test_numeric_a" ; echo "$version_test_numeric_b") | version_sort | head -n 1 | grep -qx "$version_test_numeric_b" ; then
+  if (echo "$version_test_numeric_a" ; echo "$version_test_numeric_b") | "$kernel_sort" | head -n 1 | grep -qx "$version_test_numeric_b" ; then
     return 0
   else
     return 1
