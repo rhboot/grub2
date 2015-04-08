@@ -202,14 +202,15 @@ read_config_file (const char *config)
 /* Initialize the screen.  */
 void
 grub_normal_init_page (struct grub_term_output *term,
-		       int y)
+		       int __attribute__((__unused__)) y)
 {
+#if 0
   grub_ssize_t msg_len;
   int posx;
   char *msg_formatted;
   grub_uint32_t *unicode_msg;
   grub_uint32_t *last_position;
- 
+#endif
   grub_term_cls (term);
 
 #if 0

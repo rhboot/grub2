@@ -19,7 +19,7 @@
 
 #include <config-util.h>
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <grub/fs.h>
 #include <grub/file.h>
 #include <grub/disk.h>

@@ -434,7 +434,7 @@ static char *
 grub_gettext_env_write_lang (struct grub_env_var *var
 			     __attribute__ ((unused)), const char *val)
 {
-  grub_err_t err;
+  grub_err_t __attribute__((__unused__)) err;
   err = grub_gettext_init_ext (&main_context, val, grub_env_get ("locale_dir"),
 			       grub_env_get ("prefix"));
 
@@ -447,7 +447,7 @@ grub_gettext_env_write_lang (struct grub_env_var *var
 void
 grub_gettext_reread_prefix (const char *val)
 {
-  grub_err_t err;
+  grub_err_t __attribute__((__unused__)) err;
   err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"), 
 			       grub_env_get ("locale_dir"),
 			       val);
@@ -457,7 +457,7 @@ static char *
 read_main (struct grub_env_var *var
 	   __attribute__ ((unused)), const char *val)
 {
-  grub_err_t err;
+  grub_err_t __attribute__((__unused__)) err;
   err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"), val,
 			       grub_env_get ("prefix"));
   return grub_strdup (val);
@@ -467,7 +467,7 @@ static char *
 read_secondary (struct grub_env_var *var
 		__attribute__ ((unused)), const char *val)
 {
-  grub_err_t err;
+  grub_err_t __attribute__((__unused__)) err;
   err = grub_gettext_init_ext (&secondary_context, grub_env_get ("lang"), val,
 			       0);
   return grub_strdup (val);
@@ -489,7 +489,7 @@ grub_cmd_translate (grub_command_t cmd __attribute__ ((unused)),
 GRUB_MOD_INIT (gettext)
 {
   const char *lang;
-  grub_err_t err;
+  grub_err_t __attribute__((__unused__)) err;
 
   lang = grub_env_get ("lang");
 
