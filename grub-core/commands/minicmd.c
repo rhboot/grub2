@@ -176,7 +176,7 @@ grub_mini_cmd_lsmod (struct grub_command *cmd __attribute__ ((unused)),
 }
 
 /* exit */
-static grub_err_t __attribute__ ((noreturn))
+static grub_err_t
 grub_mini_cmd_exit (struct grub_command *cmd __attribute__ ((unused)),
 		    int argc, char *argv[])
 {
@@ -188,7 +188,7 @@ grub_mini_cmd_exit (struct grub_command *cmd __attribute__ ((unused)),
 
   if (argc == 1)
     {
-      n = grub_strtoul (args[0], 0, 10);
+      n = grub_strtoul (argv[0], 0, 10);
       if (n != ~0UL)
 	retval = n;
     }

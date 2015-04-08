@@ -27,6 +27,7 @@
 #include <grub/lib/cmdline.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/linux.h>
+#include <grub/efi/pe32.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -44,15 +45,9 @@ static char *linux_cmdline;
 static grub_err_t
 grub_linuxefi_boot (void)
 {
-  int offset = 0;
-
-#ifdef __x86_64__
-  offset = 512;
-#endif
   asm volatile ("cli");
 
-  return grub_efi_linux_boot ((char *)kernel_mem, handover_offset + offset,
-			      params);
+  return grub_efi_linux_boot ((char *)kernel_mem, handover_offset, params);
 }
 
 static grub_err_t
@@ -231,7 +226,32 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  if (!lh.handover_offset)
+#ifdef __x86_64__
+  if (!(lh.xloadflags & XLF_EFI_HANDOVER_64))
+    {
+      grub_error (GRUB_ERR_BAD_OS, N_("kernel doesn't support 64-bit EFI handover"));
+      goto fail;
+    }
+  else
+    {
+      handover_offset = lh.handover_offset + 0x200;
+      grub_printf("kernel at %p\n", kernel_addr);
+      grub_printf("x64 handover offset at %p\n", handover_offset);
+    }
+#else
+  if (!(lh.xloadflags & XLF_EFI_HANDOVER_32))
+    {
+      grub_error (GRUB_ERR_BAD_OS, N_("kernel doesn't support 32-bit EFI handover"));
+      goto fail;
+    }
+  else
+    {
+      handover_offset = lh.handover_offset;
+      grub_printf("kernel at %p\n", kernel_addr);
+      grub_printf("ia32 handover offset at %p\n", handover_offset);
+    }
+#endif
+  if (!lh.handover_offset || !handover_offset)
     {
       grub_error (GRUB_ERR_BAD_OS, N_("kernel doesn't support EFI handover"));
       goto fail;
@@ -252,8 +272,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 			      lh.cmdline_size - (sizeof (LINUX_IMAGE) - 1));
 
   lh.cmd_line_ptr = (grub_uint32_t)(grub_uint64_t)linux_cmdline;
-
-  handover_offset = lh.handover_offset;
 
   start = (lh.setup_sects + 1) * 512;
   len = grub_file_size(file) - start;

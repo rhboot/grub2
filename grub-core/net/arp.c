@@ -164,7 +164,7 @@ grub_net_arp_receive (struct grub_net_buff *nb,
       {
         if ((nb->tail - nb->data) > 50)
           {
-            grub_dprintf ("net", "arp packet with abnormal size (%ld bytes).\n",
+            grub_dprintf ("net", "arp packet with abnormal size (%d bytes).\n",
                          nb->tail - nb->data);
             nb->tail = nb->data + 50;
           }

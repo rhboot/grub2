@@ -130,7 +130,12 @@ struct linux_kernel_header
   grub_uint32_t kernel_alignment;
   grub_uint8_t relocatable;
   grub_uint8_t min_alignment;
-  grub_uint8_t pad[2];
+  grub_uint16_t xloadflags;
+#define XLF_KERNEL_64			0x0001
+#define XLF_CAN_BE_LOADED_ABOVE_4G	0x0002
+#define XLF_EFI_HANDOVER_32		0x0004
+#define XLF_EFI_HANDOVER_64		0x0008
+#define XLF_EFI_KEXEC			0x0010
   grub_uint32_t cmdline_size;
   grub_uint32_t hardware_subarch;
   grub_uint64_t hardware_subarch_data;

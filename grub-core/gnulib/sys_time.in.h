@@ -93,14 +93,14 @@ struct timeval
 #   define gettimeofday rpl_gettimeofday
 #  endif
 _GL_FUNCDECL_RPL (gettimeofday, int,
-                  (struct timeval *restrict, void *restrict)
+                  (struct timeval *restrict, __timezone_ptr_t)
                   _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (gettimeofday, int,
-                  (struct timeval *restrict, void *restrict));
+                  (struct timeval *restrict, __timezone_ptr_t));
 # else
 #  if !@HAVE_GETTIMEOFDAY@
 _GL_FUNCDECL_SYS (gettimeofday, int,
-                  (struct timeval *restrict, void *restrict)
+                  (struct timeval *restrict, __timezone_ptr_t)
                   _GL_ARG_NONNULL ((1)));
 #  endif
 /* Need to cast, because on glibc systems, by default, the second argument is

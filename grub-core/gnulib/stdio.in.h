@@ -668,7 +668,7 @@ _GL_WARN_ON_USE (getdelim, "getdelim is unportable - "
 # if @REPLACE_GETLINE@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef getline
-#   define getline rpl_getline
+#   define getline getline
 #  endif
 _GL_FUNCDECL_RPL (getline, ssize_t,
                   (char **lineptr, size_t *linesize, FILE *stream)
