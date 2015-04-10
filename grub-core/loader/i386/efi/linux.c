@@ -118,6 +118,8 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
+  grub_dprintf ("linux", "initrd_mem = %lx\n", (unsigned long) initrd_mem);
+
   params->ramdisk_size = size;
   params->ramdisk_image = (grub_uint32_t)(grub_addr_t) initrd_mem;
 
@@ -160,6 +162,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct linux_kernel_header lh;
   grub_ssize_t len, start, filelen;
   void *kernel = NULL;
+  int rc;
 
   grub_dl_ref (my_mod);
 
@@ -185,11 +188,13 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   if (grub_file_read (file, kernel, filelen) != filelen)
     {
-      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"), argv[0]);
+      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
+		  argv[0]);
       goto fail;
     }
 
-  if (! grub_linuxefi_secure_validate (kernel, filelen))
+  rc = grub_linuxefi_secure_validate (kernel, filelen);
+  if (rc < 0)
     {
       grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"),
 		  argv[0]);
@@ -203,6 +208,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_OUT_OF_MEMORY, "cannot allocate kernel parameters");
       goto fail;
     }
+
+  grub_dprintf ("linux", "params = %lx\n", (unsigned long) params);
 
   grub_memset (params, 0, 16384);
 
@@ -242,6 +249,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
+  grub_dprintf ("linux", "linux_cmdline = %lx\n",
+		(unsigned long)linux_cmdline);
+
   grub_memcpy (linux_cmdline, LINUX_IMAGE, sizeof (LINUX_IMAGE));
   grub_create_loader_cmdline (argc, argv,
                               linux_cmdline + sizeof (LINUX_IMAGE) - 1,
@@ -275,9 +285,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_memcpy (params, &lh, 2 * 512);
 
   params->type_of_loader = 0x21;
+  grub_dprintf("linux", "kernel_mem: %p handover_offset: %08x\n",
+	       kernel_mem, handover_offset);
 
  fail:
-
   if (file)
     grub_file_close (file);
 
