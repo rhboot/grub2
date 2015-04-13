@@ -61,7 +61,12 @@ grub_machine_get_bootlocation (char **device, char **path)
   *device = grub_efidisk_get_device_name (image->device_handle);
   *path = grub_efi_get_filename (image->file_path);
   if (!*device && grub_efi_net_config)
-    grub_efi_net_config (image->device_handle, device, path);
+    {
+      grub_efi_net_config (image->device_handle, device, path);
+      /* grub_efi_net_config returns the directory path, not the boot filename,
+         so don't strip any further. */
+      return;
+    }
 
   /* Get the directory.  */
   p = grub_strrchr (*path, '/');
