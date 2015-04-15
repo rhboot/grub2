@@ -493,6 +493,8 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 	  grub_print_error ();
 	if (device && path)
 	  grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
+	if (grub_errno)
+	  grub_print_error ();
       }
     else
       {
