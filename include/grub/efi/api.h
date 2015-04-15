@@ -1503,31 +1503,6 @@ typedef union
   grub_efi_pxe_dhcpv6_packet_t dhcpv6;
 } grub_efi_pxe_packet_t;
 
-#define GRUB_EFI_PXE_MAX_IPCNT 8
-#define GRUB_EFI_PXE_MAX_ARP_ENTRIES 8
-#define GRUB_EFI_PXE_MAX_ROUTE_ENTRIES 8
-
-typedef struct grub_efi_pxe_ip_filter
-{
-  grub_efi_uint8_t filters;
-  grub_efi_uint8_t ip_count;
-  grub_efi_uint16_t reserved;
-  grub_efi_ip_address_t ip_list[GRUB_EFI_PXE_MAX_IPCNT];
-} grub_efi_pxe_ip_filter_t;
-
-typedef struct grub_efi_pxe_arp_entry
-{
-  grub_efi_ip_address_t ip_addr;
-  grub_efi_mac_address_t mac_addr;
-} grub_efi_pxe_arp_entry_t;
-
-typedef struct grub_efi_pxe_route_entry
-{
-  grub_efi_ip_address_t ip_addr;
-  grub_efi_ip_address_t subnet_mask;
-  grub_efi_ip_address_t gateway_addr;
-} grub_efi_pxe_route_entry_t;
-
 typedef struct grub_efi_pxe_icmp_error
 {
   grub_efi_uint8_t type;
@@ -1552,6 +1527,48 @@ typedef struct grub_efi_pxe_tftp_error
   grub_efi_uint8_t error_code;
   grub_efi_char8_t error_string[127];
 } grub_efi_pxe_tftp_error_t;
+
+typedef struct {
+  grub_uint8_t addr[4];
+} grub_efi_pxe_ipv4_address_t;
+
+typedef struct {
+  grub_uint8_t addr[16];
+} grub_efi_pxe_ipv6_address_t;
+
+typedef struct {
+  grub_uint8_t addr[32];
+} grub_efi_pxe_mac_address_t;
+
+typedef union {
+  grub_uint32_t addr[4];
+  grub_efi_pxe_ipv4_address_t v4;
+  grub_efi_pxe_ipv6_address_t v6;
+} grub_efi_pxe_ip_address_t;
+
+#define GRUB_EFI_PXE_BASE_CODE_MAX_IPCNT 8
+typedef struct grub_efi_pxe_ip_filter
+{
+  grub_efi_uint8_t filters;
+  grub_efi_uint8_t ip_count;
+  grub_efi_uint16_t reserved;
+  grub_efi_ip_address_t ip_list[GRUB_EFI_PXE_BASE_CODE_MAX_IPCNT];
+} grub_efi_pxe_ip_filter_t;
+
+typedef struct {
+  grub_efi_pxe_ip_address_t ip_addr;
+  grub_efi_pxe_mac_address_t mac_addr;
+} grub_efi_pxe_arp_entry_t;
+
+typedef struct {
+  grub_efi_pxe_ip_address_t ip_addr;
+  grub_efi_pxe_ip_address_t subnet_mask;
+  grub_efi_pxe_ip_address_t gw_addr;
+} grub_efi_pxe_route_entry_t;
+
+
+#define GRUB_EFI_PXE_BASE_CODE_MAX_ARP_ENTRIES 8
+#define GRUB_EFI_PXE_BASE_CODE_MAX_ROUTE_ENTRIES 8
 
 typedef struct grub_efi_pxe_mode
 {
@@ -1584,9 +1601,9 @@ typedef struct grub_efi_pxe_mode
   grub_efi_pxe_packet_t pxe_bis_reply;
   grub_efi_pxe_ip_filter_t ip_filter;
   grub_efi_uint32_t arp_cache_entries;
-  grub_efi_pxe_arp_entry_t arp_cache[GRUB_EFI_PXE_MAX_ARP_ENTRIES];
+  grub_efi_pxe_arp_entry_t arp_cache[GRUB_EFI_PXE_BASE_CODE_MAX_ARP_ENTRIES];
   grub_efi_uint32_t route_table_entries;
-  grub_efi_pxe_route_entry_t route_table[GRUB_EFI_PXE_MAX_ROUTE_ENTRIES];
+  grub_efi_pxe_route_entry_t route_table[GRUB_EFI_PXE_BASE_CODE_MAX_ROUTE_ENTRIES];
   grub_efi_pxe_icmp_error_t icmp_error;
   grub_efi_pxe_tftp_error_t tftp_error;
 } grub_efi_pxe_mode_t;
