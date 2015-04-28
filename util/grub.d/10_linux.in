@@ -70,11 +70,28 @@ esac
 
 mktitle ()
 {
-  local OS_NAME="$(eval $(grep ^NAME= /etc/os-release) ; echo ${NAME})"
-  local OS_VERS="$(eval $(grep ^VERSION= /etc/os-release) ; echo ${VERSION})"
+  local title_type
+  local version
+  local OS_NAME
+  local OS_VERS
 
-  local titlestr="${OS_NAME} (%s) ${OS_VERS}"
-  echo -n ${titlestr}
+  title_type=$1 && shift
+  version=$1 && shift
+
+  OS_NAME="$(eval $(grep ^NAME= /etc/os-release) ; echo ${NAME})"
+  OS_VERS="$(eval $(grep ^VERSION= /etc/os-release) ; echo ${VERSION})"
+
+  case $title_type in
+    recovery)
+      title=$(printf '%s (%s) %s (recovery mode)' \
+                     "${OS_NAME}" "${version}" "${OS_VERS}")
+      ;;
+    *)
+      title=$(printf '%s (%s) %s' \
+                     "${OS_NAME}" "${version}" "${OS_VERS}")
+      ;;
+  esac
+  echo -n ${title}
 }
 
 title_correction_code=
@@ -105,12 +122,7 @@ linux_entry ()
       boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
   fi
   if [ x$type != xsimple ] ; then
-      case $type in
-	  recovery)
-	      title="$(printf "$(mktitle) (recovery mode)" "${version}")" ;;
-	  *)
-	      title="$(printf "$(mktitle)" "${version}")" ;;
-      esac
+      title=$(mktitle "$type" "$version")
       if [ x"$title" = x"$GRUB_ACTUAL_DEFAULT" ] || [ x"Previous Linux versions>$title" = x"$GRUB_ACTUAL_DEFAULT" ]; then
 	  replacement_title="$(echo "Advanced options for ${OS}" | sed 's,>,>>,g')>$(echo "$title" | sed 's,>,>>,g')"
 	  quoted="$(echo "$GRUB_ACTUAL_DEFAULT" | grub_quote)"
