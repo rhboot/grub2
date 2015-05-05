@@ -5303,6 +5303,7 @@ This command is only available on AArch64 systems.
 * net_add_dns::                 Add a DNS server
 * net_add_route::               Add routing entry
 * net_bootp::                   Perform a bootp autoconfiguration
+* net_bootp6::                  Perform a DHCPv6 autoconfiguration
 * net_del_addr::                Remove IP address from interface
 * net_del_dns::                 Remove a DNS server
 * net_del_route::               Remove a route entry
@@ -5384,6 +5385,22 @@ Sets environment variable @samp{net_}@var{<card>}@samp{_dhcp_extensionspath}
 
 @end deffn
 
+@node net_bootp6
+@subsection net_bootp6
+
+@deffn Command net_bootp6 [@var{card}]
+Perform configuration of @var{card} using DHCPv6 protocol. If no card name is
+specified, try to configure all existing cards. If configuration was
+successful, interface with name @var{card}@samp{:dhcp6} and configured address
+is added to @var{card}.
+
+@table @samp
+@item 1 (Domain Name Server)
+Adds all servers from option value to the list of servers used during name
+resolution.
+@end table
+
+@end deffn
 
 @node net_del_addr
 @subsection net_del_addr
