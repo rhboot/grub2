@@ -1535,6 +1535,55 @@ main (int argc, char *argv[])
       prefix_drive = xasprintf ("(%s)", grub_drives[0]);
     }
 
+#ifdef __linux__
+
+  if (config.is_suse_btrfs_snapshot_enabled
+      && grub_strncmp(grub_fs->name, "btrfs", sizeof ("btrfs") - 1) == 0)
+    {
+      char *subvol = NULL;
+      char *mount_path = NULL;
+      char **rootdir_devices = NULL;
+      char *rootdir_path = grub_util_path_concat (2, "/", rootdir);
+
+      if (grub_util_is_directory (rootdir_path))
+	rootdir_devices = grub_guess_root_devices (rootdir_path);
+
+      free (rootdir_path);
+
+      if (rootdir_devices && rootdir_devices[0])
+	if (grub_strcmp (rootdir_devices[0], grub_devices[0]) == 0)
+	  subvol = grub_util_get_btrfs_subvol (platdir, &mount_path);
+
+      if (subvol && mount_path)
+	{
+	  char *def_subvol;
+
+	  def_subvol = grub_util_get_btrfs_subvol ("/", NULL);
+
+	  if (def_subvol)
+	    {
+	      if (!load_cfg_f)
+		load_cfg_f = grub_util_fopen (load_cfg, "wb");
+	      have_load_cfg = 1;
+
+	      if (grub_strcmp (subvol, def_subvol) != 0)
+		fprintf (load_cfg_f, "btrfs-mount-subvol ($root) %s %s\n", mount_path, subvol);
+	      free (def_subvol);
+	    }
+	}
+
+      for (curdev = rootdir_devices; *curdev; curdev++)
+	free (*curdev);
+      if (rootdir_devices)
+	free (rootdir_devices);
+      if (subvol)
+	free (subvol);
+      if (mount_path)
+	free (mount_path);
+    }
+
+#endif
+
   char mkimage_target[200];
   const char *core_name = NULL;
 
