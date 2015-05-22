@@ -107,6 +107,14 @@ struct btrfs_ioctl_search_key
   grub_uint32_t unused[9];
 };
 
+struct btrfs_ioctl_search_header {
+  grub_uint64_t transid;
+  grub_uint64_t objectid;
+  grub_uint64_t offset;
+  grub_uint32_t type;
+  grub_uint32_t len;
+};
+
 struct btrfs_ioctl_search_args {
   struct btrfs_ioctl_search_key key;
   grub_uint64_t buf[(4096 - sizeof(struct btrfs_ioctl_search_key))
@@ -378,6 +386,109 @@ get_btrfs_fs_prefix (const char *mount_path)
 
 int use_relative_path_on_btrfs = 0;
 
+static char *
+get_btrfs_subvol (const char *path)
+{
+  struct btrfs_ioctl_ino_lookup_args args;
+  grub_uint64_t tree_id;
+  int fd = -1;
+  char *ret = NULL;
+
+  fd = open (path, O_RDONLY);
+
+  if (fd < 0)
+    return NULL;
+
+  memset (&args, 0, sizeof(args));
+  args.objectid = GRUB_BTRFS_TREE_ROOT_OBJECTID;
+
+  if (ioctl (fd, BTRFS_IOC_INO_LOOKUP, &args) < 0)
+    goto error;
+
+  tree_id = args.treeid;
+
+  while (tree_id != GRUB_BTRFS_ROOT_VOL_OBJECTID)
+    {
+      struct btrfs_ioctl_search_args sargs;
+      struct grub_btrfs_root_backref *br;
+      struct btrfs_ioctl_search_header *search_header;
+      char *old;
+      grub_uint16_t len;
+      grub_uint64_t inode_id;
+
+      memset (&sargs, 0, sizeof(sargs));
+
+      sargs.key.tree_id = 1;
+      sargs.key.min_objectid = tree_id;
+      sargs.key.max_objectid = tree_id;
+
+      sargs.key.min_offset = 0;
+      sargs.key.max_offset = ~0ULL;
+      sargs.key.min_transid = 0;
+      sargs.key.max_transid = ~0ULL;
+      sargs.key.min_type = GRUB_BTRFS_ITEM_TYPE_ROOT_BACKREF;
+      sargs.key.max_type = GRUB_BTRFS_ITEM_TYPE_ROOT_BACKREF;
+
+      sargs.key.nr_items = 1;
+
+      if (ioctl (fd, BTRFS_IOC_TREE_SEARCH, &sargs) < 0)
+	goto error;
+
+      if (sargs.key.nr_items == 0)
+	goto error;
+
+      search_header = (struct btrfs_ioctl_search_header *)sargs.buf;
+      br = (struct grub_btrfs_root_backref *) (search_header + 1);
+
+      len = grub_le_to_cpu16 (br->n);
+      inode_id = grub_le_to_cpu64 (br->inode_id);
+      tree_id = search_header->offset;
+
+      old = ret;
+      ret = malloc (len + 1);
+      memcpy (ret, br->name, len);
+      ret[len] = '\0';
+
+      if (inode_id != GRUB_BTRFS_TREE_ROOT_OBJECTID)
+	{
+	  char *s;
+
+	  memset(&args, 0, sizeof(args));
+	  args.treeid = search_header->offset;
+	  args.objectid = inode_id;
+
+	  if (ioctl (fd, BTRFS_IOC_INO_LOOKUP, &args) < 0)
+	    goto error;
+
+	  s = xasprintf ("%s%s", args.name, ret);
+	  free (ret);
+	  ret = s;
+	}
+
+      if (old)
+	{
+	  char *s = xasprintf ("%s/%s", ret, old);
+	  free (ret);
+	  free (old);
+	  ret = s;
+	}
+    }
+
+  close (fd);
+  return ret;
+
+error:
+
+  if (fd >= 0)
+    close (fd);
+  if (ret)
+    free (ret);
+
+  return NULL;
+}
+
+void (*grub_find_root_btrfs_mount_path_hook)(const char *mount_path);
+
 char **
 grub_find_root_devices_from_mountinfo (const char *dir, char **relroot)
 {
@@ -519,12 +630,15 @@ again:
       else if (grub_strcmp (entries[i].fstype, "btrfs") == 0)
 	{
 	  ret = grub_find_root_devices_from_btrfs (dir);
-	  fs_prefix = get_btrfs_fs_prefix (entries[i].enc_path);
 	  if (use_relative_path_on_btrfs)
 	    {
-	      if (fs_prefix)
-	        free (fs_prefix);
 	      fs_prefix = xstrdup ("/");
+	      if (grub_find_root_btrfs_mount_path_hook)
+		grub_find_root_btrfs_mount_path_hook (entries[i].enc_path);
+	    }
+	  else
+	    {
+	      fs_prefix = get_btrfs_fs_prefix (entries[i].enc_path);
 	    }
 	}
       else if (!retry && grub_strcmp (entries[i].fstype, "autofs") == 0)
@@ -1148,6 +1262,34 @@ grub_util_get_grub_dev_os (const char *os_dev)
     }
 
   return grub_dev;
+}
+
+
+char *
+grub_util_get_btrfs_subvol (const char *path, char **mount_path)
+{
+  char *mp = NULL;
+
+  if (mount_path)
+    *mount_path = NULL;
+
+  auto void
+  mount_path_hook (const char *m)
+  {
+    mp = strdup (m);
+  }
+
+  grub_find_root_btrfs_mount_path_hook = mount_path_hook;
+  grub_free (grub_find_root_devices_from_mountinfo (path, NULL));
+  grub_find_root_btrfs_mount_path_hook = NULL;
+
+  if (!mp)
+    return NULL;
+
+  if (mount_path)
+    *mount_path = mp;
+
+  return get_btrfs_subvol (mp);
 }
 
 char *

@@ -32,6 +32,7 @@
 #include <grub/command.h>
 #include <grub/env.h>
 #include <grub/extcmd.h>
+#include <grub/list.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -245,6 +246,12 @@ static grub_err_t
 grub_btrfs_read_logical (struct grub_btrfs_data *data,
 			 grub_disk_addr_t addr, void *buf, grub_size_t size,
 			 int recursion_depth);
+static grub_err_t
+get_root (struct grub_btrfs_data *data, struct grub_btrfs_key *key,
+	  grub_uint64_t *tree, grub_uint8_t *type);
+
+grub_uint64_t
+find_mtab_subvol_tree (const char *path, char **path_in_subvol);
 
 static grub_err_t
 read_sblock (grub_disk_t disk, struct grub_btrfs_superblock *sb)
@@ -887,9 +894,26 @@ lookup_root_by_name(struct grub_btrfs_data *data, const char *path)
   grub_err_t err;
   grub_uint64_t tree = 0;
   grub_uint8_t type;
+  grub_uint64_t saved_tree;
   struct grub_btrfs_key key;
 
+  if (path[0] == '\0')
+    {
+      data->fs_tree = 0;
+      return GRUB_ERR_NONE;
+    }
+
+  err = get_root (data, &key, &tree, &type);
+  if (err)
+    return err;
+
+  saved_tree = data->fs_tree;
+  data->fs_tree = tree;
+
   err = find_path (data, path, &key, &tree, &type);
+
+  data->fs_tree = saved_tree;
+
   if (err)
       return grub_error(GRUB_ERR_FILE_NOT_FOUND, "couldn't locate %s\n", path);
 
@@ -1758,11 +1782,20 @@ grub_btrfs_dir (grub_device_t device, const char *path,
   int r = 0;
   grub_uint64_t tree;
   grub_uint8_t type;
+  char *new_path = NULL;
 
   if (!data)
     return grub_errno;
 
-  err = find_path (data, path, &key_in, &tree, &type);
+  tree = find_mtab_subvol_tree (path, &new_path);
+
+  if (tree)
+    data->fs_tree = tree;
+
+  err = find_path (data, new_path ? new_path : path, &key_in, &tree, &type);
+  if (new_path)
+    grub_free (new_path);
+
   if (err)
     {
       grub_btrfs_unmount (data);
@@ -1864,11 +1897,21 @@ grub_btrfs_open (struct grub_file *file, const char *name)
   struct grub_btrfs_inode inode;
   grub_uint8_t type;
   struct grub_btrfs_key key_in;
+  grub_uint64_t tree;
+  char *new_path = NULL;
 
   if (!data)
     return grub_errno;
 
-  err = find_path (data, name, &key_in, &data->tree, &type);
+  tree = find_mtab_subvol_tree (name, &new_path);
+
+  if (tree)
+    data->fs_tree = tree;
+
+  err = find_path (data, new_path ? new_path : name, &key_in, &data->tree, &type);
+  if (new_path)
+    grub_free (new_path);
+
   if (err)
     {
       grub_btrfs_unmount (data);
@@ -2037,6 +2080,150 @@ grub_cmd_btrfs_info (grub_command_t cmd __attribute__ ((unused)), int argc,
   grub_btrfs_unmount (data);
 
   return 0;
+}
+
+struct grub_btrfs_mtab
+{
+  struct grub_btrfs_mtab *next;
+  struct grub_btrfs_mtab **prev;
+  char *path;
+  char *subvol;
+  grub_uint64_t tree;
+};
+
+typedef struct grub_btrfs_mtab* grub_btrfs_mtab_t;
+
+static struct grub_btrfs_mtab *btrfs_mtab;
+
+#define FOR_GRUB_MTAB(var) FOR_LIST_ELEMENTS (var, btrfs_mtab)
+#define FOR_GRUB_MTAB_SAFE(var, next) FOR_LIST_ELEMENTS_SAFE((var), (next), btrfs_mtab)
+
+static void
+add_mountpoint (const char *path, const char *subvol, grub_uint64_t tree)
+{
+  grub_btrfs_mtab_t m = grub_malloc (sizeof (*m));
+
+  m->path = grub_strdup (path);
+  m->subvol = grub_strdup (subvol);
+  m->tree = tree;
+  grub_list_push (GRUB_AS_LIST_P (&btrfs_mtab), GRUB_AS_LIST (m));
+}
+
+static grub_err_t
+grub_cmd_btrfs_mount_subvol (grub_command_t cmd __attribute__ ((unused)), int argc,
+		     char **argv)
+{
+  char *devname, *dirname, *subvol;
+  struct grub_btrfs_key key_in;
+  grub_uint8_t type;
+  grub_uint64_t tree;
+  grub_uint64_t saved_tree;
+  grub_err_t err;
+  struct grub_btrfs_data *data = NULL;
+  grub_device_t dev = NULL;
+
+  if (argc < 3)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "required <dev> <dir> and <subvol>");
+
+  devname = grub_file_get_device_name(argv[0]);
+  dev = grub_device_open (devname);
+  grub_free (devname);
+
+  if (!dev)
+    {
+      err = grub_errno;
+      goto err_out;
+    }
+
+  dirname = argv[1];
+  subvol = argv[2];
+
+  data = grub_btrfs_mount (dev);
+  if (!data)
+    {
+      err = grub_errno;
+      goto err_out;
+    }
+
+  err = find_path (data, dirname, &key_in, &tree, &type);
+  if (err)
+    goto err_out;
+
+  if (type !=  GRUB_BTRFS_DIR_ITEM_TYPE_DIRECTORY)
+    {
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, N_("not a directory"));
+      goto err_out;
+    }
+
+  err = get_root (data, &key_in, &tree, &type);
+
+  if (err)
+    goto err_out;
+
+  saved_tree = data->fs_tree;
+  data->fs_tree = tree;
+  err = find_path (data, subvol, &key_in, &tree, &type);
+  data->fs_tree = saved_tree;
+
+  if (err)
+    goto err_out;
+
+  if (key_in.object_id != grub_cpu_to_le64_compile_time (GRUB_BTRFS_OBJECT_ID_CHUNK) || tree == 0)
+    {
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "%s: not a subvolume\n", subvol);
+      goto err_out;
+    }
+
+  grub_btrfs_unmount (data);
+  grub_device_close (dev);
+  add_mountpoint (dirname, subvol, tree);
+
+  return GRUB_ERR_NONE;
+
+err_out:
+
+  if (data)
+    grub_btrfs_unmount (data);
+
+  if (dev)
+    grub_device_close (dev);
+
+  return err;
+}
+
+grub_uint64_t
+find_mtab_subvol_tree (const char *path, char **path_in_subvol)
+{
+  grub_btrfs_mtab_t m, cm;
+  grub_uint64_t tree;
+
+  if (!path || !path_in_subvol)
+    return 0;
+
+  *path_in_subvol = NULL;
+  tree = 0;
+  cm = NULL;
+
+  FOR_GRUB_MTAB (m)
+    {
+      if (grub_strncmp (path, m->path, grub_strlen (m->path)) == 0)
+	{
+	  if (!cm)
+	    cm = m;
+	  else
+	    if (grub_strcmp (m->path, cm->path) > 0)
+	      cm = m;
+	}
+    }
+
+  if (cm)
+    {
+      const char *s = path + grub_strlen (cm->path);
+      *path_in_subvol = (s[0] == '\0') ? grub_strdup ("/") : grub_strdup (s);
+      tree = cm->tree;
+    }
+
+  return tree;
 }
 
 static grub_err_t
@@ -2245,6 +2432,7 @@ static struct grub_fs grub_btrfs_fs = {
 };
 
 static grub_command_t cmd_info;
+static grub_command_t cmd_mount_subvol;
 static grub_extcmd_t cmd_list_subvols;
 
 static char *
@@ -2308,6 +2496,9 @@ GRUB_MOD_INIT (btrfs)
   cmd_info = grub_register_command("btrfs-info", grub_cmd_btrfs_info,
 				   "DEVICE",
 				   "Print BtrFS info about DEVICE.");
+  cmd_mount_subvol = grub_register_command("btrfs-mount-subvol", grub_cmd_btrfs_mount_subvol,
+				   "DEVICE DIRECTORY SUBVOL",
+				   "Set btrfs DEVICE the DIRECTORY a mountpoint of SUBVOL.");
   cmd_list_subvols = grub_register_extcmd("btrfs-list-subvols",
 					 grub_cmd_btrfs_list_subvols, 0,
 					 "[-p|-n] [-o var] DEVICE",
