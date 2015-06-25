@@ -59,10 +59,33 @@ grub_efi_env_init (void)
   grub_free (envblk_s.buf);
 }
 
+static void
+grub_efi_print_gdb_info (void)
+{
+  grub_addr_t text;
+  grub_addr_t data;
+
+  text = grub_efi_section_addr (".text");
+  if (!text)
+    return;
+
+  data = grub_efi_section_addr (".data");
+  if (data)
+    grub_qdprintf ("gdb",
+		  "add-symbol-file /usr/lib/debug/usr/lib/grub/%s-%s/"
+		  "kernel.exec %p -s .data %p\n",
+		  GRUB_TARGET_CPU, GRUB_PLATFORM, (void *)text, (void *)data);
+  else
+    grub_qdprintf ("gdb",
+		  "add-symbol-file /usr/lib/debug/usr/lib/grub/%s-%s/"
+		  "kernel.exec %p\n",
+		  GRUB_TARGET_CPU, GRUB_PLATFORM, (void *)text);
+}
+
 void
 grub_efi_init (void)
 {
-  grub_modbase = grub_efi_modules_addr ();
+  grub_modbase = grub_efi_section_addr ("mods");
   /* First of all, initialize the console so that GRUB can display
      messages.  */
   grub_console_init ();
@@ -74,6 +97,7 @@ grub_efi_init (void)
 	      0, 0, 0, NULL);
 
   grub_efi_env_init ();
+  grub_efi_print_gdb_info ();
   grub_efidisk_init ();
 }
 
