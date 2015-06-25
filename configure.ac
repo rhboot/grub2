@@ -1386,7 +1386,15 @@ grub_PROG_TARGET_CC
 if test "x$TARGET_APPLE_LINKER" != x1 ; then
 grub_PROG_OBJCOPY_ABSOLUTE
 fi
+
+AC_ARG_ENABLE([build-id],
+	      [AS_HELP_STRING([--enable-build-id],
+                             [ask the linker to supply build-id notes (default=no)])])
+if test x$enable_build_id = xyes; then
+grub_PROG_LD_BUILD_ID_SHA1
+else
 grub_PROG_LD_BUILD_ID_NONE
+fi
 if test "x$target_cpu" = xi386; then
   if test "$platform" != emu && test "x$TARGET_APPLE_LINKER" != x1 ; then
     if test ! -z "$TARGET_IMG_LDSCRIPT"; then
