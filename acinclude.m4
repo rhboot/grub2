@@ -136,6 +136,25 @@ if test "x$grub_cv_prog_ld_build_id_none" = xyes; then
 fi
 ])
 
+dnl Supply --build-id=sha1 to ld if building modules.
+dnl This suppresses warnings from ld on some systems
+AC_DEFUN([grub_PROG_LD_BUILD_ID_SHA1],
+[AC_MSG_CHECKING([whether linker accepts --build-id=sha1])
+AC_CACHE_VAL(grub_cv_prog_ld_build_id_sha1,
+[save_LDFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS -Wl,--build-id=sha1"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+	       [grub_cv_prog_ld_build_id_sha1=yes],
+	       [grub_cv_prog_ld_build_id_sha1=no])
+LDFLAGS="$save_LDFLAGS"
+])
+AC_MSG_RESULT([$grub_cv_prog_ld_build_id_sha1])
+
+if test "x$grub_cv_prog_ld_build_id_sha1" = xyes; then
+  TARGET_LDFLAGS="$TARGET_LDFLAGS -Wl,--build-id=sha1"
+fi
+])
+
 dnl Check nm
 AC_DEFUN([grub_PROG_NM_WORKS],
 [AC_MSG_CHECKING([whether nm works])
