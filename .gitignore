@@ -127,6 +127,7 @@ grub-render-label
 grub-rpm-sort
 grub-script-check
 grub-set-default
+grub-setpassword
 grub-shell
 grub-shell-tester
 grub-sparc64-setup
