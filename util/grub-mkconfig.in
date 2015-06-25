@@ -282,6 +282,8 @@ for i in "${grub_mkconfig_dir}"/* ; do
     *~) ;;
     # emacsen autosave files. FIXME: support other editors
     */\#*\#) ;;
+    # rpm config files of yore.
+    *.rpmsave|*.rpmnew|*.rpmorig) ;;
     *)
       if grub_file_is_not_garbage "$i" && test -x "$i" ; then
         echo
