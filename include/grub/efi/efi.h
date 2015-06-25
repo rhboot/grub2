@@ -104,7 +104,7 @@ grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
                                            char *args);
 #endif
 
-grub_addr_t grub_efi_modules_addr (void);
+grub_addr_t grub_efi_section_addr (const char *section);
 
 void grub_efi_mm_init (void);
 void grub_efi_mm_fini (void);
