@@ -921,6 +921,19 @@ grub_util_part_to_disk (const char *os_dev, struct stat *st,
 	  return path;
 	}
 
+      /* If this is an rssd device. */
+      if ((strncmp ("rssd", p, 4) == 0) && p[4] >= 'a' && p[4] <= 'z')
+	{
+	  char *pp = p + 4;
+	  while (*pp >= 'a' && *pp <= 'z')
+	    pp++;
+	  if (*pp)
+	    *is_part = 1;
+	  /* /dev/rssd[a-z]+[0-9]* */
+	  *pp = '\0';
+	  return path;
+	}
+
       /* If this is a loop device */
       if ((strncmp ("loop", p, 4) == 0) && p[4] >= '0' && p[4] <= '9')
 	{
