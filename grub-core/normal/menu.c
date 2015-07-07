@@ -829,7 +829,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
 
 /* Callback invoked immediately before a menu entry is executed.  */
 static void
-notify_booting (grub_menu_entry_t entry,
+notify_booting (grub_menu_entry_t __attribute__((unused)) entry,
 		void *userdata __attribute__((unused)))
 {
 #if 0
