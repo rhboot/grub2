@@ -131,6 +131,7 @@ kernel = {
   common = kern/term.c;
   common = kern/qsort.c;
   common = kern/backtrace.c;
+  common = kern/tpm.c;
 
   x86 = kern/i386/backtrace.c;
   i386_xen = kern/i386/backtrace.c;
@@ -199,6 +200,7 @@ kernel = {
   efi = kern/acpi.c;
   efi = kern/efi/acpi.c;
   efi = lib/envblk.c;
+  efi = kern/efi/tpm.c;
   i386_coreboot = kern/i386/pc/acpi.c;
   i386_multiboot = kern/i386/pc/acpi.c;
   i386_coreboot = kern/acpi.c;
@@ -245,6 +247,7 @@ kernel = {
 
   i386_pc = kern/i386/pc/init.c;
   i386_pc = kern/i386/pc/mmap.c;
+  i386_pc = kern/i386/pc/tpm.c;
   i386_pc = term/i386/pc/console.c;
 
   i386_qemu = bus/pci.c;
