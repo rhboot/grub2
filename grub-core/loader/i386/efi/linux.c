@@ -27,6 +27,7 @@
 #include <grub/lib/cmdline.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/linux.h>
+#include <grub/tpm.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -131,6 +132,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
                         argv[i]);
           goto fail;
         }
+      grub_tpm_measure (ptr, cursize, GRUB_INITRD_PCR, "UEFI Linux initrd");
       ptr += cursize;
       grub_memset (ptr, 0, ALIGN_UP_OVERHEAD (cursize, 4));
       ptr += ALIGN_UP_OVERHEAD (cursize, 4);
@@ -194,6 +196,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 		  argv[0]);
       goto fail;
     }
+
+  grub_tpm_measure (kernel, filelen, GRUB_KERNEL_PCR, "UEFI Linux kernel");
 
   rc = grub_linuxefi_secure_validate (kernel, filelen);
   if (rc < 0)
