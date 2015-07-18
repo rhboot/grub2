@@ -366,15 +366,3 @@ fi
 if [ "x${GRUB_BADRAM}" != "x" ] ; then
   echo "badram ${GRUB_BADRAM}"
 fi
-
-if [ "x${SUSE_BTRFS_SNAPSHOT_BOOTING}" = "xtrue" ] &&
-   [ "x${GRUB_FS}" = "xbtrfs" ] ; then
-    # Note: No $snapshot_num on *read-only* rollback!  (bsc#901487)
-    cat <<EOF
-if [ -n "\$extra_cmdline" ]; then
-  submenu "Bootable snapshot #\$snapshot_num" {
-    menuentry "If OK, run 'snapper rollback' and reboot." { true; }
-  }
-fi
-EOF
-fi
