@@ -33,6 +33,9 @@ fi
 if test "x$grub_mkrelpath" = x; then
   grub_mkrelpath="${bindir}/@grub_mkrelpath@"
 fi
+if test "x$grub_rpm_sort" = x; then
+  grub_rpm_sort="${sbindir}/@grub_rpm_sort@"
+fi
 
 if which gettext >/dev/null 2>/dev/null; then
   :
@@ -214,10 +217,10 @@ version_sort ()
    esac
 }
 
-if [ "x$RPMLIB" = x ]; then
-  kernel_sort=version_sort
+if [ "x$grub_rpm_sort" != x -a -x "$grub_rpm_sort" ]; then
+  kernel_sort="$grub_rpm_sort"
 else
-  kernel_sort="${sbindir}/grub-rpm-sort"
+  kernel_sort=version_sort
 fi
 
 version_test_numeric ()

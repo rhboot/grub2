@@ -1796,7 +1796,7 @@ AC_SUBST([LIBDEVMAPPER])
 AC_ARG_ENABLE([rpm-sort],
               [AS_HELP_STRING([--enable-rpm-sort],
                               [enable native rpm sorting of kernels in grub (default=guessed)])])
-if test x"$enable_rpm-sort" = xno ; then
+if test x"$enable_rpm_sort" = xno ; then
   rpm_sort_excuse="explicitly disabled"
 fi
 
