@@ -106,6 +106,18 @@ struct tcphdr
   grub_uint16_t urgent;
 } GRUB_PACKED;
 
+struct tcp_scale_opt {
+  grub_uint8_t kind;
+  grub_uint8_t length;
+  grub_uint8_t scale;
+} GRUB_PACKED;
+
+struct tcp_synhdr {
+  struct tcphdr tcphdr;
+  struct tcp_scale_opt scale_opt;
+  grub_uint8_t padding;
+};
+
 struct tcp_pseudohdr
 {
   grub_uint32_t src;
@@ -566,7 +578,7 @@ grub_net_tcp_open (char *server,
   grub_net_tcp_socket_t socket;
   static grub_uint16_t in_port = 21550;
   struct grub_net_buff *nb;
-  struct tcphdr *tcph;
+  struct tcp_synhdr *tcph;
   int i;
   grub_uint8_t *nbd;
   grub_net_link_level_address_t ll_target_addr;
@@ -635,20 +647,24 @@ grub_net_tcp_open (char *server,
     }
 
   tcph = (void *) nb->data;
+  grub_memset(tcph, 0, sizeof (*tcph));
   socket->my_start_seq = grub_get_time_ms ();
   socket->my_cur_seq = socket->my_start_seq + 1;
-  socket->my_window = 8192;
-  tcph->seqnr = grub_cpu_to_be32 (socket->my_start_seq);
-  tcph->ack = grub_cpu_to_be32_compile_time (0);
-  tcph->flags = grub_cpu_to_be16_compile_time ((5 << 12) | TCP_SYN);
-  tcph->window = grub_cpu_to_be16 (socket->my_window);
-  tcph->urgent = 0;
-  tcph->src = grub_cpu_to_be16 (socket->in_port);
-  tcph->dst = grub_cpu_to_be16 (socket->out_port);
-  tcph->checksum = 0;
-  tcph->checksum = grub_net_ip_transport_checksum (nb, GRUB_NET_IP_TCP,
-						   &socket->inf->address,
-						   &socket->out_nla);
+  socket->my_window = 32768;
+  tcph->tcphdr.seqnr = grub_cpu_to_be32 (socket->my_start_seq);
+  tcph->tcphdr.ack = grub_cpu_to_be32_compile_time (0);
+  tcph->tcphdr.flags = grub_cpu_to_be16_compile_time ((6 << 12) | TCP_SYN);
+  tcph->tcphdr.window = grub_cpu_to_be16 (socket->my_window);
+  tcph->tcphdr.urgent = 0;
+  tcph->tcphdr.src = grub_cpu_to_be16 (socket->in_port);
+  tcph->tcphdr.dst = grub_cpu_to_be16 (socket->out_port);
+  tcph->tcphdr.checksum = 0;
+  tcph->scale_opt.kind = 3;
+  tcph->scale_opt.length = 3;
+  tcph->scale_opt.scale = 5;
+  tcph->tcphdr.checksum = grub_net_ip_transport_checksum (nb, GRUB_NET_IP_TCP,
+							  &socket->inf->address,
+							  &socket->out_nla);
 
   tcp_socket_register (socket);
 
