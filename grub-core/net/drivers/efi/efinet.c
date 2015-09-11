@@ -239,46 +239,85 @@ grub_efinet_get_device_handle (struct grub_net_card *card)
   return card->efi_handle;
 }
 
-static void
-grub_efinet_findcards (void)
+static int
+grub_efinet_find_snp_cards (int preferred_only, grub_efi_handle_t preferred,
+			    int *i)
 {
-  grub_efi_uintn_t num_handles;
-  grub_efi_handle_t *handles;
+  grub_efi_uintn_t num_handles = 0;
+  grub_efi_handle_t *handles = NULL;
   grub_efi_handle_t *handle;
-  int i = 0;
+  grub_efi_device_path_t *pdp = NULL, *pp = NULL, *pc = NULL;
+  int ret = 0;
 
-  /* Find handles which support the disk io interface.  */
+  if (preferred)
+    {
+      grub_efi_device_path_t *pdpc;
+      pdpc = pdp = grub_efi_get_device_path (preferred);
+      if (pdp == NULL)
+	{
+	  grub_print_error ();
+	  return -1;
+	}
+
+      for (; ! GRUB_EFI_END_ENTIRE_DEVICE_PATH (pdpc);
+	   pdpc = GRUB_EFI_NEXT_DEVICE_PATH (pdpc))
+	{
+	  pp = pc;
+	  pc = pdpc;
+	}
+    }
+
+  /* Find handles which support the SNP interface.  */
   handles = grub_efi_locate_handle (GRUB_EFI_BY_PROTOCOL, &net_io_guid,
 				    0, &num_handles);
-  if (! handles)
-    return;
-  for (handle = handles; num_handles--; handle++)
+
+  for (handle = handles; handle && num_handles--; handle++)
     {
       grub_efi_simple_network_t *net;
       struct grub_net_card *card;
       grub_efi_device_path_t *dp, *parent = NULL, *child = NULL;
 
-      /* EDK2 UEFI PXE driver creates IPv4 and IPv6 messaging devices as
-	 children of main MAC messaging device. We only need one device with
-	 bound SNP per physical card, otherwise they compete with each other
-	 when polling for incoming packets.
-       */
+      /* if we're looking for only the preferred handle, skip anything that
+	 isn't it. */
+      if (preferred_only && preferred != NULL && *handle != preferred)
+	continue;
+
+      /* if we're not looking for the preferred handle, skip it if it's
+	 found. */
+      if (!preferred_only && *handle == preferred)
+	continue;
+
       dp = grub_efi_get_device_path (*handle);
       if (!dp)
 	continue;
-      for (; ! GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp); dp = GRUB_EFI_NEXT_DEVICE_PATH (dp))
+
+      for (; ! GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp);
+	   dp = GRUB_EFI_NEXT_DEVICE_PATH (dp))
 	{
 	  parent = child;
 	  child = dp;
 	}
-      if (child
-	  && GRUB_EFI_DEVICE_PATH_TYPE (child) == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE
-	  && (GRUB_EFI_DEVICE_PATH_SUBTYPE (child) == GRUB_EFI_IPV4_DEVICE_PATH_SUBTYPE
-	      || GRUB_EFI_DEVICE_PATH_SUBTYPE (child) == GRUB_EFI_IPV6_DEVICE_PATH_SUBTYPE)
-	  && parent
-	  && GRUB_EFI_DEVICE_PATH_TYPE (parent) == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE
-	  && GRUB_EFI_DEVICE_PATH_SUBTYPE (parent) == GRUB_EFI_MAC_ADDRESS_DEVICE_PATH_SUBTYPE)
-	continue;
+
+      if (!preferred_only)
+	{
+	  if (pp && pc
+	      && grub_efi_compare_device_paths (pp, parent) == 0
+	      && grub_efi_compare_device_paths (pc, child) == 0)
+	    continue;
+
+	  if (child
+	      && (GRUB_EFI_DEVICE_PATH_IS_TYPE(child,
+					  GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE,
+					  GRUB_EFI_IPV6_DEVICE_PATH_SUBTYPE) ||
+		  GRUB_EFI_DEVICE_PATH_IS_TYPE(child,
+					  GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE,
+					  GRUB_EFI_IPV4_DEVICE_PATH_SUBTYPE))
+	      && parent
+	      && (GRUB_EFI_DEVICE_PATH_IS_TYPE(parent,
+				    GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE,
+				    GRUB_EFI_MAC_ADDRESS_DEVICE_PATH_SUBTYPE)))
+	    continue;
+	}
 
       net = grub_efi_open_protocol (*handle, &net_io_guid,
 				    GRUB_EFI_OPEN_PROTOCOL_GET_PROTOCOL);
@@ -302,7 +341,7 @@ grub_efinet_findcards (void)
 	{
 	  grub_print_error ();
 	  grub_free (handles);
-	  return;
+	  return -1;
 	}
 
       card->mtu = net->mode->max_packet_size;
@@ -313,13 +352,14 @@ grub_efinet_findcards (void)
 	  grub_print_error ();
 	  grub_free (handles);
 	  grub_free (card);
-	  return;
+	  return -1;
 	}
       card->txbusy = 0;
 
       card->rcvbufsize = ALIGN_UP (card->mtu, 64) + 256;
 
-      card->name = grub_xasprintf ("efinet%d", i++);
+      card->name = grub_xasprintf ("efinet%d", *i);
+      *i = (*i)+1;
       card->driver = &efidriver;
       card->flags = 0;
       card->default_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
@@ -330,8 +370,38 @@ grub_efinet_findcards (void)
       card->efi_handle = *handle;
 
       grub_net_card_register (card);
+      ret++;
     }
   grub_free (handles);
+
+  return ret;
+}
+
+static void
+grub_efinet_findcards (void)
+{
+  grub_efi_loaded_image_t *image = NULL;
+  int rc;
+  int efinet_number = 0;
+
+  image = grub_efi_get_loaded_image (grub_efi_image_handle);
+
+  if (image && image->device_handle)
+    {
+      rc = grub_efinet_find_snp_cards (1, image->device_handle, &efinet_number);
+      if (rc < 0)
+	return;
+
+      rc = grub_efinet_find_snp_cards (0, image->device_handle, &efinet_number);
+      if (rc < 0)
+	return;
+    }
+  else
+    {
+      rc = grub_efinet_find_snp_cards (0, NULL, &efinet_number);
+      if (rc < 0)
+	return;
+    }
 }
 
 static void
@@ -351,6 +421,8 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     struct grub_efi_pxe *pxe;
     struct grub_efi_pxe_mode *pxe_mode;
     if (card->driver != &efidriver)
+      continue;
+    if (hnd != card->efi_handle)
       continue;
     cdp = grub_efi_get_device_path (card->efi_handle);
     if (! cdp)
