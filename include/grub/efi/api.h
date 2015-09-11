@@ -622,6 +622,10 @@ typedef struct grub_efi_device_path grub_efi_device_path_t;
    It seems to be identical to EFI_DEVICE_PATH.  */
 typedef struct grub_efi_device_path grub_efi_device_path_protocol_t;
 
+#define GRUB_EFI_DEVICE_PATH_IS_TYPE(dp, type, subtype) \
+	((GRUB_EFI_DEVICE_PATH_TYPE(dp) == (type)) && \
+	 (GRUB_EFI_DEVICE_PATH_SUBTYPE(dp) == (subtype)))
+
 #define GRUB_EFI_DEVICE_PATH_TYPE(dp)		((dp)->type & 0x7f)
 #define GRUB_EFI_DEVICE_PATH_SUBTYPE(dp)	((dp)->subtype)
 #define GRUB_EFI_DEVICE_PATH_LENGTH(dp)		((dp)->length)
