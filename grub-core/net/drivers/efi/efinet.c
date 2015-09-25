@@ -465,6 +465,45 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 				    &pxe_mode->dhcp_ack,
 				    sizeof (pxe_mode->dhcp_ack),
 				    1, device, path);
+    net = grub_efi_open_protocol (card->efi_handle, &net_io_guid,
+				  GRUB_EFI_OPEN_PROTOCOL_BY_EXCLUSIVE);
+    if (net) {
+      if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
+	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
+	continue;
+
+      if (net->mode->state == GRUB_EFI_NETWORK_STOPPED)
+	continue;
+
+      if (net->mode->state == GRUB_EFI_NETWORK_STARTED
+	  && efi_call_3 (net->initialize, net, 0, 0) != GRUB_EFI_SUCCESS)
+	continue;
+
+      /* Enable hardware receive filters if driver declares support for it.
+	 We need unicast and broadcast and additionaly all nodes and
+	 solicited multicast for IPv6. Solicited multicast is per-IPv6
+	 address and we currently do not have API to do it so simply
+	 try to enable receive of all multicast packets or evertyhing in
+	 the worst case (i386 PXE driver always enables promiscuous too).
+
+	 This does trust firmware to do what it claims to do.
+       */
+      if (net->mode->receive_filter_mask)
+	{
+	  grub_uint32_t filters = GRUB_EFI_SIMPLE_NETWORK_RECEIVE_UNICAST   |
+				  GRUB_EFI_SIMPLE_NETWORK_RECEIVE_BROADCAST |
+				  GRUB_EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS_MULTICAST;
+
+	  filters &= net->mode->receive_filter_mask;
+	  if (!(filters & GRUB_EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS_MULTICAST))
+	    filters |= (net->mode->receive_filter_mask &
+			GRUB_EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS);
+
+	  efi_call_6 (net->receive_filters, net, filters, 0, 0, 0, NULL);
+	}
+
+      card->efi_net = net;
+    }
     return;
   }
 }
