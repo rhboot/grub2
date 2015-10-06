@@ -32,6 +32,7 @@
 #include <grub/env.h>
 #include <grub/cache.h>
 #include <grub/i18n.h>
+#include <grub/efi/sb.h>
 
 /* Platforms where modules are in a readonly area of memory.  */
 #if defined(GRUB_MACHINE_QEMU)

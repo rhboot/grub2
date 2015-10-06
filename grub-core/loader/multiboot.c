@@ -50,6 +50,7 @@
 #include <grub/video.h>
 #include <grub/memory.h>
 #include <grub/i18n.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -446,6 +447,9 @@ static grub_command_t cmd_multiboot, cmd_module;
 
 GRUB_MOD_INIT(multiboot)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   cmd_multiboot =
 #ifdef GRUB_USE_MULTIBOOT2
     grub_register_command ("multiboot2", grub_cmd_multiboot,
@@ -466,6 +470,9 @@ GRUB_MOD_INIT(multiboot)
 
 GRUB_MOD_FINI(multiboot)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   grub_unregister_command (cmd_multiboot);
   grub_unregister_command (cmd_module);
 }
