@@ -24,6 +24,7 @@
 #include <grub/misc.h>
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>
+#include <grub/efi/sb.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
 
@@ -227,6 +228,9 @@ static grub_command_t cmd;
 
 GRUB_MOD_INIT(appleloader)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   cmd = grub_register_command ("appleloader", grub_cmd_appleloader,
 			       N_("[OPTS]"),
 			       /* TRANSLATORS: This command is used on EFI to
@@ -238,5 +242,8 @@ GRUB_MOD_INIT(appleloader)
 
 GRUB_MOD_FINI(appleloader)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   grub_unregister_command (cmd);
 }

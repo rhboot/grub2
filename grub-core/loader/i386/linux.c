@@ -35,6 +35,7 @@
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 #include <grub/linux.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1156,6 +1157,9 @@ static grub_command_t cmd_linux, cmd_initrd;
 
 GRUB_MOD_INIT(linux)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   cmd_linux = grub_register_command ("linux", grub_cmd_linux,
 				     0, N_("Load Linux."));
   cmd_initrd = grub_register_command ("initrd", grub_cmd_initrd,
@@ -1165,6 +1169,9 @@ GRUB_MOD_INIT(linux)
 
 GRUB_MOD_FINI(linux)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   grub_unregister_command (cmd_linux);
   grub_unregister_command (cmd_initrd);
 }
