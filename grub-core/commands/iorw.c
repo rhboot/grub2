@@ -23,6 +23,7 @@
 #include <grub/env.h>
 #include <grub/cpu/io.h>
 #include <grub/i18n.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -118,6 +119,9 @@ grub_cmd_write (grub_command_t cmd, int argc, char **argv)
 
 GRUB_MOD_INIT(memrw)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   cmd_read_byte =
     grub_register_extcmd ("inb", grub_cmd_read, 0,
 			  N_("PORT"), N_("Read 8-bit value from PORT."),
@@ -146,6 +150,9 @@ GRUB_MOD_INIT(memrw)
 
 GRUB_MOD_FINI(memrw)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   grub_unregister_extcmd (cmd_read_byte);
   grub_unregister_extcmd (cmd_read_word);
   grub_unregister_extcmd (cmd_read_dword);
