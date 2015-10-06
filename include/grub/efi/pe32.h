@@ -212,7 +212,11 @@ struct grub_pe64_optional_header
 struct grub_pe32_section_table
 {
   char name[8];
-  grub_uint32_t virtual_size;
+  union
+    {
+      grub_uint32_t physical_address;
+      grub_uint32_t virtual_size;
+    };
   grub_uint32_t virtual_address;
   grub_uint32_t raw_data_size;
   grub_uint32_t raw_data_offset;
@@ -261,6 +265,20 @@ struct grub_pe32_header
   /* The Optional header.  */
   struct grub_pe32_optional_header optional_header;
 #endif
+};
+
+struct grub_pe32_header_32
+{
+  char signature[GRUB_PE32_SIGNATURE_SIZE];
+  struct grub_pe32_coff_header coff_header;
+  struct grub_pe32_optional_header optional_header;
+};
+
+struct grub_pe32_header_64
+{
+  char signature[GRUB_PE32_SIGNATURE_SIZE];
+  struct grub_pe32_coff_header coff_header;
+  struct grub_pe64_optional_header optional_header;
 };
 
 struct grub_pe32_fixup_block
