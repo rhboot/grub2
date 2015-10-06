@@ -175,6 +175,8 @@ kernel = {
   efi = term/efi/console.c;
   efi = lib/envblk.c;
 
+  common = kern/efi/sb.c;
+
   x86 = kern/i386/tsc.c;
 
   i386_efi = kern/i386/efi/init.c;
