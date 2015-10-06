@@ -34,6 +34,7 @@
 #include <grub/efi/disk.h>
 #include <grub/efi/pe32.h>
 #include <grub/efi/linux.h>
+#include <grub/efi/sb.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
 #include <grub/net.h>
