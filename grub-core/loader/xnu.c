@@ -35,6 +35,7 @@
 #include <grub/i18n.h>
 #include <grub/verify.h>
 #include <grub/safemath.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1481,6 +1482,9 @@ static grub_extcmd_t cmd_splash;
 
 GRUB_MOD_INIT(xnu)
 {
+  if (grub_efi_secure_boot())
+    return;
+
   cmd_kernel = grub_register_command ("xnu_kernel", grub_cmd_xnu_kernel, 0,
 				      N_("Load XNU image."));
   cmd_kernel64 = grub_register_command ("xnu_kernel64", grub_cmd_xnu_kernel64,
@@ -1521,6 +1525,9 @@ GRUB_MOD_INIT(xnu)
 
 GRUB_MOD_FINI(xnu)
 {
+  if (grub_efi_secure_boot())
+    return;
+
 #ifndef GRUB_MACHINE_EMU
   grub_unregister_command (cmd_resume);
 #endif
