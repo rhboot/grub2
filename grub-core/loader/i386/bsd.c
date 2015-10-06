@@ -40,6 +40,7 @@
 #ifdef GRUB_MACHINE_PCBIOS
 #include <grub/machine/int.h>
 #endif
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -2137,6 +2138,9 @@ static grub_command_t cmd_netbsd_module_elf, cmd_openbsd_ramdisk;
 
 GRUB_MOD_INIT (bsd)
 {
+  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
+    return;
+
   /* Net and OpenBSD kernels are often compressed.  */
   grub_dl_load ("gzio");
 
@@ -2176,6 +2180,9 @@ GRUB_MOD_INIT (bsd)
 
 GRUB_MOD_FINI (bsd)
 {
+  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
+    return;
+
   grub_unregister_extcmd (cmd_freebsd);
   grub_unregister_extcmd (cmd_openbsd);
   grub_unregister_extcmd (cmd_netbsd);
