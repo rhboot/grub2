@@ -172,7 +172,7 @@ grub_username_get (char buf[], unsigned buf_size)
 	  break;
 	}
 
-      if (key == GRUB_TERM_BACKSPACE)
+      if (key == GRUB_TERM_BACKSPACE && cur_len)
 	{
 	  if (cur_len)
 	    {
