@@ -456,7 +456,7 @@ grub_password_get (char buf[], unsigned buf_size)
 	  break;
 	}
 
-      if (key == '\b')
+      if (key == '\b' && cur_len)
 	{
 	  cur_len--;
 	  continue;
