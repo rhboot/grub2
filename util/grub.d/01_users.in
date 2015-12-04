@@ -2,7 +2,7 @@
 cat << EOF
 if [ -f \${prefix}/user.cfg ]; then
   source \${prefix}/user.cfg
-  if [ -n \${GRUB2_PASSWORD} ]; then
+  if [ -n "\${GRUB2_PASSWORD}" ]; then
     set superusers="root"
     export superusers
     password_pbkdf2 root \${GRUB2_PASSWORD}
