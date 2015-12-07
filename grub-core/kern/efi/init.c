@@ -25,8 +25,39 @@
 #include <grub/env.h>
 #include <grub/mm.h>
 #include <grub/kernel.h>
+#include <grub/lib/envblk.h>
 
 grub_addr_t grub_modbase;
+
+#define GRUB_EFI_GRUB_VARIABLE_GUID \
+  { 0x91376aff, 0xcba6, 0x42be, \
+    { 0x94, 0x9d, 0x06, 0xfd, 0xe8, 0x11, 0x28, 0xe8 } \
+  }
+
+/* Helper for grub_efi_env_init */
+static int
+set_var (const char *name, const char *value,
+	 void *whitelist __attribute__((__unused__)))
+{
+  grub_env_set (name, value);
+  return 0;
+}
+
+static void
+grub_efi_env_init (void)
+{
+  grub_efi_guid_t efi_grub_guid = GRUB_EFI_GRUB_VARIABLE_GUID;
+  struct grub_envblk envblk_s = { NULL, 0 };
+  grub_envblk_t envblk = &envblk_s;
+
+  envblk_s.buf = grub_efi_get_variable ("GRUB_ENV", &efi_grub_guid,
+					&envblk_s.size);
+  if (!envblk_s.buf || envblk_s.size < 1)
+    return;
+
+  grub_envblk_iterate (envblk, NULL, set_var);
+  grub_free (envblk_s.buf);
+}
 
 void
 grub_efi_init (void)
@@ -42,10 +73,11 @@ grub_efi_init (void)
   efi_call_4 (grub_efi_system_table->boot_services->set_watchdog_timer,
 	      0, 0, 0, NULL);
 
+  grub_efi_env_init ();
   grub_efidisk_init ();
 }
 
-void (*grub_efi_net_config) (grub_efi_handle_t hnd, 
+void (*grub_efi_net_config) (grub_efi_handle_t hnd,
 			     char **device,
 			     char **path);
 
