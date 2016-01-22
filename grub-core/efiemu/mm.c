@@ -410,8 +410,8 @@ fill_hook (grub_uint64_t addr, grub_uint64_t size, grub_memory_type_t type,
 	return grub_efiemu_add_to_mmap (addr, size,
 					GRUB_EFI_ACPI_MEMORY_NVS);
 
-      case GRUB_MEMORY_PERSISTENT:
-      case GRUB_MEMORY_PERSISTENT_LEGACY:
+      case GRUB_MEMORY_PRAM:
+      case GRUB_MEMORY_PMEM:
 	return grub_efiemu_add_to_mmap (addr, size,
 					GRUB_EFI_PERSISTENT_MEMORY);
       default:
