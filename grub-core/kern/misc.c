@@ -26,6 +26,7 @@
 #include <grub/i18n.h>
 #include <grub/types.h>
 #include <grub/charset.h>
+#include <grub/backtrace.h>
 
 union printf_arg
 {
@@ -1301,6 +1302,11 @@ grub_printf_fmt_check (const char *fmt, const char *fmt_expected)
 void __attribute__ ((noreturn))
 grub_abort (void)
 {
+#ifndef GRUB_UTIL
+#if defined(__i386__) || defined(__x86_64__)
+  grub_backtrace();
+#endif
+#endif
   grub_printf ("\nAborted.");
 
 #ifndef GRUB_UTIL
