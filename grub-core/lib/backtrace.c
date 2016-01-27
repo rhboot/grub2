@@ -29,6 +29,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 void
 grub_backtrace_print_address (void *addr)
 {
+#ifndef GRUB_UTIL
   grub_dl_t mod;
 
   FOR_DL_MODULES (mod)
@@ -44,6 +45,7 @@ grub_backtrace_print_address (void *addr)
 	}
   }
 
+#endif
   grub_printf ("%p", addr);
 }
 
