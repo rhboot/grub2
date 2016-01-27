@@ -15,23 +15,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <config.h>
-#ifdef GRUB_UTIL
-#define REALLY_GRUB_UTIL GRUB_UTIL
-#undef GRUB_UTIL
-#endif
-
-#include <grub/symbol.h>
-#include <grub/dl.h>
-
-#ifdef REALLY_GRUB_UTIL
-#define GRUB_UTIL REALLY_GRUB_UTIL
-#undef REALLY_GRUB_UTIL
-#endif
 
 #include <grub/misc.h>
 #include <grub/command.h>
 #include <grub/err.h>
+#include <grub/dl.h>
 #include <grub/mm.h>
 #include <grub/term.h>
 #include <grub/backtrace.h>
@@ -39,16 +27,18 @@
 #define MAX_STACK_FRAME 102400
 
 void
-grub_backtrace_pointer (void *ebp)
+grub_backtrace_pointer (int frame)
 {
-  void *ptr, *nptr;
-  unsigned i;
-
-  ptr = ebp;
   while (1)
     {
-      grub_printf ("%p: ", ptr);
-      grub_backtrace_print_address (((void **) ptr)[1]);
+      void *lp = __builtin_return_address (frame);
+      if (!lp)
+	break;
+
+      lp = __builtin_extract_return_addr (lp);
+
+      grub_printf ("%p: ", lp);
+      grub_backtrace_print_address (lp);
       grub_printf (" (");
       for (i = 0; i < 2; i++)
 	grub_printf ("%p,", ((void **)ptr) [i + 2]);
@@ -67,12 +57,6 @@ grub_backtrace_pointer (void *ebp)
 void
 grub_backtrace (void)
 {
-#ifdef __x86_64__
-  asm volatile ("movq %%rbp, %%rdi\n"
-		"callq *%%rax": :"a"(grub_backtrace_pointer));
-#else
-  asm volatile ("movl %%ebp, %%eax\n"
-		"calll *%%ecx": :"c"(grub_backtrace_pointer));
-#endif
+  grub_backtrace_pointer (1);
 }
 
