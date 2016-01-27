@@ -175,6 +175,9 @@ kernel = {
 
   softdiv = lib/division.c;
 
+  x86 = lib/i386/backtrace.c;
+  x86 = lib/backtrace.c;
+
   i386 = kern/i386/dl.c;
   i386_xen = kern/i386/dl.c;
 
