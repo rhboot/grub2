@@ -330,7 +330,6 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 {
   struct grub_net_card *card;
   grub_efi_device_path_t *dp;
-  grub_efi_simple_network_t *net;
 
   dp = grub_efi_get_device_path (hnd);
   if (! dp)
@@ -384,21 +383,6 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 				    &pxe_mode->dhcp_ack,
 				    sizeof (pxe_mode->dhcp_ack),
 				    1, device, path);
-    net = grub_efi_open_protocol (card->efi_handle, &net_io_guid,
-				  GRUB_EFI_OPEN_PROTOCOL_BY_EXCLUSIVE);
-    if (net) {
-      if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
-	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
-	continue;
-
-      if (net->mode->state == GRUB_EFI_NETWORK_STOPPED)
-	continue;
-
-      if (net->mode->state == GRUB_EFI_NETWORK_STARTED
-	  && efi_call_3 (net->initialize, net, 0, 0) != GRUB_EFI_SUCCESS)
-	continue;
-      card->efi_net = net;
-    }
     return;
   }
 }
