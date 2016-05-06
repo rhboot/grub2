@@ -1,7 +1,7 @@
 \input texinfo
 @c -*-texinfo-*-
 @c %**start of header
-@setfilename grub-dev.info
+@setfilename grub2-dev.info
 @include version-dev.texi
 @settitle GNU GRUB Developers Manual @value{VERSION}
 @c Unify all our little indices for now.
@@ -32,7 +32,7 @@ Invariant Sections.
 
 @dircategory Kernel
 @direntry
-* grub-dev: (grub-dev).                 The GRand Unified Bootloader Dev
+* grub2-dev: (grub2-dev).                 The GRand Unified Bootloader Dev
 @end direntry
 
 @setchapternewpage odd
