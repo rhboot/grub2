@@ -43,12 +43,22 @@ grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
   shim_lock = grub_efi_locate_protocol(&guid, NULL);
   grub_dprintf ("secureboot", "shim_lock: %p\n", shim_lock);
   if (!shim_lock)
-    return 0;
+    {
+      grub_dprintf ("secureboot", "shim not available\n");
+      return 0;
+    }
 
-  status = shim_lock->verify(data, size);
+  grub_dprintf ("secureboot", "Asking shim to verify kernel signature\n");
+  status = shim_lock->verify (data, size);
   grub_dprintf ("secureboot", "shim_lock->verify(): %ld\n", status);
   if (status == GRUB_EFI_SUCCESS)
-    return 1;
+    {
+      grub_dprintf ("secureboot", "Kernel signature verification passed\n");
+      return 1;
+    }
+
+  grub_dprintf ("secureboot", "Kernel signature verification failed (0x%lx)\n",
+		(unsigned long) status);
 
   return -1;
 }
