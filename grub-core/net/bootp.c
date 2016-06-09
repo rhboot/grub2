@@ -23,6 +23,7 @@
 #include <grub/net/ip.h>
 #include <grub/net/netbuff.h>
 #include <grub/net/udp.h>
+#include <grub/net/url.h>
 #include <grub/datetime.h>
 
 static char *
@@ -348,6 +349,179 @@ grub_net_configure_by_dhcp_ack (const char *name,
 
   return inter;
 }
+
+struct grub_net_network_level_interface *
+grub_net_configure_by_dhcpv6_ack (const char *name,
+				  struct grub_net_card *card,
+				  grub_net_interface_flags_t flags
+				    __attribute__((__unused__)),
+				  const grub_net_link_level_address_t *hwaddr,
+				  const struct grub_net_dhcpv6_packet *packet,
+				  int is_def, char **device, char **path)
+{
+  struct grub_net_network_level_interface *inter = NULL;
+  struct grub_net_network_level_address addr;
+  int mask = -1;
+
+  if (!device || !path)
+    return NULL;
+
+  *device = 0;
+  *path = 0;
+
+  grub_dprintf ("net", "mac address is %02x:%02x:%02x:%02x:%02x:%02x\n",
+		hwaddr->mac[0], hwaddr->mac[1], hwaddr->mac[2],
+		hwaddr->mac[3], hwaddr->mac[4], hwaddr->mac[5]);
+
+  if (is_def)
+    grub_net_default_server = 0;
+
+  if (is_def && !grub_net_default_server && packet)
+    {
+      const grub_uint8_t *options = packet->dhcp_options;
+      unsigned int option_max = 1024 - OFFSET_OF (dhcp_options, packet);
+      unsigned int i;
+
+      for (i = 0; i < option_max - sizeof (grub_net_dhcpv6_option_t); )
+	{
+	  grub_uint16_t num, len;
+	  grub_net_dhcpv6_option_t *opt =
+	    (grub_net_dhcpv6_option_t *)(options + i);
+
+	  num = grub_be_to_cpu16(opt->option_num);
+	  len = grub_be_to_cpu16(opt->option_len);
+
+	  grub_dprintf ("net", "got dhcpv6 option %d len %d\n", num, len);
+
+	  if (len == 0)
+	    break;
+
+	  if (len + i > 1024)
+	    break;
+
+	  if (num == GRUB_NET_DHCP6_BOOTFILE_URL)
+	    {
+	      char *scheme, *userinfo, *host, *file;
+	      char *tmp;
+	      int hostlen;
+	      int port;
+	      int rc = extract_url_info ((const char *)opt->option_data,
+					 (grub_size_t)len,
+					 &scheme, &userinfo, &host, &port,
+					 &file);
+	      if (rc < 0)
+		continue;
+
+	      /* right now this only handles tftp. */
+	      if (grub_strcmp("tftp", scheme))
+		{
+		  grub_free (scheme);
+		  grub_free (userinfo);
+		  grub_free (host);
+		  grub_free (file);
+		  continue;
+		}
+	      grub_free (userinfo);
+
+	      hostlen = grub_strlen (host);
+	      if (hostlen > 2 && host[0] == '[' && host[hostlen-1] == ']')
+		{
+		  tmp = host+1;
+		  host[hostlen-1] = '\0';
+		}
+	      else
+		tmp = host;
+
+	      *device = grub_xasprintf ("%s,%s", scheme, tmp);
+	      grub_free (scheme);
+	      grub_free (host);
+
+	      if (file && *file)
+		{
+		  tmp = grub_strrchr (file, '/');
+		  if (tmp)
+		    *(tmp+1) = '\0';
+		  else
+		    file[0] = '\0';
+		}
+	      else if (!file)
+		file = grub_strdup ("");
+
+	      if (file[0] == '/')
+		{
+		  *path = grub_strdup (file+1);
+		  grub_free (file);
+		}
+	      else
+		*path = file;
+	    }
+	  else if (num == GRUB_NET_DHCP6_IA_NA)
+	    {
+	      const grub_net_dhcpv6_option_t *ia_na_opt;
+	      const grub_net_dhcpv6_opt_ia_na_t *ia_na =
+		(const grub_net_dhcpv6_opt_ia_na_t *)opt;
+	      unsigned int left = len - OFFSET_OF (options, ia_na);
+	      unsigned int j;
+
+	      if ((grub_uint8_t *)ia_na + left >
+		  (grub_uint8_t *)options + option_max)
+		left -= ((grub_uint8_t *)ia_na + left)
+		        - ((grub_uint8_t *)options + option_max);
+
+	      if (len < OFFSET_OF (option_data, opt)
+			+ sizeof (grub_net_dhcpv6_option_t))
+		{
+		  grub_dprintf ("net",
+				"found dhcpv6 ia_na option with no address\n");
+		  continue;
+		}
+
+	      for (j = 0; left > sizeof (grub_net_dhcpv6_option_t); )
+		{
+		  ia_na_opt = (const grub_net_dhcpv6_option_t *)
+			       (ia_na->options + j);
+		  grub_uint16_t ia_na_opt_num, ia_na_opt_len;
+
+		  ia_na_opt_num = grub_be_to_cpu16 (ia_na_opt->option_num);
+		  ia_na_opt_len = grub_be_to_cpu16 (ia_na_opt->option_len);
+		  if (ia_na_opt_len == 0)
+		    break;
+		  if (j + ia_na_opt_len > left)
+		    break;
+		  if (ia_na_opt_num == GRUB_NET_DHCP6_IA_ADDRESS)
+		    {
+		      const grub_net_dhcpv6_opt_ia_address_t *ia_addr;
+
+		      ia_addr = (const grub_net_dhcpv6_opt_ia_address_t *)
+				 ia_na_opt;
+		      addr.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
+		      grub_memcpy(addr.ipv6, ia_addr->ipv6_address,
+				  sizeof (ia_addr->ipv6_address));
+		      inter = grub_net_add_addr (name, card, &addr, hwaddr, 0);
+		    }
+
+		  j += ia_na_opt_len;
+		  left -= ia_na_opt_len;
+		}
+	    }
+
+	  i += len + 4;
+	}
+
+      grub_print_error ();
+    }
+
+  if (is_def)
+    {
+      grub_env_set ("net_default_interface", name);
+      grub_env_export ("net_default_interface");
+    }
+
+    if (inter)
+      grub_net_add_ipv6_local (inter, mask);
+    return inter;
+}
+
 
 void
 grub_net_process_dhcp (struct grub_net_buff *nb,
