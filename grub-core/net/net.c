@@ -955,6 +955,78 @@ grub_net_network_level_interface_register (struct grub_net_network_level_interfa
   grub_net_network_level_interfaces = inter;
 }
 
+int
+grub_ipv6_get_masksize (grub_uint16_t be_mask[8])
+{
+  grub_uint8_t *mask;
+  grub_uint16_t mask16[8];
+  int x, y;
+  int ret = 128;
+
+  grub_memcpy (mask16, be_mask, sizeof (mask16));
+  for (x = 0; x < 8; x++)
+    mask16[x] = grub_be_to_cpu16 (mask16[x]);
+
+  mask = (grub_uint8_t *)mask16;
+
+  for (x = 15; x >= 0; x--)
+    {
+      grub_uint8_t octet = mask[x];
+      if (!octet)
+	{
+	  ret -= 8;
+	  continue;
+	}
+      for (y = 0; y < 8; y++)
+	{
+	  if (octet & (1 << y))
+	    break;
+	  else
+	    ret--;
+	}
+      break;
+    }
+
+  return ret;
+}
+
+grub_err_t
+grub_net_add_ipv6_local (struct grub_net_network_level_interface *inter,
+			 int mask)
+{
+  struct grub_net_route *route;
+
+  if (inter->address.type != GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6)
+    return 0;
+
+  if (mask == -1)
+      mask = grub_ipv6_get_masksize ((grub_uint16_t *)inter->address.ipv6);
+
+  if (mask == -1)
+    return 0;
+
+  route = grub_zalloc (sizeof (*route));
+  if (!route)
+    return grub_errno;
+
+  route->name = grub_xasprintf ("%s:local", inter->name);
+  if (!route->name)
+    {
+      grub_free (route);
+      return grub_errno;
+    }
+
+  route->target.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
+  grub_memcpy (route->target.ipv6.base, inter->address.ipv6,
+	       sizeof (inter->address.ipv6));
+  route->target.ipv6.masksize = mask;
+  route->is_gateway = 0;
+  route->interface = inter;
+
+  grub_net_route_register (route);
+
+  return 0;
+}
 
 grub_err_t
 grub_net_add_ipv4_local (struct grub_net_network_level_interface *inter,

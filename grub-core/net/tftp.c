@@ -379,19 +379,23 @@ tftp_open (struct grub_file *file, const char *filename)
       return grub_errno;
     }
 
+  grub_dprintf("tftp", "resolving address for %s\n", file->device->net->server);
   err = grub_net_resolve_address (file->device->net->server, &addr);
   if (err)
     {
+      grub_dprintf("tftp", "Address resolution failed: %d\n", err);
       destroy_pq (data);
       grub_free (data);
       return err;
     }
 
+  grub_dprintf("tftp", "opening connection\n");
   data->sock = grub_net_udp_open (addr,
 				  TFTP_SERVER_PORT, tftp_receive,
 				  file);
   if (!data->sock)
     {
+      grub_dprintf("tftp", "connection failed\n");
       destroy_pq (data);
       grub_free (data);
       return grub_errno;
