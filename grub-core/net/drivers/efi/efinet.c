@@ -18,11 +18,15 @@
 
 #include <grub/net/netbuff.h>
 #include <grub/dl.h>
+#include <grub/env.h>
 #include <grub/net.h>
+#include <grub/net/url.h>
 #include <grub/time.h>
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>
 #include <grub/i18n.h>
+#include <grub/lib/hexdump.h>
+#include <grub/types.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -409,7 +413,7 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 			  char **path)
 {
   struct grub_net_card *card;
-  grub_efi_device_path_t *dp;
+  grub_efi_device_path_t *dp, *ldp = NULL;
 
   dp = grub_efi_get_device_path (hnd);
   if (! dp)
@@ -420,16 +424,22 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     grub_efi_device_path_t *cdp;
     struct grub_efi_pxe *pxe;
     struct grub_efi_pxe_mode *pxe_mode;
+
     if (card->driver != &efidriver)
       continue;
+
     if (hnd != card->efi_handle)
       continue;
+
     cdp = grub_efi_get_device_path (card->efi_handle);
     if (! cdp)
       continue;
+
+    ldp = grub_efi_find_last_device_path (dp);
+
     if (grub_efi_compare_device_paths (dp, cdp) != 0)
       {
-	grub_efi_device_path_t *ldp, *dup_dp, *dup_ldp;
+	grub_efi_device_path_t *dup_dp, *dup_ldp;
 	int match;
 
 	/* EDK2 UEFI PXE driver creates pseudo devices with type IPv4/IPv6
@@ -438,7 +448,6 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 	   devices. We skip them when enumerating cards, so here we need to
 	   find matching MAC device.
          */
-	ldp = grub_efi_find_last_device_path (dp);
 	if (GRUB_EFI_DEVICE_PATH_TYPE (ldp) != GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE
 	    || (GRUB_EFI_DEVICE_PATH_SUBTYPE (ldp) != GRUB_EFI_IPV4_DEVICE_PATH_SUBTYPE
 		&& GRUB_EFI_DEVICE_PATH_SUBTYPE (ldp) != GRUB_EFI_IPV6_DEVICE_PATH_SUBTYPE))
@@ -455,16 +464,46 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 	if (!match)
 	  continue;
       }
+
     pxe = grub_efi_open_protocol (hnd, &pxe_io_guid,
 				  GRUB_EFI_OPEN_PROTOCOL_GET_PROTOCOL);
     if (! pxe)
       continue;
+
     pxe_mode = pxe->mode;
-    grub_net_configure_by_dhcp_ack (card->name, card, 0,
-				    (struct grub_net_bootp_packet *)
-				    &pxe_mode->dhcp_ack,
-				    sizeof (pxe_mode->dhcp_ack),
-				    1, device, path);
+    if (pxe_mode->using_ipv6)
+      {
+	grub_net_link_level_address_t hwaddr;
+	struct grub_net_network_level_interface *intf;
+
+	grub_dprintf ("efinet", "using ipv6 and dhcpv6\n");
+	grub_dprintf ("efinet", "dhcp_ack_received: %s%s\n",
+		      pxe_mode->dhcp_ack_received ? "yes" : "no",
+		      pxe_mode->dhcp_ack_received ? "" : " cannot continue");
+	if (!pxe_mode->dhcp_ack_received)
+	  continue;
+
+	hwaddr.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
+	grub_memcpy (hwaddr.mac,
+		     card->efi_net->mode->current_address,
+		     sizeof (hwaddr.mac));
+
+	intf = grub_net_configure_by_dhcpv6_ack (card->name, card, 0, &hwaddr,
+	      (const struct grub_net_dhcpv6_packet *)&pxe_mode->dhcp_ack.dhcpv6,
+	      1, device, path);
+	if (intf && device && path)
+	  grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
+      }
+    else
+      {
+	grub_dprintf ("efinet", "using ipv4 and dhcp\n");
+	grub_net_configure_by_dhcp_ack (card->name, card, 0,
+					(struct grub_net_bootp_packet *)
+					&pxe_mode->dhcp_ack,
+					sizeof (pxe_mode->dhcp_ack),
+					1, device, path);
+	grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
+      }
     return;
   }
 }

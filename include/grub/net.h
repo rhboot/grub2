@@ -442,6 +442,51 @@ struct grub_net_bootp_packet
   grub_uint8_t vendor[0];
 } GRUB_PACKED;
 
+enum
+  {
+    GRUB_NET_DHCP6_IA_NA = 3,
+    GRUB_NET_DHCP6_IA_ADDRESS = 5,
+    GRUB_NET_DHCP6_BOOTFILE_URL = 59,
+  };
+
+struct grub_net_dhcpv6_option
+{
+  grub_uint16_t option_num;
+  grub_uint16_t option_len;
+  grub_uint8_t option_data[];
+} GRUB_PACKED;
+typedef struct grub_net_dhcpv6_option grub_net_dhcpv6_option_t;
+
+struct grub_net_dhcpv6_opt_ia_na
+{
+  grub_uint16_t option_num;
+  grub_uint16_t option_len;
+  grub_uint32_t iaid;
+  grub_uint32_t t1;
+  grub_uint32_t t2;
+  grub_uint8_t options[];
+} GRUB_PACKED;
+typedef struct grub_net_dhcpv6_opt_ia_na grub_net_dhcpv6_opt_ia_na_t;
+
+struct grub_net_dhcpv6_opt_ia_address
+{
+  grub_uint16_t option_num;
+  grub_uint16_t option_len;
+  grub_uint64_t ipv6_address[2];
+  grub_uint32_t preferred_lifetime;
+  grub_uint32_t valid_lifetime;
+  grub_uint8_t options[];
+} GRUB_PACKED;
+typedef struct grub_net_dhcpv6_opt_ia_address grub_net_dhcpv6_opt_ia_address_t;
+
+struct grub_net_dhcpv6_packet
+{
+  grub_uint32_t message_type:8;
+  grub_uint32_t transaction_id:24;
+  grub_uint8_t dhcp_options[1024];
+} GRUB_PACKED;
+typedef struct grub_net_dhcpv6_packet grub_net_dhcpv6_packet_t;
+
 #define	GRUB_NET_BOOTP_RFC1048_MAGIC_0	0x63
 #define	GRUB_NET_BOOTP_RFC1048_MAGIC_1	0x82
 #define	GRUB_NET_BOOTP_RFC1048_MAGIC_2	0x53
@@ -469,6 +514,21 @@ grub_net_configure_by_dhcp_ack (const char *name,
 				const struct grub_net_bootp_packet *bp,
 				grub_size_t size,
 				int is_def, char **device, char **path);
+
+struct grub_net_network_level_interface *
+grub_net_configure_by_dhcpv6_ack (const char *name,
+				 struct grub_net_card *card,
+				 grub_net_interface_flags_t flags,
+				 const grub_net_link_level_address_t *hwaddr,
+				 const struct grub_net_dhcpv6_packet *packet,
+				 int is_def, char **device, char **path);
+
+int
+grub_ipv6_get_masksize(grub_uint16_t *mask);
+
+grub_err_t
+grub_net_add_ipv6_local (struct grub_net_network_level_interface *inf,
+			 int mask);
 
 grub_err_t
 grub_net_add_ipv4_local (struct grub_net_network_level_interface *inf,
