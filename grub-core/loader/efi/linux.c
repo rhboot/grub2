@@ -33,21 +33,24 @@ struct grub_efi_shim_lock
 };
 typedef struct grub_efi_shim_lock grub_efi_shim_lock_t;
 
-grub_efi_boolean_t
+int
 grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
 {
   grub_efi_guid_t guid = SHIM_LOCK_GUID;
   grub_efi_shim_lock_t *shim_lock;
+  grub_efi_status_t status;
 
   shim_lock = grub_efi_locate_protocol(&guid, NULL);
-
+  grub_dprintf ("secureboot", "shim_lock: %p\n", shim_lock);
   if (!shim_lock)
+    return 0;
+
+  status = shim_lock->verify(data, size);
+  grub_dprintf ("secureboot", "shim_lock->verify(): %ld\n", status);
+  if (status == GRUB_EFI_SUCCESS)
     return 1;
 
-  if (shim_lock->verify(data, size) == GRUB_EFI_SUCCESS)
-    return 1;
-
-  return 0;
+  return -1;
 }
 
 typedef void (*handover_func) (void *, grub_efi_system_table_t *, void *);
