@@ -182,7 +182,6 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
   /* Fill the file path for the directory.  */
   d = (grub_efi_device_path_t *) ((char *) file_path
 				  + ((char *) d - (char *) dp));
-  grub_efi_print_device_path (d);
   copy_file_path ((grub_efi_file_path_device_path_t *) d,
 		  dir_start, dir_end - dir_start);
 
@@ -252,10 +251,9 @@ read_header (void *data, grub_efi_uint32_t size,
   grub_efi_status_t status;
 
   shim_lock = grub_efi_locate_protocol (&guid, NULL);
-
   if (!shim_lock)
     {
-      grub_error (GRUB_ERR_BAD_ARGUMENT, "no shim lock protocol");
+      grub_dprintf ("chain", "no shim lock protocol");
       return 0;
     }
 
@@ -280,7 +278,7 @@ read_header (void *data, grub_efi_uint32_t size,
       break;
     }
 
-  return 0;
+  return -1;
 }
 
 static void*
@@ -514,17 +512,24 @@ handle_image (void *data, grub_efi_uint32_t datasize)
   grub_uint32_t section_alignment;
   grub_uint32_t buffer_size;
   int found_entry_point = 0;
+  int rc;
 
   b = grub_efi_system_table->boot_services;
 
-  if (read_header (data, datasize, &context))
-    {
-      grub_dprintf ("chain", "Succeed to read header\n");
-    }
-  else
+  rc = read_header (data, datasize, &context);
+  if (rc < 0)
     {
       grub_dprintf ("chain", "Failed to read header\n");
       goto error_exit;
+    }
+  else if (rc == 0)
+    {
+      grub_dprintf ("chain", "Secure Boot is not enabled\n");
+      return 0;
+    }
+  else
+    {
+      grub_dprintf ("chain", "Header read without error\n");
     }
 
   /*
@@ -797,9 +802,55 @@ grub_secureboot_chainloader_unload (void)
 }
 
 static grub_err_t
+grub_load_and_start_image(void *boot_image)
+{
+  grub_efi_boot_services_t *b;
+  grub_efi_status_t status;
+  grub_efi_loaded_image_t *loaded_image;
+
+  b = grub_efi_system_table->boot_services;
+
+  status = efi_call_6 (b->load_image, 0, grub_efi_image_handle, file_path,
+		       boot_image, fsize, &image_handle);
+  if (status != GRUB_EFI_SUCCESS)
+    {
+      if (status == GRUB_EFI_OUT_OF_RESOURCES)
+	grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of resources");
+      else
+	grub_error (GRUB_ERR_BAD_OS, "cannot load image");
+      return -1;
+    }
+
+  /* LoadImage does not set a device handler when the image is
+     loaded from memory, so it is necessary to set it explicitly here.
+     This is a mess.  */
+  loaded_image = grub_efi_get_loaded_image (image_handle);
+  if (! loaded_image)
+    {
+      grub_error (GRUB_ERR_BAD_OS, "no loaded image available");
+      return -1;
+    }
+  loaded_image->device_handle = dev_handle;
+
+  if (cmdline)
+    {
+      loaded_image->load_options = cmdline;
+      loaded_image->load_options_size = cmdline_len;
+    }
+
+  return 0;
+}
+
+static grub_err_t
 grub_secureboot_chainloader_boot (void)
 {
-  handle_image ((void *)address, fsize);
+  int rc;
+  rc = handle_image ((void *)address, fsize);
+  if (rc == 0)
+    {
+      grub_load_and_start_image((void *)address);
+    }
+
   grub_loader_unset ();
   return grub_errno;
 }
@@ -813,9 +864,9 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_efi_boot_services_t *b;
   grub_device_t dev = 0;
   grub_efi_device_path_t *dp = 0;
-  grub_efi_loaded_image_t *loaded_image;
   char *filename;
   void *boot_image = 0;
+  int rc;
 
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -902,9 +953,6 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   if (! file_path)
     goto fail;
 
-  grub_printf ("file path: ");
-  grub_efi_print_device_path (file_path);
-
   fsize = grub_file_size (file);
   if (!fsize)
     {
@@ -979,51 +1027,28 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
-  if (grub_linuxefi_secure_validate((void *)address, fsize))
+  rc = grub_linuxefi_secure_validate((void *)address, fsize);
+  grub_dprintf ("chain", "linuxefi_secure_validate: %d\n", rc);
+  if (rc > 0)
     {
       grub_file_close (file);
       grub_loader_set (grub_secureboot_chainloader_boot,
 		       grub_secureboot_chainloader_unload, 0);
       return 0;
     }
-
-  status = efi_call_6 (b->load_image, 0, grub_efi_image_handle, file_path,
-		       boot_image, fsize, &image_handle);
-  if (status != GRUB_EFI_SUCCESS)
+  else if (rc == 0)
     {
-      if (status == GRUB_EFI_OUT_OF_RESOURCES)
-	grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of resources");
-      else
-	grub_error (GRUB_ERR_BAD_OS, "cannot load image");
+      grub_load_and_start_image(boot_image);
+      grub_file_close (file);
+      grub_loader_set (grub_chainloader_boot, grub_chainloader_unload, 0);
 
-      goto fail;
-    }
-
-  /* LoadImage does not set a device handler when the image is
-     loaded from memory, so it is necessary to set it explicitly here.
-     This is a mess.  */
-  loaded_image = grub_efi_get_loaded_image (image_handle);
-  if (! loaded_image)
-    {
-      grub_error (GRUB_ERR_BAD_OS, "no loaded image available");
-      goto fail;
-    }
-  loaded_image->device_handle = dev_handle;
-
-  if (cmdline)
-    {
-      loaded_image->load_options = cmdline;
-      loaded_image->load_options_size = cmdline_len;
+      return 0;
     }
 
   grub_file_close (file);
   grub_device_close (dev);
 
-  grub_loader_set (grub_chainloader_boot, grub_chainloader_unload, 0);
-  return 0;
-
- fail:
-
+fail:
   if (dev)
     grub_device_close (dev);
 
