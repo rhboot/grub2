@@ -155,6 +155,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct linux_kernel_header lh;
   grub_ssize_t len, start, filelen;
   void *kernel = NULL;
+  int rc;
 
   grub_dl_ref (my_mod);
 
@@ -180,13 +181,16 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   if (grub_file_read (file, kernel, filelen) != filelen)
     {
-      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"), argv[0]);
+      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
+		  argv[0]);
       goto fail;
     }
 
-  if (! grub_linuxefi_secure_validate (kernel, filelen))
+  rc = grub_linuxefi_secure_validate (kernel, filelen);
+  if (rc < 0)
     {
-      grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"), argv[0]);
+      grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"),
+		  argv[0]);
       grub_free (kernel);
       goto fail;
     }
