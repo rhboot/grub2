@@ -85,6 +85,7 @@ int EXPORT_FUNC(grub_strncmp) (const char *s1, const char *s2, grub_size_t n);
 
 char *EXPORT_FUNC(grub_strchr) (const char *s, int c);
 char *EXPORT_FUNC(grub_strrchr) (const char *s, int c);
+char *EXPORT_FUNC(grub_strchrnul) (const char *s, int c);
 int EXPORT_FUNC(grub_strword) (const char *s, const char *w);
 
 /* Copied from gnulib.
@@ -205,6 +206,50 @@ grub_toupper (int c)
     return c - 'a' + 'A';
 
   return c;
+}
+
+static inline char *
+grub_strcasestr (const char *haystack, const char *needle)
+{
+  /* Be careful not to look at the entire extent of haystack or needle
+     until needed.  This is useful because of these two cases:
+       - haystack may be very long, and a match of needle found early,
+       - needle may be very long, and not even a short initial segment of
+       needle may be found in haystack.  */
+  if (*needle != '\0')
+    {
+      /* Speed up the following searches of needle by caching its first
+	 character.  */
+      char b = *needle++;
+
+      for (;; haystack++)
+	{
+	  if (*haystack == '\0')
+	    /* No match.  */
+	    return 0;
+	  if (grub_tolower(*haystack) == grub_tolower(b))
+	    /* The first character matches.  */
+	    {
+	      const char *rhaystack = haystack + 1;
+	      const char *rneedle = needle;
+
+	      for (;; rhaystack++, rneedle++)
+		{
+		  if (*rneedle == '\0')
+		    /* Found a match.  */
+		    return (char *) haystack;
+		  if (*rhaystack == '\0')
+		    /* No match.  */
+		    return 0;
+		  if (grub_tolower(*rhaystack) != grub_tolower(*rneedle))
+		    /* Nothing in this round.  */
+		    break;
+		}
+	    }
+	}
+    }
+  else
+    return (char *) haystack;
 }
 
 static inline int
