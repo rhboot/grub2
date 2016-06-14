@@ -296,6 +296,19 @@ grub_strrchr (const char *s, int c)
   return p;
 }
 
+char *
+grub_strchrnul (const char *s, int c)
+{
+  do
+    {
+      if (*s == c)
+	break;
+    }
+  while (*s++);
+
+  return (char *) s;
+}
+
 int
 grub_strword (const char *haystack, const char *needle)
 {
