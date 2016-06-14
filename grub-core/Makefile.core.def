@@ -2184,6 +2184,7 @@ module = {
   common = net/ethernet.c;
   common = net/arp.c;
   common = net/netbuff.c;
+  common = net/url.c;
 };
 
 module = {
