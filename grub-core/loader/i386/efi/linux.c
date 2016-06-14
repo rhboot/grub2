@@ -191,7 +191,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     {
       grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"),
 		  argv[0]);
-      grub_free (kernel);
       goto fail;
     }
 
