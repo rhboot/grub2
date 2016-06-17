@@ -291,12 +291,3 @@ fi
 
 gettext "done" >&2
 echo >&2
-
-# make sure changes make it to the disk.
-# if /boot is a mountpoint, force the meta data on disk
-# to by-pass writeback delay.
-# PPC64LE-only to deal with Petitboot issues
-ARCH=$(uname -m)
-if [ "${ARCH}" = "ppc64le" ]; then
-    sync && mountpoint -q /boot &&fsfreeze -f /boot && fsfreeze -u /boot
-fi
