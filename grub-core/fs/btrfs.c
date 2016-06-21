@@ -925,10 +925,40 @@ lookup_root_by_name(struct grub_btrfs_data *data, const char *path)
 }
 
 static grub_err_t
+lookup_root_by_name_fallback(struct grub_btrfs_data *data, const char *path)
+{
+  grub_err_t err;
+  grub_uint64_t tree = 0;
+  grub_uint8_t type;
+  struct grub_btrfs_key key;
+
+  err = find_path (data, path, &key, &tree, &type);
+  if (err)
+      return grub_error(GRUB_ERR_FILE_NOT_FOUND, "couldn't locate %s\n", path);
+
+  if (key.object_id != grub_cpu_to_le64_compile_time (GRUB_BTRFS_OBJECT_ID_CHUNK) || tree == 0)
+    return grub_error(GRUB_ERR_BAD_FILE_TYPE, "%s: not a subvolume\n", path);
+
+  data->fs_tree = tree;
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
 btrfs_handle_subvol(struct grub_btrfs_data *data __attribute__ ((unused)))
 {
   if (btrfs_default_subvol)
-    return lookup_root_by_name(data, btrfs_default_subvol);
+    {
+      grub_err_t err;
+      err = lookup_root_by_name(data, btrfs_default_subvol);
+
+      /* Fallback to old schemes */
+      if (err == GRUB_ERR_FILE_NOT_FOUND)
+	{
+	  err = GRUB_ERR_NONE;
+	  return lookup_root_by_name_fallback(data, btrfs_default_subvol);
+	}
+      return err;
+    }
 
   if (btrfs_default_subvolid)
     return lookup_root_by_id(data, btrfs_default_subvolid);
