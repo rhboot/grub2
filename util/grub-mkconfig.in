@@ -45,6 +45,7 @@ grub_probe="${sbindir}/@grub_probe@"
 grub_file="${bindir}/@grub_file@"
 grub_editenv="${bindir}/@grub_editenv@"
 grub_script_check="${bindir}/@grub_script_check@"
+grub_get_kernel_settings="${sbindir}/@grub_get_kernel_settings@"
 
 export TEXTDOMAIN=@PACKAGE@
 export TEXTDOMAINDIR="@localedir@"
@@ -157,6 +158,8 @@ fi
 if test -f ${sysconfdir}/default/grub ; then
   . ${sysconfdir}/default/grub
 fi
+
+eval "$("${grub_get_kernel_settings}")" || true
 
 if [ "x$GRUB_DISABLE_UUID" != "xtrue" ]; then
   if [ -z "$GRUB_DEVICE_UUID" ]; then
