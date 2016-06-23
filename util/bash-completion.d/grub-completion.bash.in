@@ -265,6 +265,28 @@ unset __grub_sparc64_setup_program
 
 
 #
+# grub-get-kernel-settings
+#
+_grub_get_kernel_settings () {
+    local cur
+
+    COMPREPLY=()
+    cur=`_get_cword`
+
+    if [[ "$cur" == -* ]]; then
+        __grubcomp "$(__grub_get_options_from_help)"
+    else
+        # Default complete with a filename
+        _filedir
+    fi
+}
+__grub_get_kernel_settings_program="@grub_get_kernel_settings@"
+have ${__grub_get_kernel_settings_program} && \
+ complete -F _grub_get_kernel_settings -o filenames ${__grub_get_kernel_settings_program}
+unset __grub_get_kernel_settings_program
+
+
+#
 # grub-install
 #
 _grub_install () {
