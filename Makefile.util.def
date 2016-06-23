@@ -715,6 +715,13 @@ script = {
 };
 
 script = {
+  name = grub-get-kernel-settings;
+  common = util/grub-get-kernel-settings.in;
+  mansection = 3;
+  installdir = sbin;
+};
+
+script = {
   name = grub-set-default;
   common = util/grub-set-default.in;
   mansection = 8;
