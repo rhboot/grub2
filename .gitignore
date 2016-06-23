@@ -68,6 +68,8 @@ grub-*.tar.*
 /grub*-fs-tester
 /grub*-fstest
 /grub*-fstest.1
+/grub*-get-kernel-settings
+/grub*-get-kernel-settings.3
 /grub*-glue-efi
 /grub*-glue-efi.1
 /grub*-install
