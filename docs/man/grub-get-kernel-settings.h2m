@@ -1,0 +1,2 @@
+[NAME]
+grub-get-kernel-settings \- Evaluate the system's kernel installation settings for use while making a grub configuration file
