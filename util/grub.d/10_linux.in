@@ -111,7 +111,8 @@ linux_entry ()
   os="$1"
   version="$2"
   type="$3"
-  args="$4"
+  isdebug="$4"
+  args="$5"
 
   if [ -z "$boot_device_id" ]; then
       boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
@@ -122,6 +123,9 @@ linux_entry ()
 	  replacement_title="$(echo "Advanced options for ${OS}" | sed 's,>,>>,g')>$(echo "$title" | sed 's,>,>>,g')"
 	  quoted="$(echo "$GRUB_ACTUAL_DEFAULT" | grub_quote)"
 	  title_correction_code="${title_correction_code}if [ \"x\$default\" = '$quoted' ]; then default='$(echo "$replacement_title" | grub_quote)'; fi;"
+      fi
+      if [ x$isdebug = xdebug ]; then
+	  title="$title${GRUB_LINUX_DEBUG_TITLE_POSTFIX}"
       fi
       echo "menuentry '$(echo "$title" | grub_quote)' ${CLASS} \$menuentry_id_option 'gnulinux-$version-$type-$boot_device_id' {" | sed "s/^/$submenu_indentation/"
   else
@@ -295,11 +299,15 @@ while [ "x$list" != "x" ] ; do
   fi
 
   if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xtrue ]; then
-    linux_entry "${OS}" "${version}" simple \
+    linux_entry "${OS}" "${version}" simple standard \
     "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
+    if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
+      linux_entry "${OS}" "${version}" simple debug \
+        "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT} ${GRUB_CMDLINE_LINUX_DEBUG}"
+    fi
 
     submenu_indentation="$grub_tab"
-    
+
     if [ -z "$boot_device_id" ]; then
 	boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
     fi
@@ -308,10 +316,15 @@ while [ "x$list" != "x" ] ; do
     is_top_level=false
   fi
 
-  linux_entry "${OS}" "${version}" advanced \
+  linux_entry "${OS}" "${version}" advanced standard \
               "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
+  if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
+    linux_entry "${OS}" "${version}" advanced debug \
+                "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT} ${GRUB_CMDLINE_LINUX_DEBUG}"
+  fi
+
   if [ "x${GRUB_DISABLE_RECOVERY}" != "xtrue" ]; then
-    linux_entry "${OS}" "${version}" recovery \
+    linux_entry "${OS}" "${version}" recovery standard \
                 "single ${GRUB_CMDLINE_LINUX}"
   fi
 
