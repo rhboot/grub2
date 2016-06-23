@@ -61,6 +61,7 @@ grub-fstest.exe
 grub_fstest_init.c
 grub_fstest_init.h
 grub_func_test
+grub-get-kernel-settings
 grub-install
 grub-install.exe
 grub-kbdcomp
