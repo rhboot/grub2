@@ -112,6 +112,7 @@ grub-emu-lite
 grub-file
 grub-fs-tester
 grub-fstest
+grub-get-kernel-settings
 grub-glue-efi
 grub-install
 grub-kbdcomp
