@@ -415,7 +415,7 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 		     sizeof (hwaddr.mac));
 
 	grub_net_configure_by_dhcpv6_ack (card->name, card, 0,
-					  &hwaddr, &pxe_mode->dhcp_ack,
+					  &hwaddr, &pxe_mode->dhcp_ack.dhcpv6,
 					  1, device, path);
 	grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
       }
