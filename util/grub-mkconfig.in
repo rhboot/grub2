@@ -149,7 +149,7 @@ if test -f ${sysconfdir}/default/grub ; then
   . ${sysconfdir}/default/grub
 fi
 
-eval `${grub_get_kernel_settings}` || true
+eval "$("${grub_get_kernel_settings}")" || true
 
 if [ "x$GRUB_DISABLE_UUID" != "xtrue" -a -z "$GRUB_DEVICE_UUID" ]; then
   GRUB_DEVICE_UUID="$GRUB_DEVICE_UUID_GENERATED"

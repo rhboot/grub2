@@ -21,26 +21,17 @@ prefix="@prefix@"
 exec_prefix="@exec_prefix@"
 datarootdir="@datarootdir@"
 
-prefix="@prefix@"
 exec_prefix="@exec_prefix@"
 sbindir="@sbindir@"
 bindir="@bindir@"
-sysconfdir="@sysconfdir@"
 PACKAGE_NAME=@PACKAGE_NAME@
 PACKAGE_VERSION=@PACKAGE_VERSION@
-host_os=@host_os@
 datadir="@datadir@"
 if [ "x$pkgdatadir" = x ]; then
     pkgdatadir="${datadir}/@PACKAGE@"
 fi
-grub_cfg=""
 
 self=`basename $0`
-
-grub_probe="${sbindir}/@grub_probe@"
-grub_file="${bindir}/@grub_file@"
-grub_editenv="${bindir}/@grub_editenv@"
-grub_script_check="${bindir}/@grub_script_check@"
 
 export TEXTDOMAIN=@PACKAGE@
 export TEXTDOMAINDIR="@localedir@"
