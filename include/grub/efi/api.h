@@ -1511,7 +1511,7 @@ typedef struct grub_efi_pxe_ip_filter
 {
   grub_efi_uint8_t filters;
   grub_efi_uint8_t ip_count;
-  grub_efi_uint8_t reserved;
+  grub_efi_uint16_t reserved;
   grub_efi_ip_address_t ip_list[GRUB_EFI_PXE_MAX_IPCNT];
 } grub_efi_pxe_ip_filter_t;
 
