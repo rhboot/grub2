@@ -239,6 +239,45 @@ handle_dgram (struct grub_net_buff *nb,
   {
     struct udphdr *udph;
     udph = (struct udphdr *) nb->data;
+
+    if (proto == GRUB_NET_IP_UDP && udph->dst == grub_cpu_to_be16_compile_time (DHCP6_CLIENT_PORT))
+      {
+	if (udph->chksum)
+	  {
+	    grub_uint16_t chk, expected;
+	    chk = udph->chksum;
+	    udph->chksum = 0;
+	    expected = grub_net_ip_transport_checksum (nb,
+						       GRUB_NET_IP_UDP,
+						       source,
+						       dest);
+	    if (expected != chk)
+	      {
+		grub_dprintf ("net", "Invalid UDP checksum. "
+			      "Expected %x, got %x\n",
+			      grub_be_to_cpu16 (expected),
+			      grub_be_to_cpu16 (chk));
+		grub_netbuff_free (nb);
+		return GRUB_ERR_NONE;
+	      }
+	    udph->chksum = chk;
+	  }
+
+	err = grub_netbuff_pull (nb, sizeof (*udph));
+	if (err)
+	  {
+	    grub_netbuff_free (nb);
+	    return err;
+	  }
+
+	err = grub_net_process_dhcp6 (nb, card);
+	if (err)
+	  grub_print_error ();
+
+	grub_netbuff_free (nb);
+	return GRUB_ERR_NONE;
+      }
+
     if (proto == GRUB_NET_IP_UDP && grub_be_to_cpu16 (udph->dst) == 68)
       {
 	const struct grub_net_bootp_packet *bootp;
