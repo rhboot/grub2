@@ -447,50 +447,65 @@ struct grub_net_bootp_packet
   grub_uint8_t vendor[0];
 } GRUB_PACKED;
 
-enum
-  {
-    GRUB_NET_DHCP6_IA_NA = 3,
-    GRUB_NET_DHCP6_IA_ADDRESS = 5,
-    GRUB_NET_DHCP6_BOOTFILE_URL = 59,
-  };
-
-struct grub_net_dhcpv6_option
-{
-  grub_uint16_t option_num;
-  grub_uint16_t option_len;
-  grub_uint8_t option_data[];
-} GRUB_PACKED;
-typedef struct grub_net_dhcpv6_option grub_net_dhcpv6_option_t;
-
-struct grub_net_dhcpv6_opt_ia_na
-{
-  grub_uint16_t option_num;
-  grub_uint16_t option_len;
-  grub_uint32_t iaid;
-  grub_uint32_t t1;
-  grub_uint32_t t2;
-  grub_uint8_t options[];
-} GRUB_PACKED;
-typedef struct grub_net_dhcpv6_opt_ia_na grub_net_dhcpv6_opt_ia_na_t;
-
-struct grub_net_dhcpv6_opt_ia_address
-{
-  grub_uint16_t option_num;
-  grub_uint16_t option_len;
-  grub_uint64_t ipv6_address[2];
-  grub_uint32_t preferred_lifetime;
-  grub_uint32_t valid_lifetime;
-  grub_uint8_t options[];
-} GRUB_PACKED;
-typedef struct grub_net_dhcpv6_opt_ia_address grub_net_dhcpv6_opt_ia_address_t;
-
-struct grub_net_dhcpv6_packet
+struct grub_net_dhcp6_packet
 {
   grub_uint32_t message_type:8;
   grub_uint32_t transaction_id:24;
-  grub_uint8_t dhcp_options[1024];
+  grub_uint8_t dhcp_options[0];
 } GRUB_PACKED;
-typedef struct grub_net_dhcpv6_packet grub_net_dhcpv6_packet_t;
+
+struct grub_net_dhcp6_option {
+  grub_uint16_t code;
+  grub_uint16_t len;
+  grub_uint8_t data[0];
+} GRUB_PACKED;
+
+struct grub_net_dhcp6_option_iana {
+  grub_uint32_t iaid;
+  grub_uint32_t t1;
+  grub_uint32_t t2;
+  grub_uint8_t data[0];
+} GRUB_PACKED;
+
+struct grub_net_dhcp6_option_iaaddr {
+  grub_uint8_t addr[16];
+  grub_uint32_t preferred_lifetime;
+  grub_uint32_t valid_lifetime;
+  grub_uint8_t data[0];
+} GRUB_PACKED;
+
+struct grub_net_dhcp6_option_duid_ll
+{
+  grub_uint16_t type;
+  grub_uint16_t hw_type;
+  grub_uint8_t hwaddr[6];
+} GRUB_PACKED;
+
+enum
+  {
+    GRUB_NET_DHCP6_SOLICIT = 1,
+    GRUB_NET_DHCP6_ADVERTISE = 2,
+    GRUB_NET_DHCP6_REQUEST = 3,
+    GRUB_NET_DHCP6_REPLY = 7
+  };
+
+enum
+  {
+    DHCP6_CLIENT_PORT = 546,
+    DHCP6_SERVER_PORT = 547
+  };
+
+enum
+  {
+    GRUB_NET_DHCP6_OPTION_CLIENTID = 1,
+    GRUB_NET_DHCP6_OPTION_SERVERID = 2,
+    GRUB_NET_DHCP6_OPTION_IA_NA = 3,
+    GRUB_NET_DHCP6_OPTION_IAADDR = 5,
+    GRUB_NET_DHCP6_OPTION_ORO = 6,
+    GRUB_NET_DHCP6_OPTION_ELAPSED_TIME = 8,
+    GRUB_NET_DHCP6_OPTION_DNS_SERVERS = 23,
+    GRUB_NET_DHCP6_OPTION_BOOTFILE_URL = 59
+  };
 
 #define	GRUB_NET_BOOTP_RFC1048_MAGIC_0	0x63
 #define	GRUB_NET_BOOTP_RFC1048_MAGIC_1	0x82
@@ -521,12 +536,12 @@ grub_net_configure_by_dhcp_ack (const char *name,
 				int is_def, char **device, char **path);
 
 struct grub_net_network_level_interface *
-grub_net_configure_by_dhcpv6_ack (const char *name,
-				 struct grub_net_card *card,
-				 grub_net_interface_flags_t flags,
-				 const grub_net_link_level_address_t *hwaddr,
-				 const struct grub_net_dhcpv6_packet *packet,
-				 int is_def, char **device, char **path);
+grub_net_configure_by_dhcpv6_reply (const char *name,
+				    struct grub_net_card *card,
+				    grub_net_interface_flags_t flags,
+				    const struct grub_net_dhcp6_packet *v6,
+				    grub_size_t size,
+				    int is_def, char **device, char **path);
 
 int
 grub_ipv6_get_masksize(grub_uint16_t *mask);
@@ -542,6 +557,10 @@ grub_net_add_ipv4_local (struct grub_net_network_level_interface *inf,
 void
 grub_net_process_dhcp (struct grub_net_buff *nb,
 		       struct grub_net_card *card);
+
+grub_err_t
+grub_net_process_dhcp6 (struct grub_net_buff *nb,
+			struct grub_net_card *card);
 
 int
 grub_net_hwaddr_cmp (const grub_net_link_level_address_t *a,
