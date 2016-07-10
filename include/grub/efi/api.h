@@ -843,6 +843,8 @@ struct grub_efi_ipv4_device_path
   grub_efi_uint16_t remote_port;
   grub_efi_uint16_t protocol;
   grub_efi_uint8_t static_ip_address;
+  grub_efi_ipv4_address_t gateway_ip_address;
+  grub_efi_ipv4_address_t subnet_mask;
 } GRUB_PACKED;
 typedef struct grub_efi_ipv4_device_path grub_efi_ipv4_device_path_t;
 
@@ -896,6 +898,15 @@ struct grub_efi_sata_device_path
   grub_efi_uint16_t lun;
 } GRUB_PACKED;
 typedef struct grub_efi_sata_device_path grub_efi_sata_device_path_t;
+
+#define GRUB_EFI_URI_DEVICE_PATH_SUBTYPE		24
+
+struct grub_efi_uri_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint8_t uri[0];
+} GRUB_PACKED;
+typedef struct grub_efi_uri_device_path grub_efi_uri_device_path_t;
 
 #define GRUB_EFI_VENDOR_MESSAGING_DEVICE_PATH_SUBTYPE	10
 
