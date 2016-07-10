@@ -475,9 +475,6 @@ grub_efinet_create_dhcp_ack_from_device_path (grub_efi_device_path_t *dp, int *u
   grub_err_t err;
 
   ddp = grub_efi_duplicate_device_path (dp);
-  if (!ddp)
-    return NULL;
-
   ldp = grub_efi_find_last_device_path (ddp);
 
   if (GRUB_EFI_DEVICE_PATH_TYPE (ldp) != GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE
@@ -754,7 +751,7 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
   {
     grub_efi_device_path_t *cdp;
     struct grub_efi_pxe *pxe;
-    struct grub_efi_pxe_mode *pxe_mode;
+    struct grub_efi_pxe_mode *pxe_mode = NULL;
     grub_uint8_t *packet_buf;
     grub_size_t packet_bufsz ;
     int ipv6;
@@ -841,11 +838,10 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     if (ipv6)
       {
 	grub_dprintf ("efinet", "using ipv6 and dhcpv6\n");
-	grub_dprintf ("efinet", "dhcp_ack_received: %s%s\n",
-		      pxe_mode->dhcp_ack_received ? "yes" : "no",
-		      pxe_mode->dhcp_ack_received ? "" : " cannot continue");
-	if (!pxe_mode->dhcp_ack_received)
-	  continue;
+	if (pxe_mode)
+	  grub_dprintf ("efinet", "dhcp_ack_received: %s%s\n",
+			pxe_mode->dhcp_ack_received ? "yes" : "no",
+			pxe_mode->dhcp_ack_received ? "" : " cannot continue");
 
 	grub_net_configure_by_dhcpv6_reply (card->name, card, 0,
 					    (struct grub_net_dhcp6_packet *)
