@@ -349,10 +349,11 @@ grub_net_configure_by_dhcpv6_ack (const char *name,
   struct grub_net_network_level_address addr;
   int mask = -1;
 
-  if (device)
-    *device = 0;
-  if (path)
-    *path = 0;
+  if (!device || !path)
+    return NULL;
+
+  *device = 0;
+  *path = 0;
 
   grub_dprintf ("net", "mac address is %02x:%02x:%02x:%02x:%02x:%02x\n",
 		hwaddr->mac[0], hwaddr->mac[1], hwaddr->mac[2],

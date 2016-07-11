@@ -401,6 +401,7 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     if (pxe_mode->using_ipv6)
       {
 	grub_net_link_level_address_t hwaddr;
+	struct grub_net_network_level_interface *intf;
 
 	grub_dprintf ("efinet", "using ipv6 and dhcpv6\n");
 	grub_dprintf ("efinet", "dhcp_ack_received: %s%s\n",
@@ -414,10 +415,12 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 		     card->efi_net->mode->current_address,
 		     sizeof (hwaddr.mac));
 
-	grub_net_configure_by_dhcpv6_ack (card->name, card, 0,
-					  &hwaddr, &pxe_mode->dhcp_ack.dhcpv6,
-					  1, device, path);
-	grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
+	intf = grub_net_configure_by_dhcpv6_ack (card->name, card, 0,
+						 &hwaddr,
+						 &pxe_mode->dhcp_ack.dhcpv6,
+						 1, device, path);
+	if (intf && device && path)
+	  grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
       }
     else
       {
