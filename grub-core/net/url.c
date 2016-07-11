@@ -267,7 +267,12 @@ extract_http_url_info (char *url, int ssl,
     }
 
   l = host_end - host_off;
-  c = *host_end;
+
+  if (host_end == NULL)
+    goto fail;
+  else
+    c = *host_end;
+
   *host_end = '\0';
   *host = grub_strndup (host_off, l);
   *host_end = c;
