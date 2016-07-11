@@ -983,7 +983,7 @@ grub_ipv6_get_masksize(grub_uint8_t *be_mask)
 
   mask = (grub_uint8_t *)mask16;
 
-  for (x = 15; x > 0; x++)
+  for (x = 15; x > 0; x--)
     {
       grub_uint8_t octet = mask[x];
       while (octet & 0x80)
