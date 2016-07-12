@@ -500,7 +500,7 @@ grub_net_configure_by_dhcpv6_ack (const char *name,
 				 int is_def, char **device, char **path);
 
 int
-grub_ipv6_get_masksize(grub_uint8_t *mask);
+grub_ipv6_get_masksize(grub_uint16_t *mask);
 
 grub_err_t
 grub_net_add_ipv6_local (struct grub_net_network_level_interface *inf,
