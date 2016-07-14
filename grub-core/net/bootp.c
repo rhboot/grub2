@@ -20,6 +20,7 @@
 #include <grub/env.h>
 #include <grub/i18n.h>
 #include <grub/command.h>
+#include <grub/net.h>
 #include <grub/net/ip.h>
 #include <grub/net/netbuff.h>
 #include <grub/net/udp.h>
@@ -254,6 +255,11 @@ parse_dhcp_vendor (const char *name, const void *vend, int limit, int *mask)
                                      taglength);
           break;
 
+        case GRUB_NET_BOOTP_VENDOR_CLASS_IDENTIFIER:
+          grub_env_set_net_property (name, "vendor_class_identifier", (const char *) ptr,
+                                     taglength);
+	  break;
+
 	case GRUB_NET_BOOTP_EXTENSIONS_PATH:
           grub_env_set_net_property (name, "extensionspath", (const char *) ptr,
                                      taglength);
@@ -357,6 +363,66 @@ grub_net_configure_by_dhcp_ack (const char *name,
     }
 #endif
 
+  if (size > OFFSET_OF (vendor, bp))
+    {
+      char *cidvar;
+      const char *cid;
+
+      parse_dhcp_vendor (name, &bp->vendor, size - OFFSET_OF (vendor, bp), &mask);
+      cidvar = grub_xasprintf ("net_%s_%s", name, "vendor_class_identifier");
+      cid = grub_env_get (cidvar);
+      grub_free (cidvar);
+
+      if (cid && grub_strcmp (cid, "HTTPClient") == 0)
+	{
+	  char *proto, *ip, *pa;
+
+	  if (!dissect_url (bp->boot_file, &proto, &ip, &pa))
+	    return inter;
+
+	  grub_env_set_net_property (name, "boot_file", pa, grub_strlen (pa));
+	  if (is_def)
+	    {
+	      grub_net_default_server = grub_strdup (ip);
+	      grub_env_set ("net_default_interface", name);
+	      grub_env_export ("net_default_interface");
+	    }
+	  if (device && !*device)
+	    {
+	      *device = grub_xasprintf ("%s,%s", proto, ip);
+	      grub_print_error ();
+	    }
+	  if (path)
+	    {
+	      *path = grub_strdup (pa);
+	      grub_print_error ();
+	      if (*path)
+		{
+		  char *slash;
+		  slash = grub_strrchr (*path, '/');
+		  if (slash)
+		    *slash = 0;
+		  else
+		    **path = 0;
+		}
+	    }
+	  grub_net_add_ipv4_local (inter, mask);
+	  inter->dhcp_ack = grub_malloc (size);
+	  if (inter->dhcp_ack)
+	    {
+	      grub_memcpy (inter->dhcp_ack, bp, size);
+	      inter->dhcp_acklen = size;
+	    }
+	  else
+	    grub_errno = GRUB_ERR_NONE;
+
+	  grub_free (proto);
+	  grub_free (ip);
+	  grub_free (pa);
+	  return inter;
+	}
+    }
+
   if (size > OFFSET_OF (boot_file, bp))
     grub_env_set_net_property (name, "boot_file", bp->boot_file,
                                sizeof (bp->boot_file));
@@ -421,8 +487,6 @@ grub_net_configure_by_dhcp_ack (const char *name,
 	    **path = 0;
 	}
     }
-  if (size > OFFSET_OF (vendor, bp))
-    parse_dhcp_vendor (name, &bp->vendor, size - OFFSET_OF (vendor, bp), &mask);
   grub_net_add_ipv4_local (inter, mask);
   
   inter->dhcp_ack = grub_malloc (size);
