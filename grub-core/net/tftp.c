@@ -333,6 +333,7 @@ tftp_open (struct grub_file *file, const char *filename)
   grub_err_t err;
   grub_uint8_t *nbd;
   grub_net_network_level_address_t addr;
+  int port = file->device->net->port;
 
   data = grub_zalloc (sizeof (*data));
   if (!data)
@@ -345,7 +346,10 @@ tftp_open (struct grub_file *file, const char *filename)
   grub_netbuff_reserve (&nb, 1500);
   err = grub_netbuff_push (&nb, sizeof (*tftph));
   if (err)
-    return err;
+    {
+      grub_free (data);
+      return err;
+    }
 
   tftph = (struct tftphdr *) nb.data;
 
@@ -383,32 +387,43 @@ tftp_open (struct grub_file *file, const char *filename)
 
   err = grub_netbuff_unput (&nb, nb.tail - (nb.data + hdrlen));
   if (err)
-    return err;
+    {
+      grub_free (data);
+      return err;
+    }
 
   file->not_easily_seekable = 1;
   file->data = data;
 
   data->pq = grub_priority_queue_new (sizeof (struct grub_net_buff *), cmp);
   if (!data->pq)
-    return grub_errno;
+    {
+      grub_free (data);
+      return grub_errno;
+    }
 
   grub_dprintf("tftp", "resolving address for %s\n", file->device->net->server);
   err = grub_net_resolve_address (file->device->net->server, &addr);
   if (err)
     {
       grub_dprintf("tftp", "Address resolution failed: %d\n", err);
+      grub_dprintf ("tftp", "file_size is %llu, block_size is %llu\n",
+		    (unsigned long long)data->file_size,
+		    (unsigned long long)data->block_size);
       destroy_pq (data);
+      grub_free (data);
       return err;
     }
 
   grub_dprintf("tftp", "opening connection\n");
   data->sock = grub_net_udp_open (addr,
-				  TFTP_SERVER_PORT, tftp_receive,
+				  port ? port : TFTP_SERVER_PORT, tftp_receive,
 				  file);
   if (!data->sock)
     {
       grub_dprintf("tftp", "connection failed\n");
       destroy_pq (data);
+      grub_free (data);
       return grub_errno;
     }
 
@@ -422,6 +437,7 @@ tftp_open (struct grub_file *file, const char *filename)
 	{
 	  grub_net_udp_close (data->sock);
 	  destroy_pq (data);
+	  grub_free (data);
 	  return err;
 	}
       grub_net_poll_cards (GRUB_NET_INTERVAL + (i * GRUB_NET_INTERVAL_ADDITION),
@@ -438,6 +454,7 @@ tftp_open (struct grub_file *file, const char *filename)
     {
       grub_net_udp_close (data->sock);
       destroy_pq (data);
+      grub_free (data);
       return grub_errno;
     }
 
