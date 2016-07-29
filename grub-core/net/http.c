@@ -289,7 +289,9 @@ http_receive (grub_net_tcp_socket_t sock __attribute__ ((unused)),
 	  nb2 = grub_netbuff_alloc (data->chunk_rem);
 	  if (!nb2)
 	    return grub_errno;
-	  grub_netbuff_put (nb2, data->chunk_rem);
+	  err = grub_netbuff_put (nb2, data->chunk_rem);
+	  if (err)
+	    return grub_errno;
 	  grub_memcpy (nb2->data, nb->data, data->chunk_rem);
 	  if (file->device->net->packs.count >= 20)
 	    {
@@ -405,7 +407,7 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
 		data->filename, server, port ? port : HTTP_PORT);
   data->sock = grub_net_tcp_open (server,
 				  port ? port : HTTP_PORT, http_receive,
-				  http_err, http_err,
+				  http_err, NULL,
 				  file);
   if (!data->sock)
     {
