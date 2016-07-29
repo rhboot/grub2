@@ -346,7 +346,10 @@ tftp_open (struct grub_file *file, const char *filename)
   grub_netbuff_reserve (&nb, 1500);
   err = grub_netbuff_push (&nb, sizeof (*tftph));
   if (err)
-    return err;
+    {
+      grub_free (data);
+      return err;
+    }
 
   tftph = (struct tftphdr *) nb.data;
 
@@ -384,14 +387,20 @@ tftp_open (struct grub_file *file, const char *filename)
 
   err = grub_netbuff_unput (&nb, nb.tail - (nb.data + hdrlen));
   if (err)
-    return err;
+    {
+      grub_free (data);
+      return err;
+    }
 
   file->not_easily_seekable = 1;
   file->data = data;
 
   data->pq = grub_priority_queue_new (sizeof (struct grub_net_buff *), cmp);
   if (!data->pq)
-    return grub_errno;
+    {
+      grub_free (data);
+      return grub_errno;
+    }
 
   grub_dprintf("tftp", "resolving address for %s\n", file->device->net->server);
   err = grub_net_resolve_address (file->device->net->server, &addr);
@@ -402,6 +411,7 @@ tftp_open (struct grub_file *file, const char *filename)
 		    (unsigned long long)data->file_size,
 		    (unsigned long long)data->block_size);
       destroy_pq (data);
+      grub_free (data);
       return err;
     }
 
@@ -413,6 +423,7 @@ tftp_open (struct grub_file *file, const char *filename)
     {
       grub_dprintf("tftp", "connection failed\n");
       destroy_pq (data);
+      grub_free (data);
       return grub_errno;
     }
 
@@ -426,6 +437,7 @@ tftp_open (struct grub_file *file, const char *filename)
 	{
 	  grub_net_udp_close (data->sock);
 	  destroy_pq (data);
+	  grub_free (data);
 	  return err;
 	}
       grub_net_poll_cards (GRUB_NET_INTERVAL + (i * GRUB_NET_INTERVAL_ADDITION),
@@ -442,6 +454,7 @@ tftp_open (struct grub_file *file, const char *filename)
     {
       grub_net_udp_close (data->sock);
       destroy_pq (data);
+      grub_free (data);
       return grub_errno;
     }
 

@@ -464,10 +464,11 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
   int word, quaddot = -1;
   int bracketed = 0;
 
-  if (ptr[0] == '[') {
-    bracketed = 1;
-    ptr++;
-  }
+  if (ptr[0] == '[')
+    {
+      bracketed = 1;
+      ptr++;
+    }
 
   if (ptr[0] == ':' && ptr[1] != ':')
     return 0;
@@ -506,9 +507,8 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
       grub_memset (&newip[quaddot], 0, (7 - word) * sizeof (newip[0]));
     }
   grub_memcpy (ip, newip, 16);
-  if (bracketed && *ptr == ']') {
+  if (bracketed && *ptr == ']')
     ptr++;
-  }
   if (rest)
     *rest = ptr;
   return 1;
@@ -1401,7 +1401,7 @@ grub_net_open_real (const char *name)
   char* port_start;
   /* ipv6 or port specified? */
   if ((port_start = grub_strchr (server, ':')))
-  {
+    {
       char* ipv6_begin;
       if((ipv6_begin = grub_strchr (server, '[')))
 	{
@@ -1473,19 +1473,13 @@ grub_net_open_real (const char *name)
 	  {
 	    grub_net_t ret = grub_zalloc (sizeof (*ret));
 	    if (!ret)
-	      return NULL;
-	    ret->protocol = proto;
-	    if (server)
 	      {
-		ret->server = grub_strdup (server);
-		if (!ret->server)
-		  {
-		    grub_free (ret);
-		    return NULL;
-		  }
+		grub_free (host);
+		return NULL;
 	      }
-	    else
-	      ret->server = NULL;
+	    ret->protocol = proto;
+	    ret->port = port;
+	    ret->server = host;
 	    ret->fs = &grub_net_fs;
 	    ret->offset = 0;
 	    ret->eof = 0;
@@ -1516,6 +1510,7 @@ grub_net_open_real (const char *name)
   grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("disk `%s' not found"),
 	      name);
 
+  grub_free (host);
   return NULL;
 }
 
