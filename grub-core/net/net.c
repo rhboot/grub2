@@ -439,6 +439,12 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
   grub_uint16_t newip[8];
   const char *ptr = val;
   int word, quaddot = -1;
+  int bracketed = 0;
+
+  if (ptr[0] == '[') {
+    bracketed = 1;
+    ptr++;
+  }
 
   if (ptr[0] == ':' && ptr[1] != ':')
     return 0;
@@ -477,6 +483,9 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
       grub_memset (&newip[quaddot], 0, (7 - word) * sizeof (newip[0]));
     }
   grub_memcpy (ip, newip, 16);
+  if (bracketed && *ptr == ']') {
+    ptr++;
+  }
   if (rest)
     *rest = ptr;
   return 1;
@@ -1336,8 +1345,10 @@ grub_net_open_real (const char *name)
 {
   grub_net_app_level_t proto;
   const char *protname, *server;
+  char *host;
   grub_size_t protnamelen;
   int try;
+  int port = 0;
 
   if (grub_strncmp (name, "pxe:", sizeof ("pxe:") - 1) == 0)
     {
@@ -1374,6 +1385,72 @@ grub_net_open_real (const char *name)
 		  N_("no server is specified"));
       return NULL;
     }  
+
+  char* port_start;
+  /* ipv6 or port specified? */
+  if ((port_start = grub_strchr (server, ':')))
+  {
+      char* ipv6_begin;
+      if((ipv6_begin = grub_strchr (server, '[')))
+	{
+	  char* ipv6_end = grub_strchr (server, ']');
+	  if(!ipv6_end)
+	    {
+	      grub_error (GRUB_ERR_NET_BAD_ADDRESS,
+		      N_("mismatched [ in address"));
+	      return NULL;
+	    }
+	  /* port number after bracketed ipv6 addr */
+	  if(ipv6_end[1] == ':')
+	    {
+	      port = grub_strtoul (ipv6_end + 2, NULL, 10);
+	      if(port > 65535)
+		{
+		  grub_error (GRUB_ERR_NET_BAD_ADDRESS,
+			  N_("bad port number"));
+		  return NULL;
+		}
+	    }
+	  host = grub_strndup (ipv6_begin, (ipv6_end - ipv6_begin) + 1);
+	}
+      else
+	{
+	  if (grub_strchr (port_start + 1, ':'))
+	    {
+	      int iplen = grub_strlen (server);
+	      /* bracket bare ipv6 addrs */
+	      host = grub_malloc (iplen + 3);
+	      if(!host)
+		{
+		  return NULL;
+		}
+	      host[0] = '[';
+	      grub_memcpy (host + 1, server, iplen);
+	      host[iplen + 1] = ']';
+	      host[iplen + 2] = '\0';
+	    }
+	  else
+	    {
+	      /* hostname:port or ipv4:port */
+	      port = grub_strtol (port_start + 1, NULL, 10);
+	      if(port > 65535)
+		{
+		  grub_error (GRUB_ERR_NET_BAD_ADDRESS,
+			  N_("bad port number"));
+		  return NULL;
+		}
+	      host = grub_strndup (server, port_start - server);
+	    }
+	}
+    }
+  else
+    {
+      host = grub_strdup (server);
+    }
+  if (!host)
+    {
+      return NULL;
+    }
 
   for (try = 0; try < 2; try++)
     {
