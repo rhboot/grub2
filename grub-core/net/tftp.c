@@ -283,6 +283,7 @@ tftp_open (struct grub_file *file, const char *filename)
   grub_err_t err;
   grub_uint8_t *nbd;
   grub_net_network_level_address_t addr;
+  int port = file->device->net->port;
 
   data = grub_zalloc (sizeof (*data));
   if (!data)
@@ -349,13 +350,16 @@ tftp_open (struct grub_file *file, const char *filename)
   if (err)
     {
       grub_dprintf ("tftp", "Address resolution failed: %d\n", err);
+      grub_dprintf ("tftp", "file_size is %llu, block_size is %llu\n",
+		    (unsigned long long)data->file_size,
+		    (unsigned long long)data->block_size);
       grub_free (data);
       return err;
     }
 
   grub_dprintf ("tftp", "opening connection\n");
   data->sock = grub_net_udp_open (addr,
-				  TFTP_SERVER_PORT, tftp_receive,
+				  port ? port : TFTP_SERVER_PORT, tftp_receive,
 				  file);
   if (!data->sock)
     {
