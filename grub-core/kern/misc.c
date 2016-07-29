@@ -436,9 +436,13 @@ grub_strtoull (const char *str, char **end, int base)
       if (digit > 9)
 	{
 	  digit += '0' - 'a' + 10;
-	  if (digit >= (unsigned long) base)
+	  /* digit <= 9 check is needed to keep chars larger than
+	     '9' but less than 'a' from being read as numbers */
+	  if (digit >= (unsigned long) base || digit <= 9)
 	    break;
 	}
+      if (digit >= (unsigned long) base)
+	break;
 
       found = 1;
 
