@@ -434,11 +434,14 @@ grub_strtoull (const char *str, char **end, int base)
       unsigned long digit;
 
       digit = grub_tolower (*str) - '0';
-      if (digit >= 'a' - '0')
-	digit += '0' - 'a' + 10;
-      else if (digit > 9)
-	break;
-
+      if (digit > 9)
+	{
+	  digit += '0' - 'a' + 10;
+	  /* digit <= 9 check is needed to keep chars larger than
+	     '9' but less than 'a' from being read as numbers */
+	  if (digit >= (unsigned long) base || digit <= 9)
+	    break;
+	}
       if (digit >= (unsigned long) base)
 	break;
 
