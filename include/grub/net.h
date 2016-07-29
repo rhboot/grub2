@@ -270,6 +270,7 @@ typedef struct grub_net
 {
   char *server;
   char *name;
+  int port;
   grub_net_app_level_t protocol;
   grub_net_packets_t packs;
   grub_off_t offset;
