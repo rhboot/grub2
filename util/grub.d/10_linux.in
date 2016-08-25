@@ -127,13 +127,13 @@ linux_entry ()
 	  quoted="$(echo "$GRUB_ACTUAL_DEFAULT" | grub_quote)"
 	  title_correction_code="${title_correction_code}if [ \"x\$default\" = '$quoted' ]; then default='$(echo "$replacement_title" | grub_quote)'; fi;"
       fi
+      if [ x$isdebug = xdebug ]; then
+	  title="$title${GRUB_LINUX_DEBUG_TITLE_POSTFIX}"
+      fi
       echo "menuentry '$(echo "$title" | grub_quote)' ${CLASS} \$menuentry_id_option 'gnulinux-$version-$type-$boot_device_id' {" | sed "s/^/$submenu_indentation/"
   else
       echo "menuentry '$(echo "$os" | grub_quote)' ${CLASS} \$menuentry_id_option 'gnulinux-simple-$boot_device_id' {" | sed "s/^/$submenu_indentation/"
   fi      
-  if [ x$isdebug = xdebug ]; then
-      title="$title${GRUB_LINUX_DEBUG_TITLE_POSTFIX}"
-  fi
   if [ x$type != xrecovery ] ; then
       save_default_entry | grub_add_tab
   fi
