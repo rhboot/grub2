@@ -300,6 +300,25 @@ destroy_pq (tftp_data_t data)
   grub_priority_queue_destroy (data->pq);
 }
 
+/* Create a normalized copy of the filename.
+   Compress any string of consecutive forward slashes to a single forward
+   slash. */
+static void
+grub_normalize_filename (char *normalized, const char *filename)
+{
+  char *dest = normalized;
+  char *src = filename;
+
+  while (*src != '\0')
+    {
+      if (src[0] == '/' && src[1] == '/')
+	src++;
+      else
+	*dest++ = *src++;
+    }
+  *dest = '\0';
+}
+
 static grub_err_t
 tftp_open (struct grub_file *file, const char *filename)
 {
@@ -337,7 +356,10 @@ tftp_open (struct grub_file *file, const char *filename)
   rrqlen = 0;
 
   tftph->opcode = grub_cpu_to_be16_compile_time (TFTP_RRQ);
-  grub_strcpy (rrq, filename);
+
+  /* Copy and normalize the filename to work-around issues on some tftp
+     servers when file names are being matched for remapping. */
+  grub_normalize_filename (rrq, filename);
   rrqlen += grub_strlen (filename) + 1;
   rrq += grub_strlen (filename) + 1;
 
