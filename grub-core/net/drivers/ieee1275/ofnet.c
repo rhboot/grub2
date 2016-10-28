@@ -208,7 +208,7 @@ grub_ieee1275_parse_bootpath (const char *devpath, char *bootpath,
       inter = grub_net_add_addr ((*card)->name, *card, &client_addr, &hw_addr,
                                  flags);
       grub_net_add_ipv4_local (inter,
-                          __builtin_ctz (~grub_le_to_cpu32 (subnet_mask.ipv4)));
+                          __builtin_clz (~grub_swap_bytes32(grub_le_to_cpu32 (subnet_mask.ipv4))));
     }
 
   if (gateway_addr.ipv4 != 0)
