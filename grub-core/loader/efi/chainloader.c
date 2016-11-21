@@ -401,7 +401,7 @@ relocate_coff (pe_coff_loader_image_context_t *context,
       reloc_end = (struct grub_pe32_fixup_block *)
 	((char *)reloc_base + reloc_base->size);
 
-      if ((void *)reloc_end < data || (void *)reloc_end > image_end)
+      if ((void *)reloc_end < orig || (void *)reloc_end > image_end)
         {
           grub_error (GRUB_ERR_BAD_ARGUMENT, "Reloc entry %d overflows binary",
 		      n);
