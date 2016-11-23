@@ -596,7 +596,7 @@ handle_image (void *data, grub_efi_uint32_t datasize)
   grub_dprintf ("chain", "reloc_base: %p reloc_base_end: %p\n",
 		reloc_base, reloc_base_end);
 
-  struct grub_pe32_section_table *reloc_section = NULL;
+  struct grub_pe32_section_table *reloc_section = NULL, fake_reloc_section;
 
   section = context.first_section;
   for (i = 0; i < context.number_of_sections; i++, section++)
@@ -645,12 +645,28 @@ handle_image (void *data, grub_efi_uint32_t datasize)
 	   * made sense, and the VA and size match RelocDir's
 	   * versions, then we believe in this section table. */
 	  if (section->raw_data_size && section->virtual_size &&
-	      base && end && reloc_base == base && reloc_base_end == end)
+	      base && end && reloc_base == base)
 	    {
-	      grub_dprintf ("chain", " section is relocation section\n");
-	      reloc_section = section;
+	      if (reloc_base_end == end)
+		{
+		  grub_dprintf ("chain", " section is relocation section\n");
+		  reloc_section = section;
+		}
+	      else if (reloc_base_end && reloc_base_end < end)
+	        {
+		  /* Bogus virtual size in the reloc section -- RelocDir
+		   * reported a smaller Base Relocation Directory. Decrease
+		   * the section's virtual size so that it equal RelocDir's
+		   * idea, but only for the purposes of relocate_coff(). */
+		  grub_dprintf ("chain",
+				" section is (overlong) relocation section\n");
+		  grub_memcpy (&fake_reloc_section, section, sizeof *section);
+		  fake_reloc_section.virtual_size -= (end - reloc_base_end);
+		  reloc_section = &fake_reloc_section;
+		}
 	    }
-	  else
+
+	  if (!reloc_section)
 	    {
 	      grub_dprintf ("chain", " section is not reloc section?\n");
 	      grub_dprintf ("chain", " rds: 0x%08x, vs: %08x\n",
