@@ -259,7 +259,8 @@ export GRUB_DEFAULT \
   GRUB_OS_PROBER_SKIP_LIST \
   GRUB_DISABLE_SUBMENU \
   GRUB_DEFAULT_DTB \
-  SUSE_BTRFS_SNAPSHOT_BOOTING
+  SUSE_BTRFS_SNAPSHOT_BOOTING \
+  GRUB_ENABLE_BLSCFG
 
 if test "x${grub_cfg}" != "x"; then
   rm -f "${grub_cfg}.new"
