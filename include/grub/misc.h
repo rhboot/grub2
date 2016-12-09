@@ -507,4 +507,19 @@ void EXPORT_FUNC(grub_real_boot_time) (const char *file,
 #define grub_max(a, b) (((a) > (b)) ? (a) : (b))
 #define grub_min(a, b) (((a) < (b)) ? (a) : (b))
 
+typedef int (*grub_compar_d_fn_t) (const void *p0, const void *p1, void *state);
+
+void *EXPORT_FUNC(grub_bsearch) (const void *key,
+			    const void *base,
+			    grub_size_t nmemb,
+			    grub_size_t size,
+			    grub_compar_d_fn_t compar,
+			    void *state);
+
+void EXPORT_FUNC(grub_qsort) (void *const pbase,
+			 grub_size_t total_elems,
+			 grub_size_t size,
+			 grub_compar_d_fn_t cmp,
+			 void *state);
+
 #endif /* ! GRUB_MISC_HEADER */
