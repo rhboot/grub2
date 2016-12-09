@@ -48,4 +48,6 @@
 #  define WARN_UNUSED_RESULT
 #endif
 
+#define UNUSED __attribute__((__unused__))
+
 #endif /* ! GRUB_COMPILER_HEADER */
