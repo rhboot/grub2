@@ -30,32 +30,405 @@
 #include <grub/env.h>
 #include <grub/file.h>
 #include <grub/normal.h>
+#include <grub/lib/envblk.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+#include "loadenv.h"
+
+#define GRUB_BLS_CONFIG_PATH "/loader/entries/"
+#define GRUB_BOOT_DEVICE "($root)"
 #ifdef GRUB_MACHINE_EFI
 #define GRUB_LINUX_CMD "linuxefi"
 #define GRUB_INITRD_CMD "initrdefi"
-#define GRUB_BLS_CONFIG_PATH "/EFI/fedora/loader/entries/"
-#define GRUB_BOOT_DEVICE "($boot)"
 #else
 #define GRUB_LINUX_CMD "linux"
 #define GRUB_INITRD_CMD "initrd"
-#define GRUB_BLS_CONFIG_PATH "/loader/entries/"
-#define GRUB_BOOT_DEVICE "($root)"
 #endif
 
-static int parse_entry (
+#define grub_free(x) ({grub_dprintf("blscfg", "%s freeing %p\n", __func__, x); grub_free(x); })
+
+struct keyval
+{
+  const char *key;
+  char *val;
+};
+
+struct bls_entry
+{
+  struct keyval **keyvals;
+  int nkeyvals;
+};
+
+static struct bls_entry **entries;
+static int nentries;
+
+static struct bls_entry *bls_new_entry(void)
+{
+  struct bls_entry **new_entries;
+  struct bls_entry *entry;
+  int new_n = nentries + 1;
+
+  new_entries = grub_realloc (entries,  new_n * sizeof (struct bls_entry *));
+  if (!new_entries)
+    {
+      grub_error (GRUB_ERR_OUT_OF_MEMORY,
+		  "couldn't find space for BLS entry list");
+      return NULL;
+    }
+
+  entries = new_entries;
+
+  entry = grub_malloc (sizeof (*entry));
+  if (!entry)
+    {
+      grub_error (GRUB_ERR_OUT_OF_MEMORY,
+		  "couldn't find space for BLS entry list");
+      return NULL;
+    }
+
+  grub_memset (entry, 0, sizeof (*entry));
+  entries[nentries] = entry;
+
+  nentries = new_n;
+
+  return entry;
+}
+
+static int bls_add_keyval(struct bls_entry *entry, char *key, char *val)
+{
+  char *k, *v;
+  struct keyval **kvs, *kv;
+  int new_n = entry->nkeyvals + 1;
+
+  kvs = grub_realloc (entry->keyvals, new_n * sizeof (struct keyval *));
+  if (!kvs)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+		       "couldn't find space for BLS entry");
+  entry->keyvals = kvs;
+
+  kv = grub_malloc (sizeof (struct keyval));
+  if (!kv)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+		       "couldn't find space for BLS entry");
+
+  k = grub_strdup (key);
+  if (!k)
+    {
+      grub_free (kv);
+      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+			 "couldn't find space for BLS entry");
+    }
+
+  v = grub_strdup (val);
+  if (!v)
+    {
+      grub_free (k);
+      grub_free (kv);
+      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+			 "couldn't find space for BLS entry");
+    }
+
+  kv->key = k;
+  kv->val = v;
+
+  entry->keyvals[entry->nkeyvals] = kv;
+  grub_dprintf("blscfg", "new keyval at %p:%p:%p\n", entry->keyvals[entry->nkeyvals], k, v);
+  entry->nkeyvals = new_n;
+
+  return 0;
+}
+
+static void bls_free_entry(struct bls_entry *entry)
+{
+  int i;
+
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  for (i = 0; i < entry->nkeyvals; i++)
+    {
+      struct keyval *kv = entry->keyvals[i];
+      grub_free ((void *)kv->key);
+      grub_free (kv->val);
+      grub_free (kv);
+    }
+
+  grub_free (entry->keyvals);
+  grub_memset (entry, 0, sizeof (*entry));
+  grub_free (entry);
+}
+
+static int keyval_cmp (const void *p0, const void *p1,
+		       void *state UNUSED)
+{
+  const struct keyval *kv0 = *(struct keyval * const *)p0;
+  const struct keyval *kv1 = *(struct keyval * const *)p1;
+  int rc;
+
+  rc = grub_strcmp(kv0->key, kv1->key);
+
+  return rc;
+}
+
+/* Find they value of the key named by keyname.  If there are allowed to be
+ * more than one, pass a pointer to an int set to -1 the first time, and pass
+ * the same pointer through each time after, and it'll return them in sorted
+ * order. */
+static char *bls_get_val(struct bls_entry *entry, const char *keyname, int *last)
+{
+  char *foo = (char *)"";
+  struct keyval *kv = NULL, **kvp, key = {keyname, foo}, *keyp = &key;
+
+  /* if we've already found an entry that matches, just iterate */
+  if (last && *last >= 0)
+    {
+      int next = ++last[0];
+
+      if (next == entry->nkeyvals)
+	{
+done:
+	  *last = -1;
+	  return NULL;
+	}
+
+      kv = entry->keyvals[next];
+      if (grub_strcmp (keyname, kv->key))
+	goto done;
+
+      return kv->val;
+    }
+
+  kvp = grub_bsearch(&keyp, &entry->keyvals[0], entry->nkeyvals,
+		    sizeof (struct keyval *), keyval_cmp, NULL);
+  if (kvp)
+    kv = *kvp;
+
+  if (kv)
+    {
+      /* if we've got uninitialized but present state, track back until we find
+       * the first match */
+      if (last)
+	{
+	  grub_dprintf("blscfg", "%s trying to find another entry because last was set\n", __func__);
+	  /* figure out the position of this entry in the array */
+	  int idx;
+	  for (idx = 0 ; idx < entry->nkeyvals; idx++)
+	    if (entry->keyvals[idx] == kv)
+	      break;
+	  *last = idx;
+
+	  while (idx > 0)
+	    {
+	      struct keyval *kvtmp = entry->keyvals[idx-1];
+	      if (idx == 0 || grub_strcmp (keyname, kvtmp->key))
+		{
+		  /* if we're at the start, or if the previous entry doesn't
+		   * match, then we're done */
+		  *last = idx;
+		  break;
+		}
+	      else
+		/* but if it does match, keep going backwards */
+		idx--;
+	    }
+	}
+
+      return kv->val;
+    }
+  return NULL;
+}
+
+#define goto_return(x) ({ ret = (x); goto finish; })
+
+/* compare alpha and numeric segments of two versions */
+/* return 1: a is newer than b */
+/*        0: a and b are the same version */
+/*       -1: b is newer than a */
+static int vercmp(const char * a, const char * b)
+{
+    char oldch1, oldch2;
+    char *abuf, *bbuf;
+    char *str1, *str2;
+    char * one, * two;
+    int rc;
+    int isnum;
+    int ret = 0;
+
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+    if (!grub_strcmp(a, b))
+	    return 0;
+
+    abuf = grub_malloc(grub_strlen(a) + 1);
+    bbuf = grub_malloc(grub_strlen(b) + 1);
+    str1 = abuf;
+    str2 = bbuf;
+    grub_strcpy(str1, a);
+    grub_strcpy(str2, b);
+
+    one = str1;
+    two = str2;
+
+    /* loop through each version segment of str1 and str2 and compare them */
+    while (*one || *two) {
+	while (*one && !grub_isalnum(*one) && *one != '~') one++;
+	while (*two && !grub_isalnum(*two) && *two != '~') two++;
+
+	/* handle the tilde separator, it sorts before everything else */
+	if (*one == '~' || *two == '~') {
+	    if (*one != '~') goto_return (1);
+	    if (*two != '~') goto_return (-1);
+	    one++;
+	    two++;
+	    continue;
+	}
+
+	/* If we ran to the end of either, we are finished with the loop */
+	if (!(*one && *two)) break;
+
+	str1 = one;
+	str2 = two;
+
+	/* grab first completely alpha or completely numeric segment */
+	/* leave one and two pointing to the start of the alpha or numeric */
+	/* segment and walk str1 and str2 to end of segment */
+	if (grub_isdigit(*str1)) {
+	    while (*str1 && grub_isdigit(*str1)) str1++;
+	    while (*str2 && grub_isdigit(*str2)) str2++;
+	    isnum = 1;
+	} else {
+	    while (*str1 && grub_isalpha(*str1)) str1++;
+	    while (*str2 && grub_isalpha(*str2)) str2++;
+	    isnum = 0;
+	}
+
+	/* save character at the end of the alpha or numeric segment */
+	/* so that they can be restored after the comparison */
+	oldch1 = *str1;
+	*str1 = '\0';
+	oldch2 = *str2;
+	*str2 = '\0';
+
+	/* this cannot happen, as we previously tested to make sure that */
+	/* the first string has a non-null segment */
+	if (one == str1) goto_return(-1);	/* arbitrary */
+
+	/* take care of the case where the two version segments are */
+	/* different types: one numeric, the other alpha (i.e. empty) */
+	/* numeric segments are always newer than alpha segments */
+	/* XXX See patch #60884 (and details) from bugzilla #50977. */
+	if (two == str2) goto_return (isnum ? 1 : -1);
+
+	if (isnum) {
+	    grub_size_t onelen, twolen;
+	    /* this used to be done by converting the digit segments */
+	    /* to ints using atoi() - it's changed because long  */
+	    /* digit segments can overflow an int - this should fix that. */
+
+	    /* throw away any leading zeros - it's a number, right? */
+	    while (*one == '0') one++;
+	    while (*two == '0') two++;
+
+	    /* whichever number has more digits wins */
+	    onelen = grub_strlen(one);
+	    twolen = grub_strlen(two);
+	    if (onelen > twolen) goto_return (1);
+	    if (twolen > onelen) goto_return (-1);
+	}
+
+	/* grub_strcmp will return which one is greater - even if the two */
+	/* segments are alpha or if they are numeric.  don't return  */
+	/* if they are equal because there might be more segments to */
+	/* compare */
+	rc = grub_strcmp(one, two);
+	if (rc) goto_return (rc < 1 ? -1 : 1);
+
+	/* restore character that was replaced by null above */
+	*str1 = oldch1;
+	one = str1;
+	*str2 = oldch2;
+	two = str2;
+    }
+
+    /* this catches the case where all numeric and alpha segments have */
+    /* compared identically but the segment sepparating characters were */
+    /* different */
+    if ((!*one) && (!*two)) goto_return (0);
+
+    /* whichever version still has characters left over wins */
+    if (!*one) goto_return (-1); else goto_return (1);
+
+finish:
+    grub_free (abuf);
+    grub_free (bbuf);
+    return ret;
+}
+
+typedef int (*void_cmp_t)(void *, void *);
+
+static int nulcmp(char *s0, char *s1, void_cmp_t cmp)
+{
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  if (s1 && !s0)
+    return 1;
+  if (s0 && !s1)
+    return -1;
+  if (!s0 && !s1)
+    return 0;
+  if (cmp)
+    return cmp(s0, s1);
+  return grub_strcmp(s0, s1);
+}
+
+static int
+bls_keyval_cmp(struct bls_entry *e0, struct bls_entry *e1, const char *keyname)
+{
+  char *val0, *val1;
+
+  val0 = bls_get_val (e0, keyname, NULL);
+  val1 = bls_get_val (e1, keyname, NULL);
+
+  if (val1 && !val0)
+    return 1;
+
+  if (val0 && !val1)
+    return -1;
+
+  if (!val0 && !val1)
+    return 0;
+
+  return nulcmp(val0, val1, (void_cmp_t)vercmp);
+}
+
+static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
+{
+  struct bls_entry * e0 = *(struct bls_entry **)p0;
+  struct bls_entry * e1 = *(struct bls_entry **)p1;
+  int rc = 0;
+
+  rc = bls_keyval_cmp (e0, e1, "id");
+
+  if (rc == 0)
+    rc = bls_keyval_cmp (e0, e1, "title");
+
+  if (rc == 0)
+    rc = bls_keyval_cmp (e0, e1, "linux");
+
+  return rc;
+}
+
+static int read_entry (
     const char *filename,
-    const struct grub_dirhook_info *info __attribute__ ((unused)),
-    void *data __attribute__ ((unused)))
+    const struct grub_dirhook_info *info UNUSED,
+    void *data)
 {
   grub_size_t n;
   char *p;
   grub_file_t f = NULL;
   grub_off_t sz;
-  char *title = NULL, *options = NULL, *clinux = NULL, *initrd = NULL, *src = NULL;
-  const char *args[2] = { NULL, NULL };
+  struct bls_entry *entry;
+  const char *dirname= (const char *)data;
+  const char *devid = grub_env_get ("boot");
+
+  grub_dprintf ("blscfg", "filename: \"%s\"\n", filename);
 
   if (filename[0] == '.')
     return 0;
@@ -67,7 +440,7 @@ static int parse_entry (
   if (grub_strcmp (filename + n - 5, ".conf") != 0)
     return 0;
 
-  p = grub_xasprintf (GRUB_BLS_CONFIG_PATH "%s", filename);
+  p = grub_xasprintf ("(%s)%s/%s", devid, dirname, filename);
 
   f = grub_file_open (p);
   if (!f)
@@ -77,54 +450,169 @@ static int parse_entry (
   if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
     goto finish;
 
+  entry = bls_new_entry();
+  if (!entry)
+    goto finish;
+
   for (;;)
     {
       char *buf;
+      char *separator;
+      int rc;
 
       buf = grub_file_getline (f);
       if (!buf)
 	break;
 
-      if (grub_strncmp (buf, "title ", 6) == 0)
+      while (buf && buf[0] && (buf[0] == ' ' || buf[0] == '\t'))
+	buf++;
+      if (buf[0] == '#')
+	continue;
+
+      separator = grub_strchr (buf, ' ');
+
+      if (!separator)
+	separator = grub_strchr (buf, '\t');
+
+      if (!separator || separator[1] == '\0')
 	{
-	  grub_free (title);
-	  title = grub_strdup (buf + 6);
-	  if (!title)
-	    goto finish;
-	}
-      else if (grub_strncmp (buf, "options ", 8) == 0)
-	{
-	  grub_free (options);
-	  options = grub_strdup (buf + 8);
-	  if (!options)
-	    goto finish;
-	}
-      else if (grub_strncmp (buf, "linux ", 6) == 0)
-	{
-	  grub_free (clinux);
-	  clinux = grub_strdup (buf + 6);
-	  if (!clinux)
-	    goto finish;
-	}
-      else if (grub_strncmp (buf, "initrd ", 7) == 0)
-	{
-	  grub_free (initrd);
-	  initrd = grub_strdup (buf + 7);
-	  if (!initrd)
-	    goto finish;
+	  grub_free (buf);
+	  break;
 	}
 
-      grub_free(buf);
+      separator[0] = '\0';
+
+      rc = bls_add_keyval (entry, buf, separator+1);
+      grub_free (buf);
+      if (rc < 0)
+	break;
     }
 
-  if (!linux)
+  grub_qsort(&entry->keyvals[0], entry->nkeyvals, sizeof (struct keyval *),
+	     keyval_cmp, NULL);
+
+finish:
+  grub_free (p);
+
+  if (f)
+    grub_file_close (f);
+
+  return 0;
+}
+
+static grub_envblk_t saved_env = NULL;
+
+static int
+save_var (const char *name, const char *value, void *whitelist UNUSED)
+{
+  const char *val = grub_env_get (name);
+  grub_dprintf("blscfg", "saving \"%s\"\n", name);
+
+  if (val)
+    grub_envblk_set (saved_env, name, value);
+
+  return 0;
+}
+
+static int
+unset_var (const char *name, const char *value UNUSED, void *whitelist)
+{
+  grub_dprintf("blscfg", "restoring \"%s\"\n", name);
+  if (! whitelist)
     {
-      grub_printf ("Skipping file %s with no 'linux' key.", p);
+      grub_env_unset (name);
+      return 0;
+    }
+
+  if (test_whitelist_membership (name,
+				 (const grub_env_whitelist_t *) whitelist))
+    grub_env_unset (name);
+
+  return 0;
+}
+
+static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
+{
+  int last = -1;
+  char *val;
+
+  int nlist = 0;
+  char **list = NULL;
+
+  list = grub_malloc (sizeof (char *));
+  if (!list)
+    return NULL;
+  list[0] = NULL;
+
+  while (1)
+    {
+      char **new;
+
+      val = bls_get_val (entry, key, &last);
+      if (!val)
+	break;
+
+      new = grub_realloc (list, (nlist + 2) * sizeof (char *));
+      if (!new)
+	break;
+
+      list = new;
+      list[nlist++] = val;
+      list[nlist] = NULL;
+  }
+
+  if (num)
+    *num = nlist;
+
+  return list;
+}
+
+static void create_entry (struct bls_entry *entry, const char *cfgfile)
+{
+  int argc = 0;
+  const char **argv = NULL;
+
+  char *title = NULL;
+  char *clinux = NULL;
+  char *options = NULL;
+  char *initrd = NULL;
+  char *id = NULL;
+  char *hotkey = NULL;
+
+  char *users = NULL;
+  char **classes = NULL;
+
+  char **args = NULL;
+
+  char *src = NULL;
+  int i;
+
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  clinux = bls_get_val (entry, "linux", NULL);
+  if (!clinux)
+    {
+      grub_dprintf ("blscfg", "Skipping file %s with no 'linux' key.\n", cfgfile);
       goto finish;
     }
 
-  args[0] = title ? title : filename;
+  title = bls_get_val (entry, "title", NULL);
+  options = bls_get_val (entry, "options", NULL);
+  initrd = bls_get_val (entry, "initrd", NULL);
+  id = bls_get_val (entry, "id", NULL);
 
+  hotkey = bls_get_val (entry, "grub_hotkey", NULL);
+  users = bls_get_val (entry, "grub_users", NULL);
+  classes = bls_make_list (entry, "grub_class", NULL);
+  args = bls_make_list (entry, "grub_arg", &argc);
+
+  argc += 1;
+  argv = grub_malloc ((argc + 1) * sizeof (char *));
+  argv[0] = title ? title : clinux;
+  for (i = 1; i < argc; i++)
+    argv[i] = args[i-1];
+  argv[argc] = NULL;
+
+  grub_dprintf("blscfg", "adding menu entry for \"%s\"\n", title);
   src = grub_xasprintf ("load_video\n"
 			"set gfx_payload=keep\n"
 			"insmod gzio\n"
@@ -133,40 +621,219 @@ static int parse_entry (
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
 			initrd ? GRUB_INITRD_CMD " " : "", initrd ? GRUB_BOOT_DEVICE : "", initrd ? initrd : "", initrd ? "\n" : "");
 
-  grub_normal_add_menu_entry (1, args, NULL, NULL, "bls", NULL, NULL, src, 0);
+  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0);
 
 finish:
-  grub_free (p);
-  grub_free (title);
-  grub_free (options);
-  grub_free (clinux);
-  grub_free (initrd);
-  grub_free (src);
+  if (classes)
+      grub_free (classes);
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  if (args)
+      grub_free (args);
+
+  if (argv)
+      grub_free (argv);
+
+  if (src)
+      grub_free (src);
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+}
+
+struct find_entry_info {
+	grub_device_t dev;
+	grub_fs_t fs;
+	int efi;
+};
+
+/*
+ * filename: if the directory is /EFI/something/ , filename is "something"
+ * info: unused
+ * data: the filesystem object the file is on.
+ */
+static int find_entry (const char *filename,
+		       const struct grub_dirhook_info *dirhook_info UNUSED,
+		       void *data)
+{
+  struct find_entry_info *info = (struct find_entry_info *)data;
+  grub_file_t f = NULL;
+  char *grubenv_path = NULL;
+  grub_envblk_t env = NULL;
+  char *default_blsdir = NULL;
+  const char *blsdir = NULL;
+  char *saved_env_buf = NULL;
+  int r = 0;
+  const char *devid = grub_env_get ("boot");
+
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  if (!grub_strcmp (filename, ".") ||
+      !grub_strcmp (filename, ".."))
+    return 0;
+
+  if (info->efi && !grub_strcasecmp (filename, "boot"))
+    return 0;
+
+  saved_env_buf = grub_malloc (512);
+
+  // set a default blsdir
+  if (info->efi)
+    default_blsdir = grub_xasprintf ("/EFI/%s%s", filename,
+				     GRUB_BLS_CONFIG_PATH);
+  else
+    default_blsdir = grub_xasprintf ("%s", GRUB_BLS_CONFIG_PATH);
+
+  grub_env_set ("blsdir", default_blsdir);
+  grub_dprintf ("blscfg", "default_blsdir: \"%s\"\n", default_blsdir);
+
+  /*
+   * try to load a grubenv from /EFI/wherever/grubenv
+   */
+  if (info->efi)
+    grubenv_path = grub_xasprintf ("(%s)/EFI/%s/grubenv", devid, filename);
+  else
+    grubenv_path = grub_xasprintf ("(%s)/grub2/grubenv", devid);
+
+  grub_dprintf ("blscfg", "looking for \"%s\"\n", grubenv_path);
+  f = grub_file_open (grubenv_path);
+
+  grub_dprintf ("blscfg", "%s it\n", f ? "found" : "did not find");
+  grub_free (grubenv_path);
+  if (f)
+    {
+      grub_off_t sz;
+
+      grub_dprintf ("blscfg", "getting size\n");
+      sz = grub_file_size (f);
+      if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
+	goto finish;
+
+      grub_dprintf ("blscfg", "reading env\n");
+      env = read_envblk_file (f);
+      if (!env)
+	goto finish;
+      grub_dprintf ("blscfg", "read env file\n");
+
+      grub_memset (saved_env_buf, '#', 512);
+      grub_memcpy (saved_env_buf, GRUB_ENVBLK_SIGNATURE,
+		   sizeof (GRUB_ENVBLK_SIGNATURE));
+      grub_dprintf ("blscfg", "saving env\n");
+      saved_env = grub_envblk_open (saved_env_buf, 512);
+      if (!saved_env)
+	goto finish;
+
+      // save everything listed in "env" with values from our existing grub env
+      grub_envblk_iterate (env, NULL, save_var);
+      // set everything from our loaded grubenv into the real grub env
+      grub_envblk_iterate (env, NULL, set_var);
+    }
+  else
+    {
+      grub_err_t e;
+      grub_dprintf ("blscfg", "no such file\n");
+      do
+	{
+	  e = grub_error_pop();
+	} while (e);
+
+    }
+
+  blsdir = grub_env_get ("blsdir");
+  if (!blsdir)
+    goto finish;
+
+  grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
+  if (blsdir[0] != '/' && info->efi)
+    blsdir = grub_xasprintf ("/EFI/%s/%s/", filename, blsdir);
+  else
+    blsdir = grub_strdup (blsdir);
+
+  if (!blsdir)
+    goto finish;
+
+  grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
+  r = info->fs->dir (info->dev, blsdir, read_entry, (char *)blsdir);
+  if (r != 0) {
+      grub_dprintf ("blscfg", "read_entry returned error\n");
+      grub_err_t e;
+      do
+	{
+	  e = grub_error_pop();
+	} while (e);
+  }
+
+  grub_dprintf ("blscfg", "Sorting %d entries\n", nentries);
+  grub_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, NULL);
+
+  grub_dprintf ("blscfg", "%s Creating %d entries from bls\n", __func__, nentries);
+  for (r = nentries - 1; r >= 0; r--)
+      create_entry(entries[r], filename);
+
+  for (r = 0; r < nentries; r++)
+      bls_free_entry (entries[r]);
+finish:
+  nentries = 0;
+
+  grub_free (entries);
+  entries = NULL;
+
+  grub_free ((char *)blsdir);
+
+  grub_env_unset ("blsdir");
+
+  if (saved_env)
+    {
+      // remove everything from the real environment that's defined in env
+      grub_envblk_iterate (env, NULL, unset_var);
+
+      // re-set the things from our original environment
+      grub_envblk_iterate (saved_env, NULL, set_var);
+      grub_envblk_close (saved_env);
+      saved_env = NULL;
+    }
+  else if (saved_env_buf)
+    {
+      // if we have a saved environment, grub_envblk_close() freed this.
+      grub_free (saved_env_buf);
+    }
+
+  if (env)
+    grub_envblk_close (env);
 
   if (f)
     grub_file_close (f);
+
+  grub_free (default_blsdir);
 
   return 0;
 }
 
 static grub_err_t
-grub_cmd_bls_import (grub_extcmd_context_t ctxt __attribute__ ((unused)),
-		     int argc __attribute__ ((unused)),
-		     char **args __attribute__ ((unused)))
+grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
+		     int argc UNUSED,
+		     char **args UNUSED)
 {
   grub_fs_t fs;
   grub_device_t dev;
   static grub_err_t r;
   const char *devid;
+  struct find_entry_info info =
+    {
+      .dev = NULL,
+      .fs = NULL,
+      .efi = 0,
+    };
 
-  devid = grub_env_get ("root");
+
+  grub_dprintf ("blscfg", "finding boot\n");
+  devid = grub_env_get ("boot");
   if (!devid)
-    return grub_error (GRUB_ERR_FILE_NOT_FOUND, N_("variable `%s' isn't set"), "root");
+    return grub_error (GRUB_ERR_FILE_NOT_FOUND,
+		       N_("variable `%s' isn't set"), "boot");
 
+  grub_dprintf ("blscfg", "opening %s\n", devid);
   dev = grub_device_open (devid);
   if (!dev)
     return grub_errno;
 
+  grub_dprintf ("blscfg", "probing fs\n");
   fs = grub_fs_probe (dev);
   if (!fs)
     {
@@ -174,7 +841,17 @@ grub_cmd_bls_import (grub_extcmd_context_t ctxt __attribute__ ((unused)),
       goto finish;
     }
 
-  r = fs->dir (dev, GRUB_BLS_CONFIG_PATH, parse_entry, NULL);
+  info.dev = dev;
+  info.fs = fs;
+#ifdef GRUB_MACHINE_EFI
+  info.efi = 1;
+  grub_dprintf ("blscfg", "scanning /EFI/\n");
+  r = fs->dir (dev, "/EFI/", find_entry, &info);
+#else
+  info.efi = 0;
+  grub_dprintf ("blscfg", "scanning %s\n", GRUB_BLS_CONFIG_PATH);
+  r = fs->dir (dev, "/", find_entry, &info);
+#endif
 
 finish:
   if (dev)
@@ -184,18 +861,27 @@ finish:
 }
 
 static grub_extcmd_t cmd;
+static grub_extcmd_t oldcmd;
 
 GRUB_MOD_INIT(bls)
 {
-  cmd = grub_register_extcmd ("bls_import",
-			      grub_cmd_bls_import,
+  grub_dprintf("blscfg", "%s got here\n", __func__);
+  cmd = grub_register_extcmd ("blscfg",
+			      grub_cmd_blscfg,
 			      0,
 			      NULL,
 			      N_("Import Boot Loader Specification snippets."),
 			      NULL);
+  oldcmd = grub_register_extcmd ("bls_import",
+				 grub_cmd_blscfg,
+				 0,
+				 NULL,
+				 N_("Import Boot Loader Specification snippets."),
+				 NULL);
 }
 
 GRUB_MOD_FINI(bls)
 {
   grub_unregister_extcmd (cmd);
+  grub_unregister_extcmd (oldcmd);
 }

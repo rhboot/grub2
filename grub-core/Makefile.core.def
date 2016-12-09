@@ -129,6 +129,7 @@ kernel = {
   common = kern/rescue_parser.c;
   common = kern/rescue_reader.c;
   common = kern/term.c;
+  common = kern/qsort.c;
 
   noemu = kern/compiler-rt.c;
   noemu = kern/mm.c;
@@ -774,8 +775,7 @@ module = {
 module = {
   name = blscfg;
   common = commands/blscfg.c;
-  enable = i386_efi;
-  enable = x86_64_efi;
+  enable = efi;
   enable = i386_pc;
 };
 
