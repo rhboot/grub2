@@ -30,6 +30,9 @@ fi
 if test "x$grub_file" = x; then
   grub_file="${bindir}/@grub_file@"
 fi
+if test "x$grub_editenv" = x; then
+  grub_editenv="${bindir}/@grub_editenv@"
+fi
 if test "x$grub_mkrelpath" = x; then
   grub_mkrelpath="${bindir}/@grub_mkrelpath@"
 fi
@@ -125,8 +128,19 @@ EOF
   fi
 }
 
+prepare_grub_to_access_device_with_variable ()
+{
+  device_variable="$1"
+  shift
+  prepare_grub_to_access_device "$@"
+  unset "device_variable"
+}
+
 prepare_grub_to_access_device ()
 {
+  if [ -z "$device_variable" ]; then
+    device_variable="root"
+  fi
   old_ifs="$IFS"
   IFS='
 '
@@ -161,14 +175,14 @@ prepare_grub_to_access_device ()
   # otherwise set root as per value in device.map.
   fs_hint="`"${grub_probe}" --device $@ --target=compatibility_hint`"
   if [ "x$fs_hint" != x ]; then
-    echo "set root='$fs_hint'"
+    echo "set ${device_variable}='$fs_hint'"
   fi
   if [ "x$GRUB_DISABLE_UUID" != "xtrue" ] && fs_uuid="`"${grub_probe}" --device $@ --target=fs_uuid 2> /dev/null`" ; then
     hints="`"${grub_probe}" --device $@ --target=hints_string 2> /dev/null`" || hints=
     echo "if [ x\$feature_platform_search_hint = xy ]; then"
-    echo "  search --no-floppy --fs-uuid --set=root ${hints} ${fs_uuid}"
+    echo "  search --no-floppy --fs-uuid --set=${device_variable} ${hints} ${fs_uuid}"
     echo "else"
-    echo "  search --no-floppy --fs-uuid --set=root ${fs_uuid}"
+    echo "  search --no-floppy --fs-uuid --set=${device_variable} ${fs_uuid}"
     echo "fi"
   fi
   IFS="$old_ifs"
