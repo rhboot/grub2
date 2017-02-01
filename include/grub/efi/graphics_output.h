@@ -28,7 +28,8 @@ typedef enum
   {
     GRUB_EFI_GOT_RGBA8,
     GRUB_EFI_GOT_BGRA8,
-    GRUB_EFI_GOT_BITMASK
+    GRUB_EFI_GOT_BITMASK,
+    GRUB_EFI_GOT_BLT_ONLY,
   }
   grub_efi_gop_pixel_format_t;
 
