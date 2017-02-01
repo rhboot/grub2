@@ -121,6 +121,7 @@ grub_video_gop_get_bpp (struct grub_efi_gop_mode_info *in)
     {
     case GRUB_EFI_GOT_BGRA8:
     case GRUB_EFI_GOT_RGBA8:
+    case GRUB_EFI_GOT_BLT_ONLY:
       return 32;
 
     case GRUB_EFI_GOT_BITMASK:
@@ -187,6 +188,7 @@ grub_video_gop_fill_real_mode_info (unsigned mode,
   switch (in->pixel_format)
     {
     case GRUB_EFI_GOT_RGBA8:
+    case GRUB_EFI_GOT_BLT_ONLY:
       out->red_mask_size = 8;
       out->red_field_pos = 0;
       out->green_mask_size = 8;
