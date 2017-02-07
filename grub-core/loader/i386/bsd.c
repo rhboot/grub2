@@ -36,6 +36,7 @@
 #include <grub/bsdlabel.h>
 #include <grub/crypto.h>
 #include <grub/safemath.h>
+#include <grub/verify.h>
 #ifdef GRUB_MACHINE_PCBIOS
 #include <grub/machine/int.h>
 #endif
@@ -418,6 +419,8 @@ grub_freebsd_add_meta_module (const char *filename, const char *type,
 			      grub_addr_t addr, grub_uint32_t size)
 {
   const char *name;
+  grub_err_t err;
+
   name = grub_strrchr (filename, '/');
   if (name)
     name++;
@@ -471,6 +474,9 @@ grub_freebsd_add_meta_module (const char *filename, const char *type,
 	      *(p++) = ' ';
 	    }
 	  *p = 0;
+	  err = grub_verify_string (cmdline, GRUB_VERIFY_MODULE_CMDLINE);
+	  if (err)
+	    return err;
 	}
     }
 
