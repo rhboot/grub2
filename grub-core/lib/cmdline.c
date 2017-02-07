@@ -75,8 +75,9 @@ unsigned int grub_loader_cmdline_size (int argc, char *argv[])
   return size;
 }
 
-int grub_create_loader_cmdline (int argc, char *argv[], char *buf,
-				grub_size_t size)
+grub_err_t
+grub_create_loader_cmdline (int argc, char *argv[], char *buf,
+			    grub_size_t size, enum grub_verify_string_type type)
 {
   int i, space;
   unsigned int arg_size;
@@ -130,5 +131,5 @@ int grub_create_loader_cmdline (int argc, char *argv[], char *buf,
 		    "grub_kernel_cmdline", orig);
   grub_print_error();
 
-  return i;
+  return grub_verify_string (orig, type);
 }
