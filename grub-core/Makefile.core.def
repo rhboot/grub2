@@ -2182,6 +2182,18 @@ module = {
 };
 
 module = {
+  name = efi_netfs;
+  common = net/efi/efi_netfs.c;
+  common = net/efi/net.c;
+  common = net/efi/http.c;
+  common = net/efi/pxe.c;
+  common = net/efi/ip4_config.c;
+  common = net/efi/ip6_config.c;
+  common = net/efi/dhcp.c;
+  enable = efi;
+};
+
+module = {
   name = net;
   common = net/net.c;
   common = net/dns.c;
@@ -2195,6 +2207,12 @@ module = {
   common = net/arp.c;
   common = net/netbuff.c;
   common = net/url.c;
+  efi = net/efi/net.c;
+  efi = net/efi/http.c;
+  efi = net/efi/pxe.c;
+  efi = net/efi/ip4_config.c;
+  efi = net/efi/ip6_config.c;
+  efi = net/efi/dhcp.c;
 };
 
 module = {

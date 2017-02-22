@@ -32,6 +32,9 @@
 #include <grub/loader.h>
 #include <grub/bufio.h>
 #include <grub/kernel.h>
+#ifdef GRUB_MACHINE_EFI
+#include <grub/net/efi.h>
+#endif
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -2025,8 +2028,49 @@ static grub_command_t cmd_addaddr, cmd_deladdr, cmd_addroute, cmd_delroute;
 static grub_command_t cmd_lsroutes, cmd_lscards;
 static grub_command_t cmd_lsaddr, cmd_slaac;
 
+#ifdef GRUB_MACHINE_EFI
+
+static enum {
+  INIT_MODE_NONE,
+  INIT_MODE_GRUB,
+  INIT_MODE_EFI
+} init_mode;
+
+static grub_command_t cmd_bootp, cmd_bootp6;
+
+#endif
+
 GRUB_MOD_INIT(net)
 {
+#ifdef GRUB_MACHINE_EFI
+  if (grub_net_open)
+    return;
+
+  if ((grub_efi_net_boot_from_https () || grub_efi_net_boot_from_opa ())
+      && grub_efi_net_fs_init ())
+    {
+      cmd_lsroutes = grub_register_command ("net_ls_routes", grub_efi_net_list_routes,
+					    "", N_("list network routes"));
+      cmd_lscards = grub_register_command ("net_ls_cards", grub_efi_net_list_cards,
+					   "", N_("list network cards"));
+      cmd_lsaddr = grub_register_command ("net_ls_addr", grub_efi_net_list_addrs,
+					  "", N_("list network addresses"));
+      cmd_addaddr = grub_register_command ("net_add_addr", grub_efi_net_add_addr,
+					    /* TRANSLATORS: HWADDRESS stands for
+					       "hardware address".  */
+					  N_("SHORTNAME CARD ADDRESS [HWADDRESS]"),
+					  N_("Add a network address."));
+      cmd_bootp = grub_register_command ("net_bootp", grub_efi_net_bootp,
+					 N_("[CARD]"),
+					 N_("perform a bootp autoconfiguration"));
+      cmd_bootp6 = grub_register_command ("net_bootp6", grub_efi_net_bootp6,
+					 N_("[CARD]"),
+					 N_("perform a bootp autoconfiguration"));
+      init_mode = INIT_MODE_EFI;
+      return;
+    }
+#endif
+
   grub_register_variable_hook ("net_default_server", defserver_get_env,
 			       defserver_set_env);
   grub_env_export ("net_default_server");
@@ -2074,10 +2118,37 @@ GRUB_MOD_INIT(net)
 						grub_net_restore_hw,
 						GRUB_LOADER_PREBOOT_HOOK_PRIO_DISK);
   grub_net_poll_cards_idle = grub_net_poll_cards_idle_real;
+
+#ifdef GRUB_MACHINE_EFI
+  grub_env_set ("grub_netfs_type", "grub");
+  grub_register_variable_hook ("grub_netfs_type", 0, grub_env_write_readonly);
+  grub_env_export ("grub_netfs_type");
+  init_mode = INIT_MODE_GRUB;
+#endif
+
 }
 
 GRUB_MOD_FINI(net)
 {
+
+#ifdef GRUB_MACHINE_EFI
+  if (init_mode == INIT_MODE_NONE)
+    return;
+
+  if (init_mode == INIT_MODE_EFI)
+    {
+      grub_unregister_command (cmd_lsroutes);
+      grub_unregister_command (cmd_lscards);
+      grub_unregister_command (cmd_lsaddr);
+      grub_unregister_command (cmd_addaddr);
+      grub_unregister_command (cmd_bootp);
+      grub_unregister_command (cmd_bootp6);
+      grub_efi_net_fs_fini ();
+      init_mode = INIT_MODE_NONE;
+      return;
+    }
+#endif
+
   grub_register_variable_hook ("net_default_server", 0, 0);
   grub_register_variable_hook ("pxe_default_server", 0, 0);
 
@@ -2096,4 +2167,7 @@ GRUB_MOD_FINI(net)
   grub_net_fini_hw (0);
   grub_loader_unregister_preboot_hook (fini_hnd);
   grub_net_poll_cards_idle = grub_net_poll_cards_idle_real;
+#ifdef GRUB_MACHINE_EFI
+  init_mode = INIT_MODE_NONE;
+#endif
 }
