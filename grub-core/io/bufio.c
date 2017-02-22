@@ -139,7 +139,7 @@ grub_bufio_read (grub_file_t file, char *buf, grub_size_t len)
     return res;
 
   /* Need to read some more.  */
-  next_buf = (file->offset + res + len - 1) & ~((grub_off_t) bufio->block_size - 1);
+  next_buf = (grub_divmod64 (file->offset + res + len - 1, bufio->block_size, NULL)) * bufio->block_size;
   /* Now read between file->offset + res and bufio->buffer_at.  */
   if (file->offset + res < next_buf)
     {
