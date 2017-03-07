@@ -360,8 +360,8 @@ tftp_open (struct grub_file *file, const char *filename)
   /* Copy and normalize the filename to work-around issues on some tftp
      servers when file names are being matched for remapping. */
   grub_normalize_filename (rrq, filename);
-  rrqlen += grub_strlen (filename) + 1;
-  rrq += grub_strlen (filename) + 1;
+  rrqlen += grub_strlen (rrq) + 1;
+  rrq += grub_strlen (rrq) + 1;
 
   grub_strcpy (rrq, "octet");
   rrqlen += grub_strlen ("octet") + 1;
