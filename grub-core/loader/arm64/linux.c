@@ -80,7 +80,21 @@ finalize_params_linux (void)
 
   node = grub_fdt_find_subnode (fdt, 0, "chosen");
   if (node < 0)
-    node = grub_fdt_add_subnode (fdt, 0, "chosen");
+    {
+      /*
+       * If we have to create a chosen node, Make sure we
+       * have #address-cells and #size-cells properties.
+       */
+      retval = grub_fdt_set_prop32(fdt, 0, "#address-cells", 2);
+      if (retval)
+	goto failure;
+
+      retval = grub_fdt_set_prop32(fdt, 0, "#size-cells", 2);
+      if (retval)
+	goto failure;
+
+      node = grub_fdt_add_subnode (fdt, 0, "chosen");
+    }
 
   if (node < 1)
     goto failure;
