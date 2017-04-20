@@ -1159,18 +1159,8 @@ main (int argc, char *argv[])
 	  char *d;
 
 	  is_guess = 1;
-	  d = grub_util_path_concat (2, bootdir, "macppc");
-	  if (!grub_util_is_directory (d))
-	    {
-	      free (d);
-	      d = grub_util_path_concat (2, bootdir, "efi");
-	    }
 	  /* Find the Mac HFS(+) System Partition.  */
-	  if (!grub_util_is_directory (d))
-	    {
-	      free (d);
-	      d = grub_util_path_concat (2, bootdir, "EFI");
-	    }
+	  d = grub_util_path_concat (2, bootdir, "macppc");
 	  if (!grub_util_is_directory (d))
 	    {
 	      free (d);
