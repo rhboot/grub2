@@ -46,6 +46,7 @@ static struct grub_net_card emucard =
     .mtu = 1500,
     .default_address = {
 			 .type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET,
+			 . len = 6,
 			 {.mac = {0, 1, 2, 3, 4, 5}}
 		       },
     .flags = 0

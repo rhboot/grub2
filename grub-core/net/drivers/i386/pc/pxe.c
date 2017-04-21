@@ -386,20 +386,21 @@ GRUB_MOD_INIT(pxe)
   grub_memset (ui, 0, sizeof (*ui));
   grub_pxe_call (GRUB_PXENV_UNDI_GET_INFORMATION, ui, pxe_rm_entry);
 
+  grub_pxe_card.default_address.len = 6;
   grub_memcpy (grub_pxe_card.default_address.mac, ui->current_addr,
-	       sizeof (grub_pxe_card.default_address.mac));
-  for (i = 0; i < sizeof (grub_pxe_card.default_address.mac); i++)
+	       grub_pxe_card.default_address.len);
+  for (i = 0; i < grub_pxe_card.default_address.len; i++)
     if (grub_pxe_card.default_address.mac[i] != 0)
       break;
-  if (i != sizeof (grub_pxe_card.default_address.mac))
+  if (i != grub_pxe_card.default_address.len)
     {
-      for (i = 0; i < sizeof (grub_pxe_card.default_address.mac); i++)
+      for (i = 0; i < grub_pxe_card.default_address.len; i++)
 	if (grub_pxe_card.default_address.mac[i] != 0xff)
 	  break;
     }
-  if (i == sizeof (grub_pxe_card.default_address.mac))
+  if (i == grub_pxe_card.default_address.len)
     grub_memcpy (grub_pxe_card.default_address.mac, ui->permanent_addr,
-		 sizeof (grub_pxe_card.default_address.mac));
+		 grub_pxe_card.default_address.len);
   grub_pxe_card.mtu = ui->mtu;
 
   grub_pxe_card.default_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
