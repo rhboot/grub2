@@ -777,7 +777,8 @@ grub_cmd_bootp (struct grub_command *cmd __attribute__ ((unused)),
 	      grub_errno = GRUB_ERR_NONE;
 	      t = 0;
 	    }
-	  pack->ident = grub_cpu_to_be32 (t);
+	  pack->xid = grub_cpu_to_be32 (t);
+	  ifaces[j].dhcp_xid = pack->xid;
 	  pack->seconds = grub_cpu_to_be16 (t);
 
 	  grub_memcpy (&pack->mac_addr, &ifaces[j].hwaddress.mac, 6); 

@@ -275,6 +275,7 @@ handle_dgram (struct grub_net_buff *nb,
 	FOR_NET_NETWORK_LEVEL_INTERFACES (inf)
 	  if (inf->card == card
 	      && inf->address.type == GRUB_NET_NETWORK_LEVEL_PROTOCOL_DHCP_RECV
+	      && inf->dhcp_xid == bootp->xid
 	      && inf->hwaddress.type == GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET
 	      && grub_memcmp (inf->hwaddress.mac, &bootp->mac_addr,
 			      sizeof (inf->hwaddress.mac)) == 0)
