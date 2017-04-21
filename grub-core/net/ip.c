@@ -277,8 +277,8 @@ handle_dgram (struct grub_net_buff *nb,
 	      && inf->address.type == GRUB_NET_NETWORK_LEVEL_PROTOCOL_DHCP_RECV
 	      && inf->dhcp_xid == bootp->xid
 	      && inf->hwaddress.type == GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET
-	      && grub_memcmp (inf->hwaddress.mac, &bootp->mac_addr,
-			      sizeof (inf->hwaddress.mac)) == 0)
+	      && (grub_memcmp (inf->hwaddress.mac, &bootp->mac_addr,
+			       bootp->hw_len) == 0 || bootp->hw_len == 0))
 	    {
 	      grub_net_process_dhcp (nb, inf->card);
 	      grub_netbuff_free (nb);

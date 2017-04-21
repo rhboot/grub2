@@ -29,7 +29,8 @@
 
 enum
   {
-    GRUB_NET_MAX_LINK_HEADER_SIZE = 64,
+    GRUB_NET_MAX_LINK_HEADER_SIZE = 96,
+    GRUB_NET_MAX_LINK_ADDRESS_SIZE = 32,
     GRUB_NET_UDP_HEADER_SIZE = 8,
     GRUB_NET_TCP_HEADER_SIZE = 20,
     GRUB_NET_OUR_IPV4_HEADER_SIZE = 20,
@@ -42,15 +43,17 @@ enum
 
 typedef enum grub_link_level_protocol_id 
 {
-  GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET
+  /* IANA ARP constant to define hardware type. */
+  GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET = 1,
 } grub_link_level_protocol_id_t;
 
 typedef struct grub_net_link_level_address
 {
   grub_link_level_protocol_id_t type;
+  grub_uint8_t len;
   union
   {
-    grub_uint8_t mac[6];
+    grub_uint8_t mac[GRUB_NET_MAX_LINK_ADDRESS_SIZE];
   };
 } grub_net_link_level_address_t;
 
@@ -555,11 +558,13 @@ grub_net_addr_cmp (const grub_net_network_level_address_t *a,
 #define GRUB_NET_MAX_STR_ADDR_LEN sizeof ("XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX")
 
 /*
-  Currently suppoerted adresses:
-  ethernet:   XX:XX:XX:XX:XX:XX
+  Up to 32 byte hardware address supported, see GRUB_NET_MAX_LINK_ADDRESS_SIZE
  */
-
-#define GRUB_NET_MAX_STR_HWADDR_LEN (sizeof ("XX:XX:XX:XX:XX:XX"))
+#define GRUB_NET_MAX_STR_HWADDR_LEN (sizeof (\
+	"XX:XX:XX:XX:XX:XX:XX:XX:"\
+	"XX:XX:XX:XX:XX:XX:XX:XX:"\
+	"XX:XX:XX:XX:XX:XX:XX:XX:"\
+	"XX:XX:XX:XX:XX:XX:XX:XX"))
 
 void
 grub_net_addr_to_str (const grub_net_network_level_address_t *target,
