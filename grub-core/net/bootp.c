@@ -219,7 +219,6 @@ grub_net_configure_by_dhcp_ack (const char *name,
 				int is_def, char **device, char **path)
 {
   grub_net_network_level_address_t addr;
-  grub_net_link_level_address_t hwaddr;
   struct grub_net_network_level_interface *inter;
   int mask = -1;
   char server_ip[sizeof ("xxx.xxx.xxx.xxx")];
@@ -232,12 +231,8 @@ grub_net_configure_by_dhcp_ack (const char *name,
   if (path)
     *path = 0;
 
-  grub_memcpy (hwaddr.mac, bp->mac_addr,
-	       bp->hw_len < sizeof (hwaddr.mac) ? bp->hw_len
-	       : sizeof (hwaddr.mac));
-  hwaddr.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-
-  inter = grub_net_add_addr (name, card, &addr, &hwaddr, flags);
+  grub_dprintf("dhcp", "configuring dhcp for %s\n", name);
+  inter = grub_net_add_addr (name, card, &addr, &card->default_address, flags);
   if (!inter)
     return 0;
 
@@ -770,7 +765,8 @@ grub_cmd_bootp (struct grub_command *cmd __attribute__ ((unused)),
 	  grub_memset (pack, 0, sizeof (*pack) + 64);
 	  pack->opcode = 1;
 	  pack->hw_type = 1;
-	  pack->hw_len = 6;
+	  pack->hw_len = ifaces[j].hwaddress.len > 16 ? 0
+						      : ifaces[j].hwaddress.len;
 	  err = grub_get_datetime (&date);
 	  if (err || !grub_datetime2unixtime (&date, &t))
 	    {
@@ -781,7 +777,7 @@ grub_cmd_bootp (struct grub_command *cmd __attribute__ ((unused)),
 	  ifaces[j].dhcp_xid = pack->xid;
 	  pack->seconds = grub_cpu_to_be16 (t);
 
-	  grub_memcpy (&pack->mac_addr, &ifaces[j].hwaddress.mac, 6); 
+	  grub_memcpy (&pack->mac_addr, &ifaces[j].hwaddress.mac, pack->hw_len);
 
 	  grub_netbuff_push (nb, sizeof (*udph));
 

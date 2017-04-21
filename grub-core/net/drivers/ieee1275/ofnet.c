@@ -160,6 +160,7 @@ grub_ieee1275_parse_bootpath (const char *devpath, char *bootpath,
   grub_uint16_t vlantag = 0;
 
   hw_addr.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
+  hw_addr.len = 6;
 
   args = bootpath + grub_strlen (devpath) + 1;
   do
@@ -503,6 +504,7 @@ search_net_devices (struct grub_ieee1275_devalias *alias)
     grub_memcpy (&lla.mac, pprop, 6);
 
   lla.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
+  lla.len = 6;
   card->default_address = lla;
 
   card->txbufsize = ALIGN_UP (card->mtu, 64) + 256;
