@@ -292,6 +292,7 @@ struct grub_net_network_level_interface
   struct grub_net_bootp_packet *dhcp_ack;
   grub_size_t dhcp_acklen;
   grub_uint16_t vlantag;
+  grub_uint32_t dhcp_xid;
   void *data;
 };
 
@@ -429,7 +430,7 @@ struct grub_net_bootp_packet
   grub_uint8_t hw_type;		/* hardware type.  */
   grub_uint8_t hw_len;		/* hardware addr len.  */
   grub_uint8_t gate_hops;	/* zero it.  */
-  grub_uint32_t ident;		/* random number chosen by client.  */
+  grub_uint32_t xid;		/* transaction id chosen by client.  */
   grub_uint16_t seconds;	/* seconds since did initial bootstrap.  */
   grub_uint16_t flags;
   grub_uint32_t	client_ip;
