@@ -29,13 +29,6 @@
 
 #define LLCADDRMASK 0x7f
 
-struct etherhdr
-{
-  grub_uint8_t dst[6];
-  grub_uint8_t src[6];
-  grub_uint16_t type;
-} GRUB_PACKED;
-
 struct llchdr
 {
   grub_uint8_t dsap;
@@ -55,13 +48,15 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
 		      grub_net_link_level_address_t target_addr,
 		      grub_net_ethertype_t ethertype)
 {
-  struct etherhdr *eth;
+  grub_uint8_t *eth;
   grub_err_t err;
   grub_uint32_t vlantag = 0;
-  grub_uint8_t etherhdr_size;
+  grub_uint8_t hw_addr_len = inf->card->default_address.len;
+  grub_uint8_t etherhdr_size = 2 * hw_addr_len + 2;
 
-  etherhdr_size = sizeof (*eth);
-  COMPILE_TIME_ASSERT (sizeof (*eth) + 4 < GRUB_NET_MAX_LINK_HEADER_SIZE);
+  /* Source and destination link addresses + ethertype + vlan tag */
+  COMPILE_TIME_ASSERT ((GRUB_NET_MAX_LINK_ADDRESS_SIZE * 2 + 2 + 4) <
+		       GRUB_NET_MAX_LINK_HEADER_SIZE);
 
   const char *vlantag_text = grub_env_get ("vlan-tag");
   if (vlantag_text != 0) {
@@ -72,11 +67,22 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
   err = grub_netbuff_push (nb, etherhdr_size);
   if (err)
     return err;
-  eth = (struct etherhdr *) nb->data;
-  grub_memcpy (eth->dst, target_addr.mac, 6);
-  grub_memcpy (eth->src, inf->hwaddress.mac, 6);
+  eth = nb->data;
+  grub_memcpy (eth, target_addr.mac, hw_addr_len);
+  eth += hw_addr_len;
+  grub_memcpy (eth, inf->hwaddress.mac, hw_addr_len);
+  eth += hw_addr_len;
 
-  eth->type = grub_cpu_to_be16 (ethertype);
+  /* Check if a vlan-tag is present. */
+  if (vlantag != 0)
+    {
+      *((grub_uint32_t *)eth) = grub_cpu_to_be32 (vlantag);
+      eth += sizeof (vlantag);
+    }
+
+  /* Write ethertype */
+  *((grub_uint16_t*) eth) = grub_cpu_to_be16 (ethertype);
+
   if (!inf->card->opened)
     {
       err = GRUB_ERR_NONE;
@@ -87,18 +93,6 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
       inf->card->opened = 1;
     }
 
-  /* Check if a vlan-tag is needed. */
-  if (vlantag != 0)
-    {
-      /* Move eth type to the right */
-      grub_memcpy((char *) nb->data + etherhdr_size - 2,
-                  (char *) nb->data + etherhdr_size - 6, 2);
-
-      /* Add the tag in the middle */
-      grub_memcpy((char *) nb->data + etherhdr_size - 6,
-                  &vlantag, 4);
-    }
-
   return inf->card->driver->send (inf->card, nb);
 }
 
@@ -106,29 +100,37 @@ grub_err_t
 grub_net_recv_ethernet_packet (struct grub_net_buff *nb,
 			       struct grub_net_card *card)
 {
-  struct etherhdr *eth;
+  grub_uint8_t *eth;
   struct llchdr *llch;
   struct snaphdr *snaph;
   grub_net_ethertype_t type;
   grub_net_link_level_address_t hwaddress;
   grub_net_link_level_address_t src_hwaddress;
   grub_err_t err;
-  grub_uint8_t etherhdr_size = sizeof (*eth);
+  grub_uint8_t hw_addr_len = card->default_address.len;
+  grub_uint8_t etherhdr_size = 2 * hw_addr_len + 2;
 
-  grub_uint16_t vlantag_identifier = 0;
-  grub_memcpy (&vlantag_identifier, nb->data + etherhdr_size - 2, 2);
+  eth = nb->data;
 
-  /* Check if a vlan-tag is present. */
-  if (vlantag_identifier == VLANTAG_IDENTIFIER)
+  hwaddress.type = card->default_address.type;
+  hwaddress.len = hw_addr_len;
+  grub_memcpy (hwaddress.mac, eth, hw_addr_len);
+  eth += hw_addr_len;
+
+  src_hwaddress.type = card->default_address.type;
+  src_hwaddress.len = hw_addr_len;
+  grub_memcpy (src_hwaddress.mac, eth, hw_addr_len);
+  eth += hw_addr_len;
+
+  type = grub_be_to_cpu16 (*(grub_uint16_t*)(eth));
+  if (type == VLANTAG_IDENTIFIER)
     {
+      /* Skip vlan tag */
       etherhdr_size += 4;
-      /* Move eth type to the original position */
-      grub_memcpy((char *) nb->data + etherhdr_size - 6,
-                  (char *) nb->data + etherhdr_size - 2, 2);
+      eth += 4;
+      type = grub_be_to_cpu16 (*(grub_uint16_t*)(eth));
     }
 
-  eth = (struct etherhdr *) nb->data;
-  type = grub_be_to_cpu16 (eth->type);
   err = grub_netbuff_pull (nb, etherhdr_size);
   if (err)
     return err;
@@ -147,11 +149,6 @@ grub_net_recv_ethernet_packet (struct grub_net_buff *nb,
 	  type = snaph->type;
 	}
     }
-
-  hwaddress.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-  grub_memcpy (hwaddress.mac, eth->dst, sizeof (hwaddress.mac));
-  src_hwaddress.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-  grub_memcpy (src_hwaddress.mac, eth->src, sizeof (src_hwaddress.mac));
 
   switch (type)
     {

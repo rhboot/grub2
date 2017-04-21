@@ -230,8 +230,9 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 		&& ohdr->len == 1)
 	      {
 		grub_net_link_level_address_t ll_address;
-		ll_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-		grub_memcpy (ll_address.mac, ohdr + 1, sizeof (ll_address.mac));
+		ll_address.type = card->default_address.type;
+		ll_address.len = card->default_address.len;
+		grub_memcpy (ll_address.mac, ohdr + 1, ll_address.len);
 		grub_net_link_layer_add_address (card, source, &ll_address, 0);
 	      }
 	  }
@@ -334,8 +335,9 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 		&& ohdr->len == 1)
 	      {
 		grub_net_link_level_address_t ll_address;
-		ll_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-		grub_memcpy (ll_address.mac, ohdr + 1, sizeof (ll_address.mac));
+		ll_address.type = card->default_address.type;
+		ll_address.len = card->default_address.len;
+		grub_memcpy (ll_address.mac, ohdr + 1, ll_address.len);
 		grub_net_link_layer_add_address (card, source, &ll_address, 0);
 	      }
 	  }
@@ -366,8 +368,9 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 		&& ohdr->len == 1)
 	      {
 		grub_net_link_level_address_t ll_address;
-		ll_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
-		grub_memcpy (ll_address.mac, ohdr + 1, sizeof (ll_address.mac));
+		ll_address.type = card->default_address.type;
+		ll_address.len = card->default_address.len;
+		grub_memcpy (ll_address.mac, ohdr + 1, ll_address.len);
 		grub_net_link_layer_add_address (card, source, &ll_address, 0);
 	      }
 	    if (ohdr->type == OPTION_PREFIX && ohdr->len == 4)
