@@ -313,13 +313,23 @@ grub_efi_modules_addr (void)
     }
 
   if (i == coff_header->num_sections)
-    return 0;
+    {
+      grub_dprintf("sections", "section %d is last section; invalid.\n", i);
+      return 0;
+    }
 
   info = (struct grub_module_info *) ((char *) image->image_base
 				      + section->virtual_address);
-  if (info->magic != GRUB_MODULE_MAGIC)
-    return 0;
+  if (section->name[0] != '.' && info->magic != GRUB_MODULE_MAGIC)
+    {
+      grub_dprintf("sections",
+		   "section %d has bad magic %08x, should be %08x\n",
+		   i, info->magic, GRUB_MODULE_MAGIC);
+      return 0;
+    }
 
+  grub_dprintf("sections", "returning section info for section %d: \"%s\"\n",
+	       i, section->name);
   return (grub_addr_t) info;
 }
 
