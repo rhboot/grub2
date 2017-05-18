@@ -162,12 +162,6 @@ grub_net_arp_receive (struct grub_net_buff *nb,
     if (grub_net_addr_cmp (&inf->address, &target_addr) == 0
 	&& grub_be_to_cpu16 (arp_header->op) == ARP_REQUEST)
       {
-        if ((nb->tail - nb->data) > 50)
-          {
-            grub_dprintf ("net", "arp packet with abnormal size (%ld bytes).\n",
-                         nb->tail - nb->data);
-            nb->tail = nb->data + 50;
-          }
 	grub_net_link_level_address_t target;
 	/* We've already checked that pln is either 4 or 16.  */
 	char tmp[16];
