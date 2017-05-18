@@ -150,12 +150,6 @@ grub_net_arp_receive (struct grub_net_buff *nb, struct grub_net_card *card,
     if (grub_net_addr_cmp (&inf->address, &target_addr) == 0
 	&& arp_packet->op == grub_cpu_to_be16_compile_time (ARP_REQUEST))
       {
-        if ((nb->tail - nb->data) > 50)
-          {
-            grub_dprintf ("net", "arp packet with abnormal size (%ld bytes).\n",
-                         nb->tail - nb->data);
-            nb->tail = nb->data + 50;
-          }
 	grub_net_link_level_address_t target;
 	struct grub_net_buff nb_reply;
 	struct arppkt *arp_reply;
