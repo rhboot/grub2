@@ -398,11 +398,31 @@ grub_net_configure_by_dhcp_ack (const char *name,
 	      if (*path)
 		{
 		  char *slash;
+		  int root_path_len;
 		  slash = grub_strrchr (*path, '/');
 		  if (slash)
 		    *slash = 0;
 		  else
 		    **path = 0;
+		  root_path_len = grub_strlen (*path);
+		  if (root_path_len >= 9 &&
+		      !grub_strcasecmp (&(*path)[root_path_len - 9], "/efi/boot"))
+		    {
+		      char *root_path;
+		      grub_print_error ();
+		      if (root_path_len - 9 == 0)
+			{
+			  root_path_len = 1;
+			  root_path = grub_xasprintf ("/");
+			}
+		      else
+			{
+			  root_path_len -= 9;
+			  root_path = grub_strndup (*path, root_path_len);
+			}
+		      grub_env_set_net_property (name, "rootpath",
+						 root_path, root_path_len);
+		    }
 		}
 	    }
 	  grub_net_add_ipv4_local (inter, mask);
