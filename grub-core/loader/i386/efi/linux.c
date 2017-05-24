@@ -161,8 +161,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 		int argc, char *argv[])
 {
   grub_file_t file = 0;
-  struct linux_kernel_header *lh;
-  grub_ssize_t len, start, filelen;
+  struct linux_kernel_header *lh = NULL;
+  grub_ssize_t start, filelen;
   void *kernel = NULL;
   int setup_header_end_offset;
   int rc;
@@ -212,18 +212,19 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  grub_dprintf ("linuxefi", "params = %p\n", (unsigned long) params);
+  grub_dprintf ("linuxefi", "params = %p\n", params);
 
   grub_memset (params, 0, sizeof(*params));
 
   setup_header_end_offset = *((grub_uint8_t *)kernel + 0x201);
   grub_dprintf ("linuxefi", "copying %lu bytes from %p to %p\n",
-		MIN(0x202+setup_header_end_offset,sizeof (*params)) - 0x1f1,
+		MIN((grub_size_t)0x202+setup_header_end_offset,
+		    sizeof (*params)) - 0x1f1,
 		(grub_uint8_t *)kernel + 0x1f1,
 		(grub_uint8_t *)params + 0x1f1);
   grub_memcpy ((grub_uint8_t *)params + 0x1f1,
 	       (grub_uint8_t *)kernel + 0x1f1,
-		MIN(0x202+setup_header_end_offset,sizeof (*params)) - 0x1f1);
+		MIN((grub_size_t)0x202+setup_header_end_offset,sizeof (*params)) - 0x1f1);
   lh = (struct linux_kernel_header *)params;
   grub_dprintf ("linuxefi", "lh is at %p\n", lh);
   grub_dprintf ("linuxefi", "checking lh->boot_flag\n");
@@ -254,7 +255,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-#ifdef defined(__x86_64__) || defined(__aarch64__)
+#if defined(__x86_64__) || defined(__aarch64__)
   grub_dprintf ("linuxefi", "checking lh->xloadflags\n");
   if (!(lh->xloadflags & LINUX_XLF_KERNEL_64))
     {
@@ -298,7 +299,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   handover_offset = lh->handover_offset;
 
   start = (lh->setup_sects + 1) * 512;
-  len = grub_file_size(file) - start;
 
   kernel_mem = grub_efi_allocate_pages(lh->pref_address,
 				       BYTES_TO_PAGES(lh->init_size));
@@ -344,7 +344,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       loaded = 0;
     }
 
-  if (linux_cmdline && !loaded)
+  if (linux_cmdline && lh && !loaded)
     grub_efi_free_pages ((grub_efi_physical_address_t)(grub_addr_t)
 			 linux_cmdline,
 			 BYTES_TO_PAGES(lh->cmdline_size + 1));
