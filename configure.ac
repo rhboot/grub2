@@ -315,6 +315,15 @@ AC_SUBST(grubdirname)
 AC_DEFINE_UNQUOTED(GRUB_DIR_NAME, "$grubdirname",
     [Default grub directory name])
 
+AC_ARG_WITH([moduledir],
+	    AS_HELP_STRING([--with-moduledir=NAME],
+			   [set the name of the module directory [[guessed]]]),
+			   [moduledirname="$with_moduledir"],
+			   [moduledirname="$target_cpu-$platform"])
+AC_SUBST(moduledirname)
+AC_DEFINE_UNQUOTED(MODULE_DIR_NAME, "$moduledirname",
+    [Default module directory name])
+
 #
 # Checks for build programs.
 #

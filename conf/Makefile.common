@@ -69,7 +69,7 @@ CCASFLAGS_LIBRARY =
 # Other variables
 
 grubconfdir = $(sysconfdir)/grub.d
-platformdir = $(pkglibdir)/$(target_cpu)-$(platform)
+platformdir = $(pkglibdir)/$(moduledirname)
 starfielddir = $(pkgdatadir)/themes/starfield
 
 CFLAGS_GNULIB = -Wno-undef -Wno-sign-compare -Wno-unused -Wno-unused-parameter -Wno-redundant-decls -Wno-unreachable-code -Wno-conversion

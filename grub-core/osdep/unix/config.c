@@ -52,7 +52,7 @@ grub_util_get_pkgdatadir (void)
 const char *
 grub_util_get_pkglibdir (void)
 {
-  return GRUB_LIBDIR "/" PACKAGE;
+  return GRUB_LIBDIR "/" MODULE_DIR_NAME;
 }
 
 const char *
