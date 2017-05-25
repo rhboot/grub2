@@ -327,6 +327,15 @@ AS_IF([$($PKG_CONFIG --exists bash-completion)], [
 ])
 AC_SUBST(bashcompletiondir)
 
+AC_ARG_WITH([moduledir],
+	    AS_HELP_STRING([--with-moduledir=NAME],
+			   [set the name of the module directory [[guessed]]]),
+			   [moduledirname="$with_moduledir"],
+			   [moduledirname="$target_cpu-$platform"])
+AC_SUBST(moduledirname)
+AC_DEFINE_UNQUOTED(MODULE_DIR_NAME, "$moduledirname",
+    [Default module directory name])
+
 #
 # Checks for build programs.
 #
