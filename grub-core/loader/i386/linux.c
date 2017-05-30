@@ -680,6 +680,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 {
   grub_file_t file = 0;
   struct linux_kernel_header lh;
+  grub_uint8_t *linux_params_ptr;
   grub_uint8_t setup_sects;
   grub_size_t real_size, prot_size, prot_file_size, kernel_offset;
   grub_ssize_t len;
@@ -811,6 +812,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 		      preferred_address))
     goto fail;
 
+
   grub_memset (&linux_params, 0, sizeof (linux_params));
   grub_memcpy (&linux_params.setup_sects, &lh.setup_sects, sizeof (lh) - 0x1F1);
 
@@ -820,7 +822,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   len = sizeof (linux_params) - sizeof (lh);
 
-  grub_memcpy (&linux_params + sizeof (lh), kernel + kernel_offset, len);
+  linux_params_ptr = (void *)&linux_params;
+  grub_memcpy (linux_params_ptr + sizeof (lh), kernel + kernel_offset, len);
   kernel_offset += len;
 
   linux_params.type_of_loader = GRUB_LINUX_BOOT_LOADER_TYPE;
