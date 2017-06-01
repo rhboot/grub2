@@ -527,6 +527,14 @@ typedef grub_uint8_t grub_efi_char8_t;
 typedef grub_uint16_t grub_efi_char16_t;
 
 typedef grub_efi_intn_t grub_efi_status_t;
+/* Make grub_efi_status_t reasonably printable. */
+#if GRUB_CPU_SIZEOF_VOID_P == 8
+#define PRIxGRUB_EFI_STATUS "lx"
+#define PRIdGRUB_EFI_STATUS "ld"
+#else
+#define PRIxGRUB_EFI_STATUS "llx"
+#define PRIdGRUB_EFI_STATUS "lld"
+#endif
 
 #define GRUB_EFI_ERROR_CODE(value)	\
   ((((grub_efi_status_t) 1) << (sizeof (grub_efi_status_t) * 8 - 1)) | (value))
