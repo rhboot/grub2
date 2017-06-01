@@ -95,7 +95,7 @@ grub_chainloader_boot (void *context)
     }
 
   if (exit_data)
-    b->free_pool (exit_data);
+    grub_efi_free_pool (exit_data);
 
   grub_loader_unset ();
 
@@ -419,7 +419,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_free (file_path);
 
   if (address)
-    b->free_pages (address, pages);
+    grub_efi_free_pages (address, pages);
 
   if (image_handle != NULL)
     b->unload_image (image_handle);
