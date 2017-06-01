@@ -783,7 +783,8 @@ handle_image (void *data, grub_efi_uint32_t datasize)
   efi_status = efi_call_2 (entry_point, grub_efi_image_handle,
 			   grub_efi_system_table);
 
-  grub_dprintf ("chain", "entry_point returned %ld\n", efi_status);
+  grub_dprintf ("chain", "entry_point returned 0x%"PRIxGRUB_EFI_STATUS"\n",
+		efi_status);
   grub_memcpy (li, &li_bak, sizeof (grub_efi_loaded_image_t));
   efi_status = grub_efi_free_pool (buffer);
 
