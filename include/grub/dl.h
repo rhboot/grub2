@@ -54,6 +54,7 @@ grub_mod_fini (void)
 
 #define GRUB_MOD_INIT(name)	\
 static void grub_mod_init (grub_dl_t mod __attribute__ ((unused))) __attribute__ ((used)); \
+extern void grub_##name##_init (void); \
 void \
 grub_##name##_init (void) { grub_mod_init (0); } \
 static void \
@@ -61,6 +62,7 @@ grub_mod_init (grub_dl_t mod __attribute__ ((unused)))
 
 #define GRUB_MOD_FINI(name)	\
 static void grub_mod_fini (void) __attribute__ ((used)); \
+extern void grub_##name##_fini (void); \
 void \
 grub_##name##_fini (void) { grub_mod_fini (); } \
 static void \
