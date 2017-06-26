@@ -424,10 +424,46 @@ else
   AC_PATH_PROG(HELP2MAN, help2man)
 fi
 
+# AC_HEADER_MAJOR_OI
+# ---------------
+AN_FUNCTION([major],     [AC_HEADER_MAJOR_OI])
+AN_FUNCTION([makedev],   [AC_HEADER_MAJOR_OI])
+AN_FUNCTION([minor],     [AC_HEADER_MAJOR_OI])
+AN_HEADER([sys/mkdev.h], [AC_HEADER_MAJOR_OI])
+AC_DEFUN([AC_HEADER_MAJOR_OI],
+[AC_CACHE_CHECK(whether sys/sysmacros.h defines makedev,
+		ac_cv_header_sys_sysmacros_h_makedev,
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([[@%:@include <sys/sysmacros.h>]],
+				 [[return makedev(0, 0);]])],
+		[ac_cv_header_sys_sysmacros_h_makedev=yes],
+		[ac_cv_header_sys_sysmacros_h_makedev=no])
+])
+
+if test $ac_cv_header_sys_sysmacros_h_makedev = no; then
+AC_CHECK_HEADER(sys/mkdev.h,
+		[AC_DEFINE(MAJOR_IN_MKDEV, 1,
+			   [Define to 1 if `major', `minor', and `makedev' are
+			    declared in <mkdev.h>.])])
+
+  if test $ac_cv_header_sys_mkdev_h = no; then
+    AC_CHECK_HEADER(sys/types.h,
+		    [AC_DEFINE(MAJOR_IN_TYPES, 1,
+			       [Define to 1 if `major', `minor', and `makedev'
+				are declared in <sys/types.h>.])])
+  fi
+
+else
+  AC_DEFINE(MAJOR_IN_SYSMACROS, 1,
+			       [Define to 1 if `major', `minor', and `makedev'
+				are declared in <sys/sysmacros.h>.])
+fi
+])# AC_HEADER_MAJOR_OI
+
+
 # Check for functions and headers.
 AC_CHECK_FUNCS(posix_memalign memalign getextmntent)
 AC_CHECK_HEADERS(sys/param.h sys/mount.h sys/mnttab.h limits.h)
-AC_HEADER_MAJOR
+AC_HEADER_MAJOR_OI
 
 AC_CHECK_MEMBERS([struct statfs.f_fstypename],,,[$ac_includes_default
 #include <sys/param.h>
