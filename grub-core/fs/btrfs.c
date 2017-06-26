@@ -232,10 +232,6 @@ read_sblock (grub_disk_t disk, struct grub_btrfs_superblock *sb)
   for (i = 0; i < ARRAY_SIZE (superblock_sectors); i++)
     {
       struct grub_btrfs_superblock sblock;
-      /* Don't try additional superblocks beyond device size.  */
-      if (i && (grub_le_to_cpu64 (sblock.this_device.size)
-		>> GRUB_DISK_SECTOR_BITS) <= superblock_sectors[i])
-	break;
       err = grub_disk_read (disk, superblock_sectors[i], 0,
 			    sizeof (sblock), &sblock);
       if (err == GRUB_ERR_OUT_OF_RANGE)
@@ -247,6 +243,11 @@ read_sblock (grub_disk_t disk, struct grub_btrfs_superblock *sb)
       if (i == 0 || grub_le_to_cpu64 (sblock.generation)
 	  > grub_le_to_cpu64 (sb->generation))
 	grub_memcpy (sb, &sblock, sizeof (sblock));
+
+      /* Don't try additional superblocks beyond device size.  */
+      if (i && (grub_le_to_cpu64 (sblock.this_device.size)
+		>> GRUB_DISK_SECTOR_BITS) <= superblock_sectors[i])
+	break;
     }
 
   if ((err == GRUB_ERR_OUT_OF_RANGE || !err) && i == 0)
