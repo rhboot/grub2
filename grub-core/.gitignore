@@ -1,0 +1,15 @@
+/*.lst
+/Makefile.gcry.def
+/unidata.c
+/build-grub-module-verifier
+/gdb_grub
+/genmod.sh
+/gensyminfo.sh
+/gentrigtables
+/gmodule.pl
+/grub_script.tab.[ch]
+/modinfo.sh
+/rs_decoder.h
+/symlist.c
+/symlist.h
+/trigtables.c
