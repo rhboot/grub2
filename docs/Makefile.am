@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = subdir-objects
+AUTOMAKE_OPTIONS = subdir-objects info-in-builddir
 
 # AM_MAKEINFOFLAGS = --no-split --no-validate
 info_TEXINFOS = grub.texi grub-dev.texi
