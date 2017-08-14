@@ -28,6 +28,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <libgen.h>
 
 #define DEFAULT_ENVBLK_SIZE	1024
 
@@ -87,9 +88,20 @@ grub_util_create_envblk_file (const char *name)
 	  continue;
 	}
 
-      free (rename_target);
       linkbuf[retsize] = '\0';
-      rename_target = linkbuf;
+      if (linkbuf[0] == '/')
+        {
+          free (rename_target);
+          rename_target = linkbuf;
+        }
+      else
+        {
+          char *dbuf = xstrdup (rename_target);
+          const char *dir = dirname (dbuf);
+          free (rename_target);
+          rename_target = xasprintf("%s/%s", dir, linkbuf);
+          free (dbuf);
+        }
     }
 
   int rc = grub_util_rename (namenew, rename_target);
