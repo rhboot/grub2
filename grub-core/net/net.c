@@ -770,6 +770,7 @@ grub_net_hwaddr_to_str (const grub_net_link_level_address_t *addr, char *str)
 {
   char *ptr;
   unsigned i;
+  int maxstr;
 
   if (addr->len > GRUB_NET_MAX_LINK_ADDRESS_SIZE)
     {
@@ -778,9 +779,10 @@ grub_net_hwaddr_to_str (const grub_net_link_level_address_t *addr, char *str)
 		    addr->type, addr->len);
        return;
     }
+  maxstr = addr->len * grub_strlen ("XX:");
   for (ptr = str, i = 0; i < addr->len; i++)
     {
-      ptr += grub_snprintf (ptr, GRUB_NET_MAX_STR_HWADDR_LEN - (ptr - str),
+      ptr += grub_snprintf (ptr, maxstr - (ptr - str),
 		     "%02x:", addr->mac[i] & 0xff);
     }
 }
