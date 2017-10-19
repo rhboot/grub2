@@ -136,6 +136,8 @@ linux_entry ()
         else
             xen_rm_opts="no-real-mode edd=off"
         fi
+	insmod ${module_loader}
+	insmod ${xen_loader}
 	${xen_loader}	${rel_xen_dirname}/${xen_basename} placeholder ${xen_args} \${xen_rm_opts}
 	echo	'$(echo "$lmessage" | grub_quote)'
 	${module_loader}	${rel_dirname}/${basename} placeholder root=${linux_root_device_thisversion} ro ${args}
@@ -145,6 +147,7 @@ EOF
     message="$(gettext_printf "Loading initial ramdisk ...")"
     sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
+	insmod ${module_loader}
 	${module_loader}	--nounzip   ${rel_dirname}/${initrd}
 EOF
   fi
