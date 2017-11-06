@@ -95,13 +95,13 @@ get_header_from_pointer (void *ptr, grub_mm_header_t *p, grub_mm_region_t *r)
       break;
 
   if (! *r)
-    grub_fatal ("out of range pointer %p", ptr);
+    grub_fatal ("out of range pointer %p\n", ptr);
 
   *p = (grub_mm_header_t) ptr - 1;
   if ((*p)->magic == GRUB_MM_FREE_MAGIC)
-    grub_fatal ("double free at %p", *p);
+    grub_fatal ("double free at %p\n", *p);
   if ((*p)->magic != GRUB_MM_ALLOC_MAGIC)
-    grub_fatal ("alloc magic is broken at %p: %lx", *p,
+    grub_fatal ("alloc magic is broken at %p: %lx\n", *p,
 		(unsigned long) (*p)->magic);
 }
 
