@@ -24,7 +24,8 @@
 
 	.text
 	.code32
-	.globl _start
+	.globl start, _start
+start:
 _start:
 	jmp	codestart
 

@@ -130,6 +130,12 @@ kernel = {
   common = kern/rescue_reader.c;
   common = kern/term.c;
   common = kern/qsort.c;
+  common = kern/backtrace.c;
+
+  x86 = kern/i386/backtrace.c;
+  i386_xen = kern/i386/backtrace.c;
+  x86_64_xen = kern/i386/backtrace.c;
+  arm64 = kern/arm64/backtrace.c;
 
   noemu = kern/compiler-rt.c;
   noemu = kern/mm.c;
@@ -175,9 +181,6 @@ kernel = {
   terminfoinkernel = lib/arg.c;
 
   softdiv = lib/division.c;
-
-  x86 = lib/i386/backtrace.c;
-  x86 = lib/backtrace.c;
 
   i386 = kern/i386/dl.c;
   i386_xen = kern/i386/dl.c;
@@ -2277,13 +2280,11 @@ module = {
 
 module = {
   name = backtrace;
-  x86 = lib/i386/backtrace.c;
-  i386_xen = lib/i386/backtrace.c;
-  x86_64_xen = lib/i386/backtrace.c;
-  common = lib/backtrace.c;
+  common = commands/backtrace.c;
   enable = x86;
   enable = i386_xen;
   enable = x86_64_xen;
+  enable = arm64;
 };
 
 module = {
