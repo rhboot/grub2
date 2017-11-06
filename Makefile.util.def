@@ -49,6 +49,12 @@ library = {
   common = grub-core/partmap/msdos.c;
   common = grub-core/fs/proc.c;
   common = grub-core/fs/archelp.c;
+  common = grub-core/kern/backtrace.c;
+
+  x86 = grub-core/kern/i386/backtrace.c;
+  i386_xen = grub-core/kern/i386/backtrace.c;
+  x86_64_xen = grub-core/kern/i386/backtrace.c;
+  arm64 = grub-core/kern/arm64/backtrace.c;
 };
 
 library = {
