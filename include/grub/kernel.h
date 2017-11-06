@@ -108,6 +108,9 @@ grub_addr_t grub_modules_get_end (void);
 
 #endif
 
+void EXPORT_FUNC(start) (void);
+void EXPORT_FUNC(_start) (void);
+
 /* The start point of the C code.  */
 void grub_main (void) __attribute__ ((noreturn));
 
