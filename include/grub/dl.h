@@ -244,6 +244,8 @@ grub_dl_get (const char *name)
 
 #endif
 
+void * EXPORT_FUNC(grub_resolve_symbol) (const char *name);
+const char * EXPORT_FUNC(grub_get_symbol_by_addr) (const void *addr, int isfunc);
 grub_err_t grub_dl_register_symbol (const char *name, void *addr,
 				    int isfunc, grub_dl_t mod);
 
