@@ -153,7 +153,7 @@ compact_mem_regions (void)
 }
 
 grub_addr_t grub_modbase;
-extern grub_uint8_t _start[], _edata[];
+extern grub_uint8_t _edata[];
 
 /* Helper for grub_machine_init.  */
 static int
@@ -217,7 +217,7 @@ grub_machine_init (void)
   /* This has to happen before any BIOS calls. */
   grub_via_workaround_init ();
 
-  grub_modbase = GRUB_MEMORY_MACHINE_DECOMPRESSION_ADDR + (_edata - _start);
+  grub_modbase = GRUB_MEMORY_MACHINE_DECOMPRESSION_ADDR + (_edata - (grub_uint8_t *)_start);
 
   /* Initialize the console as early as possible.  */
   grub_console_init ();
