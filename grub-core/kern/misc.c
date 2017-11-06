@@ -1110,15 +1110,15 @@ grub_xasprintf (const char *fmt, ...)
 }
 
 /* Abort GRUB. This function does not return.  */
-static void __attribute__ ((noreturn))
+static inline void __attribute__ ((noreturn))
 grub_abort (void)
 {
-#ifndef GRUB_UTIL
-#if (defined(__i386__) || defined(__x86_64__)) && !defined(GRUB_MACHINE_EMU)
-  grub_backtrace();
+#if !defined(GRUB_MACHINE_EMU) && !defined(GRUB_UTIL)
+  grub_backtrace (1);
+#else
+  grub_printf ("\n");
 #endif
-#endif
-  grub_printf ("\nAborted.");
+  grub_printf ("Aborted.");
 
 #ifndef GRUB_UTIL
   if (grub_term_inputs)
@@ -1145,6 +1145,7 @@ grub_fatal (const char *fmt, ...)
 {
   va_list ap;
 
+  grub_printf ("\n");
   va_start (ap, fmt);
   grub_vprintf (_(fmt), ap);
   va_end (ap);
