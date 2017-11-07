@@ -38,30 +38,53 @@ grub_pmtimer_wait_count_tsc (grub_port_t pmtimer,
   grub_uint64_t start_tsc;
   grub_uint64_t end_tsc;
   int num_iter = 0;
+  int bad_reads = 0;
 
-  start = grub_inl (pmtimer) & 0xffffff;
+  start = grub_inl (pmtimer) & 0x3fff;
   last = start;
   end = start + num_pm_ticks;
   start_tsc = grub_get_tsc ();
   while (1)
     {
-      cur = grub_inl (pmtimer) & 0xffffff;
+      cur = grub_inl (pmtimer);
+
+      /* If we get 10 reads in a row that are obviously dead pins, there's no
+	 reason to do this thousands of times.
+       */
+      if (cur == 0xffffffff || cur == 0)
+	{
+	  bad_reads++;
+	  grub_dprintf ("pmtimer", "cur: 0x%08x bad_reads: %d\n", cur, bad_reads);
+
+	  if (bad_reads == 10)
+	    return 0;
+	}
+      else if (bad_reads)
+	bad_reads = 0;
+
+      cur &= 0x3fff;
+
       if (cur < last)
-	cur |= 0x1000000;
+	cur |= 0x4000;
       num_iter++;
       if (cur >= end)
 	{
 	  end_tsc = grub_get_tsc ();
+	  grub_dprintf ("pmtimer", "tsc delta is 0x%016lx\n",
+			end_tsc - start_tsc);
 	  return end_tsc - start_tsc;
 	}
-      /* Check for broken PM timer.
-	 50000000 TSCs is between 5 ms (10GHz) and 200 ms (250 MHz)
-	 if after this time we still don't have 1 ms on pmtimer, then
-	 pmtimer is broken.
+      /* Check for broken PM timer.  5000 TSCs is between 5us (10GHz) and
+	 200us (250 MHz).  If after this time we still don't have 1us on
+	 pmtimer, then pmtimer is broken.
        */
-      if ((num_iter & 0xffffff) == 0 && grub_get_tsc () - start_tsc > 5000000) {
-	return 0;
-      }
+      end_tsc = grub_get_tsc();
+      if ((num_iter & 0x3fff) == 0 && end_tsc - start_tsc > 5000)
+	{
+	  grub_dprintf ("pmtimer", "tsc delta is 0x%016lx\n",
+			end_tsc - start_tsc);
+	  return 0;
+	}
     }
 }
 
