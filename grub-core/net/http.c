@@ -31,7 +31,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 enum
   {
-    HTTP_PORT = 80
+    HTTP_PORT = 80,
+    HTTP_MAX_CHUNK_SIZE = 0x80000000
   };
 
 
@@ -78,6 +79,8 @@ parse_line (grub_file_t file, http_data_t data, char *ptr, grub_size_t len)
   if (data->in_chunk_len == 2)
     {
       data->chunk_rem = grub_strtoul (ptr, 0, 16);
+      if (data->chunk_rem > HTTP_MAX_CHUNK_SIZE)
+	  return GRUB_ERR_NET_PACKET_TOO_BIG;
       grub_errno = GRUB_ERR_NONE;
       if (data->chunk_rem == 0)
 	{
