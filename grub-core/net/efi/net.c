@@ -645,8 +645,10 @@ grub_efihttp_chunk_read (grub_file_t file, char *buf,
 
       rd = efi_net_interface (read, file, chunk, sz);
 
-      if (rd <= 0)
+      if (rd <= 0) {
+	grub_free (chunk);
 	return rd;
+      }
 
       if (buf)
 	{
