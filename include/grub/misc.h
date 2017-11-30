@@ -367,6 +367,7 @@ grub_puts (const char *s)
 }
 
 int EXPORT_FUNC(grub_puts_) (const char *s);
+int EXPORT_FUNC(grub_debug_enabled) (const char *condition);
 void EXPORT_FUNC(grub_real_dprintf) (const char *file,
                                      const int line,
                                      const char *condition,
