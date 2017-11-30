@@ -159,17 +159,28 @@ int grub_err_printf (const char *fmt, ...)
 __attribute__ ((alias("grub_printf")));
 #endif
 
+int
+grub_debug_enabled (const char * condition)
+{
+  const char *debug;
+
+  debug = grub_env_get ("debug");
+  if (!debug)
+    return 0;
+
+  if (grub_strword (debug, "all") || grub_strword (debug, condition))
+    return 1;
+
+  return 0;
+}
+
 void
 grub_real_dprintf (const char *file, const int line, const char *condition,
 		   const char *fmt, ...)
 {
   va_list args;
-  const char *debug = grub_env_get ("debug");
 
-  if (! debug)
-    return;
-
-  if (grub_strword (debug, "all") || grub_strword (debug, condition))
+  if (grub_debug_enabled (condition))
     {
       grub_printf ("%s:%d: ", file, line);
       va_start (args, fmt);
