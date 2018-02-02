@@ -37,7 +37,12 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #include "loadenv.h"
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
+#ifdef GRUB_MACHINE_EMU
+#define GRUB_BOOT_DEVICE "/boot"
+#else
 #define GRUB_BOOT_DEVICE "($root)"
+#endif
+
 #ifdef GRUB_MACHINE_EFI
 #define GRUB_LINUX_CMD "linuxefi"
 #define GRUB_INITRD_CMD "initrdefi"
@@ -45,6 +50,13 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_LINUX_CMD "linux"
 #define GRUB_INITRD_CMD "initrd"
 #endif
+
+enum
+  {
+    PLATFORM_EFI,
+    PLATFORM_EMU,
+    PLATFORM_BIOS,
+  };
 
 #define grub_free(x) ({grub_dprintf("blscfg", "%s freeing %p\n", __func__, x); grub_free(x); })
 
@@ -641,7 +653,7 @@ finish:
 struct find_entry_info {
 	grub_device_t dev;
 	grub_fs_t fs;
-	int efi;
+	int platform;
 };
 
 /*
@@ -668,13 +680,16 @@ static int find_entry (const char *filename,
       !grub_strcmp (filename, ".."))
     return 0;
 
-  if (info->efi && !grub_strcasecmp (filename, "boot"))
+  if (info->platform == PLATFORM_EFI && !grub_strcasecmp (filename, "boot"))
     return 0;
 
   saved_env_buf = grub_malloc (512);
 
   // set a default blsdir
-  if (info->efi)
+  if (info->platform == PLATFORM_EMU)
+    default_blsdir = grub_xasprintf ("%s%s", GRUB_BOOT_DEVICE,
+				     GRUB_BLS_CONFIG_PATH);
+  else if (info->platform == PLATFORM_EFI)
     default_blsdir = grub_xasprintf ("/EFI/%s%s", filename,
 				     GRUB_BLS_CONFIG_PATH);
   else
@@ -686,7 +701,7 @@ static int find_entry (const char *filename,
   /*
    * try to load a grubenv from /EFI/wherever/grubenv
    */
-  if (info->efi)
+  if (info->platform == PLATFORM_EFI)
     grubenv_path = grub_xasprintf ("(%s)/EFI/%s/grubenv", devid, filename);
   else
     grubenv_path = grub_xasprintf ("(%s)/grub2/grubenv", devid);
@@ -740,7 +755,7 @@ static int find_entry (const char *filename,
     goto finish;
 
   grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
-  if (blsdir[0] != '/' && info->efi)
+  if (blsdir[0] != '/' && info->platform == PLATFORM_EFI)
     blsdir = grub_xasprintf ("/EFI/%s/%s/", filename, blsdir);
   else
     blsdir = grub_strdup (blsdir);
@@ -818,15 +833,21 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
     {
       .dev = NULL,
       .fs = NULL,
-      .efi = 0,
+      .platform = PLATFORM_BIOS,
     };
 
 
   grub_dprintf ("blscfg", "finding boot\n");
+
+#ifdef GRUB_MACHINE_EMU
+  devid = "host";
+  grub_env_set ("boot", devid);
+#else
   devid = grub_env_get ("boot");
   if (!devid)
     return grub_error (GRUB_ERR_FILE_NOT_FOUND,
 		       N_("variable `%s' isn't set"), "boot");
+#endif
 
   grub_dprintf ("blscfg", "opening %s\n", devid);
   dev = grub_device_open (devid);
@@ -844,11 +865,16 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
   info.dev = dev;
   info.fs = fs;
 #ifdef GRUB_MACHINE_EFI
-  info.efi = 1;
+  info.platform = PLATFORM_EFI;
   grub_dprintf ("blscfg", "scanning /EFI/\n");
   r = fs->dir (dev, "/EFI/", find_entry, &info);
+#elif GRUB_MACHINE_EMU
+  info.platform = PLATFORM_EMU;
+  grub_dprintf ("blscfg", "scanning %s%s\n", GRUB_BOOT_DEVICE,
+		GRUB_BLS_CONFIG_PATH);
+  r = fs->dir (dev, "/boot/loader/",
+	       find_entry, &info);
 #else
-  info.efi = 0;
   grub_dprintf ("blscfg", "scanning %s\n", GRUB_BLS_CONFIG_PATH);
   r = fs->dir (dev, "/", find_entry, &info);
 #endif
@@ -863,7 +889,7 @@ finish:
 static grub_extcmd_t cmd;
 static grub_extcmd_t oldcmd;
 
-GRUB_MOD_INIT(bls)
+GRUB_MOD_INIT(blscfg)
 {
   grub_dprintf("blscfg", "%s got here\n", __func__);
   cmd = grub_register_extcmd ("blscfg",
@@ -880,7 +906,7 @@ GRUB_MOD_INIT(bls)
 				 NULL);
 }
 
-GRUB_MOD_FINI(bls)
+GRUB_MOD_FINI(blscfg)
 {
   grub_unregister_extcmd (cmd);
   grub_unregister_extcmd (oldcmd);
