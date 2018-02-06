@@ -1103,7 +1103,7 @@ static void __attribute__ ((noreturn))
 grub_abort (void)
 {
 #ifndef GRUB_UTIL
-#if defined(__i386__) || defined(__x86_64__)
+#if (defined(__i386__) || defined(__x86_64__)) && !defined(GRUB_MACHINE_EMU)
   grub_backtrace();
 #endif
 #endif
