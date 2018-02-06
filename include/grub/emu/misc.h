@@ -60,6 +60,9 @@ void EXPORT_FUNC(grub_util_warn) (const char *fmt, ...) __attribute__ ((format (
 void EXPORT_FUNC(grub_util_info) (const char *fmt, ...) __attribute__ ((format (__printf__, 1, 2)));
 void EXPORT_FUNC(grub_util_error) (const char *fmt, ...) __attribute__ ((format (__printf__, 1, 2), noreturn));
 
+void EXPORT_FUNC(grub_util_set_kexecute) (void);
+int EXPORT_FUNC(grub_util_get_kexecute) (void) WARN_UNUSED_RESULT;
+
 grub_uint64_t EXPORT_FUNC (grub_util_get_cpu_time_ms) (void);
 
 #ifdef HAVE_DEVICE_MAPPER
