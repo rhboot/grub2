@@ -22,6 +22,7 @@
 #include <grub/disk.h>
 #include <grub/partition.h>
 #include <sys/types.h>
+#include <grub/symbol.h>
 #include <grub/osdep/hostfile.h>
 
 int
@@ -29,7 +30,7 @@ grub_util_is_directory (const char *path);
 int
 grub_util_is_special_file (const char *path);
 int
-grub_util_is_regular (const char *path);
+EXPORT_FUNC(grub_util_is_regular) (const char *path);
 
 char *
 grub_util_path_concat (size_t n, ...);
