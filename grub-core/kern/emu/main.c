@@ -107,6 +107,7 @@ static struct argp_option options[] = {
    N_("use GRUB files in the directory DIR [default=%s]"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   {"hold",     'H', N_("SECS"),      OPTION_ARG_OPTIONAL, N_("wait until a debugger will attach"), 0},
+  {"kexec",       'X', 0,      0, N_("try the untryable."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -163,6 +164,9 @@ argp_parser (int key, char *arg, struct argp_state *state)
       break;
     case 'v':
       verbosity++;
+      break;
+    case 'X':
+      grub_util_set_kexecute();
       break;
 
     case ARGP_KEY_ARG:

@@ -1710,7 +1710,6 @@ module = {
 
   common = loader/linux.c;
   common = lib/cmdline.c;
-  enable = noemu;
 
   efi = loader/efi/linux.c;
 };
