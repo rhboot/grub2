@@ -29,6 +29,7 @@
 #else
 #define GRUB_PACKED __attribute__ ((packed))
 #endif
+#define GRUB_ALIGNED(x) __attribute__((aligned (x)))
 
 #ifdef GRUB_BUILD
 # define GRUB_CPU_SIZEOF_VOID_P	BUILD_SIZEOF_VOID_P
