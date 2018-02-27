@@ -33,5 +33,5 @@ struct efi_variable
   grub_uint32_t namelen;
   grub_uint32_t size;
   grub_efi_uint32_t attributes;
-} GRUB_PACKED;
+} GRUB_PACKED GRUB_ALIGNED(8);
 #endif /* ! GRUB_EFI_EMU_RUNTIME_HEADER */
