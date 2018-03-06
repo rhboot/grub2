@@ -24,6 +24,11 @@
 #include <grub/efi/api.h>
 #include <grub/efi/console.h>
 
+static grub_err_t grub_prepare_for_text_output(struct grub_term_output *term);
+
+static int text_mode_available = -1;
+static int text_colorstate = -1;
+
 static grub_uint32_t
 map_char (grub_uint32_t c)
 {
@@ -66,14 +71,14 @@ map_char (grub_uint32_t c)
 }
 
 static void
-grub_console_putchar (struct grub_term_output *term __attribute__ ((unused)),
+grub_console_putchar (struct grub_term_output *term,
 		      const struct grub_unicode_glyph *c)
 {
   grub_efi_char16_t str[2 + 30];
   grub_efi_simple_text_output_interface_t *o;
   unsigned i, j;
 
-  if (grub_efi_is_finished)
+  if (grub_prepare_for_text_output (term))
     return;
 
   o = grub_efi_system_table->con_out;
@@ -220,14 +225,15 @@ grub_console_getkey (struct grub_term_input *term)
 }
 
 static struct grub_term_coordinate
-grub_console_getwh (struct grub_term_output *term __attribute__ ((unused)))
+grub_console_getwh (struct grub_term_output *term)
 {
   grub_efi_simple_text_output_interface_t *o;
   grub_efi_uintn_t columns, rows;
 
   o = grub_efi_system_table->con_out;
-  if (grub_efi_is_finished || efi_call_4 (o->query_mode, o, o->mode->mode,
-					  &columns, &rows) != GRUB_EFI_SUCCESS)
+  if (grub_prepare_for_text_output (term) != GRUB_ERR_NONE ||
+      efi_call_4 (o->query_mode, o, o->mode->mode,
+		  &columns, &rows) != GRUB_EFI_SUCCESS)
     {
       /* Why does this fail?  */
       columns = 80;
@@ -242,7 +248,7 @@ grub_console_getxy (struct grub_term_output *term __attribute__ ((unused)))
 {
   grub_efi_simple_text_output_interface_t *o;
 
-  if (grub_efi_is_finished)
+  if (grub_efi_is_finished || text_mode_available != 1)
     return (struct grub_term_coordinate) { 0, 0 };
 
   o = grub_efi_system_table->con_out;
@@ -250,12 +256,12 @@ grub_console_getxy (struct grub_term_output *term __attribute__ ((unused)))
 }
 
 static void
-grub_console_gotoxy (struct grub_term_output *term __attribute__ ((unused)),
+grub_console_gotoxy (struct grub_term_output *term,
 		     struct grub_term_coordinate pos)
 {
   grub_efi_simple_text_output_interface_t *o;
 
-  if (grub_efi_is_finished)
+  if (grub_prepare_for_text_output (term))
     return;
 
   o = grub_efi_system_table->con_out;
@@ -268,7 +274,7 @@ grub_console_cls (struct grub_term_output *term __attribute__ ((unused)))
   grub_efi_simple_text_output_interface_t *o;
   grub_efi_int32_t orig_attr;
 
-  if (grub_efi_is_finished)
+  if (grub_efi_is_finished || text_mode_available != 1)
     return;
 
   o = grub_efi_system_table->con_out;
@@ -287,6 +293,12 @@ grub_console_setcolorstate (struct grub_term_output *term
 
   if (grub_efi_is_finished)
     return;
+
+  if (text_mode_available != 1) {
+    /* Avoid "color_normal" environment writes causing a switch to textmode */
+    text_colorstate = state;
+    return;
+  }
 
   o = grub_efi_system_table->con_out;
 
@@ -312,7 +324,7 @@ grub_console_setcursor (struct grub_term_output *term __attribute__ ((unused)),
 {
   grub_efi_simple_text_output_interface_t *o;
 
-  if (grub_efi_is_finished)
+  if (grub_efi_is_finished || text_mode_available != 1)
     return;
 
   o = grub_efi_system_table->con_out;
@@ -320,18 +332,38 @@ grub_console_setcursor (struct grub_term_output *term __attribute__ ((unused)),
 }
 
 static grub_err_t
-grub_efi_console_output_init (struct grub_term_output *term)
+grub_prepare_for_text_output(struct grub_term_output *term)
 {
-  grub_efi_set_text_mode (1);
+  if (grub_efi_is_finished)
+    return GRUB_ERR_BAD_DEVICE;
+
+  if (text_mode_available != -1)
+    return text_mode_available ? 0 : GRUB_ERR_BAD_DEVICE;
+
+  if (! grub_efi_set_text_mode (1))
+    {
+      /* This really should never happen */
+      grub_error (GRUB_ERR_BAD_DEVICE, "cannot set text mode");
+      text_mode_available = 0;
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
   grub_console_setcursor (term, 1);
+  if (text_colorstate != -1)
+    grub_console_setcolorstate (term, text_colorstate);
+  text_mode_available = 1;
   return 0;
 }
 
 static grub_err_t
 grub_efi_console_output_fini (struct grub_term_output *term)
 {
+  if (text_mode_available != 1)
+    return 0;
+
   grub_console_setcursor (term, 0);
   grub_efi_set_text_mode (0);
+  text_mode_available = -1;
   return 0;
 }
 
@@ -345,7 +377,6 @@ static struct grub_term_input grub_console_term_input =
 static struct grub_term_output grub_console_term_output =
   {
     .name = "console",
-    .init = grub_efi_console_output_init,
     .fini = grub_efi_console_output_fini,
     .putchar = grub_console_putchar,
     .getwh = grub_console_getwh,
@@ -361,14 +392,6 @@ static struct grub_term_output grub_console_term_output =
 void
 grub_console_init (void)
 {
-  /* FIXME: it is necessary to consider the case where no console control
-     is present but the default is already in text mode.  */
-  if (! grub_efi_set_text_mode (1))
-    {
-      grub_error (GRUB_ERR_BAD_DEVICE, "cannot set text mode");
-      return;
-    }
-
   grub_term_register_output ("console", &grub_console_term_output);
   grub_term_register_input ("console", &grub_console_term_input);
 }
