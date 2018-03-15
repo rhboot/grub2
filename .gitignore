@@ -121,6 +121,8 @@ grub-*.tar.*
 /grub*-sparc64-setup.8
 /grub*-syslinux2cfg
 /grub*-syslinux2cfg.1
+/grub*-switch-to-blscfg
+/grub*-switch-to-blscfg.8
 /grub_fstest.pp
 /grub_fstest_init.c
 /grub_fstest_init.lst
