@@ -140,7 +140,7 @@ blsdir="/boot/loader/entries"
 
 get_sorted_bls()
 {
-    if ! [ -d "${blsdir}" ]; then
+    if ! [ -d "${blsdir}" ] || [ -f /run/ostree-booted ] || [ -d /ostree/repo ]; then
         return
     fi
 
