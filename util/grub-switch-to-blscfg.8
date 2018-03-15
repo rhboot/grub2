@@ -1,0 +1,33 @@
+.TH GRUB-SWITCH-TO-BLSCFG 1 "Wed Feb 26 2014"
+.SH NAME
+\fBgrub-switch-to-blscfg\fR \(em Switch to using BLS config files.
+
+.SH SYNOPSIS
+\fBgrub-switch-to-blscfg\fR [--grub-directory=\fIDIR\fR] [--config-file=\fIFILE\fR] [--grub-defaults=\fIFILE\fR]
+
+.SH DESCRIPTION
+\fBgrub-switch-to-blscfg\fR reconfigures grub-mkconfig to use BLS-style config files, and then regenerates the GRUB configuration.
+
+.SH OPTIONS
+.TP
+--grub-directory=\fIDIR\fR
+Search for grub.cfg under \fIDIR\fR.  The default value is \fI/boot/efi/EFI/\fBVENDOR\fR on UEFI machines and \fI/boot/grub2\fR elsewhere.
+
+.TP
+--config-file=\fIFILE\fR
+The grub config file to use.  The default value is \fI/etc/grub2-efi.cfg\fR on UEFI machines and \fI/etc/grub2.cfg\fR elsewhere.  Symbolic links will be followed.
+
+.TP
+--grub-defaults=\fIFILE\fR
+The defaults file for grub-mkconfig.  The default value is \fI/etc/default/grub\fR.
+
+.TP
+--bls-directory=\fIDIR\fR
+Create BootLoaderSpec fragments in \fIDIR\fR.  The default value is \fI/boot/loader/entries\fR.
+
+.TP
+--backup-suffix=\fSUFFIX\fR
+The suffix to use for saved backup files.  The default value is \fI.bak\fR.
+
+.SH SEE ALSO
+.BR "info grub"
