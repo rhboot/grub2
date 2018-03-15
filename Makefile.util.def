@@ -1348,6 +1348,13 @@ program = {
   ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM)';
 };
 
+script = {
+  name = grub-switch-to-blscfg;
+  common = util/grub-switch-to-blscfg.in;
+  mansection = 8;
+  installdir = sbin;
+};
+
 program = {
   name = grub-glue-efi;
   mansection = 1;
