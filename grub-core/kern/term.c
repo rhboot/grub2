@@ -138,6 +138,22 @@ grub_getkeystatus (void)
   return status;
 }
 
+int
+grub_key_is_interrupt (int key)
+{
+  /* ESC sometimes is the BIOS setup hotkey and may be hard to discover, also
+     check F8, which was the key to get the Windows bootmenu for a long time. */
+  if (key == GRUB_TERM_ESC || key == GRUB_TERM_KEY_F8)
+    return 1;
+
+  /* Pressing keys at the right time during boot is hard to time, also allow
+     interrupting sleeps / the menu countdown by keeping shift pressed. */
+  if (grub_getkeystatus() & (GRUB_TERM_STATUS_LSHIFT|GRUB_TERM_STATUS_RSHIFT))
+    return 1;
+
+  return 0;
+}
+
 void
 grub_refresh (void)
 {

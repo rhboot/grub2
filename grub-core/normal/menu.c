@@ -655,7 +655,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
 	      if (entry >= 0)
 		break;
 	    }
-	  if (key == GRUB_TERM_ESC)
+	  if (grub_key_is_interrupt (key))
 	    {
 	      timeout = -1;
 	      break;
