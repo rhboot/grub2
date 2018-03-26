@@ -328,6 +328,7 @@ void grub_putcode (grub_uint32_t code, struct grub_term_output *term);
 int EXPORT_FUNC(grub_getkey) (void);
 int EXPORT_FUNC(grub_getkey_noblock) (void);
 int EXPORT_FUNC(grub_getkeystatus) (void);
+int EXPORT_FUNC(grub_key_is_interrupt) (int key);
 void grub_cls (void);
 void EXPORT_FUNC(grub_refresh) (void);
 void grub_puts_terminal (const char *str, struct grub_term_output *term);
