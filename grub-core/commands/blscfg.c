@@ -676,8 +676,8 @@ static int find_entry (const char *filename,
   const char *devid = grub_env_get ("boot");
 
   grub_dprintf("blscfg", "%s got here\n", __func__);
-  if (!grub_strcmp (filename, ".") ||
-      !grub_strcmp (filename, ".."))
+  if (filename && (!grub_strcmp (filename, ".") ||
+		   !grub_strcmp (filename, "..")))
     return 0;
 
   if (info->platform == PLATFORM_EFI && !grub_strcasecmp (filename, "boot"))
@@ -872,11 +872,10 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
   info.platform = PLATFORM_EMU;
   grub_dprintf ("blscfg", "scanning %s%s\n", GRUB_BOOT_DEVICE,
 		GRUB_BLS_CONFIG_PATH);
-  r = fs->dir (dev, "/boot/loader/",
-	       find_entry, &info);
+  find_entry(NULL, NULL, &info);
 #else
   grub_dprintf ("blscfg", "scanning %s\n", GRUB_BLS_CONFIG_PATH);
-  r = fs->dir (dev, "/", find_entry, &info);
+  find_entry(NULL, NULL, &info);
 #endif
 
 finish:
