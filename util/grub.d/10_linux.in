@@ -144,6 +144,7 @@ if [ -s \$prefix/grubenv ]; then
 fi
 EOF
 
+    ${grub_editenv} - set saved_entry=0
     ${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
 
     exit 0
