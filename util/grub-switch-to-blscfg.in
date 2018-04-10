@@ -252,7 +252,7 @@ if [[ "${GENERATE}" -eq 1 ]] ; then
         cp -af "${GRUB_CONFIG_FILE}${backupsuffix}" "${GRUB_CONFIG_FILE}"
         sed -i"${backupsuffix}" \
             -e 's,^GRUB_ENABLE_BLSCFG=.*,GRUB_ENABLE_BLSCFG=false,' \
-            /etc/default/grub
+            "${etcdefaultgrub}"
         gettext_printf "Updating %s failed\n" "${GRUB_CONFIG_FILE}"
         exit 1
     fi
