@@ -44,7 +44,7 @@ if [ -d /sys/firmware/efi/efivars/ ]; then
 else
     startlink=/etc/grub2.cfg
     grubdir=`echo "/@bootdirname@/@grubdirname@" | sed 's,//*,/,g'`
-    blsdir=`echo "/@bootdirname@" | sed 's,//*,/,g'`
+    blsdir=`echo "/@bootdirname@/loader/entries" | sed 's,//*,/,g'`
 fi
 
 backupsuffix=.bak
