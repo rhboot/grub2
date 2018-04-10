@@ -44,7 +44,7 @@ if [ -d /sys/firmware/efi/efivars/ ]; then
 else
     startlink=/etc/grub2.cfg
     grubdir=`echo "/@bootdirname@/@grubdirname@" | sed 's,//*,/,g'`
-    blsdir=`echo "/@bootdirname@" | sed 's,//*,/,g'`
+    blsdir=`echo "/@bootdirname@/loader/entries" | sed 's,//*,/,g'`
 fi
 
 backupsuffix=.bak
@@ -252,7 +252,7 @@ if [[ "${GENERATE}" -eq 1 ]] ; then
         cp -af "${GRUB_CONFIG_FILE}${backupsuffix}" "${GRUB_CONFIG_FILE}"
         sed -i"${backupsuffix}" \
             -e 's,^GRUB_ENABLE_BLSCFG=.*,GRUB_ENABLE_BLSCFG=false,' \
-            /etc/default/grub
+            "${etcdefaultgrub}"
         gettext_printf "Updating %s failed\n" "${GRUB_CONFIG_FILE}"
         exit 1
     fi
