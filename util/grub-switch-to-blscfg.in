@@ -243,6 +243,10 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     fi
 done
 
+if [[ -f "/boot/vmlinuz-0-rescue-${MACHINE_ID}" ]]; then
+    mkbls "0-rescue-${MACHINE_ID}" "0" >"${blsdir}/${MACHINE_ID}-0-rescue.conf"
+fi
+
 GENERATE=0
 if grep '^GRUB_ENABLE_BLSCFG=.*' "${etcdefaultgrub}" \
         | grep -vq '^GRUB_ENABLE_BLSCFG="*true"*\s*$' ; then
