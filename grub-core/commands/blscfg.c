@@ -587,6 +587,7 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
   char *title = NULL;
   char *clinux = NULL;
   char *options = NULL;
+  char **initrds = NULL;
   char *initrd = NULL;
   char *id = NULL;
   char *hotkey = NULL;
@@ -609,7 +610,7 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
 
   title = bls_get_val (entry, "title", NULL);
   options = bls_get_val (entry, "options", NULL);
-  initrd = bls_get_val (entry, "initrd", NULL);
+  initrds = bls_make_list (entry, "initrd", NULL);
   id = bls_get_val (entry, "id", NULL);
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
@@ -624,30 +625,63 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
     argv[i] = args[i-1];
   argv[argc] = NULL;
 
-  grub_dprintf("blscfg", "adding menu entry for \"%s\"\n", title);
+  grub_dprintf ("blscfg", "adding menu entry for \"%s\"\n", title);
+  if (initrds)
+    {
+      int initrd_size = sizeof (GRUB_INITRD_CMD);
+      char *tmp;
+
+      for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
+	initrd_size += sizeof (" " GRUB_BOOT_DEVICE) \
+		       + grub_strlen (initrds[i]) + 1;
+      initrd_size += 1;
+
+      initrd = grub_malloc (initrd_size);
+      if (!initrd)
+	{
+	  grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+	  goto finish;
+	}
+
+
+      tmp = grub_stpcpy(initrd, GRUB_INITRD_CMD);
+      for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
+	{
+	  grub_dprintf ("blscfg", "adding initrd %s\n", initrds[i]);
+	  tmp = grub_stpcpy (tmp, " " GRUB_BOOT_DEVICE);
+	  tmp = grub_stpcpy (tmp, initrds[i]);
+	}
+      tmp = grub_stpcpy (tmp, "\n");
+    }
+
   src = grub_xasprintf ("load_video\n"
 			"set gfx_payload=keep\n"
 			"insmod gzio\n"
 			GRUB_LINUX_CMD " %s%s%s%s\n"
-			"%s%s%s%s",
+			"%s",
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
-			initrd ? GRUB_INITRD_CMD " " : "", initrd ? GRUB_BOOT_DEVICE : "", initrd ? initrd : "", initrd ? "\n" : "");
+			initrd ? initrd : "");
 
   grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0);
 
 finish:
+  if (initrd)
+    grub_free (initrd);
+
+  if (initrds)
+    grub_free (initrds);
+
   if (classes)
-      grub_free (classes);
-  grub_dprintf("blscfg", "%s got here\n", __func__);
+    grub_free (classes);
+
   if (args)
-      grub_free (args);
+    grub_free (args);
 
   if (argv)
-      grub_free (argv);
+    grub_free (argv);
 
   if (src)
-      grub_free (src);
-  grub_dprintf("blscfg", "%s got here\n", __func__);
+    grub_free (src);
 }
 
 struct find_entry_info {
