@@ -21,6 +21,7 @@
 # Initialize some variables.
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+sbindir=@sbindir@
 bindir=@bindir@
 sysconfdir="@sysconfdir@"
 PACKAGE_NAME=@PACKAGE_NAME@
@@ -33,8 +34,11 @@ fi
 
 self=`basename $0`
 
+grub_get_kernel_settings="${sbindir}/@grub_get_kernel_settings@"
 grub_editenv=${bindir}/@grub_editenv@
 etcdefaultgrub=/etc/default/grub
+
+eval "$("${grub_get_kernel_settings}")" || true
 
 EFIDIR=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/')
 if [ -d /sys/firmware/efi/efivars/ ]; then
@@ -225,6 +229,17 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
         mkbls "${kernelver}" \
             "$(date -u +%Y%m%d%H%M%S -d "$(stat -c '%y' "${kernel_dir}")")" \
             >"${bls_target}"
+    fi
+
+    if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
+        arch="$(uname -m)"
+        bls_debug="$(echo ${bls_target} | sed -e "s/\.${arch}/-debug.${arch}/")"
+        cp -aT  "${bls_target}" "${bls_debug}"
+        title="$(grep '^title[ \t]' "${bls_debug}" | sed -e 's/^title[ \t]*//')"
+        blsid="$(grep '^id[ \t]' "${bls_debug}" | sed -e "s/\.${ARCH}/-debug.${arch}/")"
+        sed -i -e "s/^title.*/title ${title}${GRUB_LINUX_DEBUG_TITLE_POSTFIX}/" "${bls_debug}"
+        sed -i -e "s/^id.*/${blsid}/" "${bls_debug}"
+        sed -i -e "s/^options.*/options \$kernelopts ${GRUB_CMDLINE_LINUX_DEBUG}/" "${bls_debug}"
     fi
 done
 
