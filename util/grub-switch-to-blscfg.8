@@ -21,5 +21,13 @@ The grub config file to use.  The default value is \fI/etc/grub2-efi.cfg\fR on U
 --grub-defaults=\fIFILE\fR
 The defaults file for grub-mkconfig.  The default value is \fI/etc/default/grub\fR.
 
+.TP
+--bls-directory=\fIDIR\fR
+Create BootLoaderSpec fragments in \fIDIR\fR.  The default value is \fI/boot/loader/entries\fR on BIOS machines and \fI/boot/efi/EFI/\fBVENDOR\fI/loader/entries\fR on UEFI machines.
+
+.TP
+--backup-suffix=\fSUFFIX\fR
+The suffix to use for saved backup files.  The default value is \fI.bak\fR.
+
 .SH SEE ALSO
 .BR "info grub"
