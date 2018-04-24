@@ -237,6 +237,12 @@ case "x$machine" in
 	done ;;
 esac
 
+if [ "x${GRUB_ENABLE_BLSCFG}" = "xtrue" ]; then
+    for i in /boot/ostree/*/vmlinuz-* ; do
+        if grub_file_is_not_garbage "$i" ; then list="$list $i" ; fi
+    done
+fi
+
 case "$machine" in
     i?86) GENKERNEL_ARCH="x86" ;;
     mips|mips64) GENKERNEL_ARCH="mips" ;;
