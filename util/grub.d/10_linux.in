@@ -133,8 +133,13 @@ linux_entry ()
       fi
     fi
 
-    bootefi_device="`${grub_probe} --target=device /boot/efi/`"
-    prepare_grub_to_access_device ${bootefi_device} boot
+    if [ -d /sys/firmware/efi ]; then
+        bootefi_device="`${grub_probe} --target=device /boot/efi/`"
+        prepare_grub_to_access_device ${bootefi_device} boot
+    else
+        boot_device="`${grub_probe} --target=device /boot/`"
+        prepare_grub_to_access_device ${boot_device} boot
+    fi
 
     cat << EOF
 insmod blscfg
