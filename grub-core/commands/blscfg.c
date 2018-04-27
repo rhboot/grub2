@@ -419,6 +419,9 @@ static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
   rc = bls_keyval_cmp (e0, e1, "id");
 
   if (rc == 0)
+    rc = bls_keyval_cmp (e0, e1, "version");
+
+  if (rc == 0)
     rc = bls_keyval_cmp (e0, e1, "title");
 
   if (rc == 0)
