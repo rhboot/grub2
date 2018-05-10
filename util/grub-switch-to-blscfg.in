@@ -190,12 +190,14 @@ mkbls() {
     local datetime=$1 && shift
 
     local debugname=""
+    local debugid=""
     local flavor=""
 
     if [[ "$kernelver" == *\+* ]] ; then
         local flavor=-"${kernelver##*+}"
         if [[ "${flavor}" == "-debug" ]]; then
             local debugname=" with debugging"
+            local debugid="-debug"
         fi
     fi
     (
@@ -203,6 +205,7 @@ mkbls() {
 
         cat <<EOF
 title ${NAME} (${kernelver}) ${VERSION}${debugname}
+version ${kernelver}${debugid}
 linux /vmlinuz-${kernelver}
 initrd /initramfs-${kernelver}.img
 options \$kernelopts
