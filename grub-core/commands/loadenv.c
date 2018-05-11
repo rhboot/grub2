@@ -86,19 +86,31 @@ open_envblk_file (char *filename, int untrusted)
   return file;
 }
 
-static grub_err_t
-grub_cmd_load_env (grub_extcmd_context_t ctxt, int argc, char **args)
+static int
+dprint_var (const char *name, const char *value, void *whitelist)
 {
-  struct grub_arg_list *state = ctxt->state;
+  int okay = 1;
+  if (whitelist)
+    okay = test_whitelist_membership (name,
+				(const grub_env_whitelist_t *) whitelist);
+
+  grub_dprintf ("loadenv", "if (%d) %s=%s\n", okay, name, value);
+
+  return 0;
+}
+
+static grub_err_t
+grub_cmd_load_env_helper (struct grub_arg_list *state,
+			  grub_env_whitelist_t *whitelist)
+{
   grub_file_t file;
   grub_envblk_t envblk;
-  grub_env_whitelist_t whitelist;
 
-  whitelist.len = argc;
-  whitelist.list = args;
+  grub_dprintf ("loadenv", "loading environment from %s\n",
+		state[0].set ? state[0].arg : "default location");
 
   /* state[0] is the -f flag; state[1] is the --skip-sig flag */
-  file = open_envblk_file ((state[0].set) ? state[0].arg : 0, state[1].set);
+  file = open_envblk_file (state[0].set ? state[0].arg : 0, state[1].set);
   if (! file)
     return grub_errno;
 
@@ -106,13 +118,152 @@ grub_cmd_load_env (grub_extcmd_context_t ctxt, int argc, char **args)
   if (! envblk)
     goto fail;
 
-  /* argc > 0 indicates caller provided a whitelist of variables to read. */
-  grub_envblk_iterate (envblk, argc > 0 ? &whitelist : 0, set_var);
+  grub_envblk_iterate (envblk, whitelist, dprint_var);
+  grub_envblk_iterate (envblk, whitelist, set_var);
   grub_envblk_close (envblk);
 
  fail:
   grub_file_close (file);
   return grub_errno;
+}
+
+struct dir_hook_ctx
+{
+  char **files;
+  unsigned int nfiles;
+};
+
+static int
+dir_hook (const char *filename,
+	  const struct grub_dirhook_info *info, void *data)
+{
+  int (*cmp)(const char *a, const char *b) =
+		      info->case_insensitive ? grub_strcasecmp : grub_strcmp;
+  int len;
+  struct dir_hook_ctx *ctx = data;
+  char **files = NULL;
+
+  if (info->dir)
+    return 0;
+
+  len = grub_strlen (filename);
+  if (len <= 4)
+    return 0;
+
+  if (cmp(filename + len - 4, ".env"))
+    return 0;
+
+  files = grub_realloc (ctx->files, sizeof (char *) * (ctx->nfiles + 1));
+  if (!files)
+    return 1;
+
+  ctx->files = files;
+  files[ctx->nfiles] = grub_strdup (filename);
+  if (!files[ctx->nfiles])
+    return 1;
+
+  ctx->nfiles += 1;
+
+  return 0;
+}
+
+static int
+strpcmp (const void *p1, const void *p2, void *state UNUSED)
+{
+  return grub_strcmp (*(char * const *)p1, *(char * const *)p2);
+}
+
+static grub_err_t
+grub_cmd_load_env (grub_extcmd_context_t ctxt, int argc, char **args)
+{
+  struct grub_arg_list *state = ctxt->state;
+  grub_env_whitelist_t whitelist;
+  grub_err_t ret;
+
+  whitelist.len = argc;
+  whitelist.list = args;
+
+  /* argc > 0 indicates caller provided a whitelist of variables to read. */
+  ret = grub_cmd_load_env_helper (state, argc > 0 ? &whitelist : NULL);
+  if (ret == GRUB_ERR_BAD_FILE_TYPE)
+    {
+      grub_error_pop ();
+      grub_errno = GRUB_ERR_NONE;
+    }
+  else if (ret != GRUB_ERR_NONE)
+    return ret;
+
+  if (!state[0].set || ret == GRUB_ERR_BAD_FILE_TYPE)
+    {
+      char *dirname;
+      int len;
+      struct dir_hook_ctx dir_hook_ctx =
+	{
+	  .files = NULL,
+	  .nfiles = 0,
+	};
+
+      if (state[0].set && ret == GRUB_ERR_BAD_FILE_TYPE)
+	{
+	  char *next;
+
+	  len = grub_strlen (state[0].arg) + 2;
+	  dirname = grub_strdup (state[0].arg);
+	  if (!dirname)
+	    return 0;
+
+	  next = grub_stpcpy (dirname, state[0].arg);
+	  next = grub_stpcpy (next, "/");
+	}
+      else
+	{
+	  char *next;
+	  const char *prefix;
+
+	  prefix = grub_env_get ("prefix");
+	  if (! prefix)
+	    {
+	      grub_error (GRUB_ERR_FILE_NOT_FOUND, N_("variable `%s' isn't set"), "prefix");
+	      return 0;
+	    }
+
+	  len = grub_strlen (prefix) + sizeof (GRUB_ENVBLK_DEFDIR) + 1;
+	  dirname = grub_malloc (len);
+	  if (! dirname)
+	    return 0;
+
+	  next = grub_stpcpy (dirname, prefix);
+	  next = grub_stpcpy (next, GRUB_ENVBLK_DEFDIR);
+	}
+
+      grub_dprintf ("loadenv", "searching %s for .env files\n", dirname);
+      ret = grub_dir_iterate (dirname, dir_hook, &dir_hook_ctx);
+      grub_free (dirname);
+
+      if ((ret && grub_errno != GRUB_ERR_NONE) || dir_hook_ctx.nfiles == 0)
+	goto err;
+
+      grub_qsort (&dir_hook_ctx.files[0], dir_hook_ctx.nfiles,
+		  sizeof (char *), strpcmp, NULL);
+
+      for (unsigned int i = 0; i < dir_hook_ctx.nfiles; i++)
+	{
+	  state[0].set = 1;
+	  state[0].arg = dir_hook_ctx.files[i];
+
+	  ret = grub_cmd_load_env_helper (state, argc > 0 ? &whitelist : NULL);
+	  if (ret)
+	    break;
+	}
+
+err:
+      for (unsigned int i = 0; i < dir_hook_ctx.nfiles; i++)
+	grub_free (dir_hook_ctx.files[i]);
+
+      if (dir_hook_ctx.nfiles)
+	grub_free (dir_hook_ctx.files);
+    }
+  return ret;
 }
 
 /* Print all variables in current context.  */
