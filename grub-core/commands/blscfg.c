@@ -169,84 +169,35 @@ static void bls_free_entry(struct bls_entry *entry)
   grub_free (entry);
 }
 
-static int keyval_cmp (const void *p0, const void *p1,
-		       void *state UNUSED)
-{
-  const struct keyval *kv0 = *(struct keyval * const *)p0;
-  const struct keyval *kv1 = *(struct keyval * const *)p1;
-  int rc;
-
-  rc = grub_strcmp(kv0->key, kv1->key);
-
-  return rc;
-}
-
 /* Find they value of the key named by keyname.  If there are allowed to be
  * more than one, pass a pointer to an int set to -1 the first time, and pass
  * the same pointer through each time after, and it'll return them in sorted
- * order. */
+ * order as defined in the BLS fragment file */
 static char *bls_get_val(struct bls_entry *entry, const char *keyname, int *last)
 {
-  char *foo = (char *)"";
-  struct keyval *kv = NULL, **kvp, key = {keyname, foo}, *keyp = &key;
+  int idx, start = 0;
+  struct keyval *kv = NULL;
 
-  /* if we've already found an entry that matches, just iterate */
-  if (last && *last >= 0)
-    {
-      int next = ++last[0];
+  if (last)
+    start = *last + 1;
 
-      if (next == entry->nkeyvals)
-	{
-done:
-	  *last = -1;
-	  return NULL;
-	}
+  for (idx = start; idx < entry->nkeyvals; idx++) {
+    kv = entry->keyvals[idx];
 
-      kv = entry->keyvals[next];
-      if (grub_strcmp (keyname, kv->key))
-	goto done;
+    if (!grub_strcmp (keyname, kv->key))
+      break;
+  }
 
-      return kv->val;
-    }
+  if (idx == entry->nkeyvals) {
+    if (last)
+      *last = -1;
+    return NULL;
+  }
 
-  kvp = grub_bsearch(&keyp, &entry->keyvals[0], entry->nkeyvals,
-		    sizeof (struct keyval *), keyval_cmp, NULL);
-  if (kvp)
-    kv = *kvp;
+  if (last)
+    *last = idx;
 
-  if (kv)
-    {
-      /* if we've got uninitialized but present state, track back until we find
-       * the first match */
-      if (last)
-	{
-	  grub_dprintf("blscfg", "%s trying to find another entry because last was set\n", __func__);
-	  /* figure out the position of this entry in the array */
-	  int idx;
-	  for (idx = 0 ; idx < entry->nkeyvals; idx++)
-	    if (entry->keyvals[idx] == kv)
-	      break;
-	  *last = idx;
-
-	  while (idx > 0)
-	    {
-	      struct keyval *kvtmp = entry->keyvals[idx-1];
-	      if (idx == 0 || grub_strcmp (keyname, kvtmp->key))
-		{
-		  /* if we're at the start, or if the previous entry doesn't
-		   * match, then we're done */
-		  *last = idx;
-		  break;
-		}
-	      else
-		/* but if it does match, keep going backwards */
-		idx--;
-	    }
-	}
-
-      return kv->val;
-    }
-  return NULL;
+  return kv->val;
 }
 
 #define goto_return(x) ({ ret = (x); goto finish; })
@@ -502,9 +453,6 @@ static int read_entry (
       if (rc < 0)
 	break;
     }
-
-  grub_qsort(&entry->keyvals[0], entry->nkeyvals, sizeof (struct keyval *),
-	     keyval_cmp, NULL);
 
 finish:
   grub_free (p);
