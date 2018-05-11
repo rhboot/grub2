@@ -46,6 +46,9 @@ struct grub_dirhook_info
 typedef int (*grub_fs_dir_hook_t) (const char *filename,
 				   const struct grub_dirhook_info *info,
 				   void *data);
+int EXPORT_FUNC(grub_dir_iterate) (const char *pathname,
+				   grub_fs_dir_hook_t hook,
+				   void *hook_data);
 
 /* Filesystem descriptor.  */
 struct grub_fs
