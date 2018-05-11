@@ -218,3 +218,93 @@ grub_file_seek (grub_file_t file, grub_off_t offset)
     
   return old;
 }
+
+struct grub_dir_iterate_ctx
+{
+  int ret;
+  grub_fs_dir_hook_t hook;
+  void *hook_data;
+  const char *dirpath;
+};
+
+static int
+dir_iterate (const char *filename, const struct grub_dirhook_info *info, void *data)
+{
+  struct grub_dir_iterate_ctx *ctx = data;
+
+  if (!grub_strcmp (filename, ".") || !grub_strcmp (filename, ".."))
+    return 0;
+
+  if (ctx->hook)
+    {
+      int ret, len;
+      char *path, *next;
+
+      len = grub_strlen (ctx->dirpath) + grub_strlen (filename) + 2;
+      path = grub_malloc (len);
+      if (!path)
+	{
+	  ctx->ret = 1;
+	  return 1;
+	}
+
+      next = grub_stpcpy (path, ctx->dirpath);
+      next = grub_stpcpy (next, "/");
+      next = grub_stpcpy (next, filename);
+
+      ret = ctx->hook (path, info, ctx->hook_data);
+      grub_free (path);
+      if (ret)
+	{
+	  ctx->ret = ret;
+	  return ret;
+	}
+    }
+
+  return 0;
+}
+
+int
+grub_dir_iterate (const char *pathname,
+		  grub_fs_dir_hook_t hook, void *hook_data)
+{
+  struct grub_dir_iterate_ctx ctx =
+    {
+      .ret = 0,
+      .hook = hook,
+      .hook_data = hook_data,
+      .dirpath = pathname,
+    };
+  char *device = NULL;
+  const char *dir = NULL;
+  grub_device_t dev = NULL;
+  grub_fs_t fs;
+
+  device = grub_file_get_device_name (pathname);
+  if (!device)
+    return 0;
+
+  dev = grub_device_open (device);
+  if (!dev)
+    goto fail;
+
+  fs = grub_fs_probe (dev);
+  if (!fs)
+    goto fail;
+
+  /*
+   * our string is "(hd0,gpt1)//EFI/test/grubenv.d/" and device is "hd0,gpt1"
+   */
+  dir = pathname + grub_strlen(device) + 2;
+
+  fs->dir (dev, dir, dir_iterate, &ctx);
+
+  grub_errno = GRUB_ERR_NONE;
+fail:
+  if (dev)
+    grub_device_close (dev);
+
+  grub_free (device);
+
+  return ctx.ret;
+}
