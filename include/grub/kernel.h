@@ -108,8 +108,10 @@ grub_addr_t grub_modules_get_end (void);
 
 #endif
 
+#if !defined(GRUB_MACHINE_EMU)
 void EXPORT_FUNC(start) (void);
 void EXPORT_FUNC(_start) (void);
+#endif
 
 /* The start point of the C code.  */
 void grub_main (void) __attribute__ ((noreturn));
