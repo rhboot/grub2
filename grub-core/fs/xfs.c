@@ -76,8 +76,22 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 /* incompat feature flags */
 #define XFS_SB_FEAT_INCOMPAT_FTYPE      (1 << 0)        /* filetype in dirent */
+#define XFS_SB_FEAT_INCOMPAT_SPINODES   (1 << 1)        /* sparse inode chunks */
+#define XFS_SB_FEAT_INCOMPAT_META_UUID  (1 << 2)        /* metadata UUID */
+
+/*
+ * Directory entries with ftype are explicitly handled by grub code.
+ *
+ * We do not currently verify metadata UUID, so it is safe to read filesystems
+ * with the XFS_SB_FEAT_INCOMPAT_META_UUID feature.
+ *
+ * We do not currently read the inode btrees, so it is safe to read filesystems
+ * with the XFS_SB_FEAT_INCOMPAT_SPINODES feature.
+ */
 #define XFS_SB_FEAT_INCOMPAT_SUPPORTED \
-	(XFS_SB_FEAT_INCOMPAT_FTYPE)
+	(XFS_SB_FEAT_INCOMPAT_FTYPE | \
+	 XFS_SB_FEAT_INCOMPAT_SPINODES | \
+	 XFS_SB_FEAT_INCOMPAT_META_UUID)
 
 struct grub_xfs_sblock
 {
