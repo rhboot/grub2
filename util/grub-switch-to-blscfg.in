@@ -250,6 +250,16 @@ if [[ -f "/boot/vmlinuz-0-rescue-${MACHINE_ID}" ]]; then
     mkbls "0-rescue-${MACHINE_ID}" "0" >"${blsdir}/${MACHINE_ID}-0-rescue.conf"
 fi
 
+ARCH="$(uname -m)"
+if [ ! -d /sys/firmware/efi ] && [ "$ARCH" = "x86_64" ]; then
+    DISK="$(grub2-probe --target=device /boot/ | sed -e 's/[0-9].*//g')"
+    if dd status=none if=$DISK bs=1 count=512 | grep -qaob GRUB; then
+        read -r -p "GRUB2 will be replaced in the MBR, do you wish to continue? [ynYN] " confirm
+        [[ "$confirm" =~ ^[yY]$ ]] || exit 0
+        grub2-install $DISK
+    fi
+fi
+
 GENERATE=0
 if grep '^GRUB_ENABLE_BLSCFG=.*' "${etcdefaultgrub}" \
         | grep -vq '^GRUB_ENABLE_BLSCFG="*true"*\s*$' ; then
