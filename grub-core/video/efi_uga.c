@@ -34,7 +34,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_efi_guid_t uga_draw_guid = GRUB_EFI_UGA_DRAW_GUID;
 static struct grub_efi_uga_draw_protocol *uga;
-static grub_uint32_t uga_fb;
+static grub_uint64_t uga_fb;
 static grub_uint32_t uga_pitch;
 
 static struct
@@ -52,7 +52,7 @@ static struct
 #define FBTEST_COUNT	8
 
 static int
-find_line_len (grub_uint32_t *fb_base, grub_uint32_t *line_len)
+find_line_len (grub_uint64_t *fb_base, grub_uint32_t *line_len)
 {
   grub_uint32_t *base = (grub_uint32_t *) (grub_addr_t) *fb_base;
   int i;
@@ -67,7 +67,7 @@ find_line_len (grub_uint32_t *fb_base, grub_uint32_t *line_len)
 	    {
 	      if ((base[j] & RGB_MASK) == RGB_MAGIC)
 		{
-		  *fb_base = (grub_uint32_t) (grub_addr_t) base;
+		  *fb_base = (grub_uint64_t) (grub_addr_t) base;
 		  *line_len = j << 2;
 
 		  return 1;
@@ -84,7 +84,7 @@ find_line_len (grub_uint32_t *fb_base, grub_uint32_t *line_len)
 /* Context for find_framebuf.  */
 struct find_framebuf_ctx
 {
-  grub_uint32_t *fb_base;
+  grub_uint64_t *fb_base;
   grub_uint32_t *line_len;
   int found;
 };
@@ -129,7 +129,9 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
 	      if (i == 5)
 		break;
 
-	      old_bar2 = grub_pci_read (addr + 4);
+	      i++;
+	      addr += 4;
+	      old_bar2 = grub_pci_read (addr);
 	    }
 	  else
 	    old_bar2 = 0;
@@ -138,22 +140,21 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
 	  base64 <<= 32;
 	  base64 |= (old_bar1 & GRUB_PCI_ADDR_MEM_MASK);
 
-	  grub_dprintf ("fb", "%s(%d): 0x%llx\n",
+	  grub_dprintf ("fb", "%s(%d): 0x%" PRIxGRUB_UINT64_T "\n",
 			((old_bar1 & GRUB_PCI_ADDR_MEM_PREFETCH) ?
-			"VMEM" : "MMIO"), i,
-		       (unsigned long long) base64);
+			"VMEM" : "MMIO"), type == GRUB_PCI_ADDR_MEM_TYPE_64 ? i - 1 : i,
+			base64);
+
+#if GRUB_CPU_SIZEOF_VOID_P == 4
+	  if (old_bar2)
+	    continue;
+#endif
 
 	  if ((old_bar1 & GRUB_PCI_ADDR_MEM_PREFETCH) && (! ctx->found))
 	    {
 	      *ctx->fb_base = base64;
 	      if (find_line_len (ctx->fb_base, ctx->line_len))
 		ctx->found++;
-	    }
-
-	  if (type == GRUB_PCI_ADDR_MEM_TYPE_64)
-	    {
-	      i++;
-	      addr += 4;
 	    }
 	}
     }
@@ -162,7 +163,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
 }
 
 static int
-find_framebuf (grub_uint32_t *fb_base, grub_uint32_t *line_len)
+find_framebuf (grub_uint64_t *fb_base, grub_uint32_t *line_len)
 {
   struct find_framebuf_ctx ctx = {
     .fb_base = fb_base,
