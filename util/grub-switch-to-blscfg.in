@@ -188,6 +188,7 @@ fi
 mkbls() {
     local kernelver=$1 && shift
     local datetime=$1 && shift
+    local bootprefix=$1 && shift
 
     local debugname=""
     local debugid=""
@@ -206,8 +207,8 @@ mkbls() {
         cat <<EOF
 title ${NAME} (${kernelver}) ${VERSION}${debugname}
 version ${kernelver}${debugid}
-linux /vmlinuz-${kernelver}
-initrd /initramfs-${kernelver}.img
+linux ${bootprefix}/vmlinuz-${kernelver}
+initrd ${bootprefix}/initramfs-${kernelver}.img
 options \$kernelopts
 id ${ID}-${datetime}-${kernelver}
 grub_users \$grub_users
@@ -234,6 +235,16 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
             >"${bls_target}"
     fi
 
+    linux="$(grep '^linux[ \t]' "${bls_target}" | sed -e 's,^linux[ \t]*,,')"
+    initrd="$(grep '^initrd[ \t]' "${bls_target}" | sed -e 's,^initrd[ \t]*,,')"
+    linux_relpath="$("${grub_mkrelpath}" /boot/$linux)"
+    initrd_relpath="$("${grub_mkrelpath}" /boot/$initrd)"
+
+    if [[ $linux != $linux_relpath ]]; then
+        sed -i -e "s,^linux.*,linux ${linux_relpath},g" "${bls_target}"
+        sed -i -e "s,^initrd.*,initrd ${initrd_relpath},g" "${bls_target}"
+    fi
+
     if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
         arch="$(uname -m)"
         bls_debug="$(echo ${bls_target} | sed -e "s/\.${arch}/-debug.${arch}/")"
@@ -247,7 +258,10 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
 done
 
 if [[ -f "/boot/vmlinuz-0-rescue-${MACHINE_ID}" ]]; then
-    mkbls "0-rescue-${MACHINE_ID}" "0" >"${blsdir}/${MACHINE_ID}-0-rescue.conf"
+    if [[ $linux != $linux_relpath ]]; then
+        bootprefix="$(dirname ${linux_relpath})"
+    fi
+    mkbls "0-rescue-${MACHINE_ID}" "0" "${bootprefix}" >"${blsdir}/${MACHINE_ID}-0-rescue.conf"
 fi
 
 GENERATE=0
