@@ -120,6 +120,24 @@ grub_getkey (void)
     }
 }
 
+int
+grub_getkeystatus (void)
+{
+  int status = 0;
+  grub_term_input_t term;
+
+  if (grub_term_poll_usb)
+    grub_term_poll_usb (0);
+
+  FOR_ACTIVE_TERM_INPUTS(term)
+  {
+    if (term->getkeystatus)
+      status |= term->getkeystatus (term);
+  }
+
+  return status;
+}
+
 void
 grub_refresh (void)
 {
