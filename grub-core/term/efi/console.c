@@ -223,6 +223,39 @@ grub_console_getkey_ex(struct grub_term_input *term)
   return key;
 }
 
+static int
+grub_console_getkeystatus(struct grub_term_input *term)
+{
+  grub_efi_key_data_t key_data;
+  grub_efi_uint32_t kss;
+  int key, mods = 0;
+
+  if (grub_efi_is_finished)
+    return 0;
+
+  if (grub_console_read_key_stroke (term->data, &key_data, &key, 0))
+    return 0;
+
+  kss = key_data.key_state.key_shift_state;
+  if (kss & GRUB_EFI_SHIFT_STATE_VALID)
+    {
+      if (kss & GRUB_EFI_LEFT_SHIFT_PRESSED)
+        mods |= GRUB_TERM_STATUS_LSHIFT;
+      if (kss & GRUB_EFI_RIGHT_SHIFT_PRESSED)
+        mods |= GRUB_TERM_STATUS_RSHIFT;
+      if (kss & GRUB_EFI_LEFT_ALT_PRESSED)
+        mods |= GRUB_TERM_STATUS_LALT;
+      if (kss & GRUB_EFI_RIGHT_ALT_PRESSED)
+        mods |= GRUB_TERM_STATUS_RALT;
+      if (kss & GRUB_EFI_LEFT_CONTROL_PRESSED)
+        mods |= GRUB_TERM_STATUS_LCTRL;
+      if (kss & GRUB_EFI_RIGHT_CONTROL_PRESSED)
+        mods |= GRUB_TERM_STATUS_RCTRL;
+    }
+
+  return mods;
+}
+
 static grub_err_t
 grub_efi_console_input_init (struct grub_term_input *term)
 {
@@ -403,6 +436,7 @@ static struct grub_term_input grub_console_term_input =
   {
     .name = "console",
     .getkey = grub_console_getkey,
+    .getkeystatus = grub_console_getkeystatus,
     .init = grub_efi_console_input_init,
   };
 
