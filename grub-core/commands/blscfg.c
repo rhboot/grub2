@@ -448,7 +448,11 @@ static int read_entry (
 
       separator[0] = '\0';
 
-      rc = bls_add_keyval (entry, buf, separator+1);
+      do {
+	separator++;
+      } while (*separator == ' ' || *separator == '\t');
+
+      rc = bls_add_keyval (entry, buf, separator);
       grub_free (buf);
       if (rc < 0)
 	break;
