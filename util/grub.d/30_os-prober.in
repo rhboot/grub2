@@ -42,6 +42,7 @@ if [ -z "${OSPROBED}" ] ; then
 fi
 
 osx_entry() {
+    found_other_os=1
     # TRANSLATORS: it refers on the OS residing on device %s
     onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
     hints=""
@@ -102,6 +103,7 @@ for OS in ${OSPROBED} ; do
 
   case ${BOOT} in
     chain)
+      found_other_os=1
 
 	  onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
@@ -132,6 +134,7 @@ EOF
 EOF
     ;;
     efi)
+      found_other_os=1
 
 	EFIPATH=${DEVICE#*@}
 	DEVICE=${DEVICE%@*}
@@ -176,6 +179,7 @@ EOF
 	  LINITRD="${LINITRD#/boot}"
 	fi
 
+        found_other_os=1
 	onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
 	recovery_params="$(echo "${LPARAMS}" | grep single)" || true
 	counter=1
@@ -249,6 +253,7 @@ EOF
       done
     ;;
     hurd)
+      found_other_os=1
       onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' --class hurd --class gnu --class os \$menuentry_id_option 'osprober-gnuhurd-/boot/gnumach.gz-false-$(grub_get_device_id "${DEVICE}")' {
@@ -275,6 +280,7 @@ EOF
 EOF
     ;;
     minix)
+      found_other_os=1
 	  cat << EOF
 menuentry "${LONGNAME} (on ${DEVICE}, Multiboot)" {
 EOF
@@ -306,3 +312,15 @@ EOF
       esac
   esac
 done
+
+# We override the results of the menu_auto_hide code here, this is a bit ugly,
+# but grub-mkconfig writes out the file linearly, so this is the only way
+if [ "${found_other_os}" = "1" ]; then
+  cat << EOF
+# Other OS found, undo autohiding of menu unless menu_auto_hide=2
+if [ "\${orig_timeout_style}" -a "\${menu_auto_hide}" != "2" ]; then
+  set timeout_style=\${orig_timeout_style}
+  set timeout=\${orig_timeout}
+fi
+EOF
+fi
