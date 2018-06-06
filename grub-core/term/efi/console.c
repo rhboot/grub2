@@ -157,27 +157,56 @@ grub_console_getkey_con (struct grub_term_input *term __attribute__ ((unused)))
   return grub_efi_translate_key(key);
 }
 
+/*
+ * When more then just modifiers are pressed, our getkeystatus() consumes a
+ * press from the queue, this function buffers the press for the regular
+ * getkey() so that it does not get lost.
+ */
+static int
+grub_console_read_key_stroke (
+                   grub_efi_simple_text_input_ex_interface_t *text_input,
+                   grub_efi_key_data_t *key_data_ret, int *key_ret,
+                   int consume)
+{
+  static grub_efi_key_data_t key_data;
+  grub_efi_status_t status;
+  int key;
+
+  if (!text_input)
+    return GRUB_ERR_EOF;
+
+  key = grub_efi_translate_key (key_data.key);
+  if (key == GRUB_TERM_NO_KEY) {
+    status = efi_call_2 (text_input->read_key_stroke, text_input, &key_data);
+    if (status != GRUB_EFI_SUCCESS)
+      return GRUB_ERR_EOF;
+
+    key = grub_efi_translate_key (key_data.key);
+  }
+
+  *key_data_ret = key_data;
+  *key_ret = key;
+
+  if (consume) {
+    key_data.key.scan_code = 0;
+    key_data.key.unicode_char = 0;
+  }
+
+  return 0;
+}
+
 static int
 grub_console_getkey_ex(struct grub_term_input *term)
 {
   grub_efi_key_data_t key_data;
-  grub_efi_status_t status;
   grub_efi_uint32_t kss;
   int key = -1;
 
-  grub_efi_simple_text_input_ex_interface_t *text_input = term->data;
-
-  status = efi_call_2 (text_input->read_key_stroke, text_input, &key_data);
-
-  if (status != GRUB_EFI_SUCCESS)
+  if (grub_console_read_key_stroke (term->data, &key_data, &key, 1) ||
+      key == GRUB_TERM_NO_KEY)
     return GRUB_TERM_NO_KEY;
 
   kss = key_data.key_state.key_shift_state;
-  key = grub_efi_translate_key(key_data.key);
-
-  if (key == GRUB_TERM_NO_KEY)
-    return GRUB_TERM_NO_KEY;
-
   if (kss & GRUB_EFI_SHIFT_STATE_VALID)
     {
       if ((kss & GRUB_EFI_LEFT_SHIFT_PRESSED
