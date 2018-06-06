@@ -35,24 +35,6 @@ static const struct grub_arg_option options[] =
     {0, 0, 0, 0, 0, 0}
   };
 
-static int
-grub_getkeystatus (void)
-{
-  int status = 0;
-  grub_term_input_t term;
-
-  if (grub_term_poll_usb)
-    grub_term_poll_usb (0);
-
-  FOR_ACTIVE_TERM_INPUTS(term)
-  {
-    if (term->getkeystatus)
-      status |= term->getkeystatus (term);
-  }
-
-  return status;
-}
-
 static grub_err_t
 grub_cmd_keystatus (grub_extcmd_context_t ctxt,
 		    int argc __attribute__ ((unused)),
