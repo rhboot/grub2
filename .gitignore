@@ -111,6 +111,8 @@ grub-*.tar.*
 /grub*-rpm-sort.8
 /grub*-script-check
 /grub*-script-check.1
+/grub*-set-bootflag
+/grub*-set-bootflag.1
 /grub*-set-default
 /grub*-set-default.8
 /grub*-set-password
