@@ -14,6 +14,9 @@ EXTRA_DIST += util/import_unicode.py
 EXTRA_DIST += docs/autoiso.cfg
 EXTRA_DIST += docs/grub.cfg
 EXTRA_DIST += docs/osdetect.cfg
+EXTRA_DIST += docs/org.gnu.grub.policy
+EXTRA_DIST += docs/grub-boot-success.service
+EXTRA_DIST += docs/grub-boot-success.timer
 
 EXTRA_DIST += conf/i386-cygwin-img-ld.sc
 
