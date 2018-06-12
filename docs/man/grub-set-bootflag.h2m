@@ -1,0 +1,2 @@
+[NAME]
+grub-set-bootflag \- set a bootflag in the GRUB environment block
