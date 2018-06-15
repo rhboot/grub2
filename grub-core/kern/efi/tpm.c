@@ -245,7 +245,7 @@ grub_tpm2_log_event(grub_efi_handle_t tpm_handle, unsigned char *buf,
   event->Size = sizeof(*event) - sizeof(event->Event) + grub_strlen(description) + 1;
   grub_memcpy(event->Event, description, grub_strlen(description) + 1);
 
-  status = efi_call_5 (tpm->hash_log_extend_event, tpm, 0, buf,
+  status = efi_call_5 (tpm->hash_log_extend_event, tpm, 0, (unsigned long) buf,
 		       (grub_uint64_t) size, event);
 
   switch (status) {
