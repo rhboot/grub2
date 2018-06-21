@@ -976,6 +976,7 @@ grub_net_configure_by_dhcpv6_reply (const char *name,
 {
   struct grub_net_network_level_interface *inf;
   grub_dhcp6_options_t dhcp6;
+  int mask = -1;
 
   dhcp6 = grub_dhcp6_options_get (v6h, size);
   if (!dhcp6)
@@ -1007,6 +1008,10 @@ grub_net_configure_by_dhcpv6_reply (const char *name,
     }
 
   grub_dhcp6_options_free (dhcp6);
+
+  if (inf)
+    grub_net_add_ipv6_local (inf, mask);
+
   return inf;
 }
 
