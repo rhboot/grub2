@@ -307,7 +307,7 @@ static void
 grub_normalize_filename (char *normalized, const char *filename)
 {
   char *dest = normalized;
-  char *src = filename;
+  const char *src = filename;
 
   while (*src != '\0')
     {
