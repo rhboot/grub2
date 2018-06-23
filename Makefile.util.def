@@ -756,8 +756,8 @@ script = {
 };
 
 script = {
-  name = grub-setpassword;
-  common = util/grub-setpassword.in;
+  name = grub-set-password;
+  common = util/grub-set-password.in;
   mansection = 8;
   installdir = sbin;
 };
