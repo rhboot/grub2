@@ -113,8 +113,8 @@ grub-*.tar.*
 /grub*-script-check.1
 /grub*-set-default
 /grub*-set-default.8
-/grub*-setsetpassword
-/grub*-setsetpassword.8
+/grub*-set-password
+/grub*-set-password.8
 /grub*-shell
 /grub*-shell-tester
 /grub*-sparc64-setup
