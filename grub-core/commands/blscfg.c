@@ -381,9 +381,14 @@ static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
   return rc;
 }
 
+struct read_entry_info {
+  const char *devid;
+  const char *dirname;
+};
+
 static int read_entry (
     const char *filename,
-    const struct grub_dirhook_info *info UNUSED,
+    const struct grub_dirhook_info *dirhook_info UNUSED,
     void *data)
 {
   grub_size_t n;
@@ -391,8 +396,7 @@ static int read_entry (
   grub_file_t f = NULL;
   grub_off_t sz;
   struct bls_entry *entry;
-  const char *dirname= (const char *)data;
-  const char *devid = grub_env_get ("boot");
+  struct read_entry_info *info = (struct read_entry_info *)data;
 
   grub_dprintf ("blscfg", "filename: \"%s\"\n", filename);
 
@@ -406,7 +410,7 @@ static int read_entry (
   if (grub_strcmp (filename + n - 5, ".conf") != 0)
     return 0;
 
-  p = grub_xasprintf ("(%s)%s/%s", devid, dirname, filename);
+  p = grub_xasprintf ("(%s)%s/%s", info->devid, info->dirname, filename);
 
   f = grub_file_open (p);
   if (!f)
@@ -655,10 +659,13 @@ static int find_entry (const char *filename,
 		       void *data)
 {
   struct find_entry_info *info = (struct find_entry_info *)data;
+  struct read_entry_info read_entry_info;
   grub_file_t f = NULL;
   char *grubenv_path = NULL;
   grub_envblk_t env = NULL;
   char *default_blsdir = NULL;
+  grub_fs_t blsdir_fs = NULL;
+  grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
   char *saved_env_buf = NULL;
   int r = 0;
@@ -677,9 +684,6 @@ static int find_entry (const char *filename,
   // set a default blsdir
   if (info->platform == PLATFORM_EMU)
     default_blsdir = grub_xasprintf ("%s%s", GRUB_BOOT_DEVICE,
-				     GRUB_BLS_CONFIG_PATH);
-  else if (info->platform == PLATFORM_EFI)
-    default_blsdir = grub_xasprintf ("/EFI/%s%s", filename,
 				     GRUB_BLS_CONFIG_PATH);
   else
     default_blsdir = grub_xasprintf ("%s", GRUB_BLS_CONFIG_PATH);
@@ -744,16 +748,33 @@ static int find_entry (const char *filename,
     goto finish;
 
   grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
-  if (blsdir[0] != '/' && info->platform == PLATFORM_EFI)
-    blsdir = grub_xasprintf ("/EFI/%s/%s/", filename, blsdir);
-  else
-    blsdir = grub_strdup (blsdir);
+  blsdir = grub_strdup (blsdir);
 
   if (!blsdir)
     goto finish;
 
   grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
-  r = info->fs->dir (info->dev, blsdir, read_entry, (char *)blsdir);
+  if (info->platform == PLATFORM_EFI) {
+    read_entry_info.devid = grub_env_get ("root");
+    if (!read_entry_info.devid)
+      goto finish;
+
+    blsdir_dev = grub_device_open (read_entry_info.devid);
+    if (!blsdir_dev)
+      goto finish;
+
+    blsdir_fs = grub_fs_probe (blsdir_dev);
+    if (!blsdir_fs)
+      goto finish;
+
+  } else {
+    read_entry_info.devid = devid;
+    blsdir_dev = info->dev;
+    blsdir_fs = info->fs;
+  }
+  read_entry_info.dirname = blsdir;
+
+  r = blsdir_fs->dir (blsdir_dev, blsdir, read_entry, &read_entry_info);
   if (r != 0) {
       grub_dprintf ("blscfg", "read_entry returned error\n");
       grub_err_t e;
@@ -773,6 +794,9 @@ static int find_entry (const char *filename,
   for (r = 0; r < nentries; r++)
       bls_free_entry (entries[r]);
 finish:
+  if (info->platform == PLATFORM_EFI && blsdir_dev)
+    grub_device_close (blsdir_dev);
+
   nentries = 0;
 
   grub_free (entries);
