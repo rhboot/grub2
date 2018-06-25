@@ -44,12 +44,12 @@ EFIDIR=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/')
 if [ -d /sys/firmware/efi/efivars/ ]; then
     startlink=/etc/grub2-efi.cfg
     grubdir=`echo "/@bootdirname@/efi/EFI/${EFIDIR}/" | sed 's,//*,/,g'`
-    blsdir=`echo "/@bootdirname@/efi/EFI/${EFIDIR}/loader/entries" | sed 's,//*,/,g'`
 else
     startlink=/etc/grub2.cfg
     grubdir=`echo "/@bootdirname@/@grubdirname@" | sed 's,//*,/,g'`
-    blsdir=`echo "/@bootdirname@/loader/entries" | sed 's,//*,/,g'`
 fi
+
+blsdir=`echo "/@bootdirname@/loader/entries" | sed 's,//*,/,g'`
 
 backupsuffix=.bak
 
