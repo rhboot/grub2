@@ -70,6 +70,7 @@ struct bls_entry
 {
   struct keyval **keyvals;
   int nkeyvals;
+  char *filename;
 };
 
 static struct bls_entry **entries;
@@ -166,6 +167,7 @@ static void bls_free_entry(struct bls_entry *entry)
 
   grub_free (entry->keyvals);
   grub_memset (entry, 0, sizeof (*entry));
+  grub_free (entry->filename);
   grub_free (entry);
 }
 
@@ -327,58 +329,12 @@ finish:
 
 typedef int (*void_cmp_t)(void *, void *);
 
-static int nulcmp(char *s0, char *s1, void_cmp_t cmp)
-{
-  grub_dprintf("blscfg", "%s got here\n", __func__);
-  if (s1 && !s0)
-    return 1;
-  if (s0 && !s1)
-    return -1;
-  if (!s0 && !s1)
-    return 0;
-  if (cmp)
-    return cmp(s0, s1);
-  return grub_strcmp(s0, s1);
-}
-
-static int
-bls_keyval_cmp(struct bls_entry *e0, struct bls_entry *e1, const char *keyname)
-{
-  char *val0, *val1;
-
-  val0 = bls_get_val (e0, keyname, NULL);
-  val1 = bls_get_val (e1, keyname, NULL);
-
-  if (val1 && !val0)
-    return 1;
-
-  if (val0 && !val1)
-    return -1;
-
-  if (!val0 && !val1)
-    return 0;
-
-  return nulcmp(val0, val1, (void_cmp_t)vercmp);
-}
-
 static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
 {
   struct bls_entry * e0 = *(struct bls_entry **)p0;
   struct bls_entry * e1 = *(struct bls_entry **)p1;
-  int rc = 0;
 
-  rc = bls_keyval_cmp (e0, e1, "id");
-
-  if (rc == 0)
-    rc = bls_keyval_cmp (e0, e1, "version");
-
-  if (rc == 0)
-    rc = bls_keyval_cmp (e0, e1, "title");
-
-  if (rc == 0)
-    rc = bls_keyval_cmp (e0, e1, "linux");
-
-  return rc;
+  return vercmp(e0->filename, e1->filename);
 }
 
 struct read_entry_info {
@@ -423,6 +379,12 @@ static int read_entry (
   entry = bls_new_entry();
   if (!entry)
     goto finish;
+
+  entry->filename = grub_strndup(filename, n - 5);
+  if (!entry->filename)
+    goto finish;
+
+  entry->filename[n - 5] = '\0';
 
   for (;;)
     {
@@ -548,7 +510,7 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
   char *options = NULL;
   char **initrds = NULL;
   char *initrd = NULL;
-  char *id = NULL;
+  char *id = entry->filename;
   char *hotkey = NULL;
 
   char *users = NULL;
@@ -570,7 +532,6 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
   title = bls_get_val (entry, "title", NULL);
   options = bls_get_val (entry, "options", NULL);
   initrds = bls_make_list (entry, "initrd", NULL);
-  id = bls_get_val (entry, "id", NULL);
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
   users = bls_get_val (entry, "grub_users", NULL);
@@ -584,7 +545,8 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
     argv[i] = args[i-1];
   argv[argc] = NULL;
 
-  grub_dprintf ("blscfg", "adding menu entry for \"%s\"\n", title);
+  grub_dprintf ("blscfg", "adding menu entry for \"%s\" with id \"%s\"\n",
+		title, id);
   if (initrds)
     {
       int initrd_size = sizeof (GRUB_INITRD_CMD);
