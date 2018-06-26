@@ -854,7 +854,7 @@ fi
 # that floats are a good fit to run instead of what's written in the code.
 # Given that floating point unit is disabled (if present to begin with)
 # when GRUB is running which may result in various hard crashes.
-if test x"$platform" != xemu ; then
+if test x"$platform" != xemu -a "x$target_cpu" != xarm ; then
   AC_CACHE_CHECK([for options to get soft-float], grub_cv_target_cc_soft_float, [
     grub_cv_target_cc_soft_float=no
     if test "x$target_cpu" = xarm64; then
