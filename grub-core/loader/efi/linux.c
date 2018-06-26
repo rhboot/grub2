@@ -50,7 +50,7 @@ grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
 
   grub_dprintf ("secureboot", "Asking shim to verify kernel signature\n");
   status = shim_lock->verify (data, size);
-  grub_dprintf ("secureboot", "shim_lock->verify(): %ld\n", status);
+  grub_dprintf ("secureboot", "shim_lock->verify(): %ld\n", (long int)status);
   if (status == GRUB_EFI_SUCCESS)
     {
       grub_dprintf ("secureboot", "Kernel signature verification passed\n");
