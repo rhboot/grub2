@@ -33,7 +33,7 @@ if [ x\$feature_timeout_style = xy ] ; then
     unset menu_show_once
     save_env menu_show_once
     set timeout_style=menu
-    unset timeout
+    set timeout=60
   elif [ "\${menu_auto_hide}" -a "\${last_boot_ok}" = "1" ]; then
     set orig_timeout_style=\${timeout_style}
     set orig_timeout=\${timeout}
