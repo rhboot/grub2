@@ -1719,6 +1719,7 @@ module = {
   sparc64_ieee1275 = loader/sparc64/ieee1275/linux.c;
   ia64_efi = loader/ia64/efi/linux.c;
   arm = loader/arm/linux.c;
+  arm = loader/efi/linux.c;
   arm64 = loader/arm64/linux.c;
   arm64 = loader/efi/linux.c;
   emu = loader/emu/linux.c;
