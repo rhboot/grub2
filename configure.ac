@@ -850,11 +850,23 @@ if ( test "x$target_cpu" = xi386 || test "x$target_cpu" = xx86_64 ) && test "x$p
   TARGET_CFLAGS="$TARGET_CFLAGS -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow"
 fi
 
+# Should grub utils get the host CFLAGS, or the target CFLAGS?
+AC_ARG_WITH([utils],
+            AS_HELP_STRING([--with-utils=host|target|build],
+                           [choose which flags to build utilities with. (default=target)]),
+	    [have_with_utils=y],
+	    [have_with_utils=n])
+if test x"$have_with_utils" = xy ; then
+  with_utils="$withval"
+else
+  with_utils=target
+fi
+
 # GRUB doesn't use float or doubles at all. Yet some toolchains may decide
 # that floats are a good fit to run instead of what's written in the code.
 # Given that floating point unit is disabled (if present to begin with)
 # when GRUB is running which may result in various hard crashes.
-if test x"$platform" != xemu ; then
+if test x"$platform" != xemu -a x"$with_utils" == xtarget ; then
   AC_CACHE_CHECK([for options to get soft-float], grub_cv_target_cc_soft_float, [
     grub_cv_target_cc_soft_float=no
     if test "x$target_cpu" = xarm64; then
@@ -1938,6 +1950,41 @@ TARGET_CCAS=$TARGET_CC
 HOST_CPPFLAGS="$HOST_CPPFLAGS -I\$(top_builddir)/include"
 TARGET_CPPFLAGS="$TARGET_CPPFLAGS -I\$(top_srcdir)/include"
 TARGET_CPPFLAGS="$TARGET_CPPFLAGS -I\$(top_builddir)/include"
+
+case "$with_utils" in
+  host)
+    UTILS_CFLAGS=$HOST_CFLAGS
+    UTILS_CPPFLAGS=$HOST_CPPFLAGS
+    UTILS_CCASFLAGS=$HOST_CCASFLAGS
+    UTILS_LDFLAGS=$HOST_LDFLAGS
+    ;;
+  target)
+    UTILS_CFLAGS=$TARGET_CFLAGS
+    UTILS_CPPFLAGS=$TARGET_CPPFLAGS
+    UTILS_CCASFLAGS=$TARGET_CCASFLAGS
+    UTILS_LDFLAGS=$TARGET_LDFLAGS
+    ;;
+  build)
+    UTILS_CFLAGS=$BUILD_CFLAGS
+    UTILS_CPPFLAGS=$BUILD_CPPFLAGS
+    UTILS_CCASFLAGS=$BUILD_CCASFLAGS
+    UTILS_LDFLAGS=$BUILD_LDFLAGS
+    ;;
+  *)
+    AC_MSG_ERROR([--with-utils must be either host, target, or build])
+    ;;
+esac
+AC_MSG_NOTICE([Using $with_utils flags for utilities.])
+
+unset CFLAGS
+unset CPPFLAGS
+unset CCASFLAGS
+unset LDFLAGS
+
+AC_SUBST(UTILS_CFLAGS)
+AC_SUBST(UTILS_CPPFLAGS)
+AC_SUBST(UTILS_CCASFLAGS)
+AC_SUBST(UTILS_LDFLAGS)
 
 GRUB_TARGET_CPU="${target_cpu}"
 GRUB_PLATFORM="${platform}"
