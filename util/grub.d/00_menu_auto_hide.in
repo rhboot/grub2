@@ -19,14 +19,12 @@ fi
 # Reset boot_indeterminate after a successful boot
 if [ "\${boot_success}" = "1" ] ; then
   set boot_indeterminate=0
-  save_env boot_indeterminate
 # Avoid boot_indeterminate causing the menu to be hidden more then once
 elif [ "\${boot_indeterminate}" = "1" ]; then
   set boot_indeterminate=2
-  save_env boot_indeterminate
 fi
 set boot_success=0
-save_env boot_success
+save_env boot_success boot_indeterminate
 
 if [ x\$feature_timeout_style = xy ] ; then
   if [ "\${menu_show_once}" ]; then
