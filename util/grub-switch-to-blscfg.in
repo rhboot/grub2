@@ -220,7 +220,8 @@ EOF
 
 for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     bls_target="${blsdir}/${MACHINE_ID}-${kernelver}.conf"
-    linux="$(grep '^linux[ \t]' "${bls_target}" | sed -e 's,^linux[ \t]+,,')"
+    linux="/vmlinuz-${kernelver}"
+    linux_path="/boot${linux}"
     kernel_dir="/lib/modules/${kernelver}"
 
     if [ ! -d "${kernel_dir}" ] ; then
@@ -230,8 +231,8 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
         continue
     fi
 
-    linux_relpath="$("${grub_mkrelpath}" "${linux}")"
-    bootprefix="${linux%%"${linux_relpath}"}"
+    linux_relpath="$("${grub_mkrelpath}" "${linux_path}")"
+    bootprefix="${linux_relpath%%"${linux}"}"
 
     if [ -f "${kernel_dir}/bls.conf" ] ; then
         cp -af "${kernel_dir}/bls.conf" "${bls_target}"
@@ -243,7 +244,8 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     fi
 
     if [ -n "${bootprefix}" ]; then
-        sed -i -e "s,\([ \t]\)${bootprefix},\1,g" "${bls_target}"
+        sed -i -e "s,^\(linux[^ \t]*[ \t]\+\).*,\1${bootprefix}${linux},g" "${bls_target}"
+        sed -i -e "/^initrd/ s,\([ \t]\+\)\([^ \t]\+\),\1${bootprefix}\2,g" "${bls_target}"
     fi
 
     if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
@@ -258,7 +260,7 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     fi
 done
 
-if [ -n "${bootprefix}" -a -f "/boot/vmlinuz-0-rescue-${MACHINE_ID}" ]; then
+if [ -f "/boot/vmlinuz-0-rescue-${MACHINE_ID}" ]; then
     mkbls "0-rescue-${MACHINE_ID}" "0" "${bootprefix}" >"${blsdir}/${MACHINE_ID}-0-rescue.conf"
 fi
 
