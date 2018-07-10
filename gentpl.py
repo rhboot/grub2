@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python3
 #  GRUB  --  GRand Unified Bootloader
 #  Copyright (C) 2010,2011,2012,2013  Free Software Foundation, Inc.
 #
