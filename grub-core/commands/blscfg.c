@@ -623,7 +623,7 @@ static int find_entry (const char *filename,
   grub_file_t f = NULL;
   char *grubenv_path = NULL;
   grub_envblk_t env = NULL;
-  char *default_blsdir = NULL;
+  const char *default_blsdir = NULL;
   grub_fs_t blsdir_fs = NULL;
   grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
@@ -643,10 +643,9 @@ static int find_entry (const char *filename,
 
   // set a default blsdir
   if (info->platform == PLATFORM_EMU)
-    default_blsdir = grub_xasprintf ("%s%s", GRUB_BOOT_DEVICE,
-				     GRUB_BLS_CONFIG_PATH);
+    default_blsdir = GRUB_BOOT_DEVICE GRUB_BLS_CONFIG_PATH;
   else
-    default_blsdir = grub_xasprintf ("%s", GRUB_BLS_CONFIG_PATH);
+    default_blsdir = GRUB_BLS_CONFIG_PATH;
 
   grub_env_set ("blsdir", default_blsdir);
   grub_dprintf ("blscfg", "default_blsdir: \"%s\"\n", default_blsdir);
@@ -787,8 +786,6 @@ finish:
 
   if (f)
     grub_file_close (f);
-
-  grub_free (default_blsdir);
 
   return 0;
 }
