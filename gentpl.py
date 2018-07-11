@@ -589,11 +589,21 @@ def platform_conditional(platform, closure):
 #  };
 #
 def foreach_enabled_platform(defn, closure):
+    enabled = False
+    disabled = False
     if 'enable' in defn:
+        enabled = True
         for platform in GRUB_PLATFORMS:
             if platform_tagged(defn, platform, "enable"):
                platform_conditional(platform, closure)
-    else:
+
+    if 'disable' in defn:
+        disabled = True
+        for platform in GRUB_PLATFORMS:
+            if not platform_tagged(defn, platform, "disable"):
+                platform_conditional(platform, closure)
+
+    if not enabled and not disabled:
         for platform in GRUB_PLATFORMS:
             platform_conditional(platform, closure)
 
@@ -651,6 +661,8 @@ def first_time(defn, snippet):
 
 def is_platform_independent(defn):
     if 'enable' in defn:
+        return False
+    if 'disable' in defn:
         return False
     for suffix in [ "", "_nodist" ]:
         template = platform_values(defn, GRUB_PLATFORMS[0], suffix)
