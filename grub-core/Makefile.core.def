@@ -1682,7 +1682,7 @@ module = {
 
   common = loader/multiboot.c;
   common = loader/multiboot_mbi2.c;
-  enable = x86;
+  enable = i386_pc;
   enable = mips;
 };
 
@@ -1691,7 +1691,7 @@ module = {
   common = loader/multiboot.c;
   x86 = loader/i386/multiboot_mbi.c;
   extra_dist = loader/multiboot_elfxx.c;
-  enable = x86;
+  enable = i386_pc;
 };
 
 module = {
