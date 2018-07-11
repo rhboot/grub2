@@ -327,8 +327,6 @@ finish:
     return ret;
 }
 
-typedef int (*void_cmp_t)(void *, void *);
-
 static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
 {
   struct bls_entry * e0 = *(struct bls_entry **)p0;
