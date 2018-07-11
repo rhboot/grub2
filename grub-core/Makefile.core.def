@@ -2186,12 +2186,6 @@ module = {
 module = {
   name = efi_netfs;
   common = net/efi/efi_netfs.c;
-  common = net/efi/net.c;
-  common = net/efi/http.c;
-  common = net/efi/pxe.c;
-  common = net/efi/ip4_config.c;
-  common = net/efi/ip6_config.c;
-  common = net/efi/dhcp.c;
   enable = efi;
 };
 
