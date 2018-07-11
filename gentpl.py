@@ -49,6 +49,7 @@ GROUPS["arm"]      = [ "arm_uboot", "arm_efi", "arm_coreboot" ]
 GROUPS["arm64"]    = [ "arm64_efi" ]
 
 # Groups based on firmware
+GROUPS["pc"] = [ "i386_pc" ]
 GROUPS["efi"]  = [ "i386_efi", "x86_64_efi", "ia64_efi", "arm_efi", "arm64_efi" ]
 GROUPS["ieee1275"]   = [ "i386_ieee1275", "sparc64_ieee1275", "powerpc_ieee1275" ]
 GROUPS["uboot"] = [ "arm_uboot" ]
