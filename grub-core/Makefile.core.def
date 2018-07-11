@@ -192,6 +192,7 @@ kernel = {
   i386_coreboot_multiboot_qemu = term/i386/pc/vga_text.c;
   coreboot = video/coreboot/cbfb.c;
 
+  efi = commands/reboot.c;
   efi = disk/efi/efidisk.c;
   efi = kern/efi/efi.c;
   efi = kern/efi/init.c;
@@ -890,8 +891,8 @@ module = {
 
 module = {
   name = reboot;
-  i386 = lib/i386/reboot.c;
-  i386 = lib/i386/reboot_trampoline.S;
+  i386_pc = lib/i386/reboot.c;
+  i386_pc = lib/i386/reboot_trampoline.S;
   powerpc_ieee1275 = lib/ieee1275/reboot.c;
   sparc64_ieee1275 = lib/ieee1275/reboot.c;
   mips_arc = lib/mips/arc/reboot.c;
@@ -901,6 +902,8 @@ module = {
   uboot = lib/uboot/reboot.c;
   arm_coreboot = lib/dummy/reboot.c;
   common = commands/reboot.c;
+
+  disable = efi;
 };
 
 module = {
