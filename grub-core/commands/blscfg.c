@@ -327,10 +327,26 @@ finish:
     return ret;
 }
 
+/* return 1: p0 is newer than p1 */
+/*        0: p0 and p1 are the same version */
+/*       -1: p1 is newer than p0 */
 static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
 {
   struct bls_entry * e0 = *(struct bls_entry **)p0;
   struct bls_entry * e1 = *(struct bls_entry **)p1;
+  const char *v0, *v1;
+  int r;
+
+  v0 = bls_get_val(e0, "version", NULL);
+  v1 = bls_get_val(e1, "version", NULL);
+
+  if (v0 && !v1)
+    return -1;
+  if (!v0 && v1)
+    return 1;
+
+  if ((r = vercmp(v0, v1)) != 0)
+    return r;
 
   return vercmp(e0->filename, e1->filename);
 }
