@@ -843,7 +843,7 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
   info.platform = PLATFORM_EFI;
   grub_dprintf ("blscfg", "scanning /EFI/\n");
   r = fs->dir (dev, "/EFI/", find_entry, &info);
-#elif GRUB_MACHINE_EMU
+#elif defined(GRUB_MACHINE_EMU)
   info.platform = PLATFORM_EMU;
   grub_dprintf ("blscfg", "scanning %s%s\n", GRUB_BOOT_DEVICE,
 		GRUB_BLS_CONFIG_PATH);
