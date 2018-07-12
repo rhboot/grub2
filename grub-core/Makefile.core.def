@@ -242,10 +242,8 @@ kernel = {
 
   arm_efi = kern/arm/efi/init.c;
   arm_efi = kern/arm/efi/misc.c;
-  arm_efi = kern/efi/fdt.c;
 
   arm64_efi = kern/arm64/efi/init.c;
-  arm64_efi = kern/efi/fdt.c;
 
   i386_pc = kern/i386/pc/init.c;
   i386_pc = kern/i386/pc/mmap.c;
@@ -1694,11 +1692,17 @@ module = {
   enable = i386_pc;
 };
 
+/*
 module = {
   name = xen_boot;
   arm64 = loader/arm64/xen_boot.c;
+
+  fdt = lib/fdt.c;
+  fdt = loader/efi/fdt.c;
+
   enable = arm64;
 };
+*/
 
 module = {
   name = linux;
@@ -1714,7 +1718,9 @@ module = {
   arm = loader/arm/linux.c;
   arm64 = loader/arm64/linux.c;
   emu = loader/emu/linux.c;
+
   fdt = lib/fdt.c;
+  fdt = loader/efi/fdt.c;
 
   common = loader/linux.c;
   common = lib/cmdline.c;
@@ -1722,12 +1728,14 @@ module = {
   efi = loader/efi/linux.c;
 };
 
+/*
 module = {
   name = fdt;
   arm64 = loader/efi/fdt.c;
   common = lib/fdt.c;
   enable = fdt;
 };
+*/
 
 module = {
   name = xnu;
@@ -1788,7 +1796,8 @@ module = {
   i386_coreboot = lib/LzmaDec.c;
   enable = i386_pc;
   enable = i386_coreboot;
-  enable = efi;
+  enable = i386_efi;
+  enable = x86_64_efi;
 };
 
 module = {
