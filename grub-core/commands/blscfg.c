@@ -166,8 +166,8 @@ static void bls_free_entry(struct bls_entry *entry)
     }
 
   grub_free (entry->keyvals);
-  grub_memset (entry, 0, sizeof (*entry));
   grub_free (entry->filename);
+  grub_memset (entry, 0, sizeof (*entry));
   grub_free (entry);
 }
 
