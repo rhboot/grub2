@@ -600,23 +600,12 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
   grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0);
 
 finish:
-  if (initrd)
-    grub_free (initrd);
-
-  if (initrds)
-    grub_free (initrds);
-
-  if (classes)
-    grub_free (classes);
-
-  if (args)
-    grub_free (args);
-
-  if (argv)
-    grub_free (argv);
-
-  if (src)
-    grub_free (src);
+  grub_free (initrd);
+  grub_free (initrds);
+  grub_free (classes);
+  grub_free (args);
+  grub_free (argv);
+  grub_free (src);
 }
 
 struct find_entry_info {
