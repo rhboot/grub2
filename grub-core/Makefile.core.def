@@ -1713,8 +1713,8 @@ module = {
 
 module = {
   name = linux;
-  x86 = loader/i386/linux.c;
-  x86_efi = loader/i386/efi/linux.c;
+  i386_pc = loader/i386/linux.c;
+  x86_64_efi = loader/i386/efi/linux.c;
   i386_efi = loader/i386/efi/linux.c;
   xen = loader/i386/xen.c;
   i386_pc = lib/i386/pc/vesa_modes_table.c;
