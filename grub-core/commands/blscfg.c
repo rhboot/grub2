@@ -514,7 +514,7 @@ static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
   return list;
 }
 
-static void create_entry (struct bls_entry *entry, const char *cfgfile)
+static void create_entry (struct bls_entry *entry)
 {
   int argc = 0;
   const char **argv = NULL;
@@ -539,7 +539,7 @@ static void create_entry (struct bls_entry *entry, const char *cfgfile)
   clinux = bls_get_val (entry, "linux", NULL);
   if (!clinux)
     {
-      grub_dprintf ("blscfg", "Skipping file %s with no 'linux' key.\n", cfgfile);
+      grub_dprintf ("blscfg", "Skipping file %s with no 'linux' key.\n", entry->filename);
       goto finish;
     }
 
@@ -753,7 +753,7 @@ static int find_entry (const char *filename,
 
   grub_dprintf ("blscfg", "%s Creating %d entries from bls\n", __func__, nentries);
   for (r = nentries - 1; r >= 0; r--)
-      create_entry(entries[r], filename);
+      create_entry(entries[r]);
 
   for (r = 0; r < nentries; r++)
       bls_free_entry (entries[r]);
