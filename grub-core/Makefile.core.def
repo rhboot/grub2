@@ -781,6 +781,7 @@ module = {
 module = {
   name = blscfg;
   common = commands/blscfg.c;
+  common = commands/loadenv.h;
   enable = efi;
   enable = i386_pc;
   enable = emu;
@@ -947,6 +948,7 @@ module = {
 module = {
   name = loadenv;
   common = commands/loadenv.c;
+  common = commands/loadenv.h;
   common = lib/envblk.c;
 };
 
