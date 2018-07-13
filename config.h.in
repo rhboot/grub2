@@ -46,6 +46,8 @@
 #define END_SYMBOL @END_SYMBOL@
 /* Name of package.  */
 #define PACKAGE "@PACKAGE@"
+/* Name of the default module directory.  */
+#define MODULE_DIR_NAME "@MODULE_DIR_NAME@"
 /* Version number of package.  */
 #define VERSION "@VERSION@"
 /* Define to the full name and version of this package. */
