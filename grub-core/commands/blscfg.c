@@ -43,14 +43,6 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_BOOT_DEVICE "($root)"
 #endif
 
-#ifdef GRUB_MACHINE_EFI
-#define GRUB_LINUX_CMD "linuxefi"
-#define GRUB_INITRD_CMD "initrdefi"
-#else
-#define GRUB_LINUX_CMD "linux"
-#define GRUB_INITRD_CMD "initrd"
-#endif
-
 enum
   {
     PLATFORM_EFI,
@@ -563,7 +555,7 @@ static void create_entry (struct bls_entry *entry)
 		title, id);
   if (initrds)
     {
-      int initrd_size = sizeof (GRUB_INITRD_CMD);
+      int initrd_size = sizeof ("initrd");
       char *tmp;
 
       for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
@@ -579,7 +571,7 @@ static void create_entry (struct bls_entry *entry)
 	}
 
 
-      tmp = grub_stpcpy(initrd, GRUB_INITRD_CMD);
+      tmp = grub_stpcpy(initrd, "initrd ");
       for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
 	{
 	  grub_dprintf ("blscfg", "adding initrd %s\n", initrds[i]);
@@ -592,7 +584,7 @@ static void create_entry (struct bls_entry *entry)
   src = grub_xasprintf ("load_video\n"
 			"set gfx_payload=keep\n"
 			"insmod gzio\n"
-			GRUB_LINUX_CMD " %s%s%s%s\n"
+			"linux %s%s%s%s\n"
 			"%s",
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
 			initrd ? initrd : "");
