@@ -34,6 +34,9 @@
 #include <grub/efi/pe32.h>	/* required by struct xen_hypervisor_header */
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
+#include <grub/dl.h>
+
+#include "../../lib/fdt.c"
 
 GRUB_MOD_LICENSE ("GPLv3+");
 

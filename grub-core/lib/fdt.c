@@ -16,12 +16,22 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <grub/fdt.h>
-#include <grub/misc.h>
-#include <grub/mm.h>
-#include <grub/dl.h>
+static int grub_fdt_create_empty_tree (void *fdt, unsigned int size);
+static int grub_fdt_check_header (const void *fdt, unsigned int size);
+static int grub_fdt_check_header_nosize (const void *fdt);
+static int grub_fdt_find_subnode (const void *fdt, unsigned int parentoffset,
+					const char *name);
+static int grub_fdt_first_node (const void *fdt, unsigned int parentoffset);
+static int grub_fdt_next_node (const void *fdt, unsigned int currentoffset);
+static int grub_fdt_add_subnode (void *fdt, unsigned int parentoffset,
+			  const char *name);
+static const char *
+grub_fdt_get_nodename (const void *fdt, unsigned int nodeoffset);
+static const void *grub_fdt_get_prop (const void *fdt, unsigned int nodeoffset, const char *name,
+					    grub_uint32_t *len);
 
-GRUB_MOD_LICENSE ("GPLv3+");
+static int grub_fdt_set_prop (void *fdt, unsigned int nodeoffset, const char *name,
+				    const void *val, grub_uint32_t len);
 
 #define FDT_SUPPORTED_VERSION	17
 
@@ -263,6 +273,7 @@ static grub_uint32_t *find_prop (const void *fdt, unsigned int nodeoffset,
    the size allocated for the FDT; if this function is called before the other
    functions in this file and returns success, the other functions are
    guaranteed not to access memory locations outside the allocated memory. */
+static inline __attribute__((__unused__))
 int grub_fdt_check_header_nosize (const void *fdt)
 {
   if (((grub_addr_t) fdt & 0x3) || (grub_fdt_get_magic (fdt) != FDT_MAGIC)
@@ -281,6 +292,7 @@ int grub_fdt_check_header_nosize (const void *fdt)
   return 0;
 }
 
+static inline __attribute__((__unused__))
 int grub_fdt_check_header (const void *fdt, unsigned int size)
 {
   if (size < sizeof (grub_fdt_header_t)
@@ -327,6 +339,7 @@ advance_token (const void *fdt, const grub_uint32_t *token, const grub_uint32_t 
   return 0;
 }
 
+static inline __attribute__((__unused__))
 int grub_fdt_next_node (const void *fdt, unsigned int currentoffset)
 {
   const grub_uint32_t *token = (const grub_uint32_t *) fdt + (currentoffset + grub_fdt_get_off_dt_struct (fdt)) / 4;
@@ -337,6 +350,7 @@ int grub_fdt_next_node (const void *fdt, unsigned int currentoffset)
 		- grub_fdt_get_off_dt_struct (fdt));
 }			 
 
+static inline __attribute__((__unused__))
 int grub_fdt_first_node (const void *fdt, unsigned int parentoffset)
 {
   const grub_uint32_t *token, *end;
@@ -358,6 +372,7 @@ int grub_fdt_first_node (const void *fdt, unsigned int parentoffset)
 }			 
 
 /* Find a direct sub-node of a given parent node. */
+static inline __attribute__((__unused__))
 int grub_fdt_find_subnode (const void *fdt, unsigned int parentoffset,
 			   const char *name)
 {
@@ -385,6 +400,7 @@ int grub_fdt_find_subnode (const void *fdt, unsigned int parentoffset,
   }
 }
 
+static inline __attribute__((__unused__))
 const char *
 grub_fdt_get_nodename (const void *fdt, unsigned int nodeoffset)
 {
@@ -407,6 +423,7 @@ int grub_fdt_add_subnode (void *fdt, unsigned int parentoffset,
   return add_subnode (fdt, parentoffset, name);
 }
 
+static inline __attribute__((__unused__))
 const void *
 grub_fdt_get_prop (const void *fdt, unsigned int nodeoffset, const char *name,
 		   grub_uint32_t *len)
@@ -425,6 +442,7 @@ grub_fdt_get_prop (const void *fdt, unsigned int nodeoffset, const char *name,
   return prop + 3;
 }
 
+static inline __attribute__((__unused__))
 int grub_fdt_set_prop (void *fdt, unsigned int nodeoffset, const char *name,
 		       const void *val, grub_uint32_t len)
 {
@@ -501,6 +519,7 @@ int grub_fdt_set_prop (void *fdt, unsigned int nodeoffset, const char *name,
   return 0;
 }
 
+static inline __attribute__((__unused__))
 int
 grub_fdt_create_empty_tree (void *fdt, unsigned int size)
 {

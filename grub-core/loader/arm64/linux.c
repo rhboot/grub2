@@ -24,6 +24,8 @@
 #include <grub/linux.h>
 #include <grub/loader.h>
 #include <grub/mm.h>
+#include <grub/misc.h>
+#include <grub/dl.h>
 #include <grub/types.h>
 #include <grub/cpu/linux.h>
 #include <grub/efi/efi.h>
@@ -33,6 +35,8 @@
 #include <grub/efi/pe32.h>
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
+
+#include "../../lib/fdt.c"
 
 GRUB_MOD_LICENSE ("GPLv3+");
 

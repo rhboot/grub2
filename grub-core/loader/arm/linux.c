@@ -29,6 +29,8 @@
 #include <grub/lib/cmdline.h>
 #include <grub/linux.h>
 
+#include "../../lib/fdt.c"
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_dl_t my_mod;

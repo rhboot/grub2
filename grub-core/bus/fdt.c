@@ -19,6 +19,12 @@
 #include <grub/fdtbus.h>
 #include <grub/fdt.h>
 #include <grub/term.h>
+#include <grub/misc.h>
+#include <grub/mm.h>
+#include <grub/dl.h>
+
+
+#include "../lib/fdt.c"
 
 static const void *dtb;
 static grub_size_t root_address_cells, root_size_cells;
