@@ -324,23 +324,21 @@ finish:
 /* return 1: p0 is newer than p1 */
 /*        0: p0 and p1 are the same version */
 /*       -1: p1 is newer than p0 */
-static int bls_cmp(const void *p0, const void *p1, void *state UNUSED)
+static int bls_cmp(const void *p0, const void *p1, void *state)
 {
   struct bls_entry * e0 = *(struct bls_entry **)p0;
   struct bls_entry * e1 = *(struct bls_entry **)p1;
+  bool use_version = *(bool *)state;
   const char *v0, *v1;
   int r;
 
-  v0 = bls_get_val(e0, "version", NULL);
-  v1 = bls_get_val(e1, "version", NULL);
+  if (use_version) {
+    v0 = bls_get_val(e0, "version", NULL);
+    v1 = bls_get_val(e1, "version", NULL);
 
-  if (v0 && !v1)
-    return -1;
-  if (!v0 && v1)
-    return 1;
-
-  if ((r = vercmp(v0, v1)) != 0)
-    return r;
+    if ((r = vercmp(v0, v1)) != 0)
+      return r;
+  }
 
   return vercmp(e0->filename, e1->filename);
 }
@@ -692,6 +690,7 @@ static int find_entry (const char *filename,
   grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
   char *saved_env_buf = NULL;
+  bool use_version = true;
   int fallback = 0;
   int r = 0;
   const char *devid = grub_env_get ("boot");
@@ -819,7 +818,13 @@ read_fallback:
   }
 
   grub_dprintf ("blscfg", "Sorting %d entries\n", nentries);
-  grub_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, NULL);
+
+  for (r = 0; r < nentries && use_version; r++) {
+    if (!bls_get_val(entries[r], "version", NULL))
+      use_version = false;
+  }
+
+  grub_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, &use_version);
 
   grub_dprintf ("blscfg", "%s Creating %d entries from bls\n", __func__, nentries);
   for (r = nentries - 1; r >= 0; r--)
