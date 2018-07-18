@@ -236,16 +236,15 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
 
     if [ -f "${kernel_dir}/bls.conf" ] ; then
         cp -af "${kernel_dir}/bls.conf" "${bls_target}"
+        if [ -n "${bootprefix}" ]; then
+            sed -i -e "s,^\(linux[^ \t]*[ \t]\+\).*,\1${bootprefix}${linux},g" "${bls_target}"
+            sed -i -e "/^initrd/ s,\([ \t]\+\)\([^ \t]\+\),\1${bootprefix}\2,g" "${bls_target}"
+        fi
     else
         mkbls "${kernelver}" \
             "$(date -u +%Y%m%d%H%M%S -d "$(stat -c '%y' "${kernel_dir}")")" \
             "${bootprefix}" \
             >"${bls_target}"
-    fi
-
-    if [ -n "${bootprefix}" ]; then
-        sed -i -e "s,^\(linux[^ \t]*[ \t]\+\).*,\1${bootprefix}${linux},g" "${bls_target}"
-        sed -i -e "/^initrd/ s,\([ \t]\+\)\([^ \t]\+\),\1${bootprefix}\2,g" "${bls_target}"
     fi
 
     if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
