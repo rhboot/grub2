@@ -692,6 +692,7 @@ static int find_entry (const char *filename,
   grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
   char *saved_env_buf = NULL;
+  int fallback = 0;
   int r = 0;
   const char *devid = grub_env_get ("boot");
 
@@ -797,7 +798,9 @@ static int find_entry (const char *filename,
   }
   read_entry_info.dirname = blsdir;
 
-  r = blsdir_fs->dir (blsdir_dev, blsdir, read_entry, &read_entry_info);
+read_fallback:
+  r = blsdir_fs->dir (blsdir_dev, read_entry_info.dirname, read_entry,
+		      &read_entry_info);
   if (r != 0) {
       grub_dprintf ("blscfg", "read_entry returned error\n");
       grub_err_t e;
@@ -805,6 +808,14 @@ static int find_entry (const char *filename,
 	{
 	  e = grub_error_pop();
 	} while (e);
+  }
+
+  if (!nentries && !fallback && info->platform != PLATFORM_EMU) {
+    read_entry_info.dirname = "/boot" GRUB_BLS_CONFIG_PATH;
+    grub_dprintf ("blscfg", "Entries weren't found in %s, fallback to %s\n",
+		  blsdir, read_entry_info.dirname);
+    fallback = 1;
+    goto read_fallback;
   }
 
   grub_dprintf ("blscfg", "Sorting %d entries\n", nentries);
