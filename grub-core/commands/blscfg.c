@@ -32,6 +32,8 @@
 #include <grub/normal.h>
 #include <grub/lib/envblk.h>
 
+#include <stdbool.h>
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 #include "loadenv.h"
@@ -506,6 +508,70 @@ static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
   return list;
 }
 
+static char *field_append(bool is_var, char *buffer, char *start, char *end)
+{
+  char *temp = grub_strndup(start, end - start + 1);
+  const char *field = temp;
+
+  if (is_var) {
+    field = grub_env_get (temp);
+    if (!field)
+      return buffer;
+  }
+
+  if (!buffer) {
+    buffer = grub_strdup(field);
+    if (!buffer)
+      return NULL;
+  } else {
+    buffer = grub_realloc (buffer, grub_strlen(buffer) + grub_strlen(field));
+    if (!buffer)
+      return NULL;
+
+    grub_stpcpy (buffer + grub_strlen(buffer), field);
+  }
+
+  return buffer;
+}
+
+static char *expand_val(char *value)
+{
+  char *buffer = NULL;
+  char *start = value;
+  char *end = value;
+  bool is_var = false;
+
+  while (*value) {
+    if (*value == '$') {
+      if (start != end) {
+	buffer = field_append(is_var, buffer, start, end);
+	if (!buffer)
+	  return NULL;
+      }
+
+      is_var = true;
+      start = value + 1;
+    } else if (is_var) {
+      if (!grub_isalnum(*value) && *value != '_') {
+	buffer = field_append(is_var, buffer, start, end);
+	is_var = false;
+	start = value;
+      }
+    }
+
+    end = value;
+    value++;
+  }
+
+  if (start != end) {
+    buffer = field_append(is_var, buffer, start, end);
+    if (!buffer)
+      return NULL;
+  }
+
+  return buffer;
+}
+
 static void create_entry (struct bls_entry *entry)
 {
   int argc = 0;
@@ -536,7 +602,7 @@ static void create_entry (struct bls_entry *entry)
     }
 
   title = bls_get_val (entry, "title", NULL);
-  options = bls_get_val (entry, "options", NULL);
+  options = expand_val (bls_get_val (entry, "options", NULL));
   initrds = bls_make_list (entry, "initrd", NULL);
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
@@ -594,6 +660,7 @@ static void create_entry (struct bls_entry *entry)
 finish:
   grub_free (initrd);
   grub_free (initrds);
+  grub_free (options);
   grub_free (classes);
   grub_free (args);
   grub_free (argv);
