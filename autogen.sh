@@ -82,6 +82,4 @@ done
 echo "Saving timestamps..."
 echo timestamp > stamp-h.in
 
-echo "Running autoreconf..."
-autoreconf -vi
 exit 0
