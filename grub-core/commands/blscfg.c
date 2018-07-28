@@ -45,13 +45,6 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_BOOT_DEVICE "($root)"
 #endif
 
-enum
-  {
-    PLATFORM_EFI,
-    PLATFORM_EMU,
-    PLATFORM_BIOS,
-  };
-
 #define grub_free(x) ({grub_dprintf("blscfg", "%s freeing %p\n", __func__, x); grub_free(x); })
 
 struct keyval
@@ -666,136 +659,36 @@ finish:
 }
 
 struct find_entry_info {
+	const char *devid;
 	grub_device_t dev;
 	grub_fs_t fs;
 	int platform;
 };
 
 /*
- * filename: if the directory is /EFI/something/ , filename is "something"
- * info: unused
- * data: the filesystem object the file is on.
+ * info: the filesystem object the file is on.
  */
-static int find_entry (const char *filename,
-		       const struct grub_dirhook_info *dirhook_info UNUSED,
-		       void *data)
+static int find_entry (struct find_entry_info *info)
 {
-  struct find_entry_info *info = (struct find_entry_info *)data;
   struct read_entry_info read_entry_info;
-  grub_file_t f = NULL;
-  char *grubenv_path = NULL;
-  grub_envblk_t env = NULL;
-  const char *default_blsdir = NULL;
   grub_fs_t blsdir_fs = NULL;
   grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
-  char *saved_env_buf = NULL;
   bool use_version = true;
   int fallback = 0;
   int r = 0;
-  const char *devid = grub_env_get ("boot");
-
-  grub_dprintf("blscfg", "%s got here\n", __func__);
-  if (filename && (!grub_strcmp (filename, ".") ||
-		   !grub_strcmp (filename, "..")))
-    return 0;
-
-  if (info->platform == PLATFORM_EFI && !grub_strcasecmp (filename, "boot"))
-    return 0;
-
-  saved_env_buf = grub_malloc (512);
-
-  // set a default blsdir
-  if (info->platform == PLATFORM_EMU)
-    default_blsdir = GRUB_BOOT_DEVICE GRUB_BLS_CONFIG_PATH;
-  else
-    default_blsdir = GRUB_BLS_CONFIG_PATH;
-
-  grub_env_set ("blsdir", default_blsdir);
-  grub_dprintf ("blscfg", "default_blsdir: \"%s\"\n", default_blsdir);
-
-  /*
-   * try to load a grubenv from /EFI/wherever/grubenv
-   */
-  if (info->platform == PLATFORM_EFI)
-    grubenv_path = grub_xasprintf ("(%s)/EFI/%s/grubenv", devid, filename);
-  else
-    grubenv_path = grub_xasprintf ("(%s)/grub2/grubenv", devid);
-
-  grub_dprintf ("blscfg", "looking for \"%s\"\n", grubenv_path);
-  f = grub_file_open (grubenv_path);
-
-  grub_dprintf ("blscfg", "%s it\n", f ? "found" : "did not find");
-  grub_free (grubenv_path);
-  if (f)
-    {
-      grub_off_t sz;
-
-      grub_dprintf ("blscfg", "getting size\n");
-      sz = grub_file_size (f);
-      if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
-	goto finish;
-
-      grub_dprintf ("blscfg", "reading env\n");
-      env = read_envblk_file (f);
-      if (!env)
-	goto finish;
-      grub_dprintf ("blscfg", "read env file\n");
-
-      grub_memset (saved_env_buf, '#', 512);
-      grub_memcpy (saved_env_buf, GRUB_ENVBLK_SIGNATURE,
-		   sizeof (GRUB_ENVBLK_SIGNATURE));
-      grub_dprintf ("blscfg", "saving env\n");
-      saved_env = grub_envblk_open (saved_env_buf, 512);
-      if (!saved_env)
-	goto finish;
-
-      // save everything listed in "env" with values from our existing grub env
-      grub_envblk_iterate (env, NULL, save_var);
-      // set everything from our loaded grubenv into the real grub env
-      grub_envblk_iterate (env, NULL, set_var);
-    }
-  else
-    {
-      grub_err_t e;
-      grub_dprintf ("blscfg", "no such file\n");
-      do
-	{
-	  e = grub_error_pop();
-	} while (e);
-
-    }
 
   blsdir = grub_env_get ("blsdir");
   if (!blsdir)
-    goto finish;
+    blsdir = GRUB_BLS_CONFIG_PATH;
 
-  grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
-  blsdir = grub_strdup (blsdir);
-
-  if (!blsdir)
-    goto finish;
-
-  grub_dprintf ("blscfg", "blsdir: \"%s\"\n", blsdir);
-  if (info->platform == PLATFORM_EFI) {
-    read_entry_info.devid = grub_env_get ("root");
-    if (!read_entry_info.devid)
-      goto finish;
-
-    blsdir_dev = grub_device_open (read_entry_info.devid);
-    if (!blsdir_dev)
-      goto finish;
-
-    blsdir_fs = grub_fs_probe (blsdir_dev);
-    if (!blsdir_fs)
-      goto finish;
-
-  } else {
-    read_entry_info.devid = devid;
-    blsdir_dev = info->dev;
-    blsdir_fs = info->fs;
-  }
   read_entry_info.dirname = blsdir;
+
+  grub_dprintf ("blscfg", "scanning blsdir: %s\n", GRUB_BLS_CONFIG_PATH);
+
+  blsdir_dev = info->dev;
+  blsdir_fs = info->fs;
+  read_entry_info.devid = info->devid;
 
 read_fallback:
   r = blsdir_fs->dir (blsdir_dev, read_entry_info.dirname, read_entry,
@@ -809,7 +702,7 @@ read_fallback:
 	} while (e);
   }
 
-  if (!nentries && !fallback && info->platform != PLATFORM_EMU) {
+  if (!nentries && !fallback) {
     read_entry_info.dirname = "/boot" GRUB_BLS_CONFIG_PATH;
     grub_dprintf ("blscfg", "Entries weren't found in %s, fallback to %s\n",
 		  blsdir, read_entry_info.dirname);
@@ -832,40 +725,11 @@ read_fallback:
 
   for (r = 0; r < nentries; r++)
       bls_free_entry (entries[r]);
-finish:
-  if (info->platform == PLATFORM_EFI && blsdir_dev)
-    grub_device_close (blsdir_dev);
 
   nentries = 0;
 
   grub_free (entries);
   entries = NULL;
-
-  grub_free ((char *)blsdir);
-
-  grub_env_unset ("blsdir");
-
-  if (saved_env)
-    {
-      // remove everything from the real environment that's defined in env
-      grub_envblk_iterate (env, NULL, unset_var);
-
-      // re-set the things from our original environment
-      grub_envblk_iterate (saved_env, NULL, set_var);
-      grub_envblk_close (saved_env);
-      saved_env = NULL;
-    }
-  else if (saved_env_buf)
-    {
-      // if we have a saved environment, grub_envblk_close() freed this.
-      grub_free (saved_env_buf);
-    }
-
-  if (env)
-    grub_envblk_close (env);
-
-  if (f)
-    grub_file_close (f);
 
   return 0;
 }
@@ -883,7 +747,6 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
     {
       .dev = NULL,
       .fs = NULL,
-      .platform = PLATFORM_BIOS,
     };
 
 
@@ -891,13 +754,14 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
 
 #ifdef GRUB_MACHINE_EMU
   devid = "host";
-  grub_env_set ("boot", devid);
+#elif defined(GRUB_MACHINE_EFI)
+  devid = grub_env_get ("root");
 #else
   devid = grub_env_get ("boot");
+#endif
   if (!devid)
     return grub_error (GRUB_ERR_FILE_NOT_FOUND,
 		       N_("variable `%s' isn't set"), "boot");
-#endif
 
   grub_dprintf ("blscfg", "opening %s\n", devid);
   dev = grub_device_open (devid);
@@ -912,21 +776,10 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
       goto finish;
     }
 
+  info.devid = devid;
   info.dev = dev;
   info.fs = fs;
-#ifdef GRUB_MACHINE_EFI
-  info.platform = PLATFORM_EFI;
-  grub_dprintf ("blscfg", "scanning /EFI/\n");
-  r = fs->dir (dev, "/EFI/", find_entry, &info);
-#elif defined(GRUB_MACHINE_EMU)
-  info.platform = PLATFORM_EMU;
-  grub_dprintf ("blscfg", "scanning %s%s\n", GRUB_BOOT_DEVICE,
-		GRUB_BLS_CONFIG_PATH);
-  find_entry(NULL, NULL, &info);
-#else
-  grub_dprintf ("blscfg", "scanning %s\n", GRUB_BLS_CONFIG_PATH);
-  find_entry(NULL, NULL, &info);
-#endif
+  find_entry(&info);
 
 finish:
   if (dev)
