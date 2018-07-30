@@ -1324,7 +1324,9 @@ grub_efi_net_boot_from_https (void)
 	  && (subtype == GRUB_EFI_URI_DEVICE_PATH_SUBTYPE))
 	{
 	  grub_efi_uri_device_path_t *uri_dp = (grub_efi_uri_device_path_t *) dp;
-	  return (grub_strncmp ((const char*)uri_dp->uri, "https://", sizeof ("https://") - 1) == 0) ? 1 : 0;
+	  grub_dprintf ("efinet", "url:%s\n", (const char *)uri_dp->uri);
+	  return (grub_strncmp ((const char *)uri_dp->uri, "https://", sizeof ("https://") - 1) == 0 ||
+	          grub_strncmp ((const char *)uri_dp->uri, "http://", sizeof ("http://") - 1) == 0);
 	}
 
       if (GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp))
