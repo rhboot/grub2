@@ -4,6 +4,7 @@
 #include <grub/misc.h>
 #include <grub/net/efi.h>
 #include <grub/charset.h>
+#include <grub/env.h>
 
 static void
 http_configure (struct grub_efi_net_device *dev, int prefer_ip6)
@@ -351,6 +352,24 @@ grub_efihttp_open (struct grub_efi_net_device *dev,
   grub_err_t err;
   grub_off_t size;
   char *buf;
+  char *root_url;
+  grub_efi_ipv6_address_t address;
+  const char *rest;
+
+  if (grub_efi_string_to_ip6_address (file->device->net->server, &address, &rest) && *rest == 0)
+    root_url = grub_xasprintf ("%s://[%s]", type ? "https" : "http", file->device->net->server);
+  else
+    root_url = grub_xasprintf ("%s://%s", type ? "https" : "http", file->device->net->server);
+  if (root_url)
+    {
+      grub_env_unset ("root_url");
+      grub_env_set ("root_url", root_url);
+      grub_free (root_url);
+    }
+  else
+    {
+      return grub_errno;
+    }
 
   err = efihttp_request (dev->http, file->device->net->server, file->device->net->name, type, 1, 0);
   if (err != GRUB_ERR_NONE)
