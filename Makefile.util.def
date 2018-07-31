@@ -449,8 +449,8 @@ script = {
 };
 
 script = {
-  name = '00_menu_auto_hide';
-  common = util/grub.d/00_menu_auto_hide.in;
+  name = '01_menu_auto_hide';
+  common = util/grub.d/01_menu_auto_hide.in;
   installdir = grubconf;
 };
 
