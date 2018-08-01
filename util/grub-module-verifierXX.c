@@ -1,3 +1,12 @@
+#define GRUB_MODULE_VERIFIERXX
+#if !defined(MODULEVERIFIER_ELF32) && !defined(MODULEVERIFIER_ELF64)
+#if __SIZEOF_POINTER__ == 8
+#include "grub-module-verifier64.c"
+#else
+#include "grub-module-verifier32.c"
+#endif
+#endif
+
 #include <string.h>
 
 #include <grub/elf.h>
