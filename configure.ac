@@ -1234,6 +1234,26 @@ if test "x$target_cpu" = xarm; then
     done
   ])
 
+  AC_CACHE_CHECK([for options to disable movt and movw relocations],
+		 grub_cv_target_cc_mword_relocations,
+		 [grub_cv_target_cc_mword_relocations=no
+		  for cand in "-mword-relocations" ; do
+		    if test x"$grub_cv_target_cc_mword_relocations" != xno ; then
+		      break
+		    fi
+		    CFLAGS="$TARGET_CFLAGS $cand -Werror"
+		    CPPFLAGS="$TARGET_CPPFLAGS"
+		    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+				      [grub_cv_target_cc_mword_relocations="$cand"],
+				      [])
+		  done
+		 ])
+  if test x"$grub_cv_target_cc_mword_relocations" = xno ; then
+    AC_MSG_ERROR(["your compiler doesn't support disabling movw/movt relocations"])
+  else
+    TARGET_CFLAGS="$TARGET_CFLAGS $grub_cv_target_cc_mword_relocations"
+  fi
+
   if test x"$grub_cv_target_cc_mno_movt" != xno ; then
     # A trick so that clang doesn't see it on link stage
     TARGET_CPPFLAGS="$TARGET_CPPFLAGS $grub_cv_target_cc_mno_movt"
