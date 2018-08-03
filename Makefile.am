@@ -209,7 +209,7 @@ pc-chainloader.elf: $(srcdir)/grub-core/tests/boot/kernel-8086.S $(srcdir)/grub-
 	$(TARGET_CC) -o $@ $< -static -DTARGET_CHAINLOADER=1 -DSUCCESSFUL_BOOT_STRING=\"$(SUCCESSFUL_BOOT_STRING)\" -ffreestanding -nostdlib -nostdinc -Wl,--build-id=none -Wl,-N -Wl,-Ttext,0x7c00 -m32
 
 pc-chainloader.bin: pc-chainloader.elf
-	$(TARGET_OBJCOPY) -O binary --strip-unneeded -R .note -R .comment -R .note.gnu.build-id -R .reginfo -R .rel.dyn -R .note.gnu.gold-version $< $@;
+	$(TARGET_OBJCOPY) -O binary --strip-unneeded -R .note -R .comment -R .note.gnu.build-id -R .reginfo -R .rel.dyn -R .note.gnu.gold-version -R .note.gnu.property $< $@;
 
 ntldr.elf: $(srcdir)/grub-core/tests/boot/kernel-8086.S $(srcdir)/grub-core/tests/boot/qemu-shutdown-x86.S
 	$(TARGET_CC) -o $@ $< -DTARGET_NTLDR=1 -DSUCCESSFUL_BOOT_STRING=\"$(SUCCESSFUL_BOOT_STRING)\" -static -ffreestanding -nostdlib -nostdinc -Wl,--build-id=none -Wl,-N -Wl,-Ttext,0 -m32
