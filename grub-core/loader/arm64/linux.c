@@ -70,13 +70,15 @@ finalize_params_linux (void)
 {
   grub_efi_loaded_image_t *loaded_image = NULL;
   int node, retval, len;
-
+  grub_err_t err = GRUB_ERR_NONE;
   void *fdt;
 
   fdt = grub_fdt_load (0x400);
-
   if (!fdt)
-    goto failure;
+    {
+      err = grub_error(GRUB_ERR_BAD_OS, "failed to load FDT");
+      goto failure;
+    }
 
   node = grub_fdt_find_subnode (fdt, 0, "chosen");
   if (node < 0)
@@ -87,17 +89,26 @@ finalize_params_linux (void)
        */
       retval = grub_fdt_set_prop32(fdt, 0, "#address-cells", 2);
       if (retval)
-	goto failure;
+	{
+	  err = grub_error(retval, "Could not find #address-cells");
+	  goto failure;
+	}
 
       retval = grub_fdt_set_prop32(fdt, 0, "#size-cells", 2);
       if (retval)
-	goto failure;
+	{
+	  err = grub_error(retval, "Could not find #size-cells");
+	  goto failure;
+	}
 
       node = grub_fdt_add_subnode (fdt, 0, "chosen");
     }
 
   if (node < 1)
-    goto failure;
+    {
+      err = grub_error(grub_errno, "failed to load chosen fdt node.");
+      goto failure;
+    }
 
   /* Set initrd info */
   if (initrd_start && initrd_end > initrd_start)
@@ -108,15 +119,26 @@ finalize_params_linux (void)
       retval = grub_fdt_set_prop64 (fdt, node, "linux,initrd-start",
 				    initrd_start);
       if (retval)
-	goto failure;
+	{
+	  err = grub_error(retval, "Failed to set linux,initrd-start property");
+	  goto failure;
+	}
+
       retval = grub_fdt_set_prop64 (fdt, node, "linux,initrd-end",
 				    initrd_end);
       if (retval)
-	goto failure;
+	{
+	  err = grub_error(retval, "Failed to set linux,initrd-end property");
+	  goto failure;
+	}
     }
 
-  if (grub_fdt_install() != GRUB_ERR_NONE)
-    goto failure;
+  retval = grub_fdt_install();
+  if (retval != GRUB_ERR_NONE)
+    {
+      err = grub_error(retval, "Failed to install fdt");
+      goto failure;
+    }
 
   grub_dprintf ("linux", "Installed/updated FDT configuration table @ %p\n",
 		fdt);
@@ -124,14 +146,20 @@ finalize_params_linux (void)
   /* Convert command line to UCS-2 */
   loaded_image = grub_efi_get_loaded_image (grub_efi_image_handle);
   if (!loaded_image)
-    goto failure;
+    {
+      err = grub_error(grub_errno, "Failed to install fdt");
+      goto failure;
+    }
 
   loaded_image->load_options_size = len =
     (grub_strlen (linux_args) + 1) * sizeof (grub_efi_char16_t);
   loaded_image->load_options =
     grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (loaded_image->load_options_size));
   if (!loaded_image->load_options)
-    return grub_error(GRUB_ERR_BAD_OS, "failed to create kernel parameters");
+    {
+      err = grub_error(GRUB_ERR_BAD_OS, "failed to create kernel parameters");
+      goto failure;
+    }
 
   loaded_image->load_options_size =
     2 * grub_utf8_to_utf16 (loaded_image->load_options, len,
@@ -141,7 +169,7 @@ finalize_params_linux (void)
 
 failure:
   grub_fdt_unload();
-  return grub_error(GRUB_ERR_BAD_OS, "failed to install/update FDT");
+  return err;
 }
 
 static void
@@ -225,16 +253,28 @@ grub_linux_unload (void)
 static void *
 allocate_initrd_mem (int initrd_pages)
 {
-  grub_addr_t max_addr;
+  grub_addr_t max_addr = 0;
+  grub_err_t err;
+  void *ret;
 
-  if (grub_efi_get_ram_base (&max_addr) != GRUB_ERR_NONE)
-    return NULL;
+  err = grub_efi_get_ram_base (&max_addr);
+  if (err != GRUB_ERR_NONE)
+    {
+      grub_error (err, "grub_efi_get_ram_base() failed");
+      return NULL;
+    }
+
+  grub_dprintf ("linux", "max_addr: 0x%016lx, INITRD_MAX_ADDRESS_OFFSET: 0x%016llx\n",
+		max_addr, INITRD_MAX_ADDRESS_OFFSET);
 
   max_addr += INITRD_MAX_ADDRESS_OFFSET - 1;
+  grub_dprintf ("linux", "calling grub_efi_allocate_pages_real (0x%016lx, 0x%08x, EFI_ALLOCATE_MAX_ADDRESS, EFI_LOADER_DATA)", max_addr, initrd_pages);
 
-  return grub_efi_allocate_pages_real (max_addr, initrd_pages,
-				       GRUB_EFI_ALLOCATE_MAX_ADDRESS,
-				       GRUB_EFI_LOADER_DATA);
+  ret = grub_efi_allocate_pages_real (max_addr, initrd_pages,
+				      GRUB_EFI_ALLOCATE_MAX_ADDRESS,
+				      GRUB_EFI_LOADER_DATA);
+  grub_dprintf ("linux", "got 0x%016llx\n", (unsigned long long)ret);
+  return ret;
 }
 
 static grub_err_t
