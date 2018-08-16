@@ -131,7 +131,7 @@ grub_set_prefix_and_root (void)
     {
       char *fw_path;
 
-      fw_path = grub_xasprintf ("(%s)/%s", fwdevice, fwpath);
+      fw_path = grub_xasprintf ("(%s)%s%s", fwdevice, fwpath[0] == '/' ? "" : "/", fwpath);
       if (fw_path)
 	{
 	  grub_env_set ("fw_path", fw_path);
