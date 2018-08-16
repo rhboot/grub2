@@ -9,10 +9,52 @@
 static void
 http_configure (struct grub_efi_net_device *dev, int prefer_ip6)
 {
+  grub_efi_ipv6_address_t address;
   grub_efi_http_config_data_t http_config;
   grub_efi_httpv4_access_point_t httpv4_node;
   grub_efi_httpv6_access_point_t httpv6_node;
   grub_efi_status_t status;
+  int https;
+  char *http_url;
+  const char *rest, *http_server, *http_path = NULL;
+
+  http_server = grub_env_get ("root");
+  https = (grub_strncmp (http_server, "https", 5) == 0) ? 1 : 0;
+
+  /* extract http server + port */
+  if (http_server)
+    {
+      http_server = grub_strchr (http_server, ',');
+      if (http_server)
+	http_server++;
+    }
+
+  /* fw_path is like (http,192.168.1.1:8000)/httpboot, extract path part */
+  http_path = grub_env_get ("fw_path");
+  if (http_path)
+    {
+      http_path = grub_strchr (http_path, ')');
+      if (http_path)
+	{
+	  http_path++;
+	  grub_env_unset ("http_path");
+	  grub_env_set ("http_path", http_path);
+	}
+    }
+
+  if (http_server && http_path)
+    {
+      if (grub_efi_string_to_ip6_address (http_server, &address, &rest) && *rest == 0)
+	http_url = grub_xasprintf ("%s://[%s]%s", https ? "https" : "http", http_server, http_path);
+      else
+	http_url = grub_xasprintf ("%s://%s%s", https ? "https" : "http", http_server, http_path);
+      if (http_url)
+	{
+	  grub_env_unset ("http_url");
+	  grub_env_set ("http_url", http_url);
+	  grub_free (http_url);
+	}
+    }
 
   grub_efi_http_t *http = dev->http;
 
@@ -352,32 +394,32 @@ grub_efihttp_open (struct grub_efi_net_device *dev,
   grub_err_t err;
   grub_off_t size;
   char *buf;
-  char *root_url;
-  grub_efi_ipv6_address_t address;
-  const char *rest;
+  char *file_name = NULL;
+  const char *http_path;
 
-  if (grub_efi_string_to_ip6_address (file->device->net->server, &address, &rest) && *rest == 0)
-    root_url = grub_xasprintf ("%s://[%s]", type ? "https" : "http", file->device->net->server);
-  else
-    root_url = grub_xasprintf ("%s://%s", type ? "https" : "http", file->device->net->server);
-  if (root_url)
-    {
-      grub_env_unset ("root_url");
-      grub_env_set ("root_url", root_url);
-      grub_free (root_url);
-    }
-  else
-    {
+  /* If path is relative, prepend http_path */
+  http_path = grub_env_get ("http_path");
+  if (http_path && file->device->net->name[0] != '/') {
+    file_name = grub_xasprintf ("%s/%s", http_path, file->device->net->name);
+    if (!file_name)
       return grub_errno;
+  }
+
+  err = efihttp_request (dev->http, file->device->net->server,
+			 file_name ? file_name : file->device->net->name, type, 1, 0);
+  if (err != GRUB_ERR_NONE)
+    {
+      grub_free (file_name);
+      return err;
     }
 
-  err = efihttp_request (dev->http, file->device->net->server, file->device->net->name, type, 1, 0);
+  err = efihttp_request (dev->http, file->device->net->server,
+			 file_name ? file_name : file->device->net->name, type, 0, &size);
+  grub_free (file_name);
   if (err != GRUB_ERR_NONE)
-    return err;
-
-  err = efihttp_request (dev->http, file->device->net->server, file->device->net->name, type, 0, &size);
-  if (err != GRUB_ERR_NONE)
-    return err;
+    {
+      return err;
+    }
 
   buf = grub_malloc (size);
   efihttp_read (dev, buf, size);
