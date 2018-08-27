@@ -33,15 +33,24 @@ static struct grub_error_saved grub_error_stack_items[GRUB_ERROR_STACK_SIZE];
 static int grub_error_stack_pos;
 static int grub_error_stack_assert;
 
+#ifdef grub_error
+#undef grub_error
+#endif
+
 grub_err_t
-grub_error (grub_err_t n, const char *fmt, ...)
+grub_error (grub_err_t n, const char *file, const int line, const char *fmt, ...)
 {
   va_list ap;
+  int m;
 
   grub_errno = n;
 
+  m = grub_snprintf (grub_errmsg, sizeof (grub_errmsg), "%s:%d:", file, line);
+  if (m < 0)
+    m = 0;
+
   va_start (ap, fmt);
-  grub_vsnprintf (grub_errmsg, sizeof (grub_errmsg), _(fmt), ap);
+  grub_vsnprintf (grub_errmsg + m, sizeof (grub_errmsg) - m, _(fmt), ap);
   va_end (ap);
 
   return n;
