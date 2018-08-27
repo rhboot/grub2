@@ -434,7 +434,7 @@ finish:
 
 static grub_envblk_t saved_env = NULL;
 
-static int
+static int UNUSED
 save_var (const char *name, const char *value, void *whitelist UNUSED)
 {
   const char *val = grub_env_get (name);
@@ -446,7 +446,7 @@ save_var (const char *name, const char *value, void *whitelist UNUSED)
   return 0;
 }
 
-static int
+static int UNUSED
 unset_var (const char *name, const char *value UNUSED, void *whitelist)
 {
   grub_dprintf("blscfg", "restoring \"%s\"\n", name);
