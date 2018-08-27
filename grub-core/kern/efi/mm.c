@@ -122,7 +122,7 @@ grub_efi_allocate_pages_max (grub_efi_physical_address_t max,
   grub_efi_boot_services_t *b;
   grub_efi_physical_address_t address = max;
 
-  if (max > 0xffffffff)
+  if (max > GRUB_EFI_MAX_USABLE_ADDRESS)
     return 0;
 
   b = grub_efi_system_table->boot_services;
@@ -466,7 +466,7 @@ filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
     {
       if (desc->type == GRUB_EFI_CONVENTIONAL_MEMORY
 #if 1
-	  && desc->physical_start <= GRUB_EFI_MAX_USABLE_ADDRESS
+	  && desc->physical_start <= GRUB_EFI_MAX_ALLOCATION_ADDRESS
 #endif
 	  && desc->physical_start + PAGES_TO_BYTES (desc->num_pages) > 0x100000
 	  && desc->num_pages != 0)
@@ -484,9 +484,9 @@ filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
 #if 1
 	  if (BYTES_TO_PAGES (filtered_desc->physical_start)
 	      + filtered_desc->num_pages
-	      > BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_USABLE_ADDRESS))
+	      > BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS))
 	    filtered_desc->num_pages
-	      = (BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_USABLE_ADDRESS)
+	      = (BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS)
 		 - BYTES_TO_PAGES (filtered_desc->physical_start));
 #endif
 
