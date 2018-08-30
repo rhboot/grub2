@@ -122,7 +122,7 @@ grub_efi_allocate_pages_max (grub_efi_physical_address_t max,
   grub_efi_boot_services_t *b;
   grub_efi_physical_address_t address = max;
 
-  if (max > 0xffffffff)
+  if (max >= GRUB_EFI_MAX_USABLE_ADDRESS)
     return 0;
 
   b = grub_efi_system_table->boot_services;
