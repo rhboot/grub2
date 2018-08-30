@@ -281,7 +281,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 #endif
 
   grub_dprintf ("linux", "setting up cmdline\n");
-  linux_cmdline = grub_efi_allocate_pages_max(0x3fffffff,
+  linux_cmdline = grub_efi_allocate_pages_max(GRUB_EFI_MAX_USABLE_ADDRESS,
 					 BYTES_TO_PAGES(lh->cmdline_size + 1));
   if (!linux_cmdline)
     {
