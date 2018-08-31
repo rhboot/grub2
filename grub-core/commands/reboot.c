@@ -32,15 +32,18 @@ grub_cmd_reboot (grub_command_t cmd __attribute__ ((unused)),
   grub_reboot ();
 }
 
-static grub_command_t cmd;
+static grub_command_t reboot_cmd, reset_cmd;
 
 GRUB_MOD_INIT(reboot)
 {
-  cmd = grub_register_command ("reboot", grub_cmd_reboot,
-			       0, N_("Reboot the computer."));
+  reboot_cmd = grub_register_command ("reboot", grub_cmd_reboot,
+				      0, N_("Reboot the computer."));
+  reset_cmd = grub_register_command ("reset", grub_cmd_reboot,
+				     0, N_("Reboot the computer."));
 }
 
 GRUB_MOD_FINI(reboot)
 {
-  grub_unregister_command (cmd);
+  grub_unregister_command (reboot_cmd);
+  grub_unregister_command (reset_cmd);
 }
