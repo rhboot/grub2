@@ -71,7 +71,10 @@ check_protocol (void)
   handles = grub_efi_locate_handle (GRUB_EFI_BY_PROTOCOL,
 				    &graphics_output_guid, NULL, &num_handles);
   if (!handles || num_handles == 0)
-    return 0;
+    {
+      grub_dprintf ("video", "GOP: no handles\n");
+      return 0;
+    }
 
   for (i = 0; i < num_handles; i++)
     {
@@ -81,6 +84,7 @@ check_protocol (void)
       grub_video_gop_iterate (check_protocol_hook, &have_usable_mode);
       if (have_usable_mode)
 	{
+	  grub_dprintf ("video", "GOP: found usable mode\n");
 	  grub_free (handles);
 	  return 1;
 	}
@@ -88,6 +92,8 @@ check_protocol (void)
 
   gop = 0;
   gop_handle = 0;
+
+  grub_dprintf ("video", "GOP: no usable mode\n");
 
   return 0;
 }
