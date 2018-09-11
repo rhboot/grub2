@@ -287,6 +287,19 @@ AC_SUBST(target_cpu)
 AC_SUBST(platform)
 
 # Define default variables
+have_with_rpm_version=n
+AC_ARG_WITH([rpm_version],
+	    AS_HELP_STRING([--with-rpm-version=VERSION],
+			   [set the rpm package version [[guessed]]]),
+	    [have_with_rpm_version=y],
+	    [have_with_rpm_version=n])
+if test x$have_with_rpm_version = xy; then
+  rpm_version="$with_rpm_version"
+else
+  rpm_version=""
+fi
+GRUB_RPM_VERSION="$rpm_version"
+AC_SUBST(GRUB_RPM_VERSION)
 
 have_with_bootdir=n
 AC_ARG_WITH([bootdir],
