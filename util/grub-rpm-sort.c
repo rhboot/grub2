@@ -232,7 +232,7 @@ main (int argc, char *argv[])
   struct arguments arguments;
   char **package_names = NULL;
   size_t n_package_names = 0;
-  int i;
+  unsigned int i;
 
   grub_util_host_init (&argc, &argv);
 

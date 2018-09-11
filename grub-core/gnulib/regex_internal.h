@@ -399,7 +399,7 @@ struct re_string_t
   unsigned char offsets_needed;
   unsigned char newline_anchor;
   unsigned char word_ops_used;
-  int mb_cur_max;
+  unsigned int mb_cur_max;
 };
 typedef struct re_string_t re_string_t;
 
@@ -691,7 +691,7 @@ struct re_dfa_t
   unsigned int is_utf8 : 1;
   unsigned int map_notascii : 1;
   unsigned int word_ops_used : 1;
-  int mb_cur_max;
+  unsigned int mb_cur_max;
   bitset_t word_char;
   reg_syntax_t syntax;
   Idx *subexp_map;
