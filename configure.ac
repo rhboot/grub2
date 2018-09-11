@@ -1396,11 +1396,11 @@ fi
 # Set them to their new values for the tests below.
 CC="$TARGET_CC"
 if test x"$platform" = xemu ; then
-CFLAGS="$TARGET_CFLAGS -Wno-error"
+CFLAGS="$TARGET_CFLAGS"
 elif test "x$TARGET_APPLE_LINKER" = x1 ; then
-CFLAGS="$TARGET_CFLAGS -nostdlib -static -Wno-error"
+CFLAGS="$TARGET_CFLAGS -nostdlib -static"
 else
-CFLAGS="$TARGET_CFLAGS -nostdlib -Wno-error"
+CFLAGS="$TARGET_CFLAGS -nostdlib"
 fi
 CPPFLAGS="$TARGET_CPPFLAGS"
 
@@ -1973,6 +1973,14 @@ AC_ARG_ENABLE([werror],
 if test x"$enable_werror" != xno ; then
   TARGET_CFLAGS="$TARGET_CFLAGS -Werror"
   HOST_CFLAGS="$HOST_CFLAGS -Werror"
+fi
+
+AC_ARG_ENABLE([wextra],
+	      [AS_HELP_STRING([--disable-wextra],
+                             [do not use -Wextra when building GRUB])])
+if test x"$enable_wextra" != xno ; then
+  TARGET_CFLAGS="$TARGET_CFLAGS -Wextra"
+  HOST_CFLAGS="$HOST_CFLAGS -Wextra"
 fi
 
 TARGET_CPP="$TARGET_CC -E"
