@@ -490,7 +490,7 @@ re_search_stub (struct re_pattern_buffer *bufp,
     {
       if (ret_len)
 	{
-	  assert (pmatch[0].rm_so == start);
+	  assert (pmatch[0].rm_so == (long)start);
 	  rval = pmatch[0].rm_eo - start;
 	}
       else
@@ -928,11 +928,11 @@ re_search_internal (const regex_t *preg,
 	    if (BE (mctx.input.offsets_needed != 0, 0))
 	      {
 		pmatch[reg_idx].rm_so =
-		  (pmatch[reg_idx].rm_so == mctx.input.valid_len
+		  (pmatch[reg_idx].rm_so == (long)mctx.input.valid_len
 		   ? mctx.input.valid_raw_len
 		   : mctx.input.offsets[pmatch[reg_idx].rm_so]);
 		pmatch[reg_idx].rm_eo =
-		  (pmatch[reg_idx].rm_eo == mctx.input.valid_len
+		  (pmatch[reg_idx].rm_eo == (long)mctx.input.valid_len
 		   ? mctx.input.valid_raw_len
 		   : mctx.input.offsets[pmatch[reg_idx].rm_eo]);
 	      }
@@ -1472,11 +1472,11 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
     }
   memcpy (prev_idx_match, pmatch, sizeof (regmatch_t) * nmatch);
 
-  for (idx = pmatch[0].rm_so; idx <= pmatch[0].rm_eo ;)
+  for (idx = pmatch[0].rm_so; idx <= (long)pmatch[0].rm_eo ;)
     {
       update_regs (dfa, pmatch, prev_idx_match, cur_node, idx, nmatch);
 
-      if (idx == pmatch[0].rm_eo && cur_node == mctx->last_node)
+      if (idx == (long)pmatch[0].rm_eo && cur_node == mctx->last_node)
 	{
 	  Idx reg_idx;
 	  if (fs)
@@ -1575,7 +1575,7 @@ update_regs (const re_dfa_t *dfa, regmatch_t *pmatch,
       if (reg_num < nmatch)
 	{
 	  /* We are at the last node of this sub expression.  */
-	  if (pmatch[reg_num].rm_so < cur_idx)
+	  if (pmatch[reg_num].rm_so < (long)cur_idx)
 	    {
 	      pmatch[reg_num].rm_eo = cur_idx;
 	      /* This is a non-empty match or we are not inside an optional
@@ -3006,7 +3006,7 @@ check_arrival (re_match_context_t *mctx, state_array_t *path, Idx top_node,
       mctx->state_log[str_idx] = cur_state;
     }
 
-  for (null_cnt = 0; str_idx < last_str && null_cnt <= mctx->max_mb_elem_len;)
+  for (null_cnt = 0; str_idx < last_str && null_cnt <= (long)mctx->max_mb_elem_len;)
     {
       re_node_set_empty (&next_nodes);
       if (mctx->state_log[str_idx + 1])
@@ -3786,7 +3786,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 			 const re_string_t *input, Idx str_idx)
 {
   const re_token_t *node = dfa->nodes + node_idx;
-  int char_len, elem_len;
+  unsigned int char_len, elem_len;
   Idx i;
 
   if (BE (node->type == OP_UTF8_PERIOD, 0))
@@ -4144,7 +4144,7 @@ extend_buffers (re_match_context_t *mctx, int min_len)
   /* Double the lengths of the buffers, but allocate at least MIN_LEN.  */
   ret = re_string_realloc_buffers (pstr,
 				   MAX (min_len,
-					MIN (pstr->len, pstr->bufs_len * 2)));
+					MIN ((long)pstr->len, (long)(pstr->bufs_len * 2))));
   if (BE (ret != REG_NOERROR, 0))
     return ret;
 
@@ -4316,7 +4316,7 @@ match_ctx_add_entry (re_match_context_t *mctx, Idx node, Idx str_idx, Idx from,
     = (from == to ? -1 : 0);
 
   mctx->bkref_ents[mctx->nbkref_ents++].more = 0;
-  if (mctx->max_mb_elem_len < to - from)
+  if (mctx->max_mb_elem_len < (long)(to - from))
     mctx->max_mb_elem_len = to - from;
   return REG_NOERROR;
 }
