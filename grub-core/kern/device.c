@@ -34,6 +34,7 @@ grub_device_open (const char *name)
 {
   grub_device_t dev = 0;
 
+  grub_dprintf ("device", "opening device %s\n", name);
   if (! name)
     {
       name = grub_env_get ("root");

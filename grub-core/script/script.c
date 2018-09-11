@@ -22,6 +22,11 @@
 #include <grub/parser.h>
 #include <grub/mm.h>
 
+#ifdef grub_dprintf
+#undef grub_dprintf
+#endif
+#define grub_dprintf(no, fmt, ...)
+
 /* It is not possible to deallocate the memory when a syntax error was
    found.  Because of that it is required to keep track of all memory
    allocations.  The memory is freed in case of an error, or assigned
