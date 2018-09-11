@@ -334,7 +334,7 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
 		*p++ = dfa->nodes[node].opr.c;
 	      memset (&state, '\0', sizeof (state));
 	      if (__mbrtowc (&wc, (const char *) buf, p - buf,
-			     &state) == p - buf
+			     &state) == (size_t)(p - buf)
 		  && (__wcrtomb ((char *) buf, towlower (wc), &state)
 		      != (size_t) -1))
 		re_set_fastmap (fastmap, false, buf[0]);
@@ -3760,7 +3760,7 @@ fetch_number (re_string_t *input, re_token_t *token, reg_syntax_t syntax)
 	      || num == REG_ERROR)
 	     ? REG_ERROR
 	     : num == REG_MISSING
-	     ? c - '0'
+	     ? (Idx)(c - '0')
 	     : MIN (RE_DUP_MAX + 1, num * 10 + c - '0'));
     }
   return num;

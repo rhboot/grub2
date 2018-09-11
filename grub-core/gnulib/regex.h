@@ -58,7 +58,7 @@ typedef size_t __re_long_size_t;
 
 /* The traditional GNU regex implementation mishandles strings longer
    than INT_MAX.  */
-typedef int __re_idx_t;
+typedef unsigned int __re_idx_t;
 typedef unsigned int __re_size_t;
 typedef unsigned long int __re_long_size_t;
 

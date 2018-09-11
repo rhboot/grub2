@@ -34,7 +34,7 @@ main (int argc, char **argv)
   char *buf = NULL;
   size_t bufsize = 0;
   char *suffix = xstrdup ("");
-  int suffixlen = 0;
+  size_t suffixlen = 0;
   const char *out_fname = 0;
 
   grub_util_host_init (&argc, &argv);

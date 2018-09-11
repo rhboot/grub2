@@ -407,7 +407,7 @@ SETUP (const char *dir,
     int is_ldm;
     grub_err_t err;
     grub_disk_addr_t *sectors;
-    int i;
+    unsigned int i;
     grub_fs_t fs;
     unsigned int nsec, maxsec;
 
