@@ -536,6 +536,11 @@ image = {
 };
 
 module = {
+  name = version;
+  common = commands/version.c;
+};
+
+module = {
   name = disk;
   common = lib/disk.c;
   extra_dist = kern/disk_common.c;
