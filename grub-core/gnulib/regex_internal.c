@@ -224,7 +224,7 @@ build_wcs_buffer (re_string_t *pstr)
       /* Apply the translation if we need.  */
       if (BE (pstr->trans != NULL, 0))
 	{
-	  int i, ch;
+	  unsigned int i, ch;
 
 	  for (i = 0; i < pstr->mb_cur_max && i < remain_len; ++i)
 	    {
@@ -367,7 +367,7 @@ build_wcs_upper_buffer (re_string_t *pstr)
 	prev_st = pstr->cur_state;
 	if (BE (pstr->trans != NULL, 0))
 	  {
-	    int i, ch;
+	    unsigned int i, ch;
 
 	    for (i = 0; i < pstr->mb_cur_max && i < remain_len; ++i)
 	      {
@@ -751,7 +751,7 @@ re_string_reconstruct (re_string_t *pstr, Idx idx, int eflags)
 			  memset (&cur_state, 0, sizeof (cur_state));
 			  mbclen = __mbrtowc (&wc2, (const char *) pp, mlen,
 					      &cur_state);
-			  if (raw + offset - p <= mbclen
+			  if ((size_t)(raw + offset - p) <= mbclen
 			      && mbclen < (size_t) -2)
 			    {
 			      memset (&pstr->cur_state, '\0',

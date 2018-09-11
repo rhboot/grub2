@@ -156,7 +156,7 @@ static void
 rs_encode (gf_single_t *data, grub_size_t s, grub_size_t rs)
 {
   gf_single_t *rs_polynomial;
-  int i, j;
+  unsigned int i, j;
   gf_single_t *m;
   m = xmalloc ((s + rs) * sizeof (gf_single_t));
   grub_memcpy (m, data, s * sizeof (gf_single_t));
@@ -325,7 +325,7 @@ static void
 encode_block (gf_single_t *ptr, grub_size_t s,
 	      gf_single_t *rptr, grub_size_t rs)
 {
-  int i, j;
+  unsigned int i, j;
   for (i = 0; i < SECTOR_SIZE; i++)
     {
       grub_size_t ds = (s + SECTOR_SIZE - 1 - i) / SECTOR_SIZE;
