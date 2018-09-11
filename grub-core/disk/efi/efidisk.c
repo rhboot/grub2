@@ -846,6 +846,7 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
 	  return 0;
 	}
 
+      grub_dprintf ("efidisk", "getting disk for %s\n", device_name);
       parent = grub_disk_open (device_name);
       grub_free (dup_dp);
 
