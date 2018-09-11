@@ -188,6 +188,8 @@ scan_disk (const char *name, int accept_diskfilter)
   grub_disk_t disk;
   static int scan_depth = 0;
 
+  grub_dprintf ("diskfilter", "scanning %s\n", name);
+
   if (!accept_diskfilter && is_valid_diskfilter_name (name))
     return 0;
 
@@ -1211,6 +1213,7 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 	   the same.  */
 	if (pv->disk && grub_disk_get_size (disk) >= pv->part_size)
 	  return GRUB_ERR_NONE;
+	grub_dprintf ("diskfilter", "checking %s\n", disk->name);
 	pv->disk = grub_disk_open (disk->name);
 	if (!pv->disk)
 	  return grub_errno;
