@@ -234,7 +234,11 @@ struct linux_kernel_params
   grub_uint32_t ofw_cif_handler;	/* b8 */
   grub_uint32_t ofw_idt;		/* bc */
 
-  grub_uint8_t padding7[0x1b8 - 0xc0];
+  grub_uint32_t ext_ramdisk_image;	/* 0xc0 */
+  grub_uint32_t ext_ramdisk_size;	/* 0xc4 */
+  grub_uint32_t ext_cmd_line_ptr;	/* 0xc8 */
+
+  grub_uint8_t padding7[0x1b8 - 0xcc];
 
   union
     {
