@@ -246,7 +246,6 @@ kernel = {
 
   i386_pc = kern/i386/pc/init.c;
   i386_pc = kern/i386/pc/mmap.c;
-  i386_pc = kern/i386/pc/tpm.c;
   i386_pc = term/i386/pc/console.c;
 
   i386_qemu = bus/pci.c;
