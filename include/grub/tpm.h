@@ -69,7 +69,7 @@ typedef struct {
 grub_err_t EXPORT_FUNC(grub_tpm_measure) (unsigned char *buf, grub_size_t size,
 					  grub_uint8_t pcr, const char *kind,
 					  const char *description);
-#if defined (GRUB_MACHINE_EFI) || defined (GRUB_MACHINE_PCBIOS)
+#if defined (GRUB_MACHINE_EFI)
 grub_err_t grub_tpm_execute(PassThroughToTPM_InputParamBlock *inbuf,
 			    PassThroughToTPM_OutputParamBlock *outbuf);
 grub_err_t grub_tpm_log_event(unsigned char *buf, grub_size_t size,
