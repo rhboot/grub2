@@ -6,6 +6,10 @@
 #include <grub/i386/pc/int.h>
 
 #define TCPA_MAGIC 0x41504354
+#define EV_IPL 0x0d
+#define TCG_StatusCheck 0xbb00 /* (AH)=bbh, (AL)=00h */
+#define TCG_HashLogExtendEvent 0xbb01 /* (AH)=bbh, (AL)=01h */
+#define TCG_PassThroughToTPM 0xbb02 /* (AH)=bbh, (AL)=02h */
 
 static int tpm_presence = -1;
 
@@ -19,7 +23,7 @@ int tpm_present(void)
     return tpm_presence;
 
   regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
-  regs.eax = 0xbb00;
+  regs.eax = TCG_PassThroughToTPM;
   regs.ebx = TCPA_MAGIC;
   grub_bios_interrupt (0x1a, &regs);
 
@@ -44,7 +48,7 @@ grub_tpm_execute(PassThroughToTPM_InputParamBlock *inbuf,
   inaddr = (grub_addr_t) inbuf;
   outaddr = (grub_addr_t) outbuf;
   regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
-  regs.eax = 0xbb02;
+  regs.eax = TCG_PassThroughToTPM;
   regs.ebx = TCPA_MAGIC;
   regs.ecx = 0;
   regs.edx = 0;
@@ -110,7 +114,7 @@ grub_tpm_log_event(unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 				   N_("cannot allocate TPM event buffer"));
 
 	event->pcrindex = pcr;
-	event->eventtype = 0x0d;
+	event->eventtype = EV_IPL;
 	event->eventdatasize = grub_strlen(description);
 	grub_memcpy(event->event, description, datalength);
 
@@ -122,7 +126,7 @@ grub_tpm_log_event(unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 	incoming.logdatalen = datalength + sizeof(Event);
 
 	regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
-	regs.eax = 0xbb01;
+	regs.eax = TCG_HashLogExtendEvent;
 	regs.ebx = TCPA_MAGIC;
 	regs.ecx = 0;
 	regs.edx = 0;
