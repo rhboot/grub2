@@ -6,10 +6,9 @@
 #include <grub/i386/pc/int.h>
 
 #define TCPA_MAGIC 0x41504354
-#define EV_IPL 0x0d
 #define TCG_StatusCheck 0xbb00 /* (AH)=bbh, (AL)=00h */
-#define TCG_HashLogExtendEvent 0xbb01 /* (AH)=bbh, (AL)=01h */
 #define TCG_PassThroughToTPM 0xbb02 /* (AH)=bbh, (AL)=02h */
+#define TCG_CompactHashLogExtendEvent 0xbb07 /* (AH)=bbh, (AL)=07h */
 
 static int tpm_presence = -1;
 
@@ -68,76 +67,25 @@ grub_tpm_execute(PassThroughToTPM_InputParamBlock *inbuf,
   return 0;
 }
 
-typedef struct {
-	grub_uint32_t pcrindex;
-	grub_uint32_t eventtype;
-	grub_uint8_t digest[20];
-	grub_uint32_t eventdatasize;
-	grub_uint8_t event[0];
-} GRUB_PACKED Event;
-
-typedef struct {
-	grub_uint16_t ipblength;
-	grub_uint16_t reserved;
-	grub_uint32_t hashdataptr;
-	grub_uint32_t hashdatalen;
-	grub_uint32_t pcr;
-	grub_uint32_t reserved2;
-	grub_uint32_t logdataptr;
-	grub_uint32_t logdatalen;
-} GRUB_PACKED EventIncoming;
-
-typedef struct {
-	grub_uint16_t opblength;
-	grub_uint16_t reserved;
-	grub_uint32_t eventnum;
-	grub_uint8_t  hashvalue[20];
-} GRUB_PACKED EventOutgoing;
-
 grub_err_t
 grub_tpm_log_event(unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
-		   const char *description)
+		   const char *description UNUSED)
 {
 	struct grub_bios_int_registers regs;
-	EventIncoming incoming;
-	EventOutgoing outgoing;
-	Event *event;
-	grub_uint32_t datalength;
 
 	if (!tpm_present())
 		return 0;
 
-	datalength = grub_strlen(description);
-	event = grub_zalloc(datalength + sizeof(Event));
-	if (!event)
-		return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-				   N_("cannot allocate TPM event buffer"));
-
-	event->pcrindex = pcr;
-	event->eventtype = EV_IPL;
-	event->eventdatasize = grub_strlen(description);
-	grub_memcpy(event->event, description, datalength);
-
-	incoming.ipblength = sizeof(incoming);
-	incoming.hashdataptr = (grub_uint32_t)buf;
-	incoming.hashdatalen = size;
-	incoming.pcr = pcr;
-	incoming.logdataptr = (grub_uint32_t)event;
-	incoming.logdatalen = datalength + sizeof(Event);
-
 	regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
-	regs.eax = TCG_HashLogExtendEvent;
+	regs.eax = TCG_CompactHashLogExtendEvent;
 	regs.ebx = TCPA_MAGIC;
-	regs.ecx = 0;
-	regs.edx = 0;
-	regs.es = (((grub_addr_t) &incoming) & 0xffff0000) >> 4;
-	regs.edi = ((grub_addr_t) &incoming) & 0xffff;
-	regs.ds = (((grub_addr_t) &outgoing) & 0xffff0000) >> 4;
-	regs.esi = ((grub_addr_t) &outgoing) & 0xffff;
+	regs.ecx = size;
+	regs.edx = pcr;
+	regs.es = (((grub_addr_t) buf) & 0xffff0000) >> 4;
+	regs.edi = ((grub_addr_t) buf) & 0xffff;
+	regs.esi = 0;
 
 	grub_bios_interrupt (0x1a, &regs);
-
-	grub_free(event);
 
 	if (regs.eax)
 	  {
