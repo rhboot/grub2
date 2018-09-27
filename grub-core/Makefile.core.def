@@ -782,6 +782,7 @@ module = {
   common = commands/blscfg.c;
   common = commands/bls_qsort.h;
   common = commands/loadenv.h;
+  enable = powerpc_ieee1275;
   enable = efi;
   enable = i386_pc;
   enable = emu;
