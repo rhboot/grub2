@@ -129,7 +129,6 @@ kernel = {
   common = kern/rescue_parser.c;
   common = kern/rescue_reader.c;
   common = kern/term.c;
-  common = kern/qsort.c;
   common = kern/backtrace.c;
   common = kern/tpm.c;
 
@@ -781,6 +780,7 @@ module = {
 module = {
   name = blscfg;
   common = commands/blscfg.c;
+  common = commands/bls_qsort.h;
   common = commands/loadenv.h;
   enable = efi;
   enable = i386_pc;
