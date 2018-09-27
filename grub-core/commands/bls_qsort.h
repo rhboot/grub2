@@ -64,6 +64,7 @@ typedef struct
 #define	POP(low, high)	((void) (--top, (low = top->lo), (high = top->hi)))
 #define	STACK_NOT_EMPTY	(stack < top)
 
+typedef int (*grub_compar_d_fn_t) (const void *p0, const void *p1, void *state);
 
 /* Order size using quicksort.  This implementation incorporates
    four optimizations discussed in Sedgewick:
@@ -89,8 +90,8 @@ typedef struct
       smaller partition.  This *guarantees* no more than log (total_elems)
       stack size is needed (actually O(1) in this case)!  */
 
-void
-grub_qsort (void *const pbase, grub_size_t total_elems, grub_size_t size,
+static inline void UNUSED
+bls_qsort (void *const pbase, grub_size_t total_elems, grub_size_t size,
 	    grub_compar_d_fn_t cmp, void *arg)
 {
   char *base_ptr = (char *) pbase;
@@ -252,28 +253,3 @@ grub_qsort (void *const pbase, grub_size_t total_elems, grub_size_t size,
   }
 }
 
-void *
-grub_bsearch (const void *key, const void *base, grub_size_t nmemb, grub_size_t size,
-	 grub_compar_d_fn_t compar, void *state)
-{
-  grub_size_t l, u, idx;
-  const void *p;
-  int comparison;
-
-  l = 0;
-  u = nmemb;
-  while (l < u)
-    {
-      idx = (l + u) / 2;
-      p = (void *) (((const char *) base) + (idx * size));
-      comparison = (*compar) (key, p, state);
-      if (comparison < 0)
-	u = idx;
-      else if (comparison > 0)
-	l = idx + 1;
-      else
-	return (void *) p;
-    }
-
-  return NULL;
-}
