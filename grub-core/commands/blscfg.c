@@ -36,6 +36,7 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+#include "bls_qsort.h"
 #include "loadenv.h"
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
@@ -717,7 +718,7 @@ read_fallback:
       use_version = false;
   }
 
-  grub_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, &use_version);
+  bls_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, &use_version);
 
   grub_dprintf ("blscfg", "%s Creating %d entries from bls\n", __func__, nentries);
   for (r = nentries - 1; r >= 0; r--)
