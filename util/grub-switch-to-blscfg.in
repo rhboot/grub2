@@ -53,6 +53,8 @@ blsdir=`echo "/@bootdirname@/loader/entries" | sed 's,//*,/,g'`
 
 backupsuffix=.bak
 
+arch="$(uname -m)"
+
 export TEXTDOMAIN=@PACKAGE@
 export TEXTDOMAINDIR="@localedir@"
 
@@ -248,7 +250,6 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     fi
 
     if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
-        arch="$(uname -m)"
         bls_debug="$(echo ${bls_target} | sed -e "s/\.${arch}/-debug.${arch}/")"
         cp -aT  "${bls_target}" "${bls_debug}"
         title="$(grep '^title[ \t]' "${bls_debug}" | sed -e 's/^title[ \t]*//')"
@@ -282,6 +283,16 @@ elif ! grep -q '^GRUB_ENABLE_BLSCFG=.*' "${etcdefaultgrub}" ; then
 fi
 
 if [ "${GENERATE}" -eq 1 ] ; then
+    if [ $arch = "x86_64" ] && [ ! -d /sys/firmware/efi ]; then
+	if ! cp ${prefix}/lib/grub//i386-pc/blscfg.mod ${grubdir}/i386-pc/ ; then
+	    exit 1
+	fi
+    elif [ $arch = "ppc64" -o $arch = "ppc64le" ] && [ ! -d /sys/firmware/opal ]; then
+	if ! cp ${prefix}/lib/grub/powerpc-ieee1275/blscfg.mod ${grubdir}/powerpc-ieee1275/ ; then
+	    exit 1
+	fi
+    fi
+
     cp -af "${GRUB_CONFIG_FILE}" "${GRUB_CONFIG_FILE}${backupsuffix}"
     if ! grub2-mkconfig -o "${GRUB_CONFIG_FILE}" ; then
         cp -af "${GRUB_CONFIG_FILE}${backupsuffix}" "${GRUB_CONFIG_FILE}"
