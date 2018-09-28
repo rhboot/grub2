@@ -1983,6 +1983,9 @@ if test x"$enable_wextra" != xno ; then
   HOST_CFLAGS="$HOST_CFLAGS -Wextra"
 fi
 
+TARGET_CFLAGS="$TARGET_CFLAGS -Werror=trampolines -fno-trampolines"
+HOST_CFLAGS="$HOST_CFLAGS -Werror=trampolines -fno-trampolines"
+
 TARGET_CPP="$TARGET_CC -E"
 TARGET_CCAS=$TARGET_CC
 
