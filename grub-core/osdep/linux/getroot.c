@@ -1264,22 +1264,20 @@ grub_util_get_grub_dev_os (const char *os_dev)
   return grub_dev;
 }
 
+static void *mp = NULL;
+static void
+btrfs_mount_path_hook(const char *m)
+{
+  mp = strdup (m);
+}
 
 char *
 grub_util_get_btrfs_subvol (const char *path, char **mount_path)
 {
-  char *mp = NULL;
-
   if (mount_path)
     *mount_path = NULL;
 
-  auto void
-  mount_path_hook (const char *m)
-  {
-    mp = strdup (m);
-  }
-
-  grub_find_root_btrfs_mount_path_hook = mount_path_hook;
+  grub_find_root_btrfs_mount_path_hook = btrfs_mount_path_hook;
   grub_free (grub_find_root_devices_from_mountinfo (path, NULL));
   grub_find_root_btrfs_mount_path_hook = NULL;
 
