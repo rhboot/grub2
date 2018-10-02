@@ -1,6 +1,7 @@
 #! /bin/sh -e
 
 # Boot Counting
+cat << EOF
 if [ "\${boot_counter}" -a "\${boot_success}" = "0" ]; then
   if  [ "\${boot_counter}" = "0" -o "\${boot_counter}" = "-1" ]; then
     set default=1
@@ -10,3 +11,4 @@ if [ "\${boot_counter}" -a "\${boot_success}" = "0" ]; then
   fi
   save_env boot_counter
 fi
+EOF
