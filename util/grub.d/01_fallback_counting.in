@@ -1,5 +1,9 @@
 #! /bin/sh -e
 
+if ! systemctl -q is-enabled greenboot.service >/dev/null 2>&1 ; then
+  exit 0
+fi
+
 # Boot Counting
 cat << EOF
 insmod increment
