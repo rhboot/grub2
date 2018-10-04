@@ -449,6 +449,12 @@ script = {
 };
 
 script = {
+  name = '01_fallback_counting';
+  common = util/grub.d/01_fallback_counting.in;
+  installdir = grubconf;
+};
+
+script = {
   name = '01_menu_auto_hide';
   common = util/grub.d/01_menu_auto_hide.in;
   installdir = grubconf;
