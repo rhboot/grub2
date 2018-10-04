@@ -362,6 +362,11 @@ kernel = {
   extra_dist = kern/mips/cache_flush.S;
 };
 
+module = {
+  name = increment;
+  common = commands/increment.c;
+};
+
 program = {
   name = grub-emu;
   mansection = 1;
