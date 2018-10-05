@@ -201,7 +201,9 @@ linux_entry ()
     populate_menu
 
     ${grub_editenv} - set saved_entry=0
-    ${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+    if ! grub2-editenv - list | grep -q kernelopts; then
+	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+    fi
 
     exit 0
   fi
