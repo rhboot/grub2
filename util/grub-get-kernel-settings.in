@@ -76,3 +76,13 @@ if [ "$MAKEDEBUG" = "yes" ]; then
     echo GRUB_LINUX_DEBUG_TITLE_POSTFIX=\" with debugging\"
     echo export GRUB_LINUX_DEBUG_TITLE_POSTFIX
 fi
+if [ "$DEFAULTDEBUG" = "yes" ]; then
+    echo GRUB_DEFAULT_TO_DEBUG=true
+else
+    echo GRUB_DEFAULT_TO_DEBUG=false
+fi
+echo export GRUB_DEFAULT_TO_DEBUG
+if [ "$UPDATEDEFAULT" = "yes" ]; then
+    echo GRUB_UPDATE_DEFAULT_KERNEL=true
+    echo export GRUB_UPDATE_DEFAULT_KERNEL
+fi
