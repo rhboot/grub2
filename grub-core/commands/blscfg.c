@@ -575,6 +575,7 @@ static void create_entry (struct bls_entry *entry)
   char **initrds = NULL;
   char *initrd = NULL;
   char *id = entry->filename;
+  char *dotconf = id;
   char *hotkey = NULL;
 
   char *users = NULL;
@@ -592,6 +593,16 @@ static void create_entry (struct bls_entry *entry)
       grub_dprintf ("blscfg", "Skipping file %s with no 'linux' key.\n", entry->filename);
       goto finish;
     }
+
+  /*
+   * strip the ".conf" off the end before we make it our "id" field.
+   */
+  do
+    {
+      dotconf = grub_strstr(dotconf, ".conf");
+    } while (dotconf != NULL && dotconf[5] != '\0');
+  if (dotconf)
+    dotconf[0] = '\0';
 
   title = bls_get_val (entry, "title", NULL);
   options = expand_val (bls_get_val (entry, "options", NULL));
