@@ -206,7 +206,7 @@ static int vercmp(const char * a, const char * b)
     int isnum;
     int ret = 0;
 
-  grub_dprintf("blscfg", "%s got here\n", __func__);
+    grub_dprintf("blscfg", "%s got here\n", __func__);
     if (!grub_strcmp(a, b))
 	    return 0;
 
@@ -315,6 +315,81 @@ finish:
     return ret;
 }
 
+/* returns name/version/release */
+/* NULL string pointer returned if nothing found */
+static void
+split_package_string (char *package_string, char **name,
+                     char **version, char **release)
+{
+  char *package_version, *package_release;
+
+  /* Release */
+  package_release = grub_strrchr (package_string, '-');
+
+  if (package_release != NULL)
+      *package_release++ = '\0';
+
+  *release = package_release;
+
+  if (name == NULL)
+    {
+      *version = package_string;
+    }
+  else
+    {
+      /* Version */
+      package_version = grub_strrchr(package_string, '-');
+
+      if (package_version != NULL)
+	*package_version++ = '\0';
+
+      *version = package_version;
+      /* Name */
+      *name = package_string;
+    }
+
+  /* Bubble up non-null values from release to name */
+  if (name != NULL && *name == NULL)
+    {
+      *name = (*version == NULL ? *release : *version);
+      *version = *release;
+      *release = NULL;
+    }
+  if (*version == NULL)
+    {
+      *version = *release;
+      *release = NULL;
+    }
+}
+
+static int
+split_cmp(char *nvr0, char *nvr1, int has_name)
+{
+  int ret = 0;
+  char *name0, *version0, *release0;
+  char *name1, *version1, *release1;
+
+  split_package_string(nvr0, has_name ? &name0 : NULL, &version0, &release0);
+  split_package_string(nvr1, has_name ? &name1 : NULL, &version1, &release1);
+
+  if (has_name)
+    {
+      ret = vercmp(name0 == NULL ? "" : name0,
+		   name1 == NULL ? "" : name1);
+      if (ret != 0)
+	return ret;
+    }
+
+  ret = vercmp(version0 == NULL ? "" : version0,
+	       version1 == NULL ? "" : version1);
+  if (ret != 0)
+    return ret;
+
+  ret = vercmp(release0 == NULL ? "" : release0,
+	       release1 == NULL ? "" : release1);
+  return ret;
+}
+
 /* return 1: p0 is newer than p1 */
 /*        0: p0 and p1 are the same version */
 /*       -1: p1 is newer than p0 */
@@ -323,18 +398,41 @@ static int bls_cmp(const void *p0, const void *p1, void *state)
   struct bls_entry * e0 = *(struct bls_entry **)p0;
   struct bls_entry * e1 = *(struct bls_entry **)p1;
   bool use_version = *(bool *)state;
-  const char *v0, *v1;
-  int r;
+  char *v0, *v1;
+  char *id0, *id1;
+  int l, r;
 
-  if (use_version) {
-    v0 = bls_get_val(e0, "version", NULL);
-    v1 = bls_get_val(e1, "version", NULL);
+  if (use_version)
+    {
+      v0 = grub_strdup(bls_get_val(e0, "version", NULL));
+      v1 = grub_strdup(bls_get_val(e1, "version", NULL));
 
-    if ((r = vercmp(v0, v1)) != 0)
-      return r;
-  }
+      r = split_cmp(v0, v1, 0);
 
-  return vercmp(e0->filename, e1->filename);
+      grub_free(v0);
+      grub_free(v1);
+
+      if (r != 0)
+	return r;
+    }
+
+  id0 = grub_strdup(e0->filename);
+  id1 = grub_strdup(e1->filename);
+
+  l = grub_strlen(id0);
+  if (l > 5 && grub_strcmp(id0 + l - 5, ".conf"))
+    id0[l-5] = '\0';
+
+  l = grub_strlen(id1);
+  if (l > 5 && grub_strcmp(id1 + l - 5, ".conf"))
+    id1[l-5] = '\0';
+
+  r = split_cmp(id0, id1, 1);
+
+  grub_free(id0);
+  grub_free(id1);
+
+  return r;
 }
 
 struct read_entry_info {
