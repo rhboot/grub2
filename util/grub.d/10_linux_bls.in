@@ -151,10 +151,22 @@ read_config()
 
 populate_menu()
 {
-    entries_path="/boot/loader/entries"
+    blsdir="/boot/loader/entries"
+    local -a files
+    local IFS=$'\n'
     gettext_printf "Generating boot entries from BLS files...\n" >&2
-    for config in $(ls -v -r $entries_path/*.conf); do
-        read_config ${config}
+
+    files=($(for bls in ${blsdir}/*.conf ; do
+        if ! [[ -e "${bls}" ]] ; then
+            continue
+        fi
+        bls="${bls%.conf}"
+        bls="${bls##*/}"
+        echo "${bls}"
+    done | ${kernel_sort} | tac)) || :
+
+    for bls in "${files[@]}" ; do
+        read_config "${blsdir}/${bls}.conf"
         menu="${menu}menuentry '${title}' {\n"
         menu="${menu}\t linux ${linux} ${options}\n"
         if [ -n "${initrd}" ] ; then
