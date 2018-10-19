@@ -110,7 +110,7 @@ parse_line (grub_file_t file, http_data_t data, char *ptr, grub_size_t len)
 	  return GRUB_ERR_NONE;
 	}
       ptr += sizeof ("HTTP/1.1 ") - 1;
-      code = grub_strtoul (ptr, &ptr, 10);
+      code = grub_strtoul (ptr, (const char **)&ptr, 10);
       if (grub_errno)
 	return grub_errno;
       switch (code)
@@ -137,7 +137,7 @@ parse_line (grub_file_t file, http_data_t data, char *ptr, grub_size_t len)
       == 0 && !data->size_recv)
     {
       ptr += sizeof ("Content-Length: ") - 1;
-      file->size = grub_strtoull (ptr, &ptr, 10);
+      file->size = grub_strtoull (ptr, (const char **)&ptr, 10);
       data->size_recv = 1;
       return GRUB_ERR_NONE;
     }
