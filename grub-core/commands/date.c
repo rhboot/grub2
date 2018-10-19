@@ -59,7 +59,8 @@ grub_cmd_date (grub_command_t cmd __attribute__ ((unused)),
 
   for (; argc; argc--, args++)
     {
-      char *p, c;
+      const char *p;
+      char c;
       int m1, ofs, n, cur_mask;
 
       p = args[0];

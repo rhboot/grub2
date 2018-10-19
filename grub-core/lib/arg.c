@@ -375,7 +375,7 @@ grub_arg_parse (grub_extcmd_t cmd, int argc, char **argv,
 
 	    case ARG_TYPE_INT:
 	      {
-		char *tail;
+		const char * tail;
 
 		grub_strtoull (option, &tail, 0);
 		if (tail == 0 || tail == option || *tail != '\0' || grub_errno)

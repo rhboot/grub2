@@ -38,7 +38,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
    at the number.  In case STR is not found, *P will be NULL and the
    return value will be 0.  */
 static grub_uint64_t
-grub_lvm_getvalue (char **p, const char *str)
+grub_lvm_getvalue (const char ** const p, const char *str)
 {
   *p = grub_strstr (*p, str);
   if (! *p)
@@ -63,12 +63,12 @@ grub_lvm_checkvalue (char **p, char *str, char *tmpl)
 #endif
 
 static int
-grub_lvm_check_flag (char *p, const char *str, const char *flag)
+grub_lvm_check_flag (const char *p, const char *str, const char *flag)
 {
   grub_size_t len_str = grub_strlen (str), len_flag = grub_strlen (flag);
   while (1)
     {
-      char *q;
+      const char *q;
       p = grub_strstr (p, str);
       if (! p)
 	return 0;
@@ -105,7 +105,8 @@ grub_lvm_detect (grub_disk_t disk,
   char buf[GRUB_LVM_LABEL_SIZE];
   char vg_id[GRUB_LVM_ID_STRLEN+1];
   char pv_id[GRUB_LVM_ID_STRLEN+1];
-  char *metadatabuf, *p, *q, *vgname;
+  char *metadatabuf, *vgname;
+  const char *p, *q;
   struct grub_lvm_label_header *lh = (struct grub_lvm_label_header *) buf;
   struct grub_lvm_pv_header *pvh;
   struct grub_lvm_disk_locn *dlocn;

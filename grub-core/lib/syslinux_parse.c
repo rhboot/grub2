@@ -1062,7 +1062,7 @@ write_entry (struct output_buffer *outbuf,
 		if (ptr[0] == 'h' && ptr[1] == 'd')
 		  {
 		    is_fd = 0;
-		    devn = grub_strtoul (ptr + 2, &ptr, 0);
+		    devn = grub_strtoul (ptr + 2, (const char **)&ptr, 0);
 		    continue;
 		  }
 		if (grub_strncasecmp (ptr, "file=", 5) == 0)
@@ -1086,12 +1086,12 @@ write_entry (struct output_buffer *outbuf,
 		if (ptr[0] == 'f' && ptr[1] == 'd')
 		  {
 		    is_fd = 1;
-		    devn = grub_strtoul (ptr + 2, &ptr, 0);
+		    devn = grub_strtoul (ptr + 2, (const char **)&ptr, 0);
 		    continue;
 		  }
 		if (grub_isdigit (ptr[0]))
 		  {
-		    part = grub_strtoul (ptr, &ptr, 0);
+		    part = grub_strtoul (ptr, (const char **)&ptr, 0);
 		    continue;
 		  }
 		/* FIXME: isolinux, ntldr, cmldr, *dos, seg, hide

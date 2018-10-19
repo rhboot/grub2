@@ -194,7 +194,7 @@ grub_util_fd_open (const char *dev, int flg)
     p1 = dev + strlen (dev);
   else
     {
-      unit = grub_strtoul (p1 + 1, (char **) &p2, 16);
+      unit = grub_strtoul (p1 + 1, &p2, 16);
       if (p2 && *p2 == '/')
 	flags = grub_strtoul (p2 + 1, 0, 16);
     }
