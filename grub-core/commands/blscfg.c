@@ -46,8 +46,6 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_BOOT_DEVICE "($root)"
 #endif
 
-#define grub_free(x) ({grub_dprintf("blscfg", "%s freeing %p\n", __func__, x); grub_free(x); })
-
 struct keyval
 {
   const char *key;
@@ -134,7 +132,7 @@ static int bls_add_keyval(struct bls_entry *entry, char *key, char *val)
   kv->val = v;
 
   entry->keyvals[entry->nkeyvals] = kv;
-  grub_dprintf("blscfg", "new keyval at %p:%p:%p\n", entry->keyvals[entry->nkeyvals], k, v);
+  grub_dprintf("blscfg", "new keyval at %p:%s:%s\n", entry->keyvals[entry->nkeyvals], k, v);
   entry->nkeyvals = new_n;
 
   return 0;
@@ -144,7 +142,6 @@ static void bls_free_entry(struct bls_entry *entry)
 {
   int i;
 
-  grub_dprintf("blscfg", "%s got here\n", __func__);
   for (i = 0; i < entry->nkeyvals; i++)
     {
       struct keyval *kv = entry->keyvals[i];
@@ -206,7 +203,7 @@ static int vercmp(const char * a, const char * b)
     int isnum;
     int ret = 0;
 
-    grub_dprintf("blscfg", "%s got here\n", __func__);
+    grub_dprintf("blscfg", "%s comparing %s and %s\n", __func__, a, b);
     if (!grub_strcmp(a, b))
 	    return 0;
 
@@ -682,7 +679,7 @@ static void create_entry (struct bls_entry *entry)
   char **args = NULL;
 
   char *src = NULL;
-  int i;
+  int i, index;
 
   grub_dprintf("blscfg", "%s got here\n", __func__);
   clinux = bls_get_val (entry, "linux", NULL);
@@ -756,7 +753,8 @@ static void create_entry (struct bls_entry *entry)
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
 			initrd ? initrd : "");
 
-  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0);
+  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index);
+  grub_dprintf ("blscfg", "Added entry %d id:\"%s\"\n", index, id);
 
 finish:
   grub_free (initrd);
