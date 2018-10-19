@@ -423,7 +423,7 @@ static grub_err_t
 grub_cmd_badram (grub_command_t cmd __attribute__ ((unused)),
 		 int argc, char **args)
 {
-  char * str;
+  const char *str;
   struct badram_entry entry;
 
   if (argc != 1)
@@ -465,7 +465,7 @@ static grub_uint64_t
 parsemem (const char *str)
 {
   grub_uint64_t ret;
-  char *ptr;
+  const char *ptr;
 
   ret = grub_strtoul (str, &ptr, 0);
 

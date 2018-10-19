@@ -484,7 +484,7 @@ parse_proportional_spec (const char *value, signed *abs, grub_fixed_signed_t *pr
 	  ptr++;
 	}
 
-      num = grub_strtoul (ptr, (char **) &ptr, 0);
+      num = grub_strtoul (ptr, &ptr, 0);
       if (grub_errno)
 	return grub_errno;
       if (sig)

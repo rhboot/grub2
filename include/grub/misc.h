@@ -288,11 +288,29 @@ grub_strncasecmp (const char *s1, const char *s2, grub_size_t n)
     - (int) grub_tolower ((grub_uint8_t) *s2);
 }
 
-unsigned long EXPORT_FUNC(grub_strtoul) (const char *str, char **end, int base);
-unsigned long long EXPORT_FUNC(grub_strtoull) (const char *str, char **end, int base);
+/*
+ * Note that these differ from the C standard's definitions of strtol,
+ * strtoul(), and strtoull() by the addition of two const qualifiers on the end
+ * pointer, which make the declaration match the *semantic* requirements of
+ * their behavior.  This means that instead of:
+ *
+ *  char *s = "1234 abcd";
+ *  char *end;
+ *  unsigned long l;
+ *
+ *  l = grub_strtoul(s, &end, 10);
+ *
+ * We must one of:
+ *
+ *  const char *end;
+ *  ... or ...
+ *  l = grub_strtoul(s, (const char ** const)&end, 10);
+ */
+unsigned long EXPORT_FUNC(grub_strtoul) (const char * restrict str, const char ** const restrict end, int base);
+unsigned long long EXPORT_FUNC(grub_strtoull) (const char * restrict str, const char ** const restrict end, int base);
 
 static inline long
-grub_strtol (const char *str, char **end, int base)
+grub_strtol (const char * restrict str, const char ** const restrict end, int base)
 {
   int negative = 0;
   unsigned long long magnitude;
