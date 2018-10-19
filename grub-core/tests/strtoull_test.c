@@ -25,7 +25,7 @@ static void
 strtoull_testcase (const char *input, int base, unsigned long long expected,
 		   int num_digits, grub_err_t error)
 {
-  char *output;
+  const char *output;
   unsigned long long value;
   grub_errno = 0;
   value = grub_strtoull(input, &output, base);

@@ -411,7 +411,7 @@ parse_ip (const char *val, grub_uint32_t *ip, const char **rest)
   for (i = 0; i < 4; i++)
     {
       unsigned long t;
-      t = grub_strtoul (ptr, (char **) &ptr, 0);
+      t = grub_strtoul (ptr, &ptr, 0);
       if (grub_errno)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -465,7 +465,7 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
 	  ptr++;
 	  continue;
 	}
-      t = grub_strtoul (ptr, (char **) &ptr, 16);
+      t = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -577,7 +577,7 @@ grub_net_resolve_net_address (const char *name,
       addr->type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4;
       if (*rest == '/')
 	{
-	  addr->ipv4.masksize = grub_strtoul (rest + 1, (char **) &rest, 0);
+	  addr->ipv4.masksize = grub_strtoul (rest + 1, &rest, 0);
 	  if (!grub_errno && *rest == 0)
 	    return GRUB_ERR_NONE;
 	  grub_errno = GRUB_ERR_NONE;
@@ -593,7 +593,7 @@ grub_net_resolve_net_address (const char *name,
       addr->type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
       if (*rest == '/')
 	{
-	  addr->ipv6.masksize = grub_strtoul (rest + 1, (char **) &rest, 0);
+	  addr->ipv6.masksize = grub_strtoul (rest + 1, &rest, 0);
 	  if (!grub_errno && *rest == 0)
 	    return GRUB_ERR_NONE;
 	  grub_errno = GRUB_ERR_NONE;

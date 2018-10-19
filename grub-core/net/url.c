@@ -235,7 +235,7 @@ extract_http_url_info (char *url, int ssl,
       c = *port_end;
       *port_end = '\0';
 
-      portul = grub_strtoul (port_off, &separator, 10);
+      portul = grub_strtoul (port_off, (const char **)&separator, 10);
       *port_end = c;
 #ifdef URL_TEST
       if (portul == ULONG_MAX && errno == ERANGE)

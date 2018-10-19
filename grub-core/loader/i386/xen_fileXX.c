@@ -25,7 +25,7 @@ parse_xen_guest (grub_elf_t elf, struct grub_xen_file_info *xi,
 		 grub_off_t off, grub_size_t sz)
 {
   char *buf;
-  char *ptr;
+  const char *ptr;
   int has_paddr = 0;
 
   grub_errno = GRUB_ERR_NONE;

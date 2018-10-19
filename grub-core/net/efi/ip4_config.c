@@ -62,7 +62,7 @@ grub_efi_string_to_ip4_address (const char *val, grub_efi_ipv4_address_t *addres
   for (i = 0; i < 4; i++)
     {
       unsigned long t;
-      t = grub_strtoul (ptr, (char **) &ptr, 0);
+      t = grub_strtoul (ptr, &ptr, 0);
       if (grub_errno)
 	{
 	  grub_errno = GRUB_ERR_NONE;
