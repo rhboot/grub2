@@ -164,12 +164,12 @@ grub_menu_set_timeout (int timeout)
 }
 
 static int
-menuentry_eq (const char *id, const char *spec)
+menuentry_eq (const char *id, const char *spec, int limit)
 {
   const char *ptr1, *ptr2;
   ptr1 = id;
   ptr2 = spec;
-  while (1)
+  while (limit == -1 || ptr1 - id <= limit)
     {
       if (*ptr2 == '>' && ptr2[1] != '>' && *ptr1 == 0)
 	return ptr2 - spec;
@@ -178,13 +178,72 @@ menuentry_eq (const char *id, const char *spec)
       if (*ptr2 == '>')
 	ptr2++;
       if (*ptr1 != *ptr2)
-	return 0;
+	{
+	  if (limit > -1 && ptr1 - id == limit && !*ptr1 && grub_isspace(*ptr2))
+	    return ptr1 -id -1;
+	  return 0;
+	}
       if (*ptr1 == 0)
 	return ptr1 - id;
       ptr1++;
       ptr2++;
     }
   return 0;
+}
+
+static int
+get_entry_number_helper(grub_menu_t menu,
+			const char * const val, const char ** const tail)
+{
+  /* See if the variable matches the title of a menu entry.  */
+  int entry = -1;
+  grub_menu_entry_t e;
+  int i;
+
+  for (i = 0, e = menu->entry_list; e; i++)
+    {
+      int l = 0;
+      while (val[l] && !grub_isspace(val[l]))
+	l++;
+
+      if (menuentry_eq (e->id, val, l))
+	{
+	  if (tail)
+	    *tail = val + l;
+	  return i;
+	}
+      e = e->next;
+    }
+
+  for (i = 0, e = menu->entry_list; e; i++)
+    {
+      int l = 0;
+      while (val[l] && !grub_isspace(val[l]))
+	l++;
+
+      if (menuentry_eq (e->title, val, l))
+	{
+	  if (tail)
+	    *tail = val + l;
+	  return i;
+	}
+      e = e->next;
+    }
+
+  if (tail)
+    *tail = NULL;
+
+  entry = (int) grub_strtoul (val, tail, 0);
+  if (grub_errno == GRUB_ERR_BAD_NUMBER ||
+      (*tail && **tail && !grub_isspace(**tail)))
+    {
+      entry = -1;
+      if (tail)
+	*tail = NULL;
+      grub_errno = GRUB_ERR_NONE;
+    }
+
+  return entry;
 }
 
 /* Get the first entry number from the value of the environment variable NAME,
@@ -195,9 +254,8 @@ static int
 get_and_remove_first_entry_number (grub_menu_t menu, const char *name)
 {
   const char *val;
-  char *tail;
+  const char *tail;
   int entry;
-  int sz = 0;
 
   val = grub_env_get (name);
   if (! val)
@@ -205,50 +263,24 @@ get_and_remove_first_entry_number (grub_menu_t menu, const char *name)
 
   grub_error_push ();
 
-  entry = (int) grub_strtoul (val, &tail, 0);
+  entry = get_entry_number_helper(menu, val, &tail);
+  if (!(*tail == 0 || grub_isspace(*tail)))
+    entry = -1;
 
-  if (grub_errno == GRUB_ERR_BAD_NUMBER)
+  if (entry >= 0)
     {
-      /* See if the variable matches the title of a menu entry.  */
-      grub_menu_entry_t e = menu->entry_list;
-      int i;
-
-      for (i = 0; e; i++)
-	{
-	  sz = menuentry_eq (e->title, val);
-	  if (sz < 1)
-	    sz = menuentry_eq (e->id, val);
-
-	  if (sz >= 1)
-	    {
-	      entry = i;
-	      break;
-	    }
-	  e = e->next;
-	}
-
-      if (sz > 0)
-	grub_errno = GRUB_ERR_NONE;
-
-      if (! e)
-	entry = -1;
-    }
-
-  if (grub_errno == GRUB_ERR_NONE)
-    {
-      if (sz > 0)
-	tail += sz;
-
       /* Skip whitespace to find the next entry.  */
       while (*tail && grub_isspace (*tail))
 	tail++;
-      grub_env_set (name, tail);
+      if (*tail)
+	grub_env_set (name, tail);
+      else
+	grub_env_unset (name);
     }
   else
     {
       grub_env_unset (name);
       grub_errno = GRUB_ERR_NONE;
-      entry = -1;
     }
 
   grub_error_pop ();
@@ -525,6 +557,7 @@ static int
 get_entry_number (grub_menu_t menu, const char *name)
 {
   const char *val;
+  const char *tail;
   int entry;
 
   val = grub_env_get (name);
@@ -532,38 +565,9 @@ get_entry_number (grub_menu_t menu, const char *name)
     return -1;
 
   grub_error_push ();
-
-  entry = (int) grub_strtoul (val, 0, 0);
-
-  if (grub_errno == GRUB_ERR_BAD_NUMBER)
-    {
-      /* See if the variable matches the title of a menu entry.  */
-      grub_menu_entry_t e = menu->entry_list;
-      int i;
-
-      grub_errno = GRUB_ERR_NONE;
-
-      for (i = 0; e; i++)
-	{
-	  if (menuentry_eq (e->title, val)
-	      || menuentry_eq (e->id, val))
-	    {
-	      entry = i;
-	      break;
-	    }
-	  e = e->next;
-	}
-
-      if (! e)
-	entry = -1;
-    }
-
-  if (grub_errno != GRUB_ERR_NONE)
-    {
-      grub_errno = GRUB_ERR_NONE;
-      entry = -1;
-    }
-
+  entry = get_entry_number_helper(menu, val, &tail);
+  if (*tail != '\0')
+    entry = -1;
   grub_error_pop ();
 
   return entry;
