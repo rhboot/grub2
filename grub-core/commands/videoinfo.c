@@ -136,7 +136,7 @@ grub_cmd_videoinfo (grub_command_t cmd __attribute__ ((unused)),
   ctx.height = ctx.width = ctx.depth = 0;
   if (argc)
     {
-      char *ptr;
+      const char *ptr;
       ptr = args[0];
       ctx.width = grub_strtoul (ptr, &ptr, 0);
       if (grub_errno)

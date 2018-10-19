@@ -35,7 +35,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_err_t
 grub_cmd_date (grub_command_t cmd __attribute__ ((unused)),
-               int argc, char **args)
+               int argc, char ** args)
 {
   struct grub_datetime datetime;
   int limit[6][2] = {{1980, 2079}, {1, 12}, {1, 31}, {0, 23}, {0, 59}, {0, 59}};
@@ -59,7 +59,8 @@ grub_cmd_date (grub_command_t cmd __attribute__ ((unused)),
 
   for (; argc; argc--, args++)
     {
-      char *p, c;
+      const char *p;
+      char c;
       int m1, ofs, n, cur_mask;
 
       p = args[0];

@@ -134,7 +134,7 @@ struct grub_fs_block
 static grub_err_t
 grub_fs_blocklist_open (grub_file_t file, const char *name)
 {
-  char *p = (char *) name;
+  const char *p = name;
   unsigned num = 0;
   unsigned i;
   grub_disk_t disk = file->device->disk;

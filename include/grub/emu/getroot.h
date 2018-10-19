@@ -19,6 +19,8 @@
 #ifndef GRUB_UTIL_GETROOT_HEADER
 #define GRUB_UTIL_GETROOT_HEADER	1
 
+#define NEED_GRUB_MAKE_SYSTEM_PATH_RELATIVE
+
 #include <grub/types.h>
 #include <grub/device.h>
 
@@ -37,7 +39,9 @@ char *grub_find_device (const char *dir, dev_t dev);
 void grub_util_pull_device (const char *osname);
 char **grub_guess_root_devices (const char *dir);
 int grub_util_get_dev_abstraction (const char *os_dev);
+#ifndef NEED_GRUB_MAKE_SYSTEM_PATH_RELATIVE
 char *grub_make_system_path_relative_to_its_root (const char *path);
+#endif
 char *
 grub_make_system_path_relative_to_its_root_os (const char *path);
 char *grub_util_get_grub_dev (const char *os_dev);
