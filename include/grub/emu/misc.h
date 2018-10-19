@@ -40,6 +40,9 @@ void grub_find_zpool_from_dir (const char *dir,
 
 char *grub_make_system_path_relative_to_its_root (const char *path)
  WARN_UNUSED_RESULT;
+#ifdef NEED_GRUB_MAKE_SYSTEM_PATH_RELATIVE
+#undef NEED_GRUB_MAKE_SYSTEM_PATH_RELATIVE
+#endif
 int
 grub_util_device_is_mapped (const char *dev);
 
