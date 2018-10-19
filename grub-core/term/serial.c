@@ -269,7 +269,7 @@ grub_cmd_serial (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (state[OPTION_BASE_CLOCK].set)
     {
-      char *ptr;
+      const char *ptr;
       config.base_clock = grub_strtoull (state[OPTION_BASE_CLOCK].arg, &ptr, 0);
       if (grub_errno)
 	return grub_errno;

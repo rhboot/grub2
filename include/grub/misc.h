@@ -288,11 +288,11 @@ grub_strncasecmp (const char *s1, const char *s2, grub_size_t n)
     - (int) grub_tolower ((grub_uint8_t) *s2);
 }
 
-unsigned long EXPORT_FUNC(grub_strtoul) (const char *str, char **end, int base);
-unsigned long long EXPORT_FUNC(grub_strtoull) (const char *str, char **end, int base);
+unsigned long EXPORT_FUNC(grub_strtoul) (const char *str, const char ** const end, int base);
+unsigned long long EXPORT_FUNC(grub_strtoull) (const char *str, const char ** const end, int base);
 
 static inline long
-grub_strtol (const char *str, char **end, int base)
+grub_strtol (const char *str, const char ** const end, int base)
 {
   int negative = 0;
   unsigned long long magnitude;

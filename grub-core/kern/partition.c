@@ -126,7 +126,7 @@ grub_partition_probe (struct grub_disk *disk, const char *str)
       while (*ptr && grub_isalpha (*ptr))
 	ptr++;
       partname_end = ptr; 
-      num = grub_strtoul (ptr, (char **) &ptr, 0) - 1;
+      num = grub_strtoul (ptr, &ptr, 0) - 1;
 
       curpart = 0;
       /* Use the first partition map type found.  */

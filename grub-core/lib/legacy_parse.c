@@ -418,7 +418,7 @@ adjust_file (const char *in, grub_size_t len)
     }
   if (*comma != ',')
     return grub_legacy_escape (in, len);
-  part = grub_strtoull (comma + 1, (char **) &rest, 0);
+  part = grub_strtoull (comma + 1, &rest, 0);
   if (rest[0] == ',' && rest[1] >= 'a' && rest[1] <= 'z')
     {
       subpart = rest[1] - 'a';
