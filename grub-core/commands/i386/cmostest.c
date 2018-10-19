@@ -27,7 +27,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 static grub_err_t
 parse_args (int argc, char *argv[], int *byte, int *bit)
 {
-  char *rest;
+  const char *rest;
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "address required");

@@ -95,7 +95,7 @@ grub_cmd_pcidump (grub_extcmd_context_t ctxt,
   if (ctxt->state[0].set)
     {
       ptr = ctxt->state[0].arg;
-      ctx.pciid_check_value |= (grub_strtoul (ptr, (char **) &ptr, 16) & 0xffff);
+      ctx.pciid_check_value |= (grub_strtoul (ptr, &ptr, 16) & 0xffff);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -108,8 +108,7 @@ grub_cmd_pcidump (grub_extcmd_context_t ctxt,
       if (*ptr != ':')
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("missing `%c' symbol"), ':');
       ptr++;
-      ctx.pciid_check_value |= (grub_strtoul (ptr, (char **) &ptr, 16) & 0xffff)
-	<< 16;
+      ctx.pciid_check_value |= (grub_strtoul (ptr, &ptr, 16) & 0xffff) << 16;
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	grub_errno = GRUB_ERR_NONE;
       else
@@ -121,10 +120,10 @@ grub_cmd_pcidump (grub_extcmd_context_t ctxt,
   if (ctxt->state[1].set)
     {
       const char *optr;
-      
+
       ptr = ctxt->state[1].arg;
       optr = ptr;
-      ctx.bus = grub_strtoul (ptr, (char **) &ptr, 16);
+      ctx.bus = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -138,7 +137,7 @@ grub_cmd_pcidump (grub_extcmd_context_t ctxt,
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("missing `%c' symbol"), ':');
       ptr++;
       optr = ptr;
-      ctx.device = grub_strtoul (ptr, (char **) &ptr, 16);
+      ctx.device = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -149,7 +148,7 @@ grub_cmd_pcidump (grub_extcmd_context_t ctxt,
       if (*ptr == '.')
 	{
 	  ptr++;
-	  ctx.function = grub_strtoul (ptr, (char **) &ptr, 16);
+	  ctx.function = grub_strtoul (ptr, &ptr, 16);
 	  if (grub_errno)
 	    return grub_errno;
 	  ctx.check_function = 1;

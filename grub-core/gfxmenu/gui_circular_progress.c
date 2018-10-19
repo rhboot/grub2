@@ -230,7 +230,7 @@ circprog_set_state (void *vself, int visible, int start,
 static int
 parse_angle (const char *value)
 {
-  char *ptr;
+  const char *ptr;
   int angle;
 
   angle = grub_strtol (value, &ptr, 10);

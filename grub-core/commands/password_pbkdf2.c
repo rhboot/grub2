@@ -86,7 +86,7 @@ grub_cmd_password (grub_command_t cmd __attribute__ ((unused)),
 		   int argc, char **args)
 {
   grub_err_t err;
-  char *ptr, *ptr2;
+  const char *ptr, *ptr2;
   grub_uint8_t *ptro;
   struct pbkdf2_password *pass;
 
