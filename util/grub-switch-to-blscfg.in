@@ -250,7 +250,7 @@ for kernelver in $(cd /lib/modules/ ; ls -1) "" ; do
     fi
 
     if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
-        bls_debug="$(echo ${bls_target} | sed -e "s/\.${arch}/-debug.${arch}/")"
+        bls_debug="$(echo ${bls_target} | sed -e "s/${kernelver}/${kernelver}~debug/")"
         cp -aT  "${bls_target}" "${bls_debug}"
         title="$(grep '^title[ \t]' "${bls_debug}" | sed -e 's/^title[ \t]*//')"
         blsid="$(grep '^id[ \t]' "${bls_debug}" | sed -e "s/\.${ARCH}/-debug.${arch}/")"
