@@ -958,7 +958,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 #endif /* GRUB_MACHINE_PCBIOS */
     if (grub_memcmp (argv[i], "mem=", 4) == 0)
       {
-	char *val = argv[i] + 4;
+	const char *val = argv[i] + 4;
 
 	linux_mem_size = grub_strtoul (val, &val, 0);
 

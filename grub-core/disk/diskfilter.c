@@ -971,7 +971,8 @@ grub_diskfilter_vg_register (struct grub_diskfilter_vg *vg)
 	    for (p = vgp->lvs; p; p = p->next)
 	      {
 		int cur_num;
-		char *num, *end;
+		char *num;
+		const char *end;
 		if (!p->fullname)
 		  continue;
 		if (grub_strncmp (p->fullname, lv->fullname, len) != 0)

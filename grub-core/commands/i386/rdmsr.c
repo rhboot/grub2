@@ -44,7 +44,7 @@ grub_cmd_msr_read (grub_extcmd_context_t ctxt, int argc, char **argv)
 {
   grub_uint32_t manufacturer[3], max_cpuid, a, b, c, features, addr;
   grub_uint64_t value;
-  char *ptr;
+  const char *ptr;
   char buf[sizeof("1122334455667788")];
 
   /*

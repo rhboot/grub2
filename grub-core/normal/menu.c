@@ -194,8 +194,7 @@ menuentry_eq (const char *id, const char *spec)
 static int
 get_and_remove_first_entry_number (grub_menu_t menu, const char *name)
 {
-  const char *val;
-  char *tail;
+  const char *val, *tail;
   int entry;
   int sz = 0;
 

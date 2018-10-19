@@ -538,7 +538,7 @@ void (*argp_program_version_hook) (FILE *, struct argp_state *) = print_version;
 static error_t 
 argp_parser (int key, char *arg, struct argp_state *state)
 {
-  char *p;
+  const char *p;
 
   switch (key)
     {
