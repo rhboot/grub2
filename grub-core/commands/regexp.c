@@ -64,7 +64,7 @@ set_matches (char **varnames, char *str, grub_size_t nmatches,
 {
   int i;
   char *p;
-  char *q;
+  const char * q;
   grub_err_t err;
   unsigned long j;
 

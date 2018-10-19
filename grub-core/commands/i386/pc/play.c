@@ -132,7 +132,7 @@ grub_cmd_play (grub_command_t cmd __attribute__ ((unused)),
     }
   else
     {
-      char *end;
+      const char *end;
       unsigned tempo;
       struct note note;
       int i;

@@ -169,7 +169,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (ctxt->state[0].set)
     {
       ptr = ctxt->state[0].arg;
-      pciid_check_value |= (grub_strtoul (ptr, (char **) &ptr, 16) & 0xffff);
+      pciid_check_value |= (grub_strtoul (ptr, &ptr, 16) & 0xffff);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -182,8 +182,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
       if (*ptr != ':')
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("missing `%c' symbol"), ':');
       ptr++;
-      pciid_check_value |= (grub_strtoul (ptr, (char **) &ptr, 16) & 0xffff)
-	<< 16;
+      pciid_check_value |= (grub_strtoul (ptr, &ptr, 16) & 0xffff) << 16;
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	grub_errno = GRUB_ERR_NONE;
       else
@@ -197,10 +196,10 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (ctxt->state[1].set)
     {
       const char *optr;
-      
+
       ptr = ctxt->state[1].arg;
       optr = ptr;
-      bus = grub_strtoul (ptr, (char **) &ptr, 16);
+      bus = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -214,7 +213,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("missing `%c' symbol"), ':');
       ptr++;
       optr = ptr;
-      device = grub_strtoul (ptr, (char **) &ptr, 16);
+      device = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -225,7 +224,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
       if (*ptr == '.')
 	{
 	  ptr++;
-	  function = grub_strtoul (ptr, (char **) &ptr, 16);
+	  function = grub_strtoul (ptr, &ptr, 16);
 	  if (grub_errno)
 	    return grub_errno;
 	  check_function = 1;
@@ -253,7 +252,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (i == ARRAY_SIZE (pci_registers))
     {
       regsize = 0;
-      regaddr = grub_strtoul (ptr, (char **) &ptr, 16);
+      regaddr = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, "unknown register");
     }
@@ -270,7 +269,7 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (*ptr == '+')
     {
       ptr++;
-      regaddr += grub_strtoul (ptr, (char **) &ptr, 16);
+      regaddr += grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	return grub_errno;
     }
@@ -302,14 +301,14 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (*ptr == '=')
     {
       ptr++;
-      regwrite = grub_strtoul (ptr, (char **) &ptr, 16);
+      regwrite = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	return grub_errno;
       write_mask = 0xffffffff;
       if (*ptr == ':')
 	{
 	  ptr++;
-	  write_mask = grub_strtoul (ptr, (char **) &ptr, 16);
+	  write_mask = grub_strtoul (ptr, &ptr, 16);
 	  if (grub_errno)
 	    return grub_errno;
 	  write_mask = 0xffffffff;

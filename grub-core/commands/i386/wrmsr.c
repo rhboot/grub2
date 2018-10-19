@@ -37,7 +37,7 @@ grub_cmd_msr_write (grub_command_t cmd __attribute__ ((unused)), int argc, char 
 {
   grub_uint32_t manufacturer[3], max_cpuid, a, b, c, features, addr;
   grub_uint64_t value;
-  char *ptr;
+  const char *ptr;
 
   /*
    * The CPUID instruction should be used to determine whether MSRs

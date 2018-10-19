@@ -31,7 +31,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 /* A simple implementation for signed numbers. */
 static int
-grub_strtosl (char *arg, char **end, int base)
+grub_strtosl (char *arg, const char ** const end, int base)
 {
   if (arg[0] == '-')
     return -grub_strtoul (arg + 1, end, base);
