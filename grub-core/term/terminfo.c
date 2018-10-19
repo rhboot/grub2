@@ -737,7 +737,7 @@ grub_cmd_terminfo (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (state[OPTION_GEOMETRY].set)
     {
-      char *ptr = state[OPTION_GEOMETRY].arg;
+      const char *ptr = state[OPTION_GEOMETRY].arg;
       w = grub_strtoul (ptr, &ptr, 0);
       if (grub_errno)
 	return grub_errno;
