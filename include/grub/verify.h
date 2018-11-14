@@ -16,6 +16,9 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef GRUB_VERIFY_HEADER
+#define GRUB_VERIFY_HEADER 1
+
 #include <grub/file.h>
 #include <grub/list.h>
 
@@ -89,3 +92,5 @@ char grub_is_dangerous_module (grub_file_t io);
  * Returns the name if one is loaded, otherwise NULL.
  */
 const char *grub_dangerous_module_loaded (void);
+
+#endif /* ! GRUB_VERIFY_HEADER */
