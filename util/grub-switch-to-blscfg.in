@@ -40,7 +40,7 @@ etcdefaultgrub=/etc/default/grub
 
 eval "$("${grub_get_kernel_settings}")" || true
 
-EFIDIR=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/')
+EFIDIR=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/' -e 's/\"//g')
 if [ -d /sys/firmware/efi/efivars/ ]; then
     startlink=/etc/grub2-efi.cfg
     grubdir=`echo "/@bootdirname@/efi/EFI/${EFIDIR}/" | sed 's,//*,/,g'`
