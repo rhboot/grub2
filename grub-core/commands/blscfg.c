@@ -704,7 +704,7 @@ static void create_entry (struct bls_entry *entry)
   initrds = bls_make_list (entry, "initrd", NULL);
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
-  users = bls_get_val (entry, "grub_users", NULL);
+  users = expand_val (bls_get_val (entry, "grub_users", NULL));
   classes = bls_make_list (entry, "grub_class", NULL);
   args = bls_make_list (entry, "grub_arg", &argc);
 
