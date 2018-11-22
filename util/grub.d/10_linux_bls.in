@@ -127,6 +127,9 @@ read_config()
     initrd=""
     options=""
     linux=""
+    grub_users=""
+    grub_arg=""
+    grub_class=""
 
     while read -r line
     do
@@ -144,6 +147,15 @@ read_config()
                 ;;
             "options")
                 options=${value}
+                ;;
+            "grub_users")
+                grub_users=${value}
+                ;;
+            "grub_arg")
+                grub_arg=${value}
+                ;;
+            "grub_class")
+                grub_class=${value}
                 ;;
         esac
     done < ${config_file}
@@ -167,7 +179,8 @@ populate_menu()
 
     for bls in "${files[@]}" ; do
         read_config "${blsdir}/${bls}.conf"
-        menu="${menu}menuentry '${title}' {\n"
+
+        menu="${menu}menuentry '${title}' --class ${grub_class} ${grub_arg} --users ${grub_users} --id ${bls} {\n"
         menu="${menu}\t linux ${linux} ${options}\n"
         if [ -n "${initrd}" ] ; then
             menu="${menu}\t initrd ${boot_prefix}${initrd}\n"
