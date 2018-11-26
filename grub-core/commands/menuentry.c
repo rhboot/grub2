@@ -29,7 +29,7 @@ static const struct grub_arg_option options[] =
   {
     {"class", 1, GRUB_ARG_OPTION_REPEATABLE,
      N_("Menu entry type."), N_("STRING"), ARG_TYPE_STRING},
-    {"users", 2, 0,
+    {"users", 2, GRUB_ARG_OPTION_OPTIONAL,
      N_("List of users allowed to boot this entry."), N_("USERNAME[,USERNAME]"),
      ARG_TYPE_STRING},
     {"hotkey", 3, 0,
@@ -281,7 +281,7 @@ grub_cmd_menuentry (grub_extcmd_context_t ctxt, int argc, char **args)
   if (! ctxt->state[3].set && ! ctxt->script)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "no menuentry definition");
 
-  if (ctxt->state[1].set)
+  if (ctxt->state[1].set && ctxt->state[1].arg)
     users = ctxt->state[1].arg;
   else if (ctxt->state[5].set)
     users = NULL;
