@@ -731,6 +731,7 @@ program = {
   ldadd = grub-core/gnulib/libgnu.a;
   ldadd = libgrubkern.a;
   ldadd = '$(LIBDEVMAPPER) $(LIBRPM)';
+  condition = COND_GRUB_RPM_SORT;
 };
 
 script = {
