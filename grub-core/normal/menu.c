@@ -217,14 +217,11 @@ get_entry_number_helper(grub_menu_t menu,
 
   for (i = 0, e = menu->entry_list; e; i++)
     {
-      int l = 0;
-      while (val[l] && !grub_isspace(val[l]))
-	l++;
 
-      if (menuentry_eq (e->title, val, l))
+      if (menuentry_eq (e->title, val, -1))
 	{
 	  if (tail)
-	    *tail = val + l;
+	    *tail = NULL;
 	  return i;
 	}
       e = e->next;
