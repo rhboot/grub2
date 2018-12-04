@@ -563,7 +563,7 @@ get_entry_number (grub_menu_t menu, const char *name)
 
   grub_error_push ();
   entry = get_entry_number_helper(menu, val, &tail);
-  if (*tail != '\0')
+  if (tail && *tail != '\0')
     entry = -1;
   grub_error_pop ();
 
