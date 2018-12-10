@@ -165,7 +165,7 @@ if [ -s \$prefix/grubenv ]; then
 fi
 EOF
 
-    if ! grub2-editenv - list | grep -q kernelopts; then
+    if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
 	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
     fi
 
