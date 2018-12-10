@@ -50,6 +50,8 @@ grub_get_kernel_settings="${sbindir}/@grub_get_kernel_settings@"
 export TEXTDOMAIN=@PACKAGE@
 export TEXTDOMAINDIR="@localedir@"
 
+export GRUB_GRUBENV_UPDATE="yes"
+
 . "${pkgdatadir}/grub-mkconfig_lib"
 
 # Usage: usage
@@ -59,6 +61,7 @@ usage () {
     gettext "Generate a grub config file"; echo
     echo
     print_option_help "-o, --output=$(gettext FILE)" "$(gettext "output generated config to FILE [default=stdout]")"
+    print_option_help "--no-grubenv-update" "$(gettext "do not update variables in the grubenv file")"
     print_option_help "-h, --help" "$(gettext "print this message and exit")"
     print_option_help "-v, --version" "$(gettext "print the version information and exit")"
     echo
@@ -93,6 +96,9 @@ do
 	grub_cfg=`argument $option "$@"`; shift;;
     --output=*)
 	grub_cfg=`echo "$option" | sed 's/--output=//'`
+	;;
+    --no-grubenv-update)
+	GRUB_GRUBENV_UPDATE="no"
 	;;
     -*)
 	gettext_printf "Unrecognized option \`%s'\n" "$option" 1>&2
