@@ -1942,11 +1942,9 @@ grub_net_search_configfile (char *config)
       char *client_uuid_var;
       grub_size_t client_uuid_var_size;
 
-      client_uuid_var_size = grub_snprintf (NULL, 0,
-                     "net_%s_clientuuid", inf->name);
-      if (client_uuid_var_size <= 0)
-	continue;
-      client_uuid_var_size += 1;
+      client_uuid_var_size = sizeof ("net_") + grub_strlen (inf->name) +
+                     sizeof ("_clientuuid") + 1;
+
       client_uuid_var = grub_malloc(client_uuid_var_size);
       if (!client_uuid_var)
 	continue;
