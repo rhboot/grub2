@@ -30,8 +30,6 @@
 #include <string.h>
 #include <libgen.h>
 
-#define DEFAULT_ENVBLK_SIZE	1024
-
 void
 grub_util_create_envblk_file (const char *name)
 {
