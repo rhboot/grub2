@@ -29,11 +29,6 @@
 
 grub_addr_t grub_modbase;
 
-#define GRUB_EFI_GRUB_VARIABLE_GUID \
-  { 0x91376aff, 0xcba6, 0x42be, \
-    { 0x94, 0x9d, 0x06, 0xfd, 0xe8, 0x11, 0x28, 0xe8 } \
-  }
-
 /* Helper for grub_efi_env_init */
 static int
 set_var (const char *name, const char *value,
