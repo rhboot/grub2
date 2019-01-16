@@ -22,6 +22,8 @@
 #define GRUB_ENVBLK_SIGNATURE	"# GRUB Environment Block\n"
 #define GRUB_ENVBLK_DEFCFG	"grubenv"
 
+#define DEFAULT_ENVBLK_SIZE	1024
+
 #ifndef ASM_FILE
 
 struct grub_envblk
@@ -33,6 +35,7 @@ typedef struct grub_envblk *grub_envblk_t;
 
 grub_envblk_t grub_envblk_open (char *buf, grub_size_t size);
 int grub_envblk_set (grub_envblk_t envblk, const char *name, const char *value);
+grub_err_t grub_envblk_get (grub_envblk_t envblk, const char * const name, char ** const value);
 void grub_envblk_delete (grub_envblk_t envblk, const char *name);
 void grub_envblk_iterate (grub_envblk_t envblk,
                           void *hook_data,
