@@ -777,6 +777,12 @@ module = {
 };
 
 module = {
+  name = efienv;
+  common = commands/efi/env.c;
+  enable = efi;
+};
+
+module = {
   name = efifwsetup;
   efi = commands/efi/efifwsetup.c;
   enable = efi;

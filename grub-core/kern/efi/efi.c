@@ -224,6 +224,9 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
   if (status == GRUB_EFI_SUCCESS)
     return GRUB_ERR_NONE;
 
+  if (status == GRUB_EFI_NOT_FOUND && datasize == 0)
+    return GRUB_ERR_NONE;
+
   return grub_error (GRUB_ERR_IO, "could not set EFI variable `%s'", var);
 }
 
