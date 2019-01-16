@@ -223,6 +223,49 @@ grub_envblk_delete (grub_envblk_t envblk, const char *name)
     }
 }
 
+struct get_var_state {
+  const char * const name;
+  char * value;
+  int found;
+};
+
+static int
+get_var (const char * const name, const char * const value, void *statep)
+{
+  struct get_var_state *state = (struct get_var_state *)statep;
+
+  if (!grub_strcmp(state->name, name))
+    {
+      state->found = 1;
+      state->value = grub_strdup(value);
+      if (!state->value)
+	grub_errno = grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+
+      return 1;
+    }
+
+  return 0;
+}
+
+grub_err_t
+grub_envblk_get (grub_envblk_t envblk, const char * const name, char ** const value)
+{
+  struct get_var_state state = {
+      .name = name,
+      .value = NULL,
+      .found = 0,
+  };
+
+  grub_envblk_iterate(envblk, (void *)&state, get_var);
+
+  *value = state.value;
+
+  if (state.found && !state.value)
+    return grub_errno;
+
+  return GRUB_ERR_NONE;
+}
+
 void
 grub_envblk_iterate (grub_envblk_t envblk,
                      void *hook_data,
