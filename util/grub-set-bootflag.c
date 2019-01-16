@@ -25,6 +25,7 @@
 
 #include <config-util.h>     /* For *_DIR_NAME defines */
 #include <grub/types.h>
+#include <grub/err.h>
 #include <grub/lib/envblk.h> /* For GRUB_ENVBLK_DEFCFG define */
 #include <errno.h>
 #include <stdio.h>
