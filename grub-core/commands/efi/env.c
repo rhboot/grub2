@@ -149,6 +149,8 @@ grub_efi_load_env(grub_command_t cmd __attribute__ ((unused)),
 
   grub_envblk_iterate (envblk, NULL, set_var);
   grub_free (envblk_s.buf);
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_command_t export_cmd, loadenv_cmd;
