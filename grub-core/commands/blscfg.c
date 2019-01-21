@@ -19,6 +19,7 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <grub/list.h>
 #include <grub/types.h>
 #include <grub/misc.h>
 #include <grub/mm.h>
@@ -36,7 +37,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-#include "bls_qsort.h"
 #include "loadenv.h"
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
@@ -54,45 +54,17 @@ struct keyval
 
 struct bls_entry
 {
+  struct bls_entry *next;
+  struct bls_entry **prev;
   struct keyval **keyvals;
   int nkeyvals;
   char *filename;
+  bool visible;
 };
 
-static struct bls_entry **entries;
-static int nentries;
+static struct bls_entry *entries = NULL;
 
-static struct bls_entry *bls_new_entry(void)
-{
-  struct bls_entry **new_entries;
-  struct bls_entry *entry;
-  int new_n = nentries + 1;
-
-  new_entries = grub_realloc (entries,  new_n * sizeof (struct bls_entry *));
-  if (!new_entries)
-    {
-      grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		  "couldn't find space for BLS entry list");
-      return NULL;
-    }
-
-  entries = new_entries;
-
-  entry = grub_malloc (sizeof (*entry));
-  if (!entry)
-    {
-      grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		  "couldn't find space for BLS entry list");
-      return NULL;
-    }
-
-  grub_memset (entry, 0, sizeof (*entry));
-  entries[nentries] = entry;
-
-  nentries = new_n;
-
-  return entry;
-}
+#define FOR_BLS_ENTRIES(var) FOR_LIST_ELEMENTS (var, entries)
 
 static int bls_add_keyval(struct bls_entry *entry, char *key, char *val)
 {
@@ -136,24 +108,6 @@ static int bls_add_keyval(struct bls_entry *entry, char *key, char *val)
   entry->nkeyvals = new_n;
 
   return 0;
-}
-
-static void bls_free_entry(struct bls_entry *entry)
-{
-  int i;
-
-  for (i = 0; i < entry->nkeyvals; i++)
-    {
-      struct keyval *kv = entry->keyvals[i];
-      grub_free ((void *)kv->key);
-      grub_free (kv->val);
-      grub_free (kv);
-    }
-
-  grub_free (entry->keyvals);
-  grub_free (entry->filename);
-  grub_memset (entry, 0, sizeof (*entry));
-  grub_free (entry);
 }
 
 /* Find they value of the key named by keyname.  If there are allowed to be
@@ -387,42 +341,16 @@ split_cmp(char *nvr0, char *nvr1, int has_name)
   return ret;
 }
 
-/* return 1: p0 is newer than p1 */
-/*        0: p0 and p1 are the same version */
-/*       -1: p1 is newer than p0 */
-static int bls_cmp(const void *p0, const void *p1, void *state)
+/* return 1: e0 is newer than e1 */
+/*        0: e0 and e1 are the same version */
+/*       -1: e1 is newer than e0 */
+static int bls_cmp(const struct bls_entry *e0, const struct bls_entry *e1)
 {
-  struct bls_entry * e0 = *(struct bls_entry **)p0;
-  struct bls_entry * e1 = *(struct bls_entry **)p1;
-  bool use_version = *(bool *)state;
-  char *v0, *v1;
   char *id0, *id1;
-  int l, r;
-
-  if (use_version)
-    {
-      v0 = grub_strdup(bls_get_val(e0, "version", NULL));
-      v1 = grub_strdup(bls_get_val(e1, "version", NULL));
-
-      r = split_cmp(v0, v1, 0);
-
-      grub_free(v0);
-      grub_free(v1);
-
-      if (r != 0)
-	return r;
-    }
+  int r;
 
   id0 = grub_strdup(e0->filename);
   id1 = grub_strdup(e1->filename);
-
-  l = grub_strlen(id0);
-  if (l > 5 && grub_strcmp(id0 + l - 5, ".conf"))
-    id0[l-5] = '\0';
-
-  l = grub_strlen(id1);
-  if (l > 5 && grub_strcmp(id1 + l - 5, ".conf"))
-    id1[l-5] = '\0';
 
   r = split_cmp(id0, id1, 1);
 
@@ -430,6 +358,53 @@ static int bls_cmp(const void *p0, const void *p1, void *state)
   grub_free(id1);
 
   return r;
+}
+
+static void list_add_tail(grub_list_t head, grub_list_t item)
+{
+  item->next = head;
+  if (head->prev)
+    (*head->prev)->next = item;
+  item->prev = head->prev;
+  head->prev = &item;
+}
+
+static int bls_add_entry(struct bls_entry *entry)
+{
+  struct bls_entry *e, *last = NULL;
+  int rc;
+
+  if (!entries) {
+    grub_dprintf ("blscfg", "Add entry with id \"%s\"\n", entry->filename);
+    entries = entry;
+    return 0;
+  }
+
+  FOR_BLS_ENTRIES(e) {
+    rc = bls_cmp(entry, e);
+
+    if (!rc)
+      return GRUB_ERR_BAD_ARGUMENT;
+
+    if (rc == 1) {
+      grub_dprintf ("blscfg", "Add entry with id \"%s\"\n", entry->filename);
+      list_add_tail (GRUB_AS_LIST (e), GRUB_AS_LIST (entry));
+      if (e == entries) {
+	entries = entry;
+	entry->prev = NULL;
+      }
+      return 0;
+    }
+    last = e;
+  }
+
+  if (last) {
+    grub_dprintf ("blscfg", "Add entry with id \"%s\"\n", entry->filename);
+    last->next = entry;
+    entry->prev = &last;
+  }
+
+  return 0;
 }
 
 struct read_entry_info {
@@ -442,6 +417,7 @@ static int read_entry (
     const struct grub_dirhook_info *dirhook_info UNUSED,
     void *data)
 {
+  int rc = 0;
   grub_size_t n;
   char *p;
   grub_file_t f = NULL;
@@ -471,7 +447,7 @@ static int read_entry (
   if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
     goto finish;
 
-  entry = bls_new_entry();
+  entry = grub_zalloc (sizeof (*entry));
   if (!entry)
     goto finish;
 
@@ -485,7 +461,6 @@ static int read_entry (
     {
       char *buf;
       char *separator;
-      int rc;
 
       buf = grub_file_getline (f);
       if (!buf)
@@ -518,6 +493,9 @@ static int read_entry (
       if (rc < 0)
 	break;
     }
+
+    if (!rc)
+      bls_add_entry(entry);
 
 finish:
   grub_free (p);
@@ -779,10 +757,10 @@ struct find_entry_info {
 static int find_entry (struct find_entry_info *info)
 {
   struct read_entry_info read_entry_info;
+  struct bls_entry *entry = NULL;
   grub_fs_t blsdir_fs = NULL;
   grub_device_t blsdir_dev = NULL;
   const char *blsdir = NULL;
-  bool use_version = true;
   int fallback = 0;
   int r = 0;
 
@@ -810,7 +788,7 @@ read_fallback:
 	} while (e);
   }
 
-  if (!nentries && !fallback) {
+  if (!entries && !fallback) {
     read_entry_info.dirname = "/boot" GRUB_BLS_CONFIG_PATH;
     grub_dprintf ("blscfg", "Entries weren't found in %s, fallback to %s\n",
 		  blsdir, read_entry_info.dirname);
@@ -818,27 +796,14 @@ read_fallback:
     goto read_fallback;
   }
 
-  grub_dprintf ("blscfg", "Sorting %d entries\n", nentries);
+  grub_dprintf ("blscfg", "%s Creating entries from bls\n", __func__);
+  FOR_BLS_ENTRIES(entry) {
+    if (entry->visible)
+      continue;
 
-  for (r = 0; r < nentries && use_version; r++) {
-    if (!bls_get_val(entries[r], "version", NULL))
-      use_version = false;
+    create_entry(entry);
+    entry->visible = true;
   }
-
-  bls_qsort(&entries[0], nentries, sizeof (struct bls_entry *), bls_cmp, &use_version);
-
-  grub_dprintf ("blscfg", "%s Creating %d entries from bls\n", __func__, nentries);
-  for (r = nentries - 1; r >= 0; r--)
-      create_entry(entries[r]);
-
-  for (r = 0; r < nentries; r++)
-      bls_free_entry (entries[r]);
-
-  nentries = 0;
-
-  grub_free (entries);
-  entries = NULL;
-
   return 0;
 }
 
