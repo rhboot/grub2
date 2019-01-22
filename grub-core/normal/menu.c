@@ -376,8 +376,6 @@ grub_menu_execute_entry(grub_menu_entry_t entry, int auto_boot)
 
   if (ptr && ptr[0] && ptr[1])
     grub_env_set ("default", ptr + 1);
-  else
-    grub_env_unset ("default");
 
   grub_script_execute_new_scope (entry->sourcecode, entry->argc, entry->args);
 
