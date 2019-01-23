@@ -52,16 +52,6 @@ struct keyval
   char *val;
 };
 
-struct bls_entry
-{
-  struct bls_entry *next;
-  struct bls_entry **prev;
-  struct keyval **keyvals;
-  int nkeyvals;
-  char *filename;
-  bool visible;
-};
-
 static struct bls_entry *entries = NULL;
 
 #define FOR_BLS_ENTRIES(var) FOR_LIST_ELEMENTS (var, entries)
@@ -410,6 +400,7 @@ static int bls_add_entry(struct bls_entry *entry)
 struct read_entry_info {
   const char *devid;
   const char *dirname;
+  grub_file_t file;
 };
 
 static int read_entry (
@@ -417,9 +408,9 @@ static int read_entry (
     const struct grub_dirhook_info *dirhook_info UNUSED,
     void *data)
 {
+  grub_size_t m = 0, n, clip = 0;
   int rc = 0;
-  grub_size_t n;
-  char *p;
+  char *p = NULL;
   grub_file_t f = NULL;
   grub_off_t sz;
   struct bls_entry *entry;
@@ -427,21 +418,29 @@ static int read_entry (
 
   grub_dprintf ("blscfg", "filename: \"%s\"\n", filename);
 
-  if (filename[0] == '.')
-    return 0;
-
   n = grub_strlen (filename);
-  if (n <= 5)
-    return 0;
 
-  if (grub_strcmp (filename + n - 5, ".conf") != 0)
-    return 0;
+  if (info->file)
+    {
+      f = info->file;
+    }
+  else
+    {
+      if (filename[0] == '.')
+	return 0;
 
-  p = grub_xasprintf ("(%s)%s/%s", info->devid, info->dirname, filename);
+      if (n <= 5)
+	return 0;
 
-  f = grub_file_open (p);
-  if (!f)
-    goto finish;
+      if (grub_strcmp (filename + n - 5, ".conf") != 0)
+	return 0;
+
+      p = grub_xasprintf ("(%s)%s/%s", info->devid, info->dirname, filename);
+
+      f = grub_file_open (p);
+      if (!f)
+	goto finish;
+    }
 
   sz = grub_file_size (f);
   if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
@@ -451,7 +450,30 @@ static int read_entry (
   if (!entry)
     goto finish;
 
-  entry->filename = grub_strndup(filename, n - 5);
+  if (info->file)
+    {
+      char *slash;
+
+      if (n > 5 && !grub_strcmp (filename + n - 5, ".conf") == 0)
+	clip = 5;
+
+      slash = grub_strrchr (filename, '/');
+      if (!slash)
+	slash = grub_strrchr (filename, '\\');
+
+      while (*slash == '/' || *slash == '\\')
+	slash++;
+
+      m = slash ? slash - filename : 0;
+    }
+  else
+    {
+      m = 0;
+      clip = 5;
+    }
+  n -= m;
+
+  entry->filename = grub_strndup(filename + m, n - clip);
   if (!entry->filename)
     goto finish;
 
@@ -498,7 +520,8 @@ static int read_entry (
       bls_add_entry(entry);
 
 finish:
-  grub_free (p);
+  if (p)
+    grub_free (p);
 
   if (f)
     grub_file_close (f);
@@ -731,7 +754,7 @@ static void create_entry (struct bls_entry *entry)
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
 			initrd ? initrd : "");
 
-  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index);
+  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index, entry);
   grub_dprintf ("blscfg", "Added entry %d id:\"%s\"\n", index, id);
 
 finish:
@@ -745,10 +768,10 @@ finish:
 }
 
 struct find_entry_info {
+	const char *dirname;
 	const char *devid;
 	grub_device_t dev;
 	grub_fs_t fs;
-	int platform;
 };
 
 /*
@@ -757,20 +780,22 @@ struct find_entry_info {
 static int find_entry (struct find_entry_info *info)
 {
   struct read_entry_info read_entry_info;
-  struct bls_entry *entry = NULL;
   grub_fs_t blsdir_fs = NULL;
   grub_device_t blsdir_dev = NULL;
-  const char *blsdir = NULL;
+  const char *blsdir = info->dirname;
   int fallback = 0;
   int r = 0;
 
-  blsdir = grub_env_get ("blsdir");
-  if (!blsdir)
-    blsdir = GRUB_BLS_CONFIG_PATH;
+  if (!blsdir) {
+    blsdir = grub_env_get ("blsdir");
+    if (!blsdir)
+      blsdir = GRUB_BLS_CONFIG_PATH;
+  }
 
+  read_entry_info.file = NULL;
   read_entry_info.dirname = blsdir;
 
-  grub_dprintf ("blscfg", "scanning blsdir: %s\n", GRUB_BLS_CONFIG_PATH);
+  grub_dprintf ("blscfg", "scanning blsdir: %s\n", blsdir);
 
   blsdir_dev = info->dev;
   blsdir_fs = info->fs;
@@ -788,7 +813,7 @@ read_fallback:
 	} while (e);
   }
 
-  if (!entries && !fallback) {
+  if (r && !info->dirname && !fallback) {
     read_entry_info.dirname = "/boot" GRUB_BLS_CONFIG_PATH;
     grub_dprintf ("blscfg", "Entries weren't found in %s, fallback to %s\n",
 		  blsdir, read_entry_info.dirname);
@@ -796,45 +821,62 @@ read_fallback:
     goto read_fallback;
   }
 
-  grub_dprintf ("blscfg", "%s Creating entries from bls\n", __func__);
-  FOR_BLS_ENTRIES(entry) {
-    if (entry->visible)
-      continue;
-
-    create_entry(entry);
-    entry->visible = true;
-  }
   return 0;
 }
 
 static grub_err_t
-grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
-		     int argc UNUSED,
-		     char **args UNUSED)
+bls_load_entries (const char *path)
 {
+  grub_size_t len;
   grub_fs_t fs;
   grub_device_t dev;
   static grub_err_t r;
-  const char *devid;
-  struct find_entry_info info =
-    {
+  const char *devid = NULL;
+  char *blsdir = NULL;
+  struct find_entry_info info = {
       .dev = NULL,
       .fs = NULL,
-    };
+      .dirname = NULL,
+  };
+  struct read_entry_info rei = {
+      .devid = NULL,
+      .dirname = NULL,
+  };
 
+  if (path) {
+    len = grub_strlen (path);
+    if (grub_strcmp (path + len - 5, ".conf") == 0) {
+      rei.file = grub_file_open (path);
+      if (!rei.file)
+	return grub_errno;
+      /*
+       * read_entry() closes the file
+       */
+      return read_entry(path, NULL, &rei);
+    } else if (path[0] == '(') {
+      devid = path + 1;
 
-  grub_dprintf ("blscfg", "finding boot\n");
+      blsdir = grub_strchr (path, ')');
+      if (!blsdir)
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Filepath isn't correct"));
 
+      *blsdir = '\0';
+      blsdir = blsdir + 1;
+    }
+  }
+
+  if (!devid) {
 #ifdef GRUB_MACHINE_EMU
-  devid = "host";
+    devid = "host";
 #elif defined(GRUB_MACHINE_EFI)
-  devid = grub_env_get ("root");
+    devid = grub_env_get ("root");
 #else
-  devid = grub_env_get ("boot");
+    devid = grub_env_get ("boot");
 #endif
-  if (!devid)
-    return grub_error (GRUB_ERR_FILE_NOT_FOUND,
-		       N_("variable `%s' isn't set"), "boot");
+    if (!devid)
+      return grub_error (GRUB_ERR_FILE_NOT_FOUND,
+			 N_("variable `%s' isn't set"), "boot");
+  }
 
   grub_dprintf ("blscfg", "opening %s\n", devid);
   dev = grub_device_open (devid);
@@ -849,6 +891,7 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
       goto finish;
     }
 
+  info.dirname = blsdir;
   info.devid = devid;
   info.dev = dev;
   info.fs = fs;
@@ -859,6 +902,92 @@ finish:
     grub_device_close (dev);
 
   return r;
+}
+
+static bool
+is_default_entry(const char *def_entry, struct bls_entry *entry, int idx)
+{
+  const char *title;
+  int def_idx;
+
+  if (!def_entry)
+    return false;
+
+  if (grub_strcmp(def_entry, entry->filename) == 0)
+    return true;
+
+  title = bls_get_val(entry, "title", NULL);
+
+  if (title && grub_strcmp(def_entry, title) == 0)
+    return true;
+
+  def_idx = (int)grub_strtol(def_entry, NULL, 0);
+  if (grub_errno == GRUB_ERR_BAD_NUMBER)
+    return false;
+
+  if (def_idx == idx)
+    return true;
+
+  return false;
+}
+
+static grub_err_t
+bls_create_entries (bool show_default, bool show_non_default, char *entry_id)
+{
+  const char *def_entry = NULL;
+  struct bls_entry *entry = NULL;
+  int idx = 0;
+
+  def_entry = grub_env_get("default");
+
+  grub_dprintf ("blscfg", "%s Creating entries from bls\n", __func__);
+  FOR_BLS_ENTRIES(entry) {
+    if (entry->visible) {
+      idx++;
+      continue;
+    }
+
+    if ((show_default && is_default_entry(def_entry, entry, idx)) ||
+	(show_non_default && !is_default_entry(def_entry, entry, idx)) ||
+	(entry_id && grub_strcmp(entry_id, entry->filename) == 0)) {
+      create_entry(entry);
+      entry->visible = 1;
+    }
+    idx++;
+  }
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
+		 int argc, char **args)
+{
+  grub_err_t r;
+  char *path = NULL;
+  char *entry_id = NULL;
+  bool show_default = true;
+  bool show_non_default = true;
+
+  if (argc == 1) {
+    if (grub_strcmp (args[0], "default") == 0) {
+      show_non_default = false;
+    } else if (grub_strcmp (args[0], "non-default") == 0) {
+      show_default = false;
+    } else if (args[0][0] == '(') {
+      path = args[0];
+    } else {
+      entry_id = args[0];
+      show_default = false;
+      show_non_default = false;
+    }
+  }
+
+  r = bls_load_entries(path);
+  if (r)
+    return r;
+
+  return bls_create_entries(show_default, show_non_default, entry_id);
 }
 
 static grub_extcmd_t cmd;
