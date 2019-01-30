@@ -660,6 +660,33 @@ static char *expand_val(char *value)
   return buffer;
 }
 
+static char **early_initrd_list (const char *initrd)
+{
+  int nlist = 0;
+  char **list = NULL;
+  char *separator;
+
+  while ((separator = grub_strchr (initrd, ' ')))
+    {
+      list = grub_realloc (list, (nlist + 2) * sizeof (char *));
+      if (!list)
+        return NULL;
+
+      list[nlist++] = grub_strndup(initrd, separator - initrd);
+      list[nlist] = NULL;
+      initrd = separator + 1;
+  }
+
+  list = grub_realloc (list, (nlist + 2) * sizeof (char *));
+  if (!list)
+    return NULL;
+
+  list[nlist++] = grub_strndup(initrd, grub_strlen(initrd));
+  list[nlist] = NULL;
+
+  return list;
+}
+
 static void create_entry (struct bls_entry *entry)
 {
   int argc = 0;
@@ -670,6 +697,9 @@ static void create_entry (struct bls_entry *entry)
   char *options = NULL;
   char **initrds = NULL;
   char *initrd = NULL;
+  const char *early_initrd = NULL;
+  char **early_initrds = NULL;
+  char *initrd_prefix = NULL;
   char *id = entry->filename;
   char *dotconf = id;
   char *hotkey = NULL;
@@ -716,12 +746,46 @@ static void create_entry (struct bls_entry *entry)
     argv[i] = args[i-1];
   argv[argc] = NULL;
 
+  early_initrd = grub_env_get("early_initrd");
+
   grub_dprintf ("blscfg", "adding menu entry for \"%s\" with id \"%s\"\n",
 		title, id);
-  if (initrds)
+  if (early_initrd)
+    {
+      early_initrds = early_initrd_list(early_initrd);
+      if (!early_initrds)
+      {
+	grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+	goto finish;
+      }
+
+      if (initrds != NULL && initrds[0] != NULL)
+	{
+	  initrd_prefix = grub_strrchr (initrds[0], '/');
+	  initrd_prefix = grub_strndup(initrds[0], initrd_prefix - initrds[0] + 1);
+	}
+      else
+	{
+	  initrd_prefix = grub_strrchr (clinux, '/');
+	  initrd_prefix = grub_strndup(clinux, initrd_prefix - clinux + 1);
+	}
+
+      if (!initrd_prefix)
+	{
+	  grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+	  goto finish;
+	}
+    }
+
+  if (early_initrds || initrds)
     {
       int initrd_size = sizeof ("initrd");
       char *tmp;
+
+      for (i = 0; early_initrds != NULL && early_initrds[i] != NULL; i++)
+	initrd_size += sizeof (" " GRUB_BOOT_DEVICE) \
+		       + grub_strlen(initrd_prefix)  \
+		       + grub_strlen (early_initrds[i]) + 1;
 
       for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
 	initrd_size += sizeof (" " GRUB_BOOT_DEVICE) \
@@ -736,7 +800,16 @@ static void create_entry (struct bls_entry *entry)
 	}
 
 
-      tmp = grub_stpcpy(initrd, "initrd ");
+      tmp = grub_stpcpy(initrd, "initrd");
+      for (i = 0; early_initrds != NULL && early_initrds[i] != NULL; i++)
+	{
+	  grub_dprintf ("blscfg", "adding early initrd %s\n", early_initrds[i]);
+	  tmp = grub_stpcpy (tmp, " " GRUB_BOOT_DEVICE);
+	  tmp = grub_stpcpy (tmp, initrd_prefix);
+	  tmp = grub_stpcpy (tmp, early_initrds[i]);
+	  grub_free(early_initrds[i]);
+	}
+
       for (i = 0; initrds != NULL && initrds[i] != NULL; i++)
 	{
 	  grub_dprintf ("blscfg", "adding initrd %s\n", initrds[i]);
@@ -759,6 +832,8 @@ static void create_entry (struct bls_entry *entry)
 
 finish:
   grub_free (initrd);
+  grub_free (initrd_prefix);
+  grub_free (early_initrds);
   grub_free (initrds);
   grub_free (options);
   grub_free (classes);

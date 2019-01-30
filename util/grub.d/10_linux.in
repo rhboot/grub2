@@ -167,6 +167,9 @@ EOF
 
     if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
 	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+	if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
+	    ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
+	fi
     fi
 
     exit 0
