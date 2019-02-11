@@ -166,6 +166,11 @@ fi
 EOF
 
     if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
+        blsdir=$(make_system_path_relative_to_its_root "/boot/loader/entries")
+        if [ "x${blsdir}" != "x/loader/entries" ] && [ "x${blsdir}" != "x/boot/loader/entries" ]; then
+            ${grub_editenv} - set blsdir="${blsdir}"
+        fi
+
 	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
 	if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
 	    ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
