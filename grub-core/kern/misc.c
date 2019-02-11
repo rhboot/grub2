@@ -473,8 +473,7 @@ grub_strtoull (const char *str, const char ** const end, int base)
 
   if (! found)
     {
-      grub_error (GRUB_ERR_BAD_NUMBER,
-		  N_("unrecognized number"));
+      grub_errno = GRUB_ERR_BAD_NUMBER;
       return 0;
     }
 
