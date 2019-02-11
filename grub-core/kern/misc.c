@@ -475,8 +475,7 @@ grub_strtoull (const char * restrict str, const char ** const restrict end,
 
   if (! found)
     {
-      grub_error (GRUB_ERR_BAD_NUMBER,
-		  N_("unrecognized number"));
+      grub_errno = GRUB_ERR_BAD_NUMBER;
       return 0;
     }
 
