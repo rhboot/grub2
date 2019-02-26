@@ -288,13 +288,15 @@ if [ "${GENERATE}" -eq 1 ] ; then
     copy_bls
 
     if [ $arch = "x86_64" ] && [ ! -d /sys/firmware/efi ]; then
-	if ! cp ${prefix}/lib/grub//i386-pc/blscfg.mod ${grubdir}/i386-pc/ ; then
-	    exit 1
-	fi
+	mod_dir="i386-pc"
     elif [ $arch = "ppc64" -o $arch = "ppc64le" ] && [ ! -d /sys/firmware/opal ]; then
-	if ! cp ${prefix}/lib/grub/powerpc-ieee1275/blscfg.mod ${grubdir}/powerpc-ieee1275/ ; then
-	    exit 1
-	fi
+	mod_dir="powerpc-ieee1275"
+    fi
+
+    if [ -n "${mod_dir}" ]; then
+	for mod in blscfg increment; do
+	    cp ${prefix}/lib/grub/${mod_dir}/${mod}.mod ${grubdir}/$mod_dir/ || exit 1
+	done
     fi
 
     cp -af "${GRUB_CONFIG_FILE}" "${GRUB_CONFIG_FILE}${backupsuffix}"
