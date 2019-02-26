@@ -628,6 +628,9 @@ static char *expand_val(char *value)
   char *end = value;
   bool is_var = false;
 
+  if (!value)
+    return NULL;
+
   while (*value) {
     if (*value == '$') {
       if (start != end) {
@@ -701,6 +704,10 @@ static void create_entry (struct bls_entry *entry)
 
   title = bls_get_val (entry, "title", NULL);
   options = expand_val (bls_get_val (entry, "options", NULL));
+
+  if (!options)
+    options = expand_val (grub_env_get("default_kernelopts"));
+
   initrds = bls_make_list (entry, "initrd", NULL);
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
