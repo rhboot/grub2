@@ -227,7 +227,8 @@ linux_entry ()
 
     if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
         blsdir="/boot/loader/entries"
-        if [ -d "${blsdir}" ]; then
+        [ -d "${blsdir}" ] && GRUB_BLS_FS="$(${grub_probe} --target=fs ${blsdir})"
+        if [ "x${GRUB_BLS_FS}" = "xbtrfs" ] || [ "x${GRUB_BLS_FS}" = "xzfs" ]; then
             blsdir=$(make_system_path_relative_to_its_root "${blsdir}")
             if [ "x${blsdir}" != "x/loader/entries" ] && [ "x${blsdir}" != "x/boot/loader/entries" ]; then
                 ${grub_editenv} - set blsdir="${blsdir}"
