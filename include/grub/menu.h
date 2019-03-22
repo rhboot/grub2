@@ -23,7 +23,7 @@
 struct bls_entry
 {
   struct bls_entry *next;
-  struct bls_entry **prev;
+  struct bls_entry *prev;
   struct keyval **keyvals;
   int nkeyvals;
   char *filename;
