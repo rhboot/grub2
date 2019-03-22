@@ -350,13 +350,13 @@ static int bls_cmp(const struct bls_entry *e0, const struct bls_entry *e1)
   return r;
 }
 
-static void list_add_tail(grub_list_t head, grub_list_t item)
+static void list_add_tail(struct bls_entry *head, struct bls_entry *item)
 {
   item->next = head;
   if (head->prev)
-    (*head->prev)->next = item;
+    head->prev->next = item;
   item->prev = head->prev;
-  head->prev = &item;
+  head->prev = item;
 }
 
 static int bls_add_entry(struct bls_entry *entry)
@@ -378,7 +378,7 @@ static int bls_add_entry(struct bls_entry *entry)
 
     if (rc == 1) {
       grub_dprintf ("blscfg", "Add entry with id \"%s\"\n", entry->filename);
-      list_add_tail (GRUB_AS_LIST (e), GRUB_AS_LIST (entry));
+      list_add_tail (e, entry);
       if (e == entries) {
 	entries = entry;
 	entry->prev = NULL;
@@ -391,7 +391,7 @@ static int bls_add_entry(struct bls_entry *entry)
   if (last) {
     grub_dprintf ("blscfg", "Add entry with id \"%s\"\n", entry->filename);
     last->next = entry;
-    entry->prev = &last;
+    entry->prev = last;
   }
 
   return 0;
