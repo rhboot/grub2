@@ -180,7 +180,7 @@ populate_menu()
     for bls in "${files[@]}" ; do
         read_config "${blsdir}/${bls}.conf"
 
-        menu="${menu}menuentry '${title}' --class ${grub_class} ${grub_arg} --users ${grub_users} --id=${bls} {\n"
+        menu="${menu}menuentry '${title}' --class ${grub_class} ${grub_arg} --id=${bls} {\n"
         menu="${menu}\t linux ${linux} ${options}\n"
         if [ -n "${initrd}" ] ; then
             menu="${menu}\t initrd ${boot_prefix}${initrd}\n"
