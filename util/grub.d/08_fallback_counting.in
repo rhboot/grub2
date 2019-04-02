@@ -1,15 +1,17 @@
 #! /bin/sh -e
-
-# Boot Counting
+# Fallback Countdown
+#
+# This snippet depends on 10_reset_boot_success and needs to be kept in sync.
+#
 # The boot_counter env var can be used to count down boot attempts after an
-# OSTree upgrade and choose the rollback deployment when 0 is reached.  Both
-# boot_counter and boot_success need to be (re-)set from userspace.
+# OSTree upgrade and choose the rollback deployment when 0 is reached.
+# Both boot_counter=X and boot_success=1 need to be set from userspace.
 cat << EOF
 insmod increment
 # Check if boot_counter exists and boot_success=0 to activate this behaviour.
 if [ -n "\${boot_counter}" -a "\${boot_success}" = "0" ]; then
-  # if countdown has ended, choose to boot rollback deployment (default=1 on
-  # OSTree-based systems)
+  # if countdown has ended, choose to boot rollback deployment,
+  # i.e. default=1 on OSTree-based systems.
   if  [ "\${boot_counter}" = "0" -o "\${boot_counter}" = "-1" ]; then
     set default=1
     set boot_counter=-1
