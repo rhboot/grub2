@@ -1,0 +1,25 @@
+#! /bin/sh -e
+# Reset Boot Success
+#
+# The 08_fallback_counting and 12_menu_auto_hide snippets rely on this one
+# and need to be kept in sync.
+#
+# The boot_success var needs to be set to 1 from userspace to mark a boot successful.
+cat << EOF
+insmod increment
+# Hiding the menu is ok if last boot was ok or if this is a first boot attempt to boot the entry
+if [ "\${boot_success}" = "1" -o "\${boot_indeterminate}" = "1" ]; then
+  set menu_hide_ok=1
+else
+  set menu_hide_ok=0 
+fi
+# Reset boot_indeterminate after a successful boot, increment otherwise
+if [ "\${boot_success}" = "1" ] ; then
+  set boot_indeterminate=0
+else
+  increment boot_indeterminate
+fi
+# Reset boot_success for current boot 
+set boot_success=0
+save_env boot_success boot_indeterminate
+EOF
