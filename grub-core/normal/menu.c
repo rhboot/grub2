@@ -302,7 +302,7 @@ grub_menu_execute_entry(grub_menu_entry_t entry, int auto_boot)
     {
       grub_print_error ();
       grub_errno = GRUB_ERR_NONE;
-      return;
+      return grub_errno;
     }
 
   errs_before = grub_err_printed_errors;
@@ -315,7 +315,7 @@ grub_menu_execute_entry(grub_menu_entry_t entry, int auto_boot)
       grub_env_context_open ();
       menu = grub_zalloc (sizeof (*menu));
       if (! menu)
-	return;
+	return grub_errno;
       grub_env_set_menu (menu);
       if (auto_boot)
 	grub_env_set ("timeout", "0");
