@@ -50,7 +50,7 @@ grub_linux_boot (void)
     initrd_param = grub_xasprintf("%s", "");
   }
 
-  grub_printf("%serforming 'kexec -l %s %s %s'\n",
+  grub_dprintf ("linux", "%serforming 'kexec -l %s %s %s'\n",
 	(kexecute) ? "P" : "Not p",
 	kernel_path, initrd_param, boot_cmdline);
 
@@ -67,7 +67,7 @@ grub_linux_boot (void)
   if (kexecute < 1)
     grub_fatal (N_("Use '"PACKAGE"-emu --kexec' to force a system restart."));
 
-  grub_printf("Performing 'systemctl kexec' (%s) ",
+  grub_dprintf ("linux", "Performing 'systemctl kexec' (%s) ",
 		(kexecute==1) ? "do-or-die" : "just-in-case");
   rc = grub_util_exec (systemctl);
 
