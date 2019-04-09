@@ -71,8 +71,10 @@ grub_linux_boot (void)
 		(kexecute==1) ? "do-or-die" : "just-in-case");
   rc = grub_util_exec (systemctl);
 
-  if (kexecute == 1)
-    grub_fatal (N_("Error trying to perform 'systemctl kexec'"));
+  if (rc == GRUB_ERR_NONE)
+    return rc;
+
+  grub_error (rc, N_("Error trying to perform 'systemctl kexec'"));
 
   /* need to check read-only root before resetting hard!? */
   grub_printf("Performing 'kexec -e'");
