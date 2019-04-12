@@ -19,7 +19,7 @@ http_configure (struct grub_efi_net_device *dev, int prefer_ip6)
   const char *rest, *http_server, *http_path = NULL;
 
   http_server = grub_env_get ("root");
-  https = grub_strncmp (http_server, "https", 5) ? 1 : 0;
+  https = (grub_strncmp (http_server, "https", 5) == 0) ? 1 : 0;
 
   /* extract http server + port */
   if (http_server)
