@@ -516,6 +516,12 @@ script = {
 };
 
 script = {
+  name = '10_reset_boot_success';
+  common = util/grub.d/10_reset_boot_success.in;
+  installdir = grubconf;
+};
+
+script = {
   name = '10_xnu';
   common = util/grub.d/10_xnu.in;
   installdir = grubconf;
