@@ -28,6 +28,7 @@
 #include <grub/cpu/linux.h>
 #include <grub/lib/cmdline.h>
 #include <grub/linux.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -466,6 +467,17 @@ grub_cmd_devicetree (grub_command_t cmd __attribute__ ((unused)),
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
+
+  if (grub_efi_secure_boot ())
+    {
+#if 0
+      /* This is an error, but grub2-mkconfig still generates a pile of
+       * insmod commands, so emitting it would be mostly just obnoxious. */
+      grub_error (GRUB_ERR_ACCESS_DENIED,
+		  "Secure Boot forbids loading devicetree from %s", filename);
+#endif
+      return 0;
+    }
 
   dtb = grub_file_open (argv[0]);
   if (!dtb)
