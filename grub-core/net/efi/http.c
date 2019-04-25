@@ -394,27 +394,27 @@ grub_efihttp_open (struct grub_efi_net_device *dev,
   grub_err_t err;
   grub_off_t size;
   char *buf;
-  char *file_name;
+  char *file_name = NULL;
   const char *http_path;
 
   /* If path is relative, prepend http_path */
   http_path = grub_env_get ("http_path");
-  if (http_path && file->device->net->name[0] != '/')
+  if (http_path && file->device->net->name[0] != '/') {
     file_name = grub_xasprintf ("%s/%s", http_path, file->device->net->name);
-  else
-    file_name = grub_strdup (file->device->net->name);
+    if (!file_name)
+      return grub_errno;
+  }
 
-  if (!file_name)
-    return grub_errno;
-
-  err = efihttp_request (dev->http, file->device->net->server, file_name, type, 1, 0);
+  err = efihttp_request (dev->http, file->device->net->server,
+			 file_name ? file_name : file->device->net->name, type, 1, 0);
   if (err != GRUB_ERR_NONE)
     {
       grub_free (file_name);
       return err;
     }
 
-  err = efihttp_request (dev->http, file->device->net->server, file_name, type, 0, &size);
+  err = efihttp_request (dev->http, file->device->net->server,
+			 file_name ? file_name : file->device->net->name, type, 0, &size);
   grub_free (file_name);
   if (err != GRUB_ERR_NONE)
     {
