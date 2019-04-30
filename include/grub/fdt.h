@@ -19,7 +19,7 @@
 #ifndef GRUB_FDT_HEADER
 #define GRUB_FDT_HEADER	1
 
-#if defined(__arm__) || defined(__aarch64__)
+#if !defined(GRUB_MACHINE_EMU) && (defined(__arm__) || defined(__aarch64__))
 
 #include <grub/types.h>
 #include <grub/symbol.h>
