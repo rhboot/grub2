@@ -412,7 +412,6 @@ static int read_entry (
   int rc = 0;
   char *p = NULL;
   grub_file_t f = NULL;
-  grub_off_t sz;
   struct bls_entry *entry;
   struct read_entry_info *info = (struct read_entry_info *)data;
 
@@ -441,10 +440,6 @@ static int read_entry (
       if (!f)
 	goto finish;
     }
-
-  sz = grub_file_size (f);
-  if (sz == GRUB_FILE_SIZE_UNKNOWN || sz > 1024*1024)
-    goto finish;
 
   entry = grub_zalloc (sizeof (*entry));
   if (!entry)
