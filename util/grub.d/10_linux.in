@@ -162,9 +162,6 @@ set default_kernelopts="root=${linux_root_device_thisversion} ro ${args}"
 
 insmod blscfg
 blscfg
-if [ -s \$prefix/grubenv ]; then
-  load_env
-fi
 EOF
 
     if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
