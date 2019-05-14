@@ -999,8 +999,10 @@ is_default_entry(const char *def_entry, struct bls_entry *entry, int idx)
     return true;
 
   def_idx = (int)grub_strtol(def_entry, NULL, 0);
-  if (grub_errno == GRUB_ERR_BAD_NUMBER)
+  if (grub_errno == GRUB_ERR_BAD_NUMBER) {
+    grub_errno = GRUB_ERR_NONE;
     return false;
+  }
 
   if (def_idx == idx)
     return true;
