@@ -24,6 +24,7 @@
 #include <grub/device.h>
 #include <grub/disk.h>
 #include <grub/partition.h>
+#include <grub/gpt_partition.h>
 #include <grub/net.h>
 #include <grub/fs.h>
 #include <grub/file.h>
@@ -45,6 +46,7 @@ static const struct grub_arg_option options[] =
     {"fs",		'f', 0, N_("Determine filesystem type."), 0, 0},
     {"fs-uuid",		'u', 0, N_("Determine filesystem UUID."), 0, 0},
     {"label",		'l', 0, N_("Determine filesystem label."), 0, 0},
+    {"part-uuid",	0,   0, N_("Determine partition UUID."), 0, 0},
     {0, 0, 0, 0, 0, 0}
   };
 
@@ -91,6 +93,38 @@ grub_cmd_probe (grub_extcmd_context_t ctxt, int argc, char **args)
       const char *val = "none";
       if (dev->disk && dev->disk->partition)
 	val = dev->disk->partition->partmap->name;
+      if (state[0].set)
+	grub_env_set (state[0].arg, val);
+      else
+	grub_printf ("%s", val);
+      grub_device_close (dev);
+      return GRUB_ERR_NONE;
+    }
+  if (state[6].set)
+    {
+      /* AAAABBBB-CCCC-DDDD-EEEE-FFFFFFFFFFFF + null terminator */
+      char val[37] = "none";
+      if (dev->disk && dev->disk->partition &&
+	  grub_strcmp(dev->disk->partition->partmap->name, "gpt") == 0)
+	{
+	  struct grub_gpt_partentry entry;
+	  struct grub_partition *p = dev->disk->partition;
+	  grub_disk_t disk = grub_disk_open(dev->disk->name);
+	  if (!disk)
+	    return grub_errno;
+	  if (grub_disk_read(disk, p->offset, p->index, sizeof(entry), &entry))
+	    return grub_errno;
+	  grub_disk_close(disk);
+	  grub_gpt_part_guid_t *guid = &entry.guid;
+	  grub_snprintf (val, sizeof(val),
+			 "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+			 grub_le_to_cpu32 (guid->data1),
+			 grub_le_to_cpu16 (guid->data2),
+			 grub_le_to_cpu16 (guid->data3),
+			 guid->data4[0], guid->data4[1], guid->data4[2],
+			 guid->data4[3], guid->data4[4], guid->data4[5],
+			 guid->data4[6], guid->data4[7]);
+	}
       if (state[0].set)
 	grub_env_set (state[0].arg, val);
       else

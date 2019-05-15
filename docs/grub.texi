@@ -4771,9 +4771,11 @@ a rest.
 @node probe
 @subsection probe
 
-@deffn Command probe [@option{--set} var] @option{--driver}|@option{--partmap}|@option{--fs}|@option{--fs-uuid}|@option{--label} device
+@deffn Command probe [@option{--set} var] @option{--driver}|@option{--partmap}|@option{--fs}|@option{--fs-uuid}|@option{--label}|@option{--part-uuid} device
 Retrieve device information. If option @option{--set} is given, assign result
 to variable @var{var}, otherwise print information on the screen.
+
+The option @option{--part-uuid} is currently only implemented for GPT-formatted disks.
 @end deffn
 
 
