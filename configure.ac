@@ -1198,7 +1198,8 @@ if test "x$target_cpu" = xarm; then
   AC_CACHE_CHECK([for options to disable movt and movw], grub_cv_target_cc_mno_movt, [
     grub_cv_target_cc_mno_movt=no
     for cand in "-mno-movt" \
-		"-mllvm -arm-use-movt=0"; do
+		"-mllvm -arm-use-movt=0" \
+		"-mword-relocations"; do
       if test x"$grub_cv_target_cc_mno_movt" != xno ; then
         break
       fi
