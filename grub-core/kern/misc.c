@@ -32,8 +32,8 @@ union printf_arg
      have format spec again. So save some space.  */
   enum
     {
-      INT, LONG, LONGLONG,
-      UNSIGNED_INT = 3, UNSIGNED_LONG, UNSIGNED_LONGLONG
+      INT8, INT16, INT, LONG, LONGLONG,
+      UINT8, UINT16, UNSIGNED_INT, UNSIGNED_LONG, UNSIGNED_LONGLONG
     } type;
   long long ll;
 };
@@ -680,10 +680,14 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	fmt++;
 
       c = *fmt++;
-      if (c == 'l')
-	c = *fmt++;
-      if (c == 'l')
-	c = *fmt++;
+      if (c == 'l' || c == 'h')
+	{
+	  char prev = c;
+
+	  c = *fmt++;
+	  if (c == prev)
+	    c = *fmt++;
+	}
 
       switch (c)
 	{
@@ -761,16 +765,25 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	  continue;
 	}
 
-      if (c == 'l')
+      if (c == 'l' || c == 'h')
 	{
+	  char prev = c;
+
+	  if (c == 'h')
+	    longfmt = -1;
+	  else
+	    longfmt = 1;
+
 	  c = *fmt++;
-	  longfmt = 1;
+	  if (c == prev) {
+	      if (c == 'h')
+		longfmt = -2;
+	      else
+		longfmt = 2;
+	      c = *fmt++;
+	  }
 	}
-      if (c == 'l')
-	{
-	  c = *fmt++;
-	  longfmt = 2;
-	}
+
       if (curn >= args->count)
 	continue;
       switch (c)
@@ -800,11 +813,32 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
   for (n = 0; n < args->count; n++)
     switch (args->ptr[n].type)
       {
+	grub_uint8_t tmpu8;
+	grub_uint16_t tmpu16;
+	grub_int8_t tmpd8;
+	grub_int16_t tmpd16;
+
+      case INT8:
+	tmpd8 = (grub_int8_t)va_arg (args_in, int);
+	args->ptr[n].ll = tmpd8;
+	break;
+      case INT16:
+	tmpd16 = (grub_int16_t)va_arg (args_in, int);
+	args->ptr[n].ll = tmpd16;
+	break;
       case INT:
 	args->ptr[n].ll = va_arg (args_in, int);
 	break;
       case LONG:
 	args->ptr[n].ll = va_arg (args_in, long);
+	break;
+      case UINT8:
+	tmpu8 = (grub_uint8_t)va_arg (args_in, unsigned int);
+	args->ptr[n].ll = tmpu8;
+	break;
+      case UINT16:
+	tmpu16 = (grub_uint16_t)va_arg (args_in, unsigned int);
+	args->ptr[n].ll = tmpu16;
 	break;
       case UNSIGNED_INT:
 	args->ptr[n].ll = va_arg (args_in, unsigned int);
@@ -890,10 +924,14 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	}
 
       c = *fmt++;
-      if (c == 'l')
-	c = *fmt++;
-      if (c == 'l')
-	c = *fmt++;
+      if (c == 'l' || c == 'h')
+	{
+	  char prev = c;
+
+	  c = *fmt++;
+	  if (c == prev)
+	    c = *fmt++;
+	}
 
       if (c == '%')
 	{
