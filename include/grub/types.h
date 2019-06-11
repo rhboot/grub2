@@ -101,33 +101,45 @@ typedef unsigned long long	grub_uint64_t;
 
 #if GRUB_CPU_SIZEOF_VOID_P == 8
 typedef grub_uint64_t	grub_addr_t;
+typedef grub_uint64_t	grub_uintptr_t;
+typedef grub_int64_t	grub_intptr_t;
 typedef grub_uint64_t	grub_size_t;
 typedef grub_int64_t	grub_ssize_t;
+typedef grub_int64_t	grub_ptrdiff_t;
 
 # define GRUB_SIZE_MAX 18446744073709551615UL
 
 # if GRUB_CPU_SIZEOF_LONG == 8
-#  define PRIxGRUB_SIZE	 "lx"
-#  define PRIxGRUB_ADDR	 "lx"
-#  define PRIuGRUB_SIZE	 "lu"
-#  define PRIdGRUB_SSIZE "ld"
+#  define PRIxGRUB_ADDR	    "lx"
+#  define PRIxGRUB_UINTPTR  "lx"
+#  define PRIxGRUB_INTPTR   "lx"
+#  define PRIxGRUB_SIZE	    "lx"
+#  define PRIuGRUB_SIZE	    "lu"
+#  define PRIdGRUB_SSIZE    "ld"
 # else
-#  define PRIxGRUB_SIZE	 "llx"
-#  define PRIxGRUB_ADDR	 "llx"
-#  define PRIuGRUB_SIZE  "llu"
-#  define PRIdGRUB_SSIZE "lld"
+#  define PRIxGRUB_ADDR	    "llx"
+#  define PRIxGRUB_UINTPTR  "llx"
+#  define PRIxGRUB_INTPTR   "llx"
+#  define PRIxGRUB_SIZE	    "llx"
+#  define PRIuGRUB_SIZE	    "llu"
+#  define PRIdGRUB_SSIZE    "lld"
 # endif
 #else
 typedef grub_uint32_t	grub_addr_t;
+typedef grub_uint32_t	grub_uintptr_t;
+typedef grub_int32_t	grub_intptr_t;
 typedef grub_uint32_t	grub_size_t;
 typedef grub_int32_t	grub_ssize_t;
+typedef grub_int32_t	grub_ptrdiff_t;
 
 # define GRUB_SIZE_MAX 4294967295UL
 
-# define PRIxGRUB_SIZE	"x"
-# define PRIxGRUB_ADDR	"x"
-# define PRIuGRUB_SIZE	"u"
-# define PRIdGRUB_SSIZE	"d"
+# define PRIxGRUB_ADDR	  "x"
+# define PRIxGRUB_UINTPTR "x"
+# define PRIxGRUB_INTPTR  "x"
+# define PRIxGRUB_SIZE	  "x"
+# define PRIuGRUB_SIZE	  "u"
+# define PRIdGRUB_SSIZE	  "d"
 #endif
 
 #define GRUB_SCHAR_MAX 127
