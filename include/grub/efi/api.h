@@ -532,14 +532,61 @@ typedef grub_uint8_t grub_efi_char8_t;
 typedef grub_uint16_t grub_efi_char16_t;
 
 typedef grub_efi_uintn_t grub_efi_status_t;
-/* Make grub_efi_status_t reasonably printable. */
 #if GRUB_CPU_SIZEOF_VOID_P == 8
-#define PRIxGRUB_EFI_STATUS "lx"
-#define PRIdGRUB_EFI_STATUS "ld"
+# if GRUB_CPU_SIZEOF_LONG == 8
+#  define PRIxGRUB_EFI_STATUS "lx"
+#  define PRIuGRUB_EFI_STATUS "lu"
+#  define PRIxGRUB_EFI_UINTN  "lx"
+#  define PRIuGRUB_EFI_UINTN  "lu"
+#  define PRIxGRUB_EFI_INTN   "lx"
+#  define PRIdGRUB_EFI_INTN   "ld"
+#  define PRIxGRUB_EFI_UINT64 "lx"
+#  define PRIuGRUB_EFI_UINT64 "lu"
+#  define PRIxGRUB_EFI_INT64  "lx"
+#  define PRIdGRUB_EFI_INT64  "ld"
+#  define PRIxGRUB_EFI_VADDR  "lx"
+#  define PRIxGRUB_EFI_PADDR  "lx"
+# else
+#  define PRIxGRUB_EFI_STATUS "llx"
+#  define PRIuGRUB_EFI_STATUS "llu"
+#  define PRIxGRUB_EFI_UINTN  "llx"
+#  define PRIuGRUB_EFI_UINTN  "llu"
+#  define PRIxGRUB_EFI_INTN   "llx"
+#  define PRIdGRUB_EFI_INTN   "lld"
+#  define PRIxGRUB_EFI_UINT64 "llx"
+#  define PRIuGRUB_EFI_UINT64 "llu"
+#  define PRIxGRUB_EFI_INT64  "llx"
+#  define PRIdGRUB_EFI_INT64  "lld"
+#  define PRIxGRUB_EFI_VADDR  "llx"
+#  define PRIxGRUB_EFI_PADDR  "llx"
+# endif
 #else
-#define PRIxGRUB_EFI_STATUS "llx"
-#define PRIdGRUB_EFI_STATUS "lld"
+# define PRIxGRUB_EFI_STATUS  "x"
+# define PRIuGRUB_EFI_STATUS  "u"
+# define PRIxGRUB_EFI_UINTN   "x"
+# define PRIuGRUB_EFI_UINTN   "u"
+# define PRIxGRUB_EFI_INTN    "x"
+# define PRIdGRUB_EFI_INTN    "d"
+# define PRIxGRUB_EFI_UINT64  "llx"
+# define PRIuGRUB_EFI_UINT64  "llu"
+# define PRIxGRUB_EFI_INT64   "llx"
+# define PRIdGRUB_EFI_INT64   "lld"
+# define PRIxGRUB_EFI_VADDR   "llx"
+# define PRIxGRUB_EFI_PADDR   "llx"
 #endif
+
+#define PRIxGRUB_EFI_UINT32 "x"
+#define PRIuGRUB_EFI_UINT32 "u"
+#define PRIxGRUB_EFI_INT32  "x"
+#define PRIdGRUB_EFI_INT32  "d"
+#define PRIxGRUB_EFI_UINT16 "hx"
+#define PRIuGRUB_EFI_UINT16 "hu"
+#define PRIxGRUB_EFI_INT16  "hx"
+#define PRIdGRUB_EFI_INT16  "hd"
+#define PRIxGRUB_EFI_UINT8  "hhx"
+#define PRIuGRUB_EFI_UINT8  "hhu"
+#define PRIxGRUB_EFI_INT8   "hhx"
+#define PRIdGRUB_EFI_INT8   "hhd"
 
 #define GRUB_EFI_ERROR_CODE(value)	\
   ((((grub_efi_status_t) 1) << (sizeof (grub_efi_status_t) * 8 - 1)) | (value))
