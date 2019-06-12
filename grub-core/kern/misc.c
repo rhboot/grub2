@@ -24,6 +24,10 @@
 #include <grub/term.h>
 #include <grub/env.h>
 #include <grub/i18n.h>
+#if defined(GRUB_MACHINE_EFI)
+#include <grub/efi/api.h>
+#include <grub/efi/efi.h>
+#endif
 
 union printf_arg
 {
@@ -699,6 +703,11 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	case 'c':
 	case 'C':
 	case 's':
+#if defined(GRUB_MACHINE_EFI)
+	  if ((c == 'u' && fmt[0] == 'r') ||
+	      (c == 'l' && fmt[0] == 'u' && fmt[1] == 'r'))
+	    fmt += fmt[0] == 'u' ? 2 : 1;
+#endif
 	  args->count++;
 	  break;
 	}
@@ -791,6 +800,11 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	case 'x':
 	case 'X':
 	case 'u':
+#if defined(GRUB_MACHINE_EFI)
+	  if ((c == 'u' && fmt[0] == 'r') ||
+	      (c == 'l' && fmt[0] == 'u' && fmt[1] == 'r'))
+	    fmt += fmt[0] == 'u' ? 2 : 1;
+#endif
 	  args->ptr[curn].type = UNSIGNED_INT + longfmt;
 	  break;
 	case 'd':
@@ -962,6 +976,54 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	    grub_size_t len;
 	    grub_size_t fill;
 
+#if defined(GRUB_MACHINE_EFI)
+	    if ((c == 'u' && fmt[0] == 'r') ||
+		(c == 'l' && fmt[0] == 'u' && fmt[1] == 'r'))
+	      {
+		grub_efi_status_t status;
+
+		fmt += fmt[0] == 'u' ? 2 : 1;
+
+		status = args->ptr[curn].ll;
+		p = grub_efi_status_to_str (status);
+		zerofill = ' ';
+
+		if (p == NULL)
+		  {
+		    write_char (str, &count, max_len, '0');
+		    write_char (str, &count, max_len, 'x');
+		    c = 'x';
+		    zerofill = '0';
+
+		    if (sizeof (long) == 8)
+		      args->ptr[curn].type = UNSIGNED_LONG;
+		    else
+		      args->ptr[curn].type = UNSIGNED_LONGLONG;
+
+		    goto rescan;
+		  }
+
+		len = grub_strlen (p);
+
+		while (len < format2 && p[len])
+		  len++;
+
+		fill = len < format1 ? format1 - len : 0;
+
+		if (!rightfill)
+		  while (fill--)
+		    write_char (str, &count, max_len, zerofill);
+
+		for (grub_size_t i = 0; i < len; i++)
+		  write_char (str, &count, max_len,*p++);
+
+		if (rightfill)
+		  while (fill--)
+		    write_char (str, &count, max_len, zerofill);
+
+		break;
+	      }
+#endif
 	    len = grub_lltoa (tmp, c, curarg) - tmp;
 	    fill = len < format1 ? format1 - len : 0;
 	    if (! rightfill)

@@ -1062,3 +1062,62 @@ grub_efi_compare_device_paths (const grub_efi_device_path_t *dp1,
 
   return 0;
 }
+
+static struct {
+    const grub_efi_status_t status;
+    const char * const desc;
+} grub_efi_error_code_table[] = {
+	{  GRUB_EFI_SUCCESS,                "Success"},
+	{  GRUB_EFI_LOAD_ERROR,             "Load Error"},
+	{  GRUB_EFI_INVALID_PARAMETER,      "Invalid Parameter"},
+	{  GRUB_EFI_UNSUPPORTED,            "Unsupported"},
+	{  GRUB_EFI_BAD_BUFFER_SIZE,        "Bad Buffer Size"},
+	{  GRUB_EFI_BUFFER_TOO_SMALL,       "Buffer Too Small"},
+	{  GRUB_EFI_NOT_READY,              "Not Ready"},
+	{  GRUB_EFI_DEVICE_ERROR,           "Device Error"},
+	{  GRUB_EFI_WRITE_PROTECTED,        "Write Protected"},
+	{  GRUB_EFI_OUT_OF_RESOURCES,       "Out of Resources"},
+	{  GRUB_EFI_VOLUME_CORRUPTED,       "Volume Corrupt"},
+	{  GRUB_EFI_VOLUME_FULL,            "Volume Full"},
+	{  GRUB_EFI_NO_MEDIA,               "No Media"},
+	{  GRUB_EFI_MEDIA_CHANGED,          "Media changed"},
+	{  GRUB_EFI_NOT_FOUND,              "Not Found"},
+	{  GRUB_EFI_ACCESS_DENIED,          "Access Denied"},
+	{  GRUB_EFI_NO_RESPONSE,            "No Response"},
+	{  GRUB_EFI_NO_MAPPING,             "No mapping"},
+	{  GRUB_EFI_TIMEOUT,                "Time out"},
+	{  GRUB_EFI_NOT_STARTED,            "Not started"},
+	{  GRUB_EFI_ALREADY_STARTED,        "Already started"},
+	{  GRUB_EFI_ABORTED,                "Aborted"},
+	{  GRUB_EFI_ICMP_ERROR,             "ICMP Error"},
+	{  GRUB_EFI_TFTP_ERROR,             "TFTP Error"},
+	{  GRUB_EFI_PROTOCOL_ERROR,         "Protocol Error"},
+	{  GRUB_EFI_INCOMPATIBLE_VERSION,   "Incompatible Version"},
+	{  GRUB_EFI_SECURITY_VIOLATION,     "Security Policy Violation"},
+	{  GRUB_EFI_CRC_ERROR,              "CRC Error"},
+	{  GRUB_EFI_END_OF_MEDIA,           "End of Media"},
+	{  GRUB_EFI_END_OF_FILE,            "End of File"},
+	{  GRUB_EFI_INVALID_LANGUAGE,       "Invalid Languages"},
+	{  GRUB_EFI_COMPROMISED_DATA,       "Compromised Data"},
+
+	// warnings
+	{  GRUB_EFI_WARN_UNKNOWN_GLYPH,     "Warning Unknown Glyph"},
+	{  GRUB_EFI_WARN_DELETE_FAILURE,    "Warning Delete Failure"},
+	{  GRUB_EFI_WARN_WRITE_FAILURE,     "Warning Write Failure"},
+	{  GRUB_EFI_WARN_BUFFER_TOO_SMALL,  "Warning Buffer Too Small"},
+	{  0, NULL}
+};
+
+static const char * const unknown_error = "Unknown Error";
+
+const char *
+grub_real_efi_status_to_str (grub_efi_status_t status)
+{
+  int i;
+
+  for (i = 0; grub_efi_error_code_table[i].desc != NULL; i++)
+    if (grub_efi_error_code_table[i].status == status)
+      return (char *)grub_efi_error_code_table[i].desc;
+
+  return unknown_error;
+}
