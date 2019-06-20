@@ -73,7 +73,7 @@ finalize_params_linux (void)
   grub_err_t err = GRUB_ERR_NONE;
   void *fdt;
 
-  fdt = grub_fdt_load (0x400);
+  fdt = grub_fdt_load (GRUB_EFI_LINUX_FDT_EXTRA_SPACE);
   if (!fdt)
     {
       err = grub_error(GRUB_ERR_BAD_OS, "failed to load FDT");
