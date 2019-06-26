@@ -1232,8 +1232,7 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		 grub_uint32_t *t32 = (grub_uint32_t *) target;
 		 grub_uint16_t *t16 = (grub_uint16_t *) target;
 		 grub_uint8_t *t8 = (grub_uint8_t *) target;
-		 grub_int64_t off = (long)sym_addr - target_section_addr - offset
-				    - image_target->vaddr_offset;
+		 grub_int64_t off;
 
 		 /*
 		  * Instructions and instruction encoding are documented in the RISC-V
@@ -1243,6 +1242,7 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		  */
 
 		 sym_addr += addend;
+		 off = sym_addr - target_section_addr - offset - image_target->vaddr_offset;
 
 		 switch (ELF_R_TYPE (info))
 		   {
