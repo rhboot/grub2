@@ -22,11 +22,11 @@
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/acpi.h>
+#include <grub/smbios.h>
 
 grub_err_t
 grub_machine_efiemu_init_tables (void)
 {
-  grub_uint8_t *ptr;
   void *table;
   grub_err_t err;
   grub_efi_guid_t smbios = GRUB_EFI_SMBIOS_TABLE_GUID;
@@ -57,17 +57,10 @@ grub_machine_efiemu_init_tables (void)
       if (err)
 	return err;
     }
-
-  for (ptr = (grub_uint8_t *) 0xf0000; ptr < (grub_uint8_t *) 0x100000;
-       ptr += 16)
-    if (grub_memcmp (ptr, "_SM_", 4) == 0
-	&& grub_byte_checksum (ptr, *(ptr + 5)) == 0)
-      break;
-
-  if (ptr < (grub_uint8_t *) 0x100000)
+  table = grub_smbios_get_eps ();
+  if (table)
     {
-      grub_dprintf ("efiemu", "Registering SMBIOS\n");
-      err = grub_efiemu_register_configuration_table (smbios, 0, 0, ptr);
+      err = grub_efiemu_register_configuration_table (smbios, 0, 0, table);
       if (err)
 	return err;
     }
