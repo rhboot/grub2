@@ -95,6 +95,49 @@ enum
 /* Max timeout when waiting for BOOTP/DHCP reply */
 #define GRUB_DHCP_MAX_PACKET_TIMEOUT 32
 
+static char *
+grub_env_write_readonly (struct grub_env_var *var __attribute__ ((unused)),
+                         const char *val __attribute__ ((unused)))
+{
+  return NULL;
+}
+
+static void
+set_env_limn_ro (const char *intername, const char *suffix,
+                 const char *value, grub_size_t len)
+{
+  char *varname, *varvalue;
+  char *ptr;
+  varname = grub_xasprintf ("net_%s_%s", intername, suffix);
+  if (!varname)
+    return;
+  for (ptr = varname; *ptr; ptr++)
+    if (*ptr == ':')
+      *ptr = '_';
+  varvalue = grub_malloc (len + 1);
+  if (!varvalue)
+    {
+      grub_free (varname);
+      return;
+    }
+
+  grub_memcpy (varvalue, value, len);
+  varvalue[len] = 0;
+  grub_env_set (varname, varvalue);
+  grub_register_variable_hook (varname, 0, grub_env_write_readonly);
+  grub_env_export (varname);
+  grub_free (varname);
+  grub_free (varvalue);
+}
+
+static char
+hexdigit (grub_uint8_t val)
+{
+  if (val < 10)
+    return val + '0';
+  return val + 'a' - 10;
+}
+
 static const void *
 find_dhcp_option (const struct grub_net_bootp_packet *bp, grub_size_t size,
 		  grub_uint8_t opt_code, grub_uint8_t *opt_len)
@@ -151,6 +194,9 @@ again:
       taglength = ptr[i++];
       if (i + taglength >= size)
 	return NULL;
+
+      grub_dprintf("net", "DHCP option %u (0x%02x) found with length %u.\n",
+                   tagtype, tagtype, taglength);
 
       /* FIXME RFC 3396 options concatentation */
       if (tagtype == opt_code)
@@ -353,6 +399,37 @@ grub_net_configure_by_dhcp_ack (const char *name,
       mask = i;
     }
   grub_net_add_ipv4_local (inter, mask);
+
+  opt = find_dhcp_option (bp, size, GRUB_NET_BOOTP_CLIENT_ID, &opt_len);
+  if (opt)
+    {
+      set_env_limn_ro (name, "clientid", (char *) opt, opt_len);
+    }
+
+  opt = find_dhcp_option (bp, size, GRUB_NET_BOOTP_CLIENT_UUID, &opt_len);
+  if (opt && opt_len == 17)
+    {
+      /* The format is 9cfe245e-d0c8-bd45-a79f-54ea5fbd3d97 */
+
+      opt += 1;
+      opt_len -= 1;
+
+      char *val = grub_malloc (2 * opt_len + 4 + 1);
+      int i = 0;
+      int j = 0;
+      for (i = 0; i < opt_len; i++)
+        {
+          val[2 * i + j] = hexdigit (opt[i] >> 4);
+          val[2 * i + 1 + j] = hexdigit (opt[i] & 0xf);
+
+          if ((i == 3) || (i == 5) || (i == 7) || (i == 9))
+            {
+              j++;
+              val[2 * i + 1+ j] = '-';
+            }
+        }
+      set_env_limn_ro (name, "clientuuid", (char *) val, 2 * opt_len + 4);
+    }
 
   /* We do not implement dead gateway detection and the first entry SHOULD
      be preferred one */
@@ -629,14 +706,6 @@ grub_net_process_dhcp (struct grub_net_buff *nb,
       /* Reset retransmission timer */
       iface->dhcp_tmo = iface->dhcp_tmo_left = 1;
     }
-}
-
-static char
-hexdigit (grub_uint8_t val)
-{
-  if (val < 10)
-    return val + '0';
-  return val + 'a' - 10;
 }
 
 static grub_err_t
