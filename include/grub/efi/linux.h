@@ -22,7 +22,7 @@
 #include <grub/err.h>
 #include <grub/symbol.h>
 
-grub_efi_boolean_t
+int
 EXPORT_FUNC(grub_linuxefi_secure_validate) (void *data, grub_uint32_t size);
 grub_err_t
 EXPORT_FUNC(grub_efi_linux_boot) (void *kernel_address, grub_off_t offset,
