@@ -69,12 +69,17 @@ grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
 typedef void (*handover_func) (void *, grub_efi_system_table_t *, void *);
 
 grub_err_t
-grub_efi_linux_boot (void *kernel_addr, grub_off_t offset,
+grub_efi_linux_boot (void *kernel_addr, grub_off_t handover_offset,
 		     void *kernel_params)
 {
   handover_func hf;
+  int offset = 0;
 
-  hf = (handover_func)((char *)kernel_addr + offset);
+#ifdef __x86_64__
+  offset = 512;
+#endif
+
+  hf = (handover_func)((char *)kernel_addr + handover_offset + offset);
   hf (grub_efi_image_handle, grub_efi_system_table, kernel_params);
 
   return GRUB_ERR_BUG;
