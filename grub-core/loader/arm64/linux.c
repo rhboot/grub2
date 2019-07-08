@@ -284,6 +284,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct linux_arch_kernel_header lh;
   struct grub_armxx_linux_pe_header *pe;
   grub_err_t err;
+  int rc;
 
   grub_dl_ref (my_mod);
 
@@ -328,7 +329,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   grub_dprintf ("linux", "kernel @ %p\n", kernel_addr);
 
-  if (!grub_linuxefi_secure_validate (kernel_addr, kernel_size))
+  rc = grub_linuxefi_secure_validate (kernel_addr, kernel_size);
+  if (rc < 0)
     {
       grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"), argv[0]);
       goto fail;
