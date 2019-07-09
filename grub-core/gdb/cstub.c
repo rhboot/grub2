@@ -215,7 +215,6 @@ grub_gdb_trap (int trap_no)
       grub_printf ("Unhandled exception 0x%x at ", trap_no);
       grub_backtrace_print_address ((void *) grub_gdb_regs[PC]);
       grub_printf ("\n");
-      grub_backtrace_pointer ((void *) grub_gdb_regs[EBP]);
       grub_fatal ("Unhandled exception");
     }
 
