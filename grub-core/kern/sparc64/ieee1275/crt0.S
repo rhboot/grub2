@@ -22,7 +22,8 @@
 
 	.text
 	.align	4
-	.globl	_start
+	.globl	start, _start
+start:
 _start:
 	ba	codestart
 	 mov  %o4, %o0
