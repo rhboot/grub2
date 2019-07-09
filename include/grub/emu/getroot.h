@@ -53,6 +53,11 @@ char **
 grub_find_root_devices_from_mountinfo (const char *dir, char **relroot);
 #endif
 
+#ifdef __linux__
+char *
+grub_util_get_btrfs_subvol (const char *path, char **mount_path);
+#endif
+
 /* Devmapper functions provided by getroot_devmapper.c.  */
 void
 grub_util_pull_devmapper (const char *os_dev);
