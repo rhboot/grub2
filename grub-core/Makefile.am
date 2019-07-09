@@ -66,6 +66,7 @@ CLEANFILES += grub_script.yy.c grub_script.yy.h
 
 include $(srcdir)/Makefile.core.am
 
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/backtrace.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/cache.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/command.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/device.h
