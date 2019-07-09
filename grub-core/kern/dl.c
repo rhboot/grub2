@@ -124,6 +124,50 @@ grub_dl_resolve_symbol (const char *name)
   return 0;
 }
 
+void *
+grub_resolve_symbol (const char *name)
+{
+	grub_symbol_t sym;
+
+	sym = grub_dl_resolve_symbol (name);
+	if (sym)
+		return sym->addr;
+	return NULL;
+}
+
+const char *
+grub_get_symbol_by_addr(const void *addr, int isfunc)
+{
+  unsigned int i;
+  grub_symbol_t before = NULL, after = NULL;
+  for (i = 0; i < GRUB_SYMTAB_SIZE; i++)
+    {
+      grub_symbol_t sym;
+      for (sym = grub_symtab[i]; sym; sym = sym->next)
+	{
+	  //grub_printf ("addr 0x%08llx symbol %s\n", (unsigned long long)sym->addr, sym->name);
+	  if (sym->addr > addr)
+	    {
+	      if (!after || sym->addr > after->addr)
+		after = sym;
+	    }
+
+	  if (isfunc != sym->isfunc)
+	    continue;
+	  if (sym->addr > addr)
+	    continue;
+
+	  if ((!before && sym->addr <= addr) || (before && before->addr <= sym->addr))
+	    before = sym;
+	}
+    }
+
+  if (before && addr < after->addr)
+    return before->name;
+
+  return NULL;
+}
+
 /* Register a symbol with the name NAME and the address ADDR.  */
 grub_err_t
 grub_dl_register_symbol (const char *name, void *addr, int isfunc,
@@ -336,6 +380,7 @@ grub_dl_resolve_symbols (grub_dl_t mod, Elf_Ehdr *e)
   const char *str;
   Elf_Word size, entsize;
 
+  grub_dprintf ("modules", "Resolving symbols for \"%s\"\n", mod->name);
   for (i = 0, s = (Elf_Shdr *) ((char *) e + e->e_shoff);
        i < e->e_shnum;
        i++, s = (Elf_Shdr *) ((char *) s + e->e_shentsize))
