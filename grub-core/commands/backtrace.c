@@ -54,7 +54,7 @@ grub_cmd_backtrace (grub_command_t cmd __attribute__ ((unused)),
 		    int argc __attribute__ ((unused)),
 		    char **args __attribute__ ((unused)))
 {
-  grub_backtrace ();
+  grub_backtrace (1);
   return 0;
 }
 
