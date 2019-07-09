@@ -24,8 +24,9 @@
 	.psr lsb
 	.lsb
 
-	.global _start
+	.global start, _start
 	.proc _start
+start:
 _start:
 	alloc loc0=ar.pfs,2,4,0,0
 	mov loc1=rp
