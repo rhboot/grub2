@@ -999,6 +999,17 @@ if test "x$grub_cv_cc_fno_unwind_tables" = xyes; then
   TARGET_CFLAGS="$TARGET_CFLAGS -fno-unwind-tables"
 fi
 
+# Do not generate .ident sections.
+AC_CACHE_CHECK([whether -fno-ident works], [grub_cv_cc_fno_ident], [
+  CFLAGS="$TARGET_CFLAGS -fno-ident"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+      [grub_cv_cc_fno_ident=yes],
+      [grub_cv_cc_fno_ident=no])
+])
+
+if test "x$grub_cv_cc_fno_ident" = xyes; then
+  TARGET_CFLAGS="$TARGET_CFLAGS -fno-ident"
+fi
 
 CFLAGS="$TARGET_CFLAGS"
 
