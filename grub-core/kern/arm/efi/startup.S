@@ -23,6 +23,8 @@
 	.file 	"startup.S"
 	.text
 	.arm
+	.globl	start, _start
+FUNCTION(start)
 FUNCTION(_start)
 	/*
 	 *  EFI_SYSTEM_TABLE and EFI_HANDLE are passed in r1/r0.
