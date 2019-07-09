@@ -70,7 +70,6 @@
  */
 #define RUNTIME_MIN_SPACE (128UL * 1024 * 1024)
 
-extern char _start[];
 extern char _end[];
 
 #ifdef __sparc__
