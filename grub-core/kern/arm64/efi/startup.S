@@ -19,7 +19,9 @@
 #include <grub/symbol.h>
 
 	.file 	"startup.S"
+	.globl start, _start
 	.text
+FUNCTION(start)
 FUNCTION(_start)
 	/*
 	 *  EFI_SYSTEM_TABLE and EFI_HANDLE are passed in x1/x0.
