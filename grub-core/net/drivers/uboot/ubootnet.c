@@ -131,6 +131,7 @@ GRUB_MOD_INIT (ubootnet)
 
       grub_memcpy (&(card->default_address.mac), &devinfo->di_net.hwaddr, 6);
       card->default_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
+      card->default_address.len = 6;
 
       card->txbufsize = ALIGN_UP (card->mtu, 64) + 256;
       card->txbuf = grub_zalloc (card->txbufsize);
