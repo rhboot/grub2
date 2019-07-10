@@ -20,6 +20,7 @@
 #include <grub/env.h>
 #include <grub/i18n.h>
 #include <grub/command.h>
+#include <grub/net.h>
 #include <grub/net/ip.h>
 #include <grub/net/netbuff.h>
 #include <grub/net/udp.h>
@@ -499,6 +500,60 @@ grub_net_configure_by_dhcp_ack (const char *name,
   opt = find_dhcp_option (bp, size, GRUB_NET_BOOTP_ROOT_PATH, &opt_len);
   if (opt && opt_len)
     grub_env_set_net_property (name, "rootpath", (const char *) opt, opt_len);
+
+  opt = find_dhcp_option (bp, size, GRUB_NET_BOOTP_VENDOR_CLASS_IDENTIFIER, &opt_len);
+  if (opt && opt_len)
+    {
+      grub_env_set_net_property (name, "vendor_class_identifier", (const char *) opt, opt_len);
+      if (opt && grub_strcmp (opt, "HTTPClient") == 0)
+        {
+          char *proto, *ip, *pa;
+
+          if (!dissect_url (bp->boot_file, &proto, &ip, &pa))
+            return inter;
+
+          grub_env_set_net_property (name, "boot_file", pa, grub_strlen (pa));
+          if (is_def)
+            {
+              grub_net_default_server = grub_strdup (ip);
+              grub_env_set ("net_default_interface", name);
+             grub_env_export ("net_default_interface");
+            }
+          if (device && !*device)
+            {
+              *device = grub_xasprintf ("%s,%s", proto, ip);
+              grub_print_error ();
+            }
+          if (path)
+            {
+              *path = grub_strdup (pa);
+              grub_print_error ();
+              if (*path)
+                {
+                  char *slash;
+                  slash = grub_strrchr (*path, '/');
+                  if (slash)
+                    *slash = 0;
+                  else
+                    **path = 0;
+                }
+            }
+          grub_net_add_ipv4_local (inter, mask);
+          inter->dhcp_ack = grub_malloc (size);
+          if (inter->dhcp_ack)
+            {
+              grub_memcpy (inter->dhcp_ack, bp, size);
+              inter->dhcp_acklen = size;
+            }
+          else
+            grub_errno = GRUB_ERR_NONE;
+
+          grub_free (proto);
+          grub_free (ip);
+          grub_free (pa);
+          return inter;
+        }
+    }
 
   opt = find_dhcp_option (bp, size, GRUB_NET_BOOTP_EXTENSIONS_PATH, &opt_len);
   if (opt && opt_len)
