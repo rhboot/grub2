@@ -279,6 +279,9 @@ grub_efinet_findcards (void)
 	/* This should not happen... Why?  */
 	continue;
 
+      if (net->mode->hwaddr_size > GRUB_NET_MAX_LINK_ADDRESS_SIZE)
+	continue;
+
       if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
 	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
 	continue;
@@ -315,10 +318,11 @@ grub_efinet_findcards (void)
       card->name = grub_xasprintf ("efinet%d", i++);
       card->driver = &efidriver;
       card->flags = 0;
-      card->default_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
+      card->default_address.type = net->mode->if_type;
+      card->default_address.len = net->mode->hwaddr_size;
       grub_memcpy (card->default_address.mac,
 		   net->mode->current_address,
-		   sizeof (card->default_address.mac));
+		   net->mode->hwaddr_size);
       card->efi_net = net;
       card->efi_handle = *handle;
 
