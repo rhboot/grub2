@@ -2147,6 +2147,14 @@ if test x"$enable_werror" != xno ; then
   fi
 fi
 
+AC_ARG_ENABLE([wextra],
+	      [AS_HELP_STRING([--disable-wextra],
+                             [do not use -Wextra when building GRUB])])
+if test x"$enable_wextra" != xno ; then
+  TARGET_CFLAGS="$TARGET_CFLAGS -Wextra"
+  HOST_CFLAGS="$HOST_CFLAGS -Wextra"
+fi
+
 TARGET_CPP="$TARGET_CC -E"
 TARGET_CCAS=$TARGET_CC
 
