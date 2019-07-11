@@ -323,7 +323,7 @@ cmd_cmp (char *src, char *dest)
   read_file (src, cmp_hook, ff);
 
   {
-    grub_uint64_t pre;
+    long long pre;
     pre = ftell (ff);
     fseek (ff, 0, SEEK_END);
     if (pre != ftell (ff))
