@@ -109,7 +109,7 @@ grub_install_get_blocklist (grub_device_t root_dev,
   else
     {
       struct fiemap *fie2;
-      int i;
+      unsigned int i;
       fie2 = xmalloc (sizeof (*fie2)
 		      + fie1.fm_mapped_extents
 		      * sizeof (fie1.fm_extents[1]));
