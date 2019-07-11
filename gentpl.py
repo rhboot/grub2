@@ -51,6 +51,7 @@ GROUPS["riscv32"]  = [ "riscv32_efi" ]
 GROUPS["riscv64"]  = [ "riscv64_efi" ]
 
 # Groups based on firmware
+GROUPS["pc"] = [ "i386_pc" ]
 GROUPS["efi"]  = [ "i386_efi", "x86_64_efi", "ia64_efi", "arm_efi", "arm64_efi",
 		   "riscv32_efi", "riscv64_efi" ]
 GROUPS["ieee1275"]   = [ "i386_ieee1275", "sparc64_ieee1275", "powerpc_ieee1275" ]
