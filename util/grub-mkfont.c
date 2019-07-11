@@ -138,7 +138,8 @@ add_glyph (struct grub_font_info *font_info, FT_UInt glyph_idx, FT_Face face,
   int width, height;
   int cuttop, cutbottom, cutleft, cutright;
   grub_uint8_t *data;
-  int mask, i, j, bitmap_size;
+  int mask, i, bitmap_size;
+  unsigned int j;
   FT_GlyphSlot glyph;
   int flag = FT_LOAD_RENDER | FT_LOAD_MONOCHROME;
   FT_Error err;
@@ -183,7 +184,7 @@ add_glyph (struct grub_font_info *font_info, FT_UInt glyph_idx, FT_Face face,
     cuttop = cutbottom = cutleft = cutright = 0;
   else
     {
-      for (cuttop = 0; cuttop < glyph->bitmap.rows; cuttop++)
+      for (cuttop = 0; cuttop < (long)glyph->bitmap.rows; cuttop++)
 	{
 	  for (j = 0; j < glyph->bitmap.width; j++)
 	    if (glyph->bitmap.buffer[j / 8 + cuttop * glyph->bitmap.pitch]
@@ -203,10 +204,10 @@ add_glyph (struct grub_font_info *font_info, FT_UInt glyph_idx, FT_Face face,
 	    break;
 	}
       cutbottom = glyph->bitmap.rows - 1 - cutbottom;
-      if (cutbottom + cuttop >= glyph->bitmap.rows)
+      if (cutbottom + cuttop >= (long)glyph->bitmap.rows)
 	cutbottom = 0;
 
-      for (cutleft = 0; cutleft < glyph->bitmap.width; cutleft++)
+      for (cutleft = 0; cutleft < (long)glyph->bitmap.width; cutleft++)
 	{
 	  for (j = 0; j < glyph->bitmap.rows; j++)
 	    if (glyph->bitmap.buffer[cutleft / 8 + j * glyph->bitmap.pitch]
@@ -225,7 +226,7 @@ add_glyph (struct grub_font_info *font_info, FT_UInt glyph_idx, FT_Face face,
 	    break;
 	}
       cutright = glyph->bitmap.width - 1 - cutright;
-      if (cutright + cutleft >= glyph->bitmap.width)
+      if (cutright + cutleft >= (long)glyph->bitmap.width)
 	cutright = 0;
     }
 
@@ -262,7 +263,7 @@ add_glyph (struct grub_font_info *font_info, FT_UInt glyph_idx, FT_Face face,
 
   mask = 0;
   data = &glyph_info->bitmap[0] - 1;
-  for (j = cuttop; j < height + cuttop; j++)
+  for (j = cuttop; j < (long)height + cuttop; j++)
     for (i = cutleft; i < width + cutleft; i++)
       add_pixel (&data, &mask,
 		 glyph->bitmap.buffer[i / 8 + j * glyph->bitmap.pitch] &
