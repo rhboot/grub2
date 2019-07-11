@@ -798,7 +798,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
     case 't':
       {
-	int i;
+	unsigned int i;
 
 	for (i = PRINT_FS; i < ARRAY_SIZE (targets); i++)
 	  if (strcmp (arg, targets[i]) == 0)
