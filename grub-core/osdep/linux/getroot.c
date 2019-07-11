@@ -236,7 +236,7 @@ grub_find_root_devices_from_btrfs (const char *dir)
 {
   int fd;
   struct btrfs_ioctl_fs_info_args fsi;
-  int i, j = 0;
+  unsigned int i, j = 0;
   char **ret;
 
   fd = open (dir, 0);
