@@ -21,8 +21,6 @@
 #include <grub/mm.h>
 #include <grub/dl.h>
 
-GRUB_MOD_LICENSE ("GPLv3+");
-
 #define FDT_SUPPORTED_VERSION	17
 
 #define FDT_BEGIN_NODE	0x00000001
