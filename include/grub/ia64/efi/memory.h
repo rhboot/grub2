@@ -2,5 +2,6 @@
 #include <grub/efi/memory.h>
 
 #define GRUB_EFI_MAX_USABLE_ADDRESS 0xffffffff
+#define GRUB_EFI_MAX_ALLOCATION_ADDRESS GRUB_EFI_MAX_USABLE_ADDRESS
 
 #endif /* ! GRUB_MEMORY_CPU_HEADER */
