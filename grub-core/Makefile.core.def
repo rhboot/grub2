@@ -188,7 +188,6 @@ kernel = {
   arm_coreboot = kern/arm/coreboot/init.c;
   arm_coreboot = kern/arm/coreboot/timer.c;
   arm_coreboot = kern/arm/coreboot/coreboot.S;
-  arm_coreboot = lib/fdt.c;
   arm_coreboot = bus/fdt.c;
   arm_coreboot = term/ps2.c;
   arm_coreboot = term/arm/pl050.c;
@@ -369,6 +368,8 @@ kernel = {
   riscv64 = kern/riscv/cache.c;
   riscv64 = kern/riscv/cache_flush.S;
   riscv64 = kern/riscv/dl.c;
+
+  fdt = lib/fdt.c;
 
   emu = disk/host.c;
   emu = kern/emu/cache_s.S;
@@ -1882,7 +1883,6 @@ module = {
 module = {
   name = fdt;
   efi = loader/efi/fdt.c;
-  common = lib/fdt.c;
   enable = fdt;
 };
 
