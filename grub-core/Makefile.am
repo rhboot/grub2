@@ -76,6 +76,7 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/efi/sb.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/env.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/env_private.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/err.h
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/fdt.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/file.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/fs.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/i18n.h

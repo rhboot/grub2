@@ -27,6 +27,8 @@
 #include <grub/efi/memory.h>
 #include <grub/cpu/efi/memory.h>
 
+GRUB_MOD_LICENSE ("GPLv3+");
+
 static void *loaded_fdt;
 static void *fdt;
 
