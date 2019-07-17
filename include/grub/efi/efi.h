@@ -63,7 +63,7 @@ const char * EXPORT_FUNC(grub_real_efi_status_to_str) (grub_efi_status_t status)
 
 grub_efi_loaded_image_t *EXPORT_FUNC(grub_efi_get_loaded_image) (grub_efi_handle_t image_handle);
 grub_ssize_t EXPORT_FUNC(grub_efi_fmt_guid) (char *str, grub_size_t max_len, grub_efi_guid_t *guid);
-void EXPORT_FUNC(grub_efi_print_device_path) (grub_efi_device_path_t *dp);
+grub_ssize_t EXPORT_FUNC(grub_efi_fmt_device_path) (char *str, grub_size_t len, grub_efi_device_path_t *dp);
 char *EXPORT_FUNC(grub_efi_get_filename) (grub_efi_device_path_t *dp);
 grub_efi_device_path_t *
 EXPORT_FUNC(grub_efi_get_device_path) (grub_efi_handle_t handle);

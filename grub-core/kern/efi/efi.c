@@ -559,7 +559,7 @@ prep_str(char *instr, grub_size_t inlen, grub_size_t offset,
 
 static grub_ssize_t
 fmt_unknown_device_path(char *instr, grub_size_t inlen, const char *typename,
-                       grub_efi_device_path_t *dp)
+			grub_efi_device_path_t *dp)
 {
   grub_uint32_t data_len = GRUB_EFI_DEVICE_PATH_LENGTH (dp) - sizeof (*dp);
   grub_efi_uint8_t subtype = GRUB_EFI_DEVICE_PATH_SUBTYPE (dp);
@@ -623,18 +623,18 @@ fmt_vendor_device_path (char *instr, grub_size_t inlen, const char *type,
       prep_str (instr, inlen, ret, &str, &len);
       strsz = grub_snprintf (str, len, ",");
       if (strsz < 0)
-       return strsz;
+	return strsz;
       ret += strsz;
 
       for (i = 0; i < vendor_data_len; i++)
-       {
-	 prep_str (instr, inlen, ret, &str, &len);
-         strsz = grub_snprintf (str, len, "%02hhx",
-				vendor->vendor_defined_data[i]);
-         if (strsz < 0)
-           return strsz;
-         ret += strsz;
-       }
+	{
+	  prep_str (instr, inlen, ret, &str, &len);
+	  strsz = grub_snprintf (str, len, "%02hhx",
+				 vendor->vendor_defined_data[i]);
+	  if (strsz < 0)
+	    return strsz;
+	  ret += strsz;
+	}
     }
 
   prep_str (instr, inlen, ret, &str, &len);
@@ -1333,8 +1333,9 @@ fmt_bios_device_path (char *str, grub_size_t len,
 
   return ret;
 }
+
 /* Format the chain of Device Path nodes. This is mainly for debugging. */
-static grub_ssize_t
+grub_ssize_t
 grub_efi_fmt_device_path (char *str, grub_size_t len,
 			  grub_efi_device_path_t *dp)
 {
@@ -1397,25 +1398,6 @@ grub_efi_fmt_device_path (char *str, grub_size_t len,
     }
 
   return ret;
-}
-
-void
-grub_efi_print_device_path (grub_efi_device_path_t *dp)
-{
-  grub_ssize_t needed;
-  char *buffer;
-
-  needed = grub_efi_fmt_device_path (NULL, 0, dp);
-  if (needed <= 0)
-    return;
-
-  buffer = grub_zalloc (needed + 1);
-  if (!buffer)
-    return;
-
-  grub_efi_fmt_device_path (buffer, needed, dp);
-  grub_printf ("%s\n", buffer);
-  grub_free (buffer);
 }
 
 /* Compare device paths.  */

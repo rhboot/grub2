@@ -103,8 +103,7 @@ grub_cmd_lsefi (grub_command_t cmd __attribute__ ((unused)),
       dp = grub_efi_get_device_path (handle);
       if (dp)
 	{
-	  grub_printf ("  ");
-	  grub_efi_print_device_path (dp);
+	  grub_printf ("  %pD\n", dp);
 	}
 
       status = efi_call_3 (grub_efi_system_table->boot_services->protocols_per_handle,

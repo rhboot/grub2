@@ -238,19 +238,13 @@ name_devices (struct grub_efidisk_data *devices)
 		parent = find_parent_device (devices, d);
 		if (!parent)
 		  {
-#ifdef DEBUG_NAMES
-		    grub_printf ("skipping orphaned partition: ");
-		    grub_efi_print_device_path (d->device_path);
-#endif
+		    grub_dprintf ("efidisk", "skipping orphaned partition: %pD\n", d->device_path);
 		    break;
 		  }
 		parent2 = find_parent_device (devices, parent);
 		if (parent2)
 		  {
-#ifdef DEBUG_NAMES
-		    grub_printf ("skipping subpartition: ");
-		    grub_efi_print_device_path (d->device_path);
-#endif
+		    grub_dprintf ("efidisk", "skipping subpartition: %pD\n", d->device_path);
 		    /* Mark itself as used.  */
 		    d->last_device_path = 0;
 		    break;
@@ -262,18 +256,16 @@ name_devices (struct grub_efidisk_data *devices)
 		  }
 		if (is_hard_drive)
 		  {
-#ifdef DEBUG_NAMES
-		    grub_printf ("adding a hard drive by a partition: ");
-		    grub_efi_print_device_path (parent->device_path);
-#endif
+		    grub_dprintf ("efidisk",
+				  "adding a hard drive by a partition: %pD\n",
+				  parent->device_path);
 		    add_device (&hd_devices, parent);
 		  }
 		else
 		  {
-#ifdef DEBUG_NAMES
-		    grub_printf ("adding a cdrom by a partition: ");
-		    grub_efi_print_device_path (parent->device_path);
-#endif
+		    grub_dprintf ("efidisk",
+				  "adding a cdrom by a partition: %pD\n",
+				  parent->device_path);
 		    add_device (&cd_devices, parent);
 		  }
 
@@ -285,20 +277,14 @@ name_devices (struct grub_efidisk_data *devices)
 	      break;
 
 	    default:
-#ifdef DEBUG_NAMES
-	      grub_printf ("skipping other type: ");
-	      grub_efi_print_device_path (d->device_path);
-#endif
+	      grub_dprintf ("efidisk", "skipping other type: %pD\n", d->device_path);
 	      /* For now, ignore the others.  */
 	      break;
 	    }
 	}
       else
 	{
-#ifdef DEBUG_NAMES
-	  grub_printf ("skipping non-media: ");
-	  grub_efi_print_device_path (d->device_path);
-#endif
+	  grub_dprintf ("efidisk", "skipping non-media: %pD\n", d->device_path);
 	}
     }
 
@@ -342,29 +328,20 @@ name_devices (struct grub_efidisk_data *devices)
 	}
       if (is_floppy)
 	{
-#ifdef DEBUG_NAMES
-	  grub_printf ("adding a floppy: ");
-	  grub_efi_print_device_path (d->device_path);
-#endif
+	  grub_dprintf ("efidisk", "adding a floppy: %pD\n", d->device_path);
 	  add_device (&fd_devices, d);
 	}
       else if (m->read_only && m->block_size > GRUB_DISK_SECTOR_SIZE)
 	{
 	  /* This check is too heuristic, but assume that this is a
 	     CDROM drive.  */
-#ifdef DEBUG_NAMES
-	  grub_printf ("adding a cdrom by guessing: ");
-	  grub_efi_print_device_path (d->device_path);
-#endif
+	  grub_dprintf ("efidisk", "adding a cdrom by guessing: %pD\n", d->device_path);
 	  add_device (&cd_devices, d);
 	}
       else
 	{
 	  /* The default is a hard drive.  */
-#ifdef DEBUG_NAMES
-	  grub_printf ("adding a hard drive by guessing: ");
-	  grub_efi_print_device_path (d->device_path);
-#endif
+	  grub_dprintf ("efidisk", "adding a hard drive by guessing: %pD\n", d->device_path);
 	  add_device (&hd_devices, d);
 	}
     }
