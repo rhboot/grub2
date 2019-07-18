@@ -271,6 +271,9 @@ SETUP (const char *dir,
   bl.current_segment =
     GRUB_BOOT_I386_PC_KERNEL_SEG + (GRUB_DISK_SECTOR_SIZE >> 4);
 #endif
+#ifdef GRUB_SETUP_SPARC64
+  bl.gpt_offset = 0;
+#endif
   bl.last_length = 0;
 
   /* Read the boot image by the OS service.  */
@@ -730,7 +733,6 @@ unable_to_embed:
 #ifdef GRUB_SETUP_SPARC64
   {
     grub_partition_t container = root_dev->disk->partition;
-    bl.gpt_offset = 0;
 
     if (grub_strstr (container->partmap->name, "gpt"))
       bl.gpt_offset = grub_partition_get_start (container);
