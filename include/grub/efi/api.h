@@ -986,6 +986,22 @@ struct grub_efi_dns_device_path
 } GRUB_PACKED;
 typedef struct grub_efi_dns_device_path grub_efi_dns_device_path_t;
 
+#define GRUB_EFI_EMMC_DEVICE_PATH_SUBTYPE		29
+struct grub_efi_emmc_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint8_t slot;
+} GRUB_PACKED;
+typedef struct grub_efi_emmc_device_path grub_efi_emmc_device_path_t;
+
+#define GRUB_EFI_SD_DEVICE_PATH_SUBTYPE			26
+struct grub_efi_sd_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint8_t slot;
+} GRUB_PACKED;
+typedef struct grub_efi_sd_device_path grub_efi_sd_device_path_t;
+
 #define GRUB_EFI_VENDOR_MESSAGING_DEVICE_PATH_SUBTYPE	10
 
 /* Media Device Path.  */

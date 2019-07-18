@@ -1165,6 +1165,19 @@ fmt_msg_device_path (char *str, grub_size_t len,
       }
       break;
 
+    case GRUB_EFI_SD_DEVICE_PATH_SUBTYPE:
+    case GRUB_EFI_EMMC_DEVICE_PATH_SUBTYPE:
+      {
+	grub_efi_sd_device_path_t *sd;
+
+	grub_dprintf ("efidp", "sd/emmc device path\n");
+	sd = (grub_efi_sd_device_path_t *) dp;
+	ret = grub_snprintf (str, len, "/%s(%d)",
+		  subtype == GRUB_EFI_SD_DEVICE_PATH_SUBTYPE ? "SD" : "eMMC",
+		  sd->slot);
+      }
+      break;
+
     case GRUB_EFI_DNS_DEVICE_PATH_SUBTYPE:
       {
 	grub_efi_dns_device_path_t *dns;
