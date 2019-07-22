@@ -693,6 +693,9 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	    c = *fmt++;
 	}
 
+      if (c == 'z' && grub_strchr("duxX", *fmt))
+	c = *fmt++;
+
       switch (c)
 	{
 	case 'p':
@@ -793,6 +796,15 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 		longfmt = 2;
 	      c = *fmt++;
 	  }
+	}
+
+      if (c == 'z' && grub_strchr("duxX", *fmt))
+	{
+	  c = *fmt++;
+	  if (sizeof (grub_size_t) == 8)
+	    longfmt = 2;
+	  else
+	    longfmt = 1;
 	}
 
       if (curn >= args->count)
@@ -953,6 +965,9 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	  if (c == prev)
 	    c = *fmt++;
 	}
+
+      if (c == 'z' && grub_strchr("duxX", *fmt))
+	c = *fmt++;
 
       if (c == '%')
 	{

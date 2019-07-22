@@ -271,7 +271,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 
   initrd_start = (grub_addr_t) initrd_mem;
   initrd_end = initrd_start + initrd_size;
-  grub_dprintf ("linux", "[addr=%p, size=0x%x]\n",
+  grub_dprintf ("linux", "[addr=%p, size=0x%zx]\n",
 		(void *) initrd_start, initrd_size);
 
  fail:
