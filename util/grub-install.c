@@ -324,6 +324,14 @@ get_default_platform (void)
    return "arm64-efi";
 #elif defined (__amd64__) || defined (__x86_64__) || defined (__i386__)
    return grub_install_get_default_x86_platform ();
+#elif defined (__riscv)
+#if __riscv_xlen == 32
+   return "riscv32-efi";
+#elif __riscv_xlen == 64
+   return "riscv64-efi";
+#else
+   return NULL;
+#endif
 #else
    return NULL;
 #endif
