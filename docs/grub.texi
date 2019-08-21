@@ -5365,10 +5365,11 @@ This command is only available on AArch64 systems.
 * net_add_addr::                Add a network address
 * net_add_dns::                 Add a DNS server
 * net_add_route::               Add routing entry
-* net_bootp::                   Perform a bootp autoconfiguration
+* net_bootp::                   Perform a bootp/DHCP autoconfiguration
 * net_del_addr::                Remove IP address from interface
 * net_del_dns::                 Remove a DNS server
 * net_del_route::               Remove a route entry
+* net_dhcp::                    Perform a DHCP autoconfiguration
 * net_get_dhcp_option::         Retrieve DHCP options
 * net_ipv6_autoconf::           Perform IPv6 autoconfiguration
 * net_ls_addr::                 List interfaces
@@ -5415,8 +5416,44 @@ by @var{shortname} which can be used to remove it (@pxref{net_del_route}).
 @subsection net_bootp
 
 @deffn Command net_bootp [@var{card}]
+Alias for net_dhcp, for compatibility with older Grub versions. Will perform
+the same DHCP handshake with potential fallback to BOOTP as the net_dhcp
+command (@pxref{net_dhcp}).
+
+@end deffn
+
+
+@node net_del_addr
+@subsection net_del_addr
+
+@deffn Command net_del_addr @var{interface}
+Remove configured @var{interface} with associated address.
+@end deffn
+
+
+@node net_del_dns
+@subsection net_del_dns
+
+@deffn Command net_del_dns @var{address}
+Remove @var{address} from list of servers used during name lookup.
+@end deffn
+
+
+@node net_del_route
+@subsection net_del_route
+
+@deffn Command net_del_route @var{shortname}
+Remove route entry identified by @var{shortname}.
+@end deffn
+
+
+@node net_dhcp
+@subsection net_dhcp
+
+@deffn Command net_dhcp [@var{card}]
 Perform configuration of @var{card} using DHCP protocol. If no card name
-is specified, try to configure all existing cards. If configuration was
+is specified, try to configure all existing cards.
+Falls back to the BOOTP protocol, if needed. If configuration was
 successful, interface with name @var{card}@samp{:dhcp} and configured
 address is added to @var{card}.
 @comment If server provided gateway information in
@@ -5443,32 +5480,14 @@ Sets environment variable @samp{net_}@var{<card>}@samp{_dhcp_rootpath}
 @item 18 (Extensions Path)
 Sets environment variable @samp{net_}@var{<card>}@samp{_dhcp_extensionspath}
 (@pxref{net_@var{<interface>}_extensionspath}) to the value of option.
+@item 66 (TFTP Server Name)
+Sets environment variable @samp{net_}@var{<card>}@samp{_dhcp_server_name}
+(@pxref{net_@var{<interface>}_dhcp_server_name}) to the value of option.
+@item 67 (Filename)
+Sets environment variable @samp{net_}@var{<card>}@samp{_boot_file}
+(@pxref{net_@var{<interface>}_boot_file}) to the value of option.
 @end table
 
-@end deffn
-
-
-@node net_del_addr
-@subsection net_del_addr
-
-@deffn Command net_del_addr @var{interface}
-Remove configured @var{interface} with associated address.
-@end deffn
-
-
-@node net_del_dns
-@subsection net_del_dns
-
-@deffn Command net_del_dns @var{address}
-Remove @var{address} from list of servers used during name lookup.
-@end deffn
-
-
-@node net_del_route
-@subsection net_del_route
-
-@deffn Command net_del_route @var{shortname}
-Remove route entry identified by @var{shortname}.
 @end deffn
 
 
