@@ -19,7 +19,8 @@
 #ifndef GRUB_FDT_HEADER
 #define GRUB_FDT_HEADER	1
 
-#if !defined(GRUB_MACHINE_EMU) && (defined(__arm__) || defined(__aarch64__))
+#if !defined(GRUB_MACHINE_EMU) && \
+    (defined(__arm__) || defined(__aarch64__) || defined(__riscv))
 
 #include <grub/types.h>
 #include <grub/symbol.h>
@@ -146,6 +147,7 @@ int EXPORT_FUNC(grub_fdt_set_prop) (void *fdt, unsigned int nodeoffset, const ch
   grub_fdt_set_prop ((fdt), (nodeoffset), "reg", reg_64, 16);  \
 })
 
-#endif /* defined(__arm__) || defined(__aarch64__) */
+#endif /* !defined(GRUB_MACHINE_EMU) && \
+          (defined(__arm__) || defined(__aarch64__) || defined(__riscv)) */
 
 #endif	/* ! GRUB_FDT_HEADER */
