@@ -698,6 +698,8 @@ static void create_entry (struct bls_entry *entry)
   const char *early_initrd = NULL;
   char **early_initrds = NULL;
   char *initrd_prefix = NULL;
+  char *devicetree = NULL;
+  char *dt = NULL;
   char *id = entry->filename;
   char *dotconf = id;
   char *hotkey = NULL;
@@ -709,6 +711,7 @@ static void create_entry (struct bls_entry *entry)
 
   char *src = NULL;
   int i, index;
+  bool add_dt_prefix = false;
 
   grub_dprintf("blscfg", "%s got here\n", __func__);
   clinux = bls_get_val (entry, "linux", NULL);
@@ -735,6 +738,14 @@ static void create_entry (struct bls_entry *entry)
     options = expand_val (grub_env_get("default_kernelopts"));
 
   initrds = bls_make_list (entry, "initrd", NULL);
+
+  devicetree = expand_val (bls_get_val (entry, "devicetree", NULL));
+
+  if (!devicetree)
+    {
+      devicetree = expand_val (grub_env_get("devicetree"));
+      add_dt_prefix = true;
+    }
 
   hotkey = bls_get_val (entry, "grub_hotkey", NULL);
   users = expand_val (bls_get_val (entry, "grub_users", NULL));
@@ -801,7 +812,6 @@ static void create_entry (struct bls_entry *entry)
 	  goto finish;
 	}
 
-
       tmp = grub_stpcpy(initrd, "initrd");
       for (i = 0; early_initrds != NULL && early_initrds[i] != NULL; i++)
 	{
@@ -821,21 +831,65 @@ static void create_entry (struct bls_entry *entry)
       tmp = grub_stpcpy (tmp, "\n");
     }
 
+  if (devicetree)
+    {
+      char *prefix = NULL;
+      int dt_size;
+
+      if (add_dt_prefix)
+	{
+	  prefix = grub_strrchr (clinux, '/');
+	  prefix = grub_strndup(clinux, prefix - clinux + 1);
+	  if (!prefix)
+	    {
+	      grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+	      goto finish;
+	    }
+	}
+
+      dt_size = sizeof("devicetree " GRUB_BOOT_DEVICE) + grub_strlen(devicetree) + 1;
+
+      if (add_dt_prefix)
+	{
+	  dt_size += grub_strlen(prefix);
+	}
+
+      dt = grub_malloc (dt_size);
+      if (!dt)
+        {
+          grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+        goto finish;
+        }
+      char *tmp = dt;
+      tmp = grub_stpcpy (dt, "devicetree");
+      tmp = grub_stpcpy (tmp, " " GRUB_BOOT_DEVICE);
+      if (add_dt_prefix)
+        tmp = grub_stpcpy (tmp, prefix);
+      tmp = grub_stpcpy (tmp, devicetree);
+      tmp = grub_stpcpy (tmp, "\n");
+
+      grub_free(prefix);
+    }
+
+  grub_dprintf ("blscfg2", "devicetree %s for id:\"%s\"\n", dt, id);
+
   src = grub_xasprintf ("load_video\n"
 			"set gfxpayload=keep\n"
 			"insmod gzio\n"
 			"linux %s%s%s%s\n"
-			"%s",
+			"%s%s",
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
-			initrd ? initrd : "");
+			initrd ? initrd : "", dt ? dt : "");
 
   grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index, entry);
   grub_dprintf ("blscfg", "Added entry %d id:\"%s\"\n", index, id);
 
 finish:
+  grub_free (dt);
   grub_free (initrd);
   grub_free (initrd_prefix);
   grub_free (early_initrds);
+  grub_free (devicetree);
   grub_free (initrds);
   grub_free (options);
   grub_free (classes);
