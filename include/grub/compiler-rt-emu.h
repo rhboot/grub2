@@ -74,6 +74,11 @@ unsigned
 EXPORT_FUNC (__ctzsi2) (grub_uint32_t x);
 #endif
 
+#ifdef HAVE___CLZDI2
+int
+EXPORT_FUNC (__clzdi2) (grub_uint64_t x);
+#endif
+
 #ifdef HAVE___AEABI_UIDIV
 grub_uint32_t
 EXPORT_FUNC (__aeabi_uidiv) (grub_uint32_t a, grub_uint32_t b);
