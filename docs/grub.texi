@@ -1495,7 +1495,7 @@ Normally, @command{grub-mkconfig} will generate top level menu entry for
 the kernel with highest version number and put all other found kernels
 or alternative menu entries for recovery mode in submenu. For entries returned
 by @command{os-prober} first entry will be put on top level and all others
-in submenu. If this option is set to @samp{y}, flat menu with all entries
+in submenu. If this option is set to @samp{true}, flat menu with all entries
 on top level will be generated instead. Changing this option will require
 changing existing values of @samp{GRUB_DEFAULT}, @samp{fallback} (@pxref{fallback})
 and @samp{default} (@pxref{default}) environment variables as well as saved

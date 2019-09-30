@@ -234,7 +234,15 @@ EOF
 	  prepare_boot_cache="$(prepare_grub_to_access_device ${LBOOT} | grub_add_tab)"
 	fi
 
-	if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xy ]; then
+	# The GRUB_DISABLE_SUBMENU option used to be different than others since it was
+	# mentioned in the documentation that has to be set to 'y' instead of 'true' to
+	# enable it. This caused a lot of confusion to users that set the option to 'y',
+	# 'yes' or 'true'. This was fixed but all of these values must be supported now.
+	if [ "x${GRUB_DISABLE_SUBMENU}" = xyes ] || [ "x${GRUB_DISABLE_SUBMENU}" = xy ]; then
+	    GRUB_DISABLE_SUBMENU="true"
+	fi
+
+	if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xtrue ]; then
             cat << EOF
 menuentry '$(echo "$OS $onstr" | grub_quote)' $CLASS --class gnu-linux --class gnu --class os \$menuentry_id_option 'osprober-gnulinux-simple-$boot_device_id' {
 EOF

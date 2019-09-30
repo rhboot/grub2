@@ -157,7 +157,15 @@ for k in /netbsd $(ls -t /netbsd?* 2>/dev/null) ; do
 
   gettext_printf "Found NetBSD kernel: %s\n" "$k" >&2
 
-  if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xy ]; then
+  # The GRUB_DISABLE_SUBMENU option used to be different than others since it was
+  # mentioned in the documentation that has to be set to 'y' instead of 'true' to
+  # enable it. This caused a lot of confusion to users that set the option to 'y',
+  # 'yes' or 'true'. This was fixed but all of these values must be supported now.
+  if [ "x${GRUB_DISABLE_SUBMENU}" = xyes ] || [ "x${GRUB_DISABLE_SUBMENU}" = xy ]; then
+    GRUB_DISABLE_SUBMENU="true"
+  fi
+
+  if [ "x$is_top_level" = xtrue ] && [ "x${GRUB_DISABLE_SUBMENU}" != xtrue ]; then
       netbsd_entry "knetbsd"   "$k" simple "${GRUB_CMDLINE_NETBSD_DEFAULT}"
     submenu_indentation="$grub_tab"
     
