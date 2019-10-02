@@ -234,7 +234,7 @@ grub_at_keyboard_getkey (struct grub_term_input *term __attribute__ ((unused)))
     return GRUB_TERM_NO_KEY;
 
   if (! KEYBOARD_ISREADY (grub_inb (KEYBOARD_REG_STATUS)))
-    return -1;
+    return GRUB_TERM_NO_KEY;
   at_key = grub_inb (KEYBOARD_REG_DATA);
   old_led = ps2_state.led_status;
 
