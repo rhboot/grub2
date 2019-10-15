@@ -118,7 +118,7 @@ if [ "x${GRUB_ENABLE_BLSCFG}" = "xtrue" ]; then
   populate_header_warn
 
   cat << EOF
-set default_kernelopts="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX}"
+set default_kernelopts="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 
 insmod blscfg
 blscfg
@@ -134,7 +134,7 @@ EOF
           fi
       fi
 
-      ${grub_editenv} - set kernelopts="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX}"
+      ${grub_editenv} - set kernelopts="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
       if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
           ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
       fi
