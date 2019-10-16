@@ -822,7 +822,7 @@ static void create_entry (struct bls_entry *entry)
     }
 
   src = grub_xasprintf ("load_video\n"
-			"set gfx_payload=keep\n"
+			"set gfxpayload=keep\n"
 			"insmod gzio\n"
 			"linux %s%s%s%s\n"
 			"%s",
