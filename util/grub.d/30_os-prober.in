@@ -30,7 +30,7 @@ if [ "x${GRUB_DISABLE_OS_PROBER}" = "xtrue" ]; then
   exit 0
 fi
 
-if [ -z "`which os-prober 2> /dev/null`" ] || [ -z "`which linux-boot-prober 2> /dev/null`" ] ; then
+if ! command -v os-prober > /dev/null || ! command -v linux-boot-prober > /dev/null ; then
   # missing os-prober and/or linux-boot-prober
   exit 0
 fi

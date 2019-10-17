@@ -34,7 +34,7 @@ if test "x$grub_mkrelpath" = x; then
   grub_mkrelpath="${bindir}/@grub_mkrelpath@"
 fi
 
-if which gettext >/dev/null 2>/dev/null; then
+if command -v gettext >/dev/null; then
   :
 else
   gettext () {
