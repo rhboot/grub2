@@ -158,6 +158,15 @@ if test -f ${sysconfdir}/default/grub ; then
   . ${sysconfdir}/default/grub
 fi
 
+if [ "x${GRUB_DISABLE_UUID}" = "xtrue" ]; then
+  if [ -z "${GRUB_DISABLE_LINUX_UUID}" ]; then
+    GRUB_DISABLE_LINUX_UUID="true"
+  fi
+  if [ -z "${GRUB_DISABLE_LINUX_PARTUUID}" ]; then
+    GRUB_DISABLE_LINUX_PARTUUID="true"
+  fi
+fi
+
 # XXX: should this be deprecated at some point?
 if [ "x${GRUB_TERMINAL}" != "x" ] ; then
   GRUB_TERMINAL_INPUT="${GRUB_TERMINAL}"
@@ -224,6 +233,7 @@ export GRUB_DEFAULT \
   GRUB_TERMINAL_INPUT \
   GRUB_TERMINAL_OUTPUT \
   GRUB_SERIAL_COMMAND \
+  GRUB_DISABLE_UUID \
   GRUB_DISABLE_LINUX_UUID \
   GRUB_DISABLE_LINUX_PARTUUID \
   GRUB_DISABLE_RECOVERY \
