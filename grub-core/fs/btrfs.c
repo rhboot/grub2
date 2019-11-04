@@ -136,6 +136,8 @@ struct grub_btrfs_chunk_item
 #define GRUB_BTRFS_CHUNK_TYPE_RAID10        0x40
 #define GRUB_BTRFS_CHUNK_TYPE_RAID5         0x80
 #define GRUB_BTRFS_CHUNK_TYPE_RAID6         0x100
+#define GRUB_BTRFS_CHUNK_TYPE_RAID1C3       0x200
+#define GRUB_BTRFS_CHUNK_TYPE_RAID1C4       0x400
   grub_uint8_t dummy2[0xc];
   grub_uint16_t nstripes;
   grub_uint16_t nsubstripes;
@@ -964,14 +966,19 @@ grub_btrfs_read_logical (struct grub_btrfs_data *data, grub_disk_addr_t addr,
 	      csize = (stripen + 1) * stripe_length - off;
 	      break;
 	    }
+	  case GRUB_BTRFS_CHUNK_TYPE_RAID1C4:
+	    redundancy++;
+	    /* fall through */
+	  case GRUB_BTRFS_CHUNK_TYPE_RAID1C3:
+	    redundancy++;
+	    /* fall through */
 	  case GRUB_BTRFS_CHUNK_TYPE_DUPLICATED:
 	  case GRUB_BTRFS_CHUNK_TYPE_RAID1:
 	    {
-	      grub_dprintf ("btrfs", "RAID1\n");
+	      grub_dprintf ("btrfs", "RAID1 (copies: %d)\n", ++redundancy);
 	      stripen = 0;
 	      stripe_offset = off;
 	      csize = grub_le_to_cpu64 (chunk->size) - off;
-	      redundancy = 2;
 	      break;
 	    }
 	  case GRUB_BTRFS_CHUNK_TYPE_RAID0:
