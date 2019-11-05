@@ -164,6 +164,9 @@ grub_util_fd_open (const char *os_dev, int flags)
 #ifdef O_BINARY
   flags |= O_BINARY;
 #endif
+#ifdef O_CLOEXEC
+  flags |= O_CLOEXEC;
+#endif
 
   return open (os_dev, flags, S_IROTH | S_IRGRP | S_IRUSR | S_IWUSR);
 }
