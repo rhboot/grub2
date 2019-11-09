@@ -29,6 +29,7 @@
 
 	.file 	"startup.S"
 	.text
+FUNCTION(start)
 FUNCTION(_start)
 	/*
 	 *  EFI_SYSTEM_TABLE and EFI_HANDLE are passed in a1/a0.
