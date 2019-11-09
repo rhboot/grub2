@@ -333,6 +333,10 @@ static const grub_uint16_t machine_type __attribute__((__unused__)) =
   GRUB_PE32_MACHINE_I386;
 #elif defined(__ia64__)
   GRUB_PE32_MACHINE_IA64;
+#elif defined(__riscv) && (__riscv_xlen == 32)
+  GRUB_PE32_MACHINE_RISCV32;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+  GRUB_PE32_MACHINE_RISCV64;
 #else
 #error this architecture is not supported by grub2
 #endif
