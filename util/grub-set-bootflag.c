@@ -18,7 +18,7 @@
  */
 
 /*
- * NOTE this gets run by users as root (through pkexec), so this does not
+ * NOTE this gets run by users as root (its suid root), so this does not
  * use any grub library / util functions to allow for easy auditing.
  * The grub headers are only included to get certain defines.
  */
