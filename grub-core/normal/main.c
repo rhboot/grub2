@@ -216,7 +216,8 @@ grub_normal_init_page (struct grub_term_output *term,
   grub_uint32_t *unicode_msg;
   grub_uint32_t *last_position;
 
-  grub_term_cls (term);
+  if (! grub_debug_is_enabled ())
+    grub_term_cls (term);
 
   msg_formatted = grub_xasprintf (_("GRUB version %s"), PACKAGE_VERSION);
   if (!msg_formatted)
