@@ -12,6 +12,7 @@
 /* Define to 1 to enable disk cache statistics.  */
 #define DISK_CACHE_STATS @DISK_CACHE_STATS@
 #define BOOT_TIME_STATS @BOOT_TIME_STATS@
+#define DEBUG_WITH_TIMESTAMPS @DEBUG_WITH_TIMESTAMPS@
 
 /* We don't need those.  */
 #define MINILZO_CFG_SKIP_LZO_PTR 1
