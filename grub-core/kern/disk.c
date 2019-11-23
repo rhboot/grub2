@@ -285,6 +285,8 @@ grub_disk_open (const char *name)
       return 0;
     }
 
+  grub_dprintf ("disk", "Opening `%s' succeeded.\n", name);
+
   return disk;
 }
 
@@ -292,7 +294,7 @@ void
 grub_disk_close (grub_disk_t disk)
 {
   grub_partition_t part;
-  grub_dprintf ("disk", "Closing `%s'.\n", disk->name);
+  grub_dprintf ("disk", "Closing `%s'...\n", disk->name);
 
   if (disk->dev && disk->dev->disk_close)
     (disk->dev->disk_close) (disk);
@@ -306,8 +308,10 @@ grub_disk_close (grub_disk_t disk)
       grub_free (disk->partition);
       disk->partition = part;
     }
+  grub_dprintf ("disk", "Closing `%s' succeeded.\n", disk->name);
   grub_free ((void *) disk->name);
   grub_free (disk);
+
 }
 
 /* Small read (less than cache size and not pass across cache unit boundaries).
