@@ -204,7 +204,8 @@ void
 grub_normal_init_page (struct grub_term_output *term,
 		       int y __attribute__((__unused__)))
 {
-  grub_term_cls (term);
+  if (! grub_debug_is_enabled ())
+    grub_term_cls (term);
 
 #if 0
   grub_ssize_t msg_len;
