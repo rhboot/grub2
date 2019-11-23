@@ -25,6 +25,9 @@
 #include <grub/env.h>
 #include <grub/i18n.h>
 #include <grub/backtrace.h>
+#if DEBUG_WITH_TIMESTAMPS
+#include <grub/time.h>
+#endif
 
 union printf_arg
 {
@@ -192,9 +195,26 @@ grub_real_dprintf (const char *file, const int line, const char *condition,
 		   const char *fmt, ...)
 {
   va_list args;
+#if DEBUG_WITH_TIMESTAMPS
+  static long unsigned int last_time = 0;
+  static int last_had_cr = 1;
+#endif
 
   if (grub_debug_enabled (condition))
     {
+#if DEBUG_WITH_TIMESTAMPS
+      /* Don't print timestamp if last printed message isn't terminated yet */
+      if (last_had_cr) {
+        long unsigned int tmabs = (long unsigned int) grub_get_time_ms();
+        long unsigned int tmrel = tmabs - last_time;
+        last_time = tmabs;
+        grub_printf ("%3lu.%03lus +%2lu.%03lus ", tmabs / 1000, tmabs % 1000, tmrel / 1000, tmrel % 1000);
+      }
+      if (fmt[grub_strlen(fmt)-1] == '\n')
+        last_had_cr = 1;
+      else
+        last_had_cr = 0;
+#endif
       grub_printf ("%s:%d: ", file, line);
       va_start (args, fmt);
       grub_vprintf (fmt, args);
