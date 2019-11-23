@@ -1613,6 +1613,17 @@ else
 fi
 AC_SUBST([BOOT_TIME_STATS])
 
+AC_ARG_WITH([debug-timestamps],
+	   AS_HELP_STRING([--with-debug-timestamps],
+                          [prepend debug traces with absolute and relative timestamps]))
+
+if test x$with_debug_timestamps = xyes; then
+  DEBUG_WITH_TIMESTAMPS=1
+else
+  DEBUG_WITH_TIMESTAMPS=0
+fi
+AC_SUBST([DEBUG_WITH_TIMESTAMPS])
+
 AC_ARG_ENABLE([grub-emu-sdl],
 	      [AS_HELP_STRING([--enable-grub-emu-sdl],
                              [build and install the `grub-emu' debugging utility with SDL support (default=guessed)])])
@@ -2194,6 +2205,7 @@ AM_CONDITIONAL([COND_APPLE_LINKER], [test x$TARGET_APPLE_LINKER = x1])
 AM_CONDITIONAL([COND_ENABLE_EFIEMU], [test x$enable_efiemu = xyes])
 AM_CONDITIONAL([COND_ENABLE_CACHE_STATS], [test x$DISK_CACHE_STATS = x1])
 AM_CONDITIONAL([COND_ENABLE_BOOT_TIME_STATS], [test x$BOOT_TIME_STATS = x1])
+AM_CONDITIONAL([COND_DEBUG_WITH_TIMESTAMPS], [test x$DEBUG_WITH_TIMESTAMPS = x1])
 
 AM_CONDITIONAL([COND_HAVE_CXX], [test x$HAVE_CXX = xyes])
 
@@ -2287,6 +2299,12 @@ if [ x"$enable_boot_time" = xyes ]; then
 echo With boot time statistics: Yes
 else
 echo With boot time statistics: No
+fi
+
+if [ x"$with_debug_timestamps" = xyes ]; then
+echo Debug traces with timestamps: Yes
+else
+echo Debug traces with timestamps: No
 fi
 
 if [ x"$efiemu_excuse" = x ]; then
