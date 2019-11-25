@@ -163,6 +163,19 @@ int grub_err_printf (const char *fmt, ...)
 __attribute__ ((alias("grub_printf")));
 #endif
 
+/* Return 1 if 'debug' is set and not empty */
+int
+grub_debug_is_enabled (void)
+{
+  const char *debug;
+
+  debug = grub_env_get ("debug");
+  if (!debug || debug[0] == '\0')
+    return 0;
+
+  return 1;
+}
+
 int
 grub_debug_enabled (const char * condition)
 {
