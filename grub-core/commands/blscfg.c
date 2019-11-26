@@ -597,26 +597,29 @@ static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
 
 static char *field_append(bool is_var, char *buffer, char *start, char *end)
 {
-  char *temp = grub_strndup(start, end - start + 1);
-  const char *field = temp;
+  char *tmp = grub_strndup(start, end - start + 1);
+  const char *field = tmp;
+  int term = is_var ? 2 : 1;
 
   if (is_var) {
-    field = grub_env_get (temp);
+    field = grub_env_get (tmp);
     if (!field)
       return buffer;
   }
 
-  if (!buffer) {
-    buffer = grub_strdup(field);
-    if (!buffer)
-      return NULL;
-  } else {
-    buffer = grub_realloc (buffer, grub_strlen(buffer) + grub_strlen(field));
-    if (!buffer)
-      return NULL;
+  if (!buffer)
+    buffer = grub_zalloc (grub_strlen(field) + term);
+  else
+    buffer = grub_realloc (buffer, grub_strlen(buffer) + grub_strlen(field) + term);
 
-    grub_stpcpy (buffer + grub_strlen(buffer), field);
-  }
+  if (!buffer)
+    return NULL;
+
+  tmp = buffer + grub_strlen(buffer);
+  tmp = grub_stpcpy (tmp, field);
+
+  if (is_var)
+      tmp = grub_stpcpy (tmp, " ");
 
   return buffer;
 }
@@ -646,6 +649,8 @@ static char *expand_val(char *value)
 	buffer = field_append(is_var, buffer, start, end);
 	is_var = false;
 	start = value;
+	if (*start == ' ')
+	  start++;
       }
     }
 
