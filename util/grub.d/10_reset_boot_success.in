@@ -6,18 +6,18 @@
 #
 # The boot_success var needs to be set to 1 from userspace to mark a boot successful.
 cat << EOF
-insmod increment
 # Hiding the menu is ok if last boot was ok or if this is a first boot attempt to boot the entry
 if [ "\${boot_success}" = "1" -o "\${boot_indeterminate}" = "1" ]; then
   set menu_hide_ok=1
 else
   set menu_hide_ok=0 
 fi
-# Reset boot_indeterminate after a successful boot, increment otherwise
+# Reset boot_indeterminate after a successful boot
 if [ "\${boot_success}" = "1" ] ; then
   set boot_indeterminate=0
-else
-  increment boot_indeterminate
+# Avoid boot_indeterminate causing the menu to be hidden more than once
+elif [ "\${boot_indeterminate}" = "1" ]; then
+  set boot_indeterminate=2
 fi
 # Reset boot_success for current boot 
 set boot_success=0
