@@ -66,6 +66,8 @@ grub_file_open (const char *name, enum grub_file_type type)
   const char *file_name;
   grub_file_filter_id_t filter;
 
+  grub_dprintf ("file", "Opening `%s' ...\n", name);
+
   device_name = grub_file_get_device_name (name);
   if (grub_errno)
     goto fail;
@@ -128,6 +130,8 @@ grub_file_open (const char *name, enum grub_file_type type)
   if (!file)
     grub_file_close (last_file);
 
+  grub_dprintf ("file", "Opening `%s' succeeded.\n", name);
+
   return file;
 
  fail:
@@ -137,6 +141,8 @@ grub_file_open (const char *name, enum grub_file_type type)
   /* if (net) grub_net_close (net);  */
 
   grub_free (file);
+
+  grub_dprintf ("file", "Opening `%s' failed.\n", name);
 
   return 0;
 }
@@ -169,6 +175,7 @@ grub_file_read (grub_file_t file, void *buf, grub_size_t len)
 
   if (len == 0)
     return 0;
+
   read_hook = file->read_hook;
   read_hook_data = file->read_hook_data;
   if (!file->read_hook)
@@ -189,11 +196,18 @@ grub_file_read (grub_file_t file, void *buf, grub_size_t len)
 grub_err_t
 grub_file_close (grub_file_t file)
 {
+  grub_dprintf ("file", "Closing `%s' ...\n", file->name);
   if (file->fs->fs_close)
     (file->fs->fs_close) (file);
 
   if (file->device)
     grub_device_close (file->device);
+
+  if (grub_errno == GRUB_ERR_NONE)
+    grub_dprintf ("file", "Closing `%s' succeeded.\n", file->name);
+  else
+    grub_dprintf ("file", "Closing `%s' failed with %d.\n", file->name, grub_errno);
+
   grub_free (file->name);
   grub_free (file);
   return grub_errno;
