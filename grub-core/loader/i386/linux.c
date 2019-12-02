@@ -761,17 +761,12 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
 
   grub_memset (&linux_params, 0, sizeof (linux_params));
-  grub_memcpy (&linux_params.setup_sects, &lh.setup_sects, sizeof (lh) - 0x1F1);
-
-  linux_params.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
-  linux_params.kernel_alignment = (1 << align);
-  linux_params.ps_mouse = linux_params.padding10 =  0;
 
   /*
    * The Linux 32-bit boot protocol defines the setup header end
    * to be at 0x202 + the byte value at 0x201.
    */
-  len = 0x202 + *((char *) &linux_params.jump + 1);
+  len = 0x202 + *((char *) &lh.jump + 1);
 
   /* Verify the struct is big enough so we do not write past the end. */
   if (len > (char *) &linux_params.edd_mbr_sig_buffer - (char *) &linux_params) {
@@ -779,10 +774,13 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
   }
 
+  grub_memcpy (&linux_params.setup_sects, &lh.setup_sects, len - 0x1F1);
+
   /* We've already read lh so there is no need to read it second time. */
   len -= sizeof(lh);
 
-  if (grub_file_read (file, (char *) &linux_params + sizeof (lh), len) != len)
+  if ((len > 0) &&
+      (grub_file_read (file, (char *) &linux_params + sizeof (lh), len) != len))
     {
       if (!grub_errno)
 	grub_error (GRUB_ERR_BAD_OS, N_("premature end of file %s"),
@@ -790,6 +788,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
+  linux_params.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
+  linux_params.kernel_alignment = (1 << align);
+  linux_params.ps_mouse = linux_params.padding10 = 0;
   linux_params.type_of_loader = GRUB_LINUX_BOOT_LOADER_TYPE;
 
   /* These two are used (instead of cmd_line_ptr) by older versions of Linux,
