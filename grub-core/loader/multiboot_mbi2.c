@@ -48,6 +48,12 @@
 #define HAS_VGA_TEXT 0
 #endif
 
+#if defined (__i386__) || defined (__x86_64__)
+#define MBI_MIN_ADDR 0x1000
+#else
+#define MBI_MIN_ADDR 0
+#endif
+
 struct module
 {
   struct module *next;
@@ -708,7 +714,7 @@ grub_multiboot2_make_mbi (grub_uint32_t *target)
   COMPILE_TIME_ASSERT (MULTIBOOT_TAG_ALIGN % sizeof (grub_properly_aligned_t) == 0);
 
   err = grub_relocator_alloc_chunk_align (grub_multiboot2_relocator, &ch,
-					  0, 0xffffffff - bufsize,
+					  MBI_MIN_ADDR, 0xffffffff - bufsize,
 					  bufsize, MULTIBOOT_TAG_ALIGN,
 					  GRUB_RELOCATOR_PREFERENCE_NONE, 1);
   if (err)
