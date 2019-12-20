@@ -38,15 +38,21 @@ VARIABLE(grub_relocator16_start)
 #ifdef __APPLE__
 	LOCAL(cs_base_bytes12_offset) = LOCAL (cs_base_bytes12) - LOCAL (base)
 	LOCAL(cs_base_byte3_offset) = LOCAL (cs_base_byte3) - LOCAL (base)
+	LOCAL(ds_base_bytes12_offset) = LOCAL (ds_base_bytes12) - LOCAL (base)
+	LOCAL(ds_base_byte3_offset) = LOCAL (ds_base_byte3) - LOCAL (base)
 	movl 	%esi, %eax
 	movw	%ax, (LOCAL(cs_base_bytes12_offset)) (RSI, 1)
+	movw	%ax, (LOCAL(ds_base_bytes12_offset)) (RSI, 1)
 	shrl	$16, %eax
 	movb	%al, (LOCAL (cs_base_byte3_offset)) (RSI, 1)
+	movb	%al, (LOCAL (ds_base_byte3_offset)) (RSI, 1)
 #else
 	movl 	%esi, %eax
 	movw	%ax, (LOCAL (cs_base_bytes12) - LOCAL (base)) (RSI, 1)
+	movw	%ax, (LOCAL (ds_base_bytes12) - LOCAL (base)) (RSI, 1)
 	shrl	$16, %eax
 	movb	%al, (LOCAL (cs_base_byte3) - LOCAL (base)) (RSI, 1)
+	movb	%al, (LOCAL (ds_base_byte3) - LOCAL (base)) (RSI, 1)
 #endif
 
 	RELOAD_GDT
@@ -88,15 +94,15 @@ VARIABLE(grub_relocator16_start)
 	LOCAL(segment_offset) = LOCAL (segment) - LOCAL (base)
 	LOCAL(idt_offset) = LOCAL(relocator16_idt) - LOCAL (base)
 	LOCAL(cont2_offset) = LOCAL (cont2) - LOCAL(base)
-	movw	%ax, LOCAL(segment_offset) (%esi, 1)
-	lidt LOCAL(idt_offset) (%esi, 1)
+	movw	%ax, (LOCAL(segment_offset))
+	lidt (LOCAL(idt_offset))
 	
 	/* jump to a 16 bit segment */
 	ljmp	$PSEUDO_REAL_CSEG, $(LOCAL(cont2_offset))
 #else
-	movw	%ax, (LOCAL (segment) - LOCAL (base)) (%esi, 1)
+	movw	%ax, (LOCAL (segment) - LOCAL (base))
 
-	lidt (EXT_C(grub_relocator16_idt) - LOCAL (base)) (%esi, 1)
+	lidt (EXT_C(grub_relocator16_idt) - LOCAL (base))
 	
 	/* jump to a 16 bit segment */
 	ljmp	$PSEUDO_REAL_CSEG, $(LOCAL (cont2) - LOCAL(base))
@@ -311,11 +317,17 @@ LOCAL(cs_base_byte3):
 	.byte	0x9E, 0, 0
 
 	/* -- 16 bit real mode DS --
-	 * base = 0x00000000, limit 0x0FFFF (1 B Granularity), present
+	 * base = filled by code, limit 0x0FFFF (1 B Granularity), present
 	 * type = 16 bit data read/write, DPL = 0
 	 */
-	.word	0xFFFF, 0
-	.byte	0, 0x92, 0, 0
+	.word	0xFFFF
+LOCAL(ds_base_bytes12):
+	.word	0
+LOCAL(ds_base_byte3):
+	.byte	0
+
+	.byte	0x92, 0, 0
+
 LOCAL(gdt_end):
 
 #ifdef __APPLE__
