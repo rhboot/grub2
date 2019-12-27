@@ -130,6 +130,9 @@ grub_cryptodisk_dev_unregister (grub_cryptodisk_dev_t cr)
 
 #define FOR_CRYPTODISK_DEVS(var) FOR_LIST_ELEMENTS((var), (grub_cryptodisk_list))
 
+grub_err_t
+grub_cryptodisk_setcipher (grub_cryptodisk_t crypt, const char *ciphername, const char *ciphermode);
+
 gcry_err_code_t
 grub_cryptodisk_setkey (grub_cryptodisk_t dev,
 			grub_uint8_t *key, grub_size_t keysize);

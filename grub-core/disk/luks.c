@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2003,2007,2010,2011  Free Software Foundation, Inc.
+ *  Copyright (C) 2003,2007,2010,2011,2019  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,15 +75,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   char uuid[sizeof (header.uuid) + 1];
   char ciphername[sizeof (header.cipherName) + 1];
   char ciphermode[sizeof (header.cipherMode) + 1];
-  char *cipheriv = NULL;
   char hashspec[sizeof (header.hashSpec) + 1];
-  grub_crypto_cipher_handle_t cipher = NULL, secondary_cipher = NULL;
-  grub_crypto_cipher_handle_t essiv_cipher = NULL;
-  const gcry_md_spec_t *hash = NULL, *essiv_hash = NULL;
-  const struct gcry_cipher_spec *ciph;
-  grub_cryptodisk_mode_t mode;
-  grub_cryptodisk_mode_iv_t mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN64;
-  int benbi_log = 0;
   grub_err_t err;
 
   if (check_boot)
@@ -126,183 +118,33 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   grub_memcpy (hashspec, header.hashSpec, sizeof (header.hashSpec));
   hashspec[sizeof (header.hashSpec)] = 0;
 
-  ciph = grub_crypto_lookup_cipher_by_name (ciphername);
-  if (!ciph)
-    {
-      grub_error (GRUB_ERR_FILE_NOT_FOUND, "Cipher %s isn't available",
-		  ciphername);
+  newdev = grub_zalloc (sizeof (struct grub_cryptodisk));
+  if (!newdev)
       return NULL;
-    }
-
-  /* Configure the cipher used for the bulk data.  */
-  cipher = grub_crypto_cipher_open (ciph);
-  if (!cipher)
-    return NULL;
-
-  if (grub_be_to_cpu32 (header.keyBytes) > 1024)
-    {
-      grub_error (GRUB_ERR_BAD_ARGUMENT, "invalid keysize %d",
-		  grub_be_to_cpu32 (header.keyBytes));
-      grub_crypto_cipher_close (cipher);
-      return NULL;
-    }
-
-  /* Configure the cipher mode.  */
-  if (grub_strcmp (ciphermode, "ecb") == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_ECB;
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN;
-      cipheriv = NULL;
-    }
-  else if (grub_strcmp (ciphermode, "plain") == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_CBC;
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN;
-      cipheriv = NULL;
-    }
-  else if (grub_memcmp (ciphermode, "cbc-", sizeof ("cbc-") - 1) == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_CBC;
-      cipheriv = ciphermode + sizeof ("cbc-") - 1;
-    }
-  else if (grub_memcmp (ciphermode, "pcbc-", sizeof ("pcbc-") - 1) == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_PCBC;
-      cipheriv = ciphermode + sizeof ("pcbc-") - 1;
-    }
-  else if (grub_memcmp (ciphermode, "xts-", sizeof ("xts-") - 1) == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_XTS;
-      cipheriv = ciphermode + sizeof ("xts-") - 1;
-      secondary_cipher = grub_crypto_cipher_open (ciph);
-      if (!secondary_cipher)
-	{
-	  grub_crypto_cipher_close (cipher);
-	  return NULL;
-	}
-      if (cipher->cipher->blocksize != GRUB_CRYPTODISK_GF_BYTES)
-	{
-	  grub_error (GRUB_ERR_BAD_ARGUMENT, "Unsupported XTS block size: %d",
-		      cipher->cipher->blocksize);
-	  grub_crypto_cipher_close (cipher);
-	  grub_crypto_cipher_close (secondary_cipher);
-	  return NULL;
-	}
-      if (secondary_cipher->cipher->blocksize != GRUB_CRYPTODISK_GF_BYTES)
-	{
-	  grub_crypto_cipher_close (cipher);
-	  grub_error (GRUB_ERR_BAD_ARGUMENT, "Unsupported XTS block size: %d",
-		      secondary_cipher->cipher->blocksize);
-	  grub_crypto_cipher_close (secondary_cipher);
-	  return NULL;
-	}
-    }
-  else if (grub_memcmp (ciphermode, "lrw-", sizeof ("lrw-") - 1) == 0)
-    {
-      mode = GRUB_CRYPTODISK_MODE_LRW;
-      cipheriv = ciphermode + sizeof ("lrw-") - 1;
-      if (cipher->cipher->blocksize != GRUB_CRYPTODISK_GF_BYTES)
-	{
-	  grub_error (GRUB_ERR_BAD_ARGUMENT, "Unsupported LRW block size: %d",
-		      cipher->cipher->blocksize);
-	  grub_crypto_cipher_close (cipher);
-	  return NULL;
-	}
-    }
-  else
-    {
-      grub_crypto_cipher_close (cipher);
-      grub_error (GRUB_ERR_BAD_ARGUMENT, "Unknown cipher mode: %s",
-		  ciphermode);
-      return NULL;
-    }
-
-  if (cipheriv == NULL);
-  else if (grub_memcmp (cipheriv, "plain", sizeof ("plain") - 1) == 0)
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN;
-  else if (grub_memcmp (cipheriv, "plain64", sizeof ("plain64") - 1) == 0)
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN64;
-  else if (grub_memcmp (cipheriv, "benbi", sizeof ("benbi") - 1) == 0)
-    {
-      if (cipher->cipher->blocksize & (cipher->cipher->blocksize - 1)
-	  || cipher->cipher->blocksize == 0)
-	grub_error (GRUB_ERR_BAD_ARGUMENT, "Unsupported benbi blocksize: %d",
-		    cipher->cipher->blocksize);
-	/* FIXME should we return an error here? */
-      for (benbi_log = 0; 
-	   (cipher->cipher->blocksize << benbi_log) < GRUB_DISK_SECTOR_SIZE;
-	   benbi_log++);
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_BENBI;
-    }
-  else if (grub_memcmp (cipheriv, "null", sizeof ("null") - 1) == 0)
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_NULL;
-  else if (grub_memcmp (cipheriv, "essiv:", sizeof ("essiv:") - 1) == 0)
-    {
-      char *hash_str = cipheriv + 6;
-
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_ESSIV;
-
-      /* Configure the hash and cipher used for ESSIV.  */
-      essiv_hash = grub_crypto_lookup_md_by_name (hash_str);
-      if (!essiv_hash)
-	{
-	  grub_crypto_cipher_close (cipher);
-	  grub_crypto_cipher_close (secondary_cipher);
-	  grub_error (GRUB_ERR_FILE_NOT_FOUND,
-		      "Couldn't load %s hash", hash_str);
-	  return NULL;
-	}
-      essiv_cipher = grub_crypto_cipher_open (ciph);
-      if (!essiv_cipher)
-	{
-	  grub_crypto_cipher_close (cipher);
-	  grub_crypto_cipher_close (secondary_cipher);
-	  return NULL;
-	}
-    }
-  else
-    {
-      grub_crypto_cipher_close (cipher);
-      grub_crypto_cipher_close (secondary_cipher);
-      grub_error (GRUB_ERR_BAD_ARGUMENT, "Unknown IV mode: %s",
-		  cipheriv);
-      return NULL;
-    }
+  newdev->offset = grub_be_to_cpu32 (header.payloadOffset);
+  newdev->source_disk = NULL;
+  newdev->log_sector_size = 9;
+  newdev->total_length = grub_disk_get_size (disk) - newdev->offset;
+  grub_memcpy (newdev->uuid, uuid, sizeof (newdev->uuid));
+  newdev->modname = "luks";
 
   /* Configure the hash used for the AF splitter and HMAC.  */
-  hash = grub_crypto_lookup_md_by_name (hashspec);
-  if (!hash)
+  newdev->hash = grub_crypto_lookup_md_by_name (hashspec);
+  if (!newdev->hash)
     {
-      grub_crypto_cipher_close (cipher);
-      grub_crypto_cipher_close (essiv_cipher);
-      grub_crypto_cipher_close (secondary_cipher);
+      grub_free (newdev);
       grub_error (GRUB_ERR_FILE_NOT_FOUND, "Couldn't load %s hash",
 		  hashspec);
       return NULL;
     }
 
-  newdev = grub_zalloc (sizeof (struct grub_cryptodisk));
-  if (!newdev)
+  err = grub_cryptodisk_setcipher (newdev, ciphername, ciphermode);
+  if (err)
     {
-      grub_crypto_cipher_close (cipher);
-      grub_crypto_cipher_close (essiv_cipher);
-      grub_crypto_cipher_close (secondary_cipher);
+      grub_free (newdev);
       return NULL;
     }
-  newdev->cipher = cipher;
-  newdev->offset = grub_be_to_cpu32 (header.payloadOffset);
-  newdev->source_disk = NULL;
-  newdev->benbi_log = benbi_log;
-  newdev->mode = mode;
-  newdev->mode_iv = mode_iv;
-  newdev->secondary_cipher = secondary_cipher;
-  newdev->essiv_cipher = essiv_cipher;
-  newdev->essiv_hash = essiv_hash;
-  newdev->hash = hash;
-  newdev->log_sector_size = 9;
-  newdev->total_length = grub_disk_get_size (disk) - newdev->offset;
-  grub_memcpy (newdev->uuid, uuid, sizeof (newdev->uuid));
-  newdev->modname = "luks";
+
   COMPILE_TIME_ASSERT (sizeof (newdev->uuid) >= sizeof (uuid));
   return newdev;
 }
