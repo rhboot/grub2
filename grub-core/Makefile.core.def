@@ -1177,6 +1177,11 @@ module = {
 };
 
 module = {
+  name = json;
+  common = lib/json/json.c;
+};
+
+module = {
   name = luks;
   common = disk/luks.c;
   common = disk/AFSplitter.c;

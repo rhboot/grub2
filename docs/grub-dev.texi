@@ -490,6 +490,7 @@ to update it.
 
 @menu
 * Gnulib::
+* jsmn::
 @end menu
 
 @node Gnulib
@@ -543,6 +544,19 @@ AC_SYS_LARGEFILE
 
 # Identify characteristics of the host architecture.
 
+@end example
+
+@node jsmn
+@section jsmn
+
+jsmn is a minimalistic JSON parser which is implemented in a single header file
+@file{jsmn.h}. To import a different version of the jsmn parser, you may simply
+download the @file{jsmn.h} header from the desired tag or commit to the target
+directory:
+
+@example
+curl -L https://raw.githubusercontent.com/zserge/jsmn/v1.1.0/jsmn.h \
+    -o grub-core/lib/json/jsmn.h
 @end example
 
 @node Porting
