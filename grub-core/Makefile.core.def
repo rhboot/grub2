@@ -1182,9 +1182,13 @@ module = {
 };
 
 module = {
+  name = afsplitter;
+  common = disk/AFSplitter.c;
+};
+
+module = {
   name = luks;
   common = disk/luks.c;
-  common = disk/AFSplitter.c;
 };
 
 module = {

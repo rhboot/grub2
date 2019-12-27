@@ -21,8 +21,11 @@
  */
 
 #include <grub/crypto.h>
+#include <grub/dl.h>
 #include <grub/mm.h>
 #include <grub/misc.h>
+
+GRUB_MOD_LICENSE ("GPLv2+");
 
 gcry_err_code_t AF_merge (const gcry_md_spec_t * hash, grub_uint8_t * src,
 			  grub_uint8_t * dst, grub_size_t blocksize,
