@@ -1192,6 +1192,14 @@ module = {
 };
 
 module = {
+  name = luks2;
+  common = disk/luks2.c;
+  common = lib/gnulib/base64.c;
+  cflags = '$(CFLAGS_POSIX) $(CFLAGS_GNULIB)';
+  cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB) -I$(srcdir)/lib/json';
+};
+
+module = {
   name = geli;
   common = disk/geli.c;
 };

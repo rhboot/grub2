@@ -3,7 +3,7 @@ AutoGen definitions Makefile.tpl;
 library = {
   name = libgrubkern.a;
   cflags = '$(CFLAGS_GNULIB)';
-  cppflags = '$(CPPFLAGS_GNULIB)';
+  cppflags = '$(CPPFLAGS_GNULIB) -I$(srcdir)/grub-core/lib/json';
 
   common = util/misc.c;
   common = grub-core/kern/command.c;
@@ -36,7 +36,9 @@ library = {
   common = grub-core/kern/misc.c;
   common = grub-core/kern/partition.c;
   common = grub-core/lib/crypto.c;
+  common = grub-core/lib/json/json.c;
   common = grub-core/disk/luks.c;
+  common = grub-core/disk/luks2.c;
   common = grub-core/disk/geli.c;
   common = grub-core/disk/cryptodisk.c;
   common = grub-core/disk/AFSplitter.c;

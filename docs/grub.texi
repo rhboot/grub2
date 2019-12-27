@@ -4211,8 +4211,9 @@ is requested interactively. Option @var{device} configures specific grub device
 with specified @var{uuid}; option @option{-a} configures all detected encrypted
 devices; option @option{-b} configures all geli containers that have boot flag set.
 
-GRUB suports devices encrypted using LUKS and geli. Note that necessary modules (@var{luks} and @var{geli}) have to be loaded manually before this command can
-be used.
+GRUB suports devices encrypted using LUKS, LUKS2 and geli. Note that necessary
+modules (@var{luks}, @var{luks2} and @var{geli}) have to be loaded manually
+before this command can be used.
 @end deffn
 
 
