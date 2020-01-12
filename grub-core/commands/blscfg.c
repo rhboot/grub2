@@ -821,11 +821,14 @@ static void create_entry (struct bls_entry *entry)
       tmp = grub_stpcpy (tmp, "\n");
     }
 
-  src = grub_xasprintf ("load_video\n"
+  const char *sdval = grub_env_get("save_default");
+  bool savedefault = ((NULL != sdval) && (grub_strcmp(sdval, "true") == 0));
+  src = grub_xasprintf ("%sload_video\n"
 			"set gfxpayload=keep\n"
 			"insmod gzio\n"
 			"linux %s%s%s%s\n"
 			"%s",
+			savedefault ? "savedefault\n" : "",
 			GRUB_BOOT_DEVICE, clinux, options ? " " : "", options ? options : "",
 			initrd ? initrd : "");
 
