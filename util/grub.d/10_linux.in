@@ -158,7 +158,7 @@ linux_entry ()
     populate_header_warn
 
     cat << EOF
-set default_kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+set default_kernelopts="root=${linux_root_device_thisversion} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 
 insmod blscfg
 blscfg
@@ -174,7 +174,7 @@ EOF
             fi
         fi
 
-	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+	${grub_editenv} - set kernelopts="root=${linux_root_device_thisversion} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 	if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
 	    ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
 	fi
