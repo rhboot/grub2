@@ -178,6 +178,10 @@ EOF
 	if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
 	    ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
 	fi
+
+	if [ -n "${GRUB_SAVEDEFAULT}" ]; then
+	    ${grub_editenv} - set save_default="${GRUB_SAVEDEFAULT}"
+	fi
     fi
 
     exit 0
