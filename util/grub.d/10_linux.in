@@ -152,6 +152,10 @@ EOF
       if [ -n "${GRUB_DEFAULT_DTB}" ]; then
           ${grub_editenv} - set devicetree="${GRUB_DEFAULT_DTB}"
       fi
+
+      if [ -n "${GRUB_SAVEDEFAULT}" ]; then
+           ${grub_editenv} - set save_default="${GRUB_SAVEDEFAULT}"
+      fi
   fi
 
   exit 0
