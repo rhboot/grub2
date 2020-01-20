@@ -491,6 +491,7 @@ to update it.
 @menu
 * Gnulib::
 * jsmn::
+* minilzo::
 @end menu
 
 @node Gnulib
@@ -557,6 +558,25 @@ directory:
 @example
 curl -L https://raw.githubusercontent.com/zserge/jsmn/v1.1.0/jsmn.h \
     -o grub-core/lib/json/jsmn.h
+@end example
+
+@node minilzo
+@section minilzo
+
+miniLZO is a very lightweight subset of the LZO library intended for easy
+inclusion in other projects. It is generated automatically from the LZO
+source code and contains the most important LZO functions.
+
+To upgrade to a new version of the miniLZO library, download the release
+tarball and copy the files into the target directory:
+
+@example
+curl -L -O http://www.oberhumer.com/opensource/lzo/download/minilzo-2.08.tar.gz
+tar -zxf minilzo-2.08.tar.gz
+rm minilzo-2.08/testmini.c
+rm -r grub-core/lib/minilzo/*
+cp minilzo-2.08/*.[hc] grub-core/lib/minilzo
+rm -r minilzo-2.08*
 @end example
 
 @node Porting
