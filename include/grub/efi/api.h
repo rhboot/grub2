@@ -642,6 +642,23 @@ typedef grub_uint16_t grub_efi_ipv6_address_t[8];
 typedef grub_uint8_t grub_efi_ip_address_t[8] __attribute__ ((aligned(4)));
 typedef grub_efi_uint64_t grub_efi_physical_address_t;
 typedef grub_efi_uint64_t grub_efi_virtual_address_t;
+typedef struct {
+  grub_uint8_t addr[4];
+} grub_efi_pxe_ipv4_address_t;
+
+typedef struct {
+  grub_uint8_t addr[16];
+} grub_efi_pxe_ipv6_address_t;
+
+typedef struct {
+  grub_uint8_t addr[32];
+} grub_efi_pxe_mac_address_t;
+
+typedef union {
+    grub_uint32_t addr[4];
+    grub_efi_pxe_ipv4_address_t v4;
+    grub_efi_pxe_ipv6_address_t v6;
+} grub_efi_pxe_ip_address_t;
 
 struct grub_efi_guid
 {
@@ -893,6 +910,8 @@ struct grub_efi_ipv4_device_path
   grub_efi_uint16_t remote_port;
   grub_efi_uint16_t protocol;
   grub_efi_uint8_t static_ip_address;
+  grub_efi_ipv4_address_t gateway_ip_address;
+  grub_efi_ipv4_address_t subnet_mask;
 } GRUB_PACKED;
 typedef struct grub_efi_ipv4_device_path grub_efi_ipv4_device_path_t;
 
@@ -907,6 +926,8 @@ struct grub_efi_ipv6_device_path
   grub_efi_uint16_t remote_port;
   grub_efi_uint16_t protocol;
   grub_efi_uint8_t static_ip_address;
+  grub_efi_uint8_t prefix_length;
+  grub_efi_ipv6_address_t gateway_ip_address;
 } GRUB_PACKED;
 typedef struct grub_efi_ipv6_device_path grub_efi_ipv6_device_path_t;
 
@@ -946,6 +967,24 @@ struct grub_efi_sata_device_path
   grub_efi_uint16_t lun;
 } GRUB_PACKED;
 typedef struct grub_efi_sata_device_path grub_efi_sata_device_path_t;
+
+#define GRUB_EFI_URI_DEVICE_PATH_SUBTYPE		24
+
+struct grub_efi_uri_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint8_t uri[0];
+} GRUB_PACKED;
+typedef struct grub_efi_uri_device_path grub_efi_uri_device_path_t;
+
+#define GRUB_EFI_DNS_DEVICE_PATH_SUBTYPE                31
+struct grub_efi_dns_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint8_t is_ipv6;
+  grub_efi_pxe_ip_address_t dns_server_ip[0];
+} GRUB_PACKED;
+typedef struct grub_efi_dns_device_path grub_efi_dns_device_path_t;
 
 #define GRUB_EFI_VENDOR_MESSAGING_DEVICE_PATH_SUBTYPE	10
 
