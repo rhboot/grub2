@@ -746,7 +746,7 @@ direct_read (struct grub_squash_data *data,
 	     struct grub_squash_cache_inode *ino,
 	     grub_off_t off, char *buf, grub_size_t len)
 {
-  grub_err_t err;
+  grub_err_t err = GRUB_ERR_NONE;
   grub_off_t cumulated_uncompressed_size = 0;
   grub_uint64_t a = 0;
   grub_size_t i;
