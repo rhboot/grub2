@@ -1687,6 +1687,7 @@ module = {
 
 module = {
   name = datetime;
+  common = lib/datetime.c;
   cmos = lib/cmos_datetime.c;
   efi = lib/efi/datetime.c;
   uboot = lib/dummy/datetime.c;
@@ -1926,7 +1927,6 @@ module = {
   common = normal/autofs.c;
   common = normal/color.c;
   common = normal/completion.c;
-  common = normal/datetime.c;
   common = normal/menu.c;
   common = normal/menu_entry.c;
   common = normal/menu_text.c;
