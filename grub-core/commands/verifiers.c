@@ -196,7 +196,8 @@ grub_verifiers_open (grub_file_t io, enum grub_file_type type)
   return ret;
 
  fail:
-  ver->close (context);
+  if (ver->close)
+    ver->close (context);
  fail_noclose:
   verified_free (verified);
   grub_free (ret);
