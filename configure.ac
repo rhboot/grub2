@@ -562,6 +562,24 @@ CPPFLAGS="$TARGET_CPPFLAGS"
 LDFLAGS="$TARGET_LDFLAGS"
 LIBS=""
 
+if test "x$target_m32" = x1; then
+  # Force 32-bit mode.
+  TARGET_CFLAGS="$TARGET_CFLAGS -m32"
+  TARGET_CCASFLAGS="$TARGET_CCASFLAGS -m32"
+  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -m32"
+  TARGET_LDFLAGS="$TARGET_LDFLAGS -m32"
+  TARGET_MODULE_FORMAT="elf32"
+fi
+
+if test "x$target_m64" = x1; then
+  # Force 64-bit mode.
+  TARGET_CFLAGS="$TARGET_CFLAGS -m64"
+  TARGET_CCASFLAGS="$TARGET_CCASFLAGS -m64"
+  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -m64"
+  TARGET_LDFLAGS="$TARGET_LDFLAGS -m64"
+  TARGET_MODULE_FORMAT="elf64"
+fi
+
 # debug flags.
 TARGET_CFLAGS="$TARGET_CFLAGS $WARN_FLAGS -g -Wredundant-decls -Wmissing-prototypes -Wmissing-declarations"
 TARGET_CCASFLAGS="$TARGET_CCASFLAGS -g"
@@ -748,24 +766,6 @@ TARGET_CCASFLAGS="$TARGET_CCASFLAGS $grub_cv_cc_target_asm_compile"
 
 if test "x$target_cpu" = xi386 && test "x$platform" != xemu; then
   TARGET_CFLAGS="$TARGET_CFLAGS -march=i386"
-fi
-
-if test "x$target_m32" = x1; then
-  # Force 32-bit mode.
-  TARGET_CFLAGS="$TARGET_CFLAGS -m32"
-  TARGET_CCASFLAGS="$TARGET_CCASFLAGS -m32"
-  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -m32"
-  TARGET_LDFLAGS="$TARGET_LDFLAGS -m32"
-  TARGET_MODULE_FORMAT="elf32"
-fi
-
-if test "x$target_m64" = x1; then
-  # Force 64-bit mode.
-  TARGET_CFLAGS="$TARGET_CFLAGS -m64"
-  TARGET_CCASFLAGS="$TARGET_CCASFLAGS -m64"
-  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -m64"
-  TARGET_LDFLAGS="$TARGET_LDFLAGS -m64"
-  TARGET_MODULE_FORMAT="elf64"
 fi
 
 if test "x$grub_cv_cc_target_clang" = xno && test "x$target_cpu" = xi386 && test "x$platform" != xemu && test "x$platform" != xefi; then
