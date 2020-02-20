@@ -1263,6 +1263,7 @@ grub_CHECK_LINK_PIE
 # `-fPIE' or '-fpie' and '-pie' in the default specs.
 if [ x"$pie_possible" = xyes ]; then
   TARGET_CFLAGS="$TARGET_CFLAGS -fno-PIE -fno-pie"
+  TARGET_CCASFLAGS="$TARGET_CCASFLAGS -fno-PIE -fno-pie"
 fi
 
 if [ x"$link_nopie_needed" = xyes ] || [ x"$pie_possible" = xyes ]; then
