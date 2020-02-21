@@ -227,7 +227,7 @@ grub_json_getuint64 (grub_uint64_t *out, const grub_json_t *parent, const char *
 {
   grub_json_type_t type;
   const char *value;
-  char *end;
+  const char *end;
   grub_err_t ret;
 
   ret = get_value (&type, &value, parent, key);
@@ -249,7 +249,7 @@ grub_json_getint64 (grub_int64_t *out, const grub_json_t *parent, const char *ke
 {
   grub_json_type_t type;
   const char *value;
-  char *end;
+  const char *end;
   grub_err_t ret;
 
   ret = get_value (&type, &value, parent, key);

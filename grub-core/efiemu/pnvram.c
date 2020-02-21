@@ -39,7 +39,7 @@ static grub_size_t nvramsize;
 
 /* Parse signed value */
 static int
-grub_strtosl (const char *arg, char **end, int base)
+grub_strtosl (const char *arg, const char ** const end, int base)
 {
   if (arg[0] == '-')
     return -grub_strtoul (arg + 1, end, base);
@@ -120,7 +120,8 @@ nvram_set (void * data __attribute__ ((unused)))
   grub_memset (nvram, 0, nvramsize);
   FOR_SORTED_ENV (var)
   {
-    char *guid, *attr, *name, *varname;
+    const char *guid;
+    char *attr, *name, *varname;
     struct efi_variable *efivar;
     int len = 0;
     int i;

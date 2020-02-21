@@ -340,7 +340,8 @@ grub_isspace (int c)
 }
 
 unsigned long
-grub_strtoul (const char *str, char **end, int base)
+grub_strtoul (const char * restrict str, const char ** const restrict end,
+	      int base)
 {
   unsigned long long num;
 
@@ -357,7 +358,8 @@ grub_strtoul (const char *str, char **end, int base)
 }
 
 unsigned long long
-grub_strtoull (const char *str, char **end, int base)
+grub_strtoull (const char * restrict str, const char ** const restrict end,
+	       int base)
 {
   unsigned long long num = 0;
   int found = 0;
@@ -855,14 +857,14 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	{
 	  if (fmt[0] == '0')
 	    zerofill = '0';
-	  format1 = grub_strtoul (fmt, (char **) &fmt, 10);
+	  format1 = grub_strtoul (fmt, &fmt, 10);
 	}
 
       if (*fmt == '.')
 	fmt++;
 
       if (grub_isdigit (*fmt))
-	format2 = grub_strtoul (fmt, (char **) &fmt, 10);
+	format2 = grub_strtoul (fmt, &fmt, 10);
 
       if (*fmt == '$')
 	{

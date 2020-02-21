@@ -1615,7 +1615,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
 	return grub_error (GRUB_ERR_BAD_ARGUMENT,
 			   "unknown disk type name");
 
-      unit = grub_strtoul (arg, (char **) &arg, 10);
+      unit = grub_strtoul (arg, &arg, 10);
       if (! (arg && *arg >= 'a' && *arg <= 'z'))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT,
 			   "only device specifications of form "
@@ -1633,7 +1633,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
   if (ctxt->state[OPENBSD_SERIAL_ARG].set)
     {
       struct grub_openbsd_bootarg_console serial;
-      char *ptr;
+      const char *ptr;
       unsigned port = 0;
       unsigned speed = 9600;
 
@@ -1735,7 +1735,7 @@ grub_cmd_netbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
       if (ctxt->state[NETBSD_SERIAL_ARG].set)
 	{
 	  struct grub_netbsd_btinfo_serial serial;
-	  char *ptr;
+	  const char *ptr;
 
 	  grub_memset (&serial, 0, sizeof (serial));
 	  grub_strcpy (serial.devname, "com");

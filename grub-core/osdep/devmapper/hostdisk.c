@@ -113,7 +113,7 @@ grub_util_get_dm_node_linear_info (dev_t dev,
   void *next = NULL;
   uint64_t length, start;
   char *target, *params;
-  char *ptr;
+  const char *ptr;
   int major = 0, minor = 0;
   int first = 1;
   grub_disk_addr_t partstart = 0;
