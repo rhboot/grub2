@@ -547,6 +547,9 @@ AC_SYS_LARGEFILE
 
 @end example
 
+It will also be necessary to adjust the patches in
+@file{po/gettext-patches/} to apply to an older version of gettext.
+
 @node jsmn
 @section jsmn
 

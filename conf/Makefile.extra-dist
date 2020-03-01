@@ -111,6 +111,21 @@ EXTRA_DIST += grub-core/osdep/windows/password.c
 EXTRA_DIST += grub-core/osdep/windows/random.c
 EXTRA_DIST += grub-core/osdep/windows/sleep.c
 
+EXTRA_DIST += po/gettext-patches/0001-Support-POTFILES-shell.patch
+EXTRA_DIST += po/gettext-patches/0002-Handle-gettext_printf-shell-function.patch
+EXTRA_DIST += po/gettext-patches/0003-Make-msgfmt-output-in-little-endian.patch
+EXTRA_DIST += po/gettext-patches/0004-Use-SHELL-rather-than-bin-sh.patch
+
+EXTRA_DIST += po/POTFILES-shell.in
+EXTRA_DIST += po/README
+EXTRA_DIST += po/Rules-translit
+EXTRA_DIST += po/Rules-windowsdir
+EXTRA_DIST += po/arabic.sed
+EXTRA_DIST += po/cyrillic.sed
+EXTRA_DIST += po/greek.sed
+EXTRA_DIST += po/grub.d.sed
+EXTRA_DIST += po/hebrew.sed
+
 EXTRA_DIST += tests/dfly-mbr-mbexample.mbr.img.gz
 EXTRA_DIST += tests/dfly-mbr-mbexample.dfly.img.gz
 
