@@ -64,6 +64,21 @@ grub_smbios_get_eps3 (void)
   return eps;
 }
 
+static char *
+linux_string (const char *value)
+{
+  char *out = grub_malloc( grub_strlen (value) + 1);
+  const char *src = value;
+  char *dst = out;
+
+  for (; *src; src++)
+    if (*src > ' ' && *src < 127 && *src != ':')
+      *dst++ = *src;
+
+  *dst = 0;
+  return out;
+}
+
 /*
  * These functions convert values from the various SMBIOS structure field types
  * into a string formatted to be returned to the user.  They expect that the
@@ -176,6 +191,7 @@ static const struct {
 /* List command options, with structure field getters ordered as above. */
 #define FIRST_GETTER_OPT (3)
 #define SETTER_OPT (FIRST_GETTER_OPT + ARRAY_SIZE(field_extractors))
+#define LINUX_OPT (FIRST_GETTER_OPT + ARRAY_SIZE(field_extractors) + 1)
 
 static const struct grub_arg_option options[] = {
   {"type",       't', 0, N_("Match structures with the given type."),
@@ -198,6 +214,8 @@ static const struct grub_arg_option options[] = {
                          N_("offset"), ARG_TYPE_INT},
   {"set",       '\0', 0, N_("Store the value in the given variable name."),
                          N_("variable"), ARG_TYPE_STRING},
+  {"linux",     '\0', 0, N_("Filter the result like linux does."),
+                         N_("variable"), ARG_TYPE_NONE},
   {0, 0, 0, 0, 0, 0}
 };
 
@@ -261,6 +279,7 @@ grub_cmd_smbios (grub_extcmd_context_t ctxt,
 
   const grub_uint8_t *structure;
   const char *value;
+  char *modified_value = NULL;
   grub_int32_t option;
   grub_int8_t field_type = -1;
   grub_uint8_t i;
@@ -334,11 +353,16 @@ grub_cmd_smbios (grub_extcmd_context_t ctxt,
     return grub_error (GRUB_ERR_IO,
                        N_("failed to retrieve the structure field"));
 
+  if (state[LINUX_OPT].set)
+    value = modified_value = linux_string (value);
+
   /* Store or print the formatted value. */
   if (state[SETTER_OPT].set)
     grub_env_set (state[SETTER_OPT].arg, value);
   else
     grub_printf ("%s\n", value);
+
+  grub_free(modified_value);
 
   return GRUB_ERR_NONE;
 }
