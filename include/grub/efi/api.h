@@ -531,7 +531,7 @@ typedef grub_uint64_t grub_efi_uint64_t;
 typedef grub_uint8_t grub_efi_char8_t;
 typedef grub_uint16_t grub_efi_char16_t;
 
-typedef grub_efi_intn_t grub_efi_status_t;
+typedef grub_efi_uintn_t grub_efi_status_t;
 
 #define GRUB_EFI_ERROR_CODE(value)	\
   ((((grub_efi_status_t) 1) << (sizeof (grub_efi_status_t) * 8 - 1)) | (value))
