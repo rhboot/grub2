@@ -110,7 +110,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
     {
       int i;
 
-      grub_dprintf ("fb", "Display controller: %d:%d.%d\nDevice id: %x\n",
+      grub_dprintf ("video", "Display controller: %d:%d.%d\nDevice id: %x\n",
 		    grub_pci_get_bus (dev), grub_pci_get_device (dev),
 		    grub_pci_get_function (dev), pciid);
       addr += 8;
@@ -140,7 +140,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
 	  base64 <<= 32;
 	  base64 |= (old_bar1 & GRUB_PCI_ADDR_MEM_MASK);
 
-	  grub_dprintf ("fb", "%s(%d): 0x%" PRIxGRUB_UINT64_T "\n",
+	  grub_dprintf ("video", "%s(%d): 0x%" PRIxGRUB_UINT64_T "\n",
 			((old_bar1 & GRUB_PCI_ADDR_MEM_PREFETCH) ?
 			"VMEM" : "MMIO"), type == GRUB_PCI_ADDR_MEM_TYPE_64 ? i - 1 : i,
 			base64);
