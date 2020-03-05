@@ -158,13 +158,7 @@ efihttp_request (grub_efi_http_t *http, char *server, char *name, int use_https,
   grub_efi_status_t status;
   grub_efi_boot_services_t *b = grub_efi_system_table->boot_services;
   char *url = NULL;
-
-  request_headers[0].field_name = (grub_efi_char8_t *)"Host";
-  request_headers[0].field_value = (grub_efi_char8_t *)server;
-  request_headers[1].field_name = (grub_efi_char8_t *)"Accept";
-  request_headers[1].field_value = (grub_efi_char8_t *)"*/*";
-  request_headers[2].field_name = (grub_efi_char8_t *)"User-Agent";
-  request_headers[2].field_value = (grub_efi_char8_t *)"UefiHttpBoot/1.0";
+  char *hostname = NULL;
 
   {
     grub_efi_ipv6_address_t address;
@@ -174,9 +168,24 @@ efihttp_request (grub_efi_http_t *http, char *server, char *name, int use_https,
     const char *protocol = (use_https == 1) ? "https" : "http";
 
     if (grub_efi_string_to_ip6_address (server, &address, &rest) && *rest == 0)
-      url = grub_xasprintf ("%s://[%s]%s", protocol, server, name);
+      {
+        hostname = grub_xasprintf ("[%s]", server);
+        if (!hostname)
+          return GRUB_ERR_OUT_OF_MEMORY;
+
+        server = hostname;
+
+        url = grub_xasprintf ("%s://%s%s", protocol, server, name);
+        if (!url)
+          {
+            grub_free (hostname);
+            return GRUB_ERR_OUT_OF_MEMORY;
+          }
+      }
     else
-      url = grub_xasprintf ("%s://%s%s", protocol, server, name);
+      {
+        url = grub_xasprintf ("%s://%s%s", protocol, server, name);
+      }
 
     if (!url)
       {
@@ -198,6 +207,13 @@ efihttp_request (grub_efi_http_t *http, char *server, char *name, int use_https,
     grub_free (url);
     request_data.url = ucs2_url;
   }
+
+  request_headers[0].field_name = (grub_efi_char8_t *)"Host";
+  request_headers[0].field_value = (grub_efi_char8_t *)server;
+  request_headers[1].field_name = (grub_efi_char8_t *)"Accept";
+  request_headers[1].field_value = (grub_efi_char8_t *)"*/*";
+  request_headers[2].field_name = (grub_efi_char8_t *)"User-Agent";
+  request_headers[2].field_value = (grub_efi_char8_t *)"UefiHttpBoot/1.0";
 
   request_data.method = (headeronly > 0) ? GRUB_EFI_HTTPMETHODHEAD : GRUB_EFI_HTTPMETHODGET;
 
@@ -227,6 +243,9 @@ efihttp_request (grub_efi_http_t *http, char *server, char *name, int use_https,
     }
 
   status = efi_call_2 (http->request, http, &request_token);
+
+  if (hostname)
+    grub_free (hostname);
 
   if (status != GRUB_EFI_SUCCESS)
     {
