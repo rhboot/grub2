@@ -142,6 +142,7 @@ grub_set_prefix_and_root (void)
       if (fw_path)
 	{
 	  grub_env_set ("fw_path", fw_path);
+	  grub_env_export ("fw_path");
 	  grub_dprintf ("fw_path", "fw_path:\"%s\"\n", fw_path);
 	  grub_free (fw_path);
 	}
