@@ -39,6 +39,7 @@ http_configure (struct grub_efi_net_device *dev, int prefer_ip6)
 	  http_path++;
 	  grub_env_unset ("http_path");
 	  grub_env_set ("http_path", http_path);
+	  grub_env_export ("http_path");
 	}
     }
 
