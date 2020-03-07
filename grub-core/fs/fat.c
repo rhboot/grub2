@@ -596,6 +596,7 @@ struct grub_fat_iterate_context
 {
 #ifdef MODE_EXFAT
   struct grub_fat_dir_node dir;
+  struct grub_fat_dir_entry entry;
 #else
   struct grub_fat_dir_entry dir;
 #endif
@@ -642,27 +643,27 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
   grub_memset (&ctxt->dir, 0, sizeof (ctxt->dir));
   while (1)
     {
-      struct grub_fat_dir_entry dir;
+      struct grub_fat_dir_entry *dir = &ctxt->entry;
 
-      ctxt->offset += sizeof (dir);
+      ctxt->offset += sizeof (*dir);
 
-      if (grub_fat_read_data (node->disk, node, 0, 0, ctxt->offset, sizeof (dir),
-			      (char *) &dir)
-	   != sizeof (dir))
+      if (grub_fat_read_data (node->disk, node, 0, 0, ctxt->offset, sizeof (*dir),
+			      (char *) dir)
+	   != sizeof (*dir))
 	break;
 
-      if (dir.entry_type == 0)
+      if (dir->entry_type == 0)
 	break;
-      if (!(dir.entry_type & 0x80))
+      if (!(dir->entry_type & 0x80))
 	continue;
 
-      if (dir.entry_type == 0x85)
+      if (dir->entry_type == 0x85)
 	{
 	  unsigned i, nsec, slots = 0;
 
-	  nsec = dir.type_specific.file.secondary_count;
+	  nsec = dir->type_specific.file.secondary_count;
 
-	  ctxt->dir.attr = grub_cpu_to_le16 (dir.type_specific.file.attr);
+	  ctxt->dir.attr = grub_cpu_to_le16 (dir->type_specific.file.attr);
 	  ctxt->dir.have_stream = 0;
 	  for (i = 0; i < nsec; i++)
 	    {
@@ -705,7 +706,7 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
 
 	  if (i != nsec)
 	    {
-	      ctxt->offset -= sizeof (dir);
+	      ctxt->offset -= sizeof (*dir);
 	      continue;
 	    }
 
@@ -715,16 +716,16 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
 	  return 0;
 	}
       /* Allocation bitmap. */
-      if (dir.entry_type == 0x81)
+      if (dir->entry_type == 0x81)
 	continue;
       /* Upcase table. */
-      if (dir.entry_type == 0x82)
+      if (dir->entry_type == 0x82)
 	continue;
       /* Volume label. */
-      if (dir.entry_type == 0x83)
+      if (dir->entry_type == 0x83)
 	continue;
       grub_dprintf ("exfat", "unknown primary type 0x%02x\n",
-		    dir.entry_type);
+		    dir->entry_type);
     }
   return grub_errno ? : GRUB_ERR_EOF;
 }
