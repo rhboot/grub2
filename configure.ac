@@ -1453,9 +1453,11 @@ LIBS="$tmp_LIBS"
 # Memory manager debugging.
 AC_ARG_ENABLE([mm-debug],
 	      AS_HELP_STRING([--enable-mm-debug],
-                             [include memory manager debugging]),
-              [AC_DEFINE([MM_DEBUG], [1],
-                         [Define to 1 if you enable memory manager debugging.])])
+                             [include memory manager debugging]))
+if test x$enable_mm_debug = xyes; then
+    AC_DEFINE([MM_DEBUG], [1],
+            [Define to 1 if you enable memory manager debugging.])
+fi
 
 AC_ARG_ENABLE([cache-stats],
 	      AS_HELP_STRING([--enable-cache-stats],
