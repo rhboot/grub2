@@ -1,14 +1,8 @@
 diff --git a/lib/base64.h b/lib/base64.h
-index 9cd0183b8..a2aaa2d4a 100644
+index 9cd0183b8..185a2afa1 100644
 --- a/lib/base64.h
 +++ b/lib/base64.h
-@@ -18,11 +18,16 @@
- #ifndef BASE64_H
- # define BASE64_H
- 
-+/* Get _GL_ATTRIBUTE_CONST */
-+# include <config-util.h>
-+
+@@ -21,8 +21,14 @@
  /* Get size_t. */
  # include <stddef.h>
  
@@ -17,6 +11,10 @@ index 9cd0183b8..a2aaa2d4a 100644
 +#ifndef GRUB_POSIX_BOOL_DEFINED
 +typedef enum { false = 0, true = 1 } bool;
 +#define GRUB_POSIX_BOOL_DEFINED 1
++#endif
++
++#ifndef _GL_ATTRIBUTE_CONST
++# define _GL_ATTRIBUTE_CONST /* empty */
 +#endif
  
  # ifdef __cplusplus
