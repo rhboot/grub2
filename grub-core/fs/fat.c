@@ -26,6 +26,7 @@
 #include <grub/err.h>
 #include <grub/dl.h>
 #include <grub/charset.h>
+#include <grub/datetime.h>
 #ifndef MODE_EXFAT
 #include <grub/fat.h>
 #else
@@ -730,6 +731,33 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
   return grub_errno ? : GRUB_ERR_EOF;
 }
 
+/*
+ * Convert a timestamp in exFAT format to seconds since the UNIX epoch
+ * according to sections 7.4.8 and 7.4.9 in the exFAT specification.
+ * https://docs.microsoft.com/en-us/windows/win32/fileio/exfat-specification
+ */
+static int
+grub_exfat_timestamp (grub_uint32_t field, grub_uint8_t msec, grub_int32_t *nix) {
+  struct grub_datetime datetime = {
+    .year   = (field >> 25) + 1980,
+    .month  = (field & 0x01E00000) >> 21,
+    .day    = (field & 0x001F0000) >> 16,
+    .hour   = (field & 0x0000F800) >> 11,
+    .minute = (field & 0x000007E0) >>  5,
+    .second = (field & 0x0000001F) * 2 + (msec >= 100 ? 1 : 0),
+  };
+
+  /* The conversion below allows seconds=60, so don't trust its validation. */
+  if ((field & 0x1F) > 29)
+    return 0;
+
+  /* Validate the 10-msec field even though it is rounded down to seconds. */
+  if (msec > 199)
+    return 0;
+
+  return grub_datetime2unixtime (&datetime, nix);
+}
+
 #else
 
 static grub_err_t
@@ -857,6 +885,29 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
   return grub_errno ? : GRUB_ERR_EOF;
 }
 
+/*
+ * Convert a date and time in FAT format to seconds since the UNIX epoch
+ * according to sections 11.3.5 and 11.3.6 in ECMA-107.
+ * https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-107.pdf
+ */
+static int
+grub_fat_timestamp (grub_uint16_t time, grub_uint16_t date, grub_int32_t *nix) {
+  struct grub_datetime datetime = {
+    .year   = (date >> 9) + 1980,
+    .month  = (date & 0x01E0) >> 5,
+    .day    = (date & 0x001F),
+    .hour   = (time >> 11),
+    .minute = (time & 0x07E0) >> 5,
+    .second = (time & 0x001F) * 2,
+  };
+
+  /* The conversion below allows seconds=60, so don't trust its validation. */
+  if ((time & 0x1F) > 29)
+    return 0;
+
+  return grub_datetime2unixtime (&datetime, nix);
+}
+
 #endif
 
 static grub_err_t lookup_file (grub_fshelp_node_t node,
@@ -966,10 +1017,19 @@ grub_fat_dir (grub_device_t device, const char *path, grub_fs_dir_hook_t hook,
 #ifdef MODE_EXFAT
       if (!ctxt.dir.have_stream)
 	continue;
+      info.mtimeset = grub_exfat_timestamp (grub_le_to_cpu32 (ctxt.entry.type_specific.file.m_time),
+					    ctxt.entry.type_specific.file.m_time_tenth,
+					    &info.mtime);
 #else
       if (ctxt.dir.attr & GRUB_FAT_ATTR_VOLUME_ID)
 	continue;
+      info.mtimeset = grub_fat_timestamp (grub_le_to_cpu16 (ctxt.dir.w_time),
+					  grub_le_to_cpu16 (ctxt.dir.w_date),
+					  &info.mtime);
 #endif
+      if (info.mtimeset == 0)
+	grub_error (GRUB_ERR_OUT_OF_RANGE,
+		    "invalid modification timestamp for %s", path);
 
       if (hook (ctxt.filename, &info, hook_data))
 	break;
