@@ -56,8 +56,19 @@ int
 grub_efi_string_to_ip4_address (const char *val, grub_efi_ipv4_address_t *address, const char **rest)
 {
   grub_uint32_t newip = 0;
-  int i;
+  int i, ncolon = 0;
   const char *ptr = val;
+
+  /* Check that is not an IPv6 address */
+  for (i = 0; i < grub_strlen(ptr); i++)
+    {
+      if (ptr[i] == '[' && i == 0)
+        return 0;
+
+      if (ptr[i] == ':')
+          if (i == 0 || ++ncolon == 2)
+            return 0;
+    }
 
   for (i = 0; i < 4; i++)
     {
