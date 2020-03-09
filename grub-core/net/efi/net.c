@@ -742,7 +742,7 @@ grub_efi_net_parse_address (const char *address,
 	      return GRUB_ERR_NONE;
 	    }
 	}
-      else if (*rest == 0)
+      else if (*rest == 0 || *rest == ':')
 	{
 	  grub_uint32_t subnet_mask = 0xffffffffU;
 	  grub_memcpy (ip4->subnet_mask, &subnet_mask, sizeof (ip4->subnet_mask));
@@ -768,7 +768,7 @@ grub_efi_net_parse_address (const char *address,
 	      return GRUB_ERR_NONE;
 	    }
 	}
-      else if (*rest == 0)
+      else if (*rest == 0 || *rest == ':')
 	{
 	  ip6->prefix_length = 128;
 	  ip6->is_anycast = 0;
