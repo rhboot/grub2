@@ -778,9 +778,9 @@ grub_efi_net_parse_address (const char *address,
 	}
     }
 
-  return grub_error (GRUB_ERR_NET_BAD_ADDRESS,
-		   N_("unrecognised network address `%s'"),
-		   address);
+  grub_dprintf ("efinet", "unrecognised network address '%s'\n", address);
+
+  return GRUB_ERR_NET_BAD_ADDRESS;
 }
 
 static grub_efi_net_interface_t *
@@ -795,10 +795,7 @@ match_route (const char *server)
   err = grub_efi_net_parse_address (server, &ip4, &ip6, &is_ip6, 0);
 
   if (err)
-    {
-      grub_print_error ();
       return NULL;
-    }
 
   if (is_ip6)
     {
@@ -1233,8 +1230,15 @@ grub_net_open_real (const char *name __attribute__ ((unused)))
   /*FIXME: Use DNS translate name to address */
   net_interface = match_route (server);
 
+  if (!net_interface && net_default_interface)
+    {
+      net_interface = net_default_interface;
+      grub_dprintf ("efinet", "interface lookup failed, using default '%s'\n",
+                    net_interface->name);
+    }
+
   /*XXX: should we check device with default gateway ? */
-  if (!net_interface && !(net_interface = net_default_interface))
+  if (!net_interface)
     {
       grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("disk `%s' no route found"),
 		  name);
