@@ -1105,6 +1105,13 @@ module = {
 };
 
 module = {
+  name = tpm;
+  common = commands/tpm.c;
+  ieee1275 = commands/ieee1275/ibmvtpm.c;
+  enable = powerpc_ieee1275;
+};
+
+module = {
   name = terminal;
   common = commands/terminal.c;
 };
