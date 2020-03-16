@@ -600,6 +600,12 @@ static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
       list[nlist] = NULL;
   }
 
+  if (!nlist)
+    {
+      grub_free (list);
+      return NULL;
+    }
+
   if (num)
     *num = nlist;
 
