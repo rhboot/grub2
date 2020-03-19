@@ -894,6 +894,7 @@ magic.
 @menu
 * General boot methods::        How to boot OSes with GRUB generally
 * Loopback booting::            Notes on booting from loopbacks
+* LVM cache booting::           Notes on booting from LVM cache logical volume
 * OS-specific notes::           Notes on some operating systems
 @end menu
 
@@ -990,6 +991,26 @@ ramdisk or discovering loopback boot in other way and as such not bootable this
 way. Please consider alternative boot methods like copying all files
 from the image to actual partition. Consult your OS documentation for
 more details
+
+@node LVM cache booting
+@section Booting from LVM cache logical volume
+
+The LVM cache logical volume is the logical volume consisting of the original
+and the cache pool logical volume. The original is usually on a larger and
+slower storage device while the cache pool is on a smaller and faster one. The
+performance of the original volume can be improved by storing the frequently
+used data on the cache pool to utilize the greater performance of faster
+device.
+
+GRUB boots from LVM cache logical volume merely by reading it's original
+logical volume so that dirty data in cache pool volume is disregarded. This is
+not a problem for "writethrough" cache mode as it ensures that any data written
+will be stored both on the cache and the origin LV. For the other cache mode
+"writeback", which delays writing from the cache pool back to the origin LV to
+boost performance, GRUB may fail to boot in the wake of accidental power outage
+due to it's inability to assemble the cache device for reading the required
+dirty data left behind. The situation will be improved after adding full
+support to the LVM cache logical volume in the future.
 
 @node OS-specific notes
 @section Some caveats on OS-specific issues
