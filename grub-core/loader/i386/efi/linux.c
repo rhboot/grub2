@@ -305,7 +305,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   start = (lh->setup_sects + 1) * 512;
 
-  kernel_mem = grub_efi_allocate_pages_max(lh->pref_address,
+  kernel_mem = grub_efi_allocate_fixed(lh->pref_address,
 					   BYTES_TO_PAGES(lh->init_size));
 
   if (!kernel_mem)
