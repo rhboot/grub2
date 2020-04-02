@@ -267,8 +267,11 @@ copy_bls() {
 }
 
 # The grub2 EFI binary is not copied to the ESP as a part of an ostree
-# transaction. Make sure a grub2 version with BLS support is installed.
-if test -f /run/ostree-booted && test -d /sys/firmware/efi/efivars/; then
+# transaction. Make sure a grub2 version with BLS support is installed
+# but only do this if the blsdir is not set, to make sure that the BLS
+# parsing module will search for the BLS snippets in the default path.
+if test -f /run/ostree-booted && test -d /sys/firmware/efi/efivars && \
+   ! ${grub_editenv} - list | grep -q blsdir; then
     grub_binary="$(find /usr/lib/ostree-boot/efi/EFI/${EFIDIR}/ -name grub*.efi)"
     cp ${grub_binary} ${grubdir} || exit 1
     # Create a hidden file to indicate that grub2 now has BLS support.
