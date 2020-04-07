@@ -463,7 +463,7 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
       grub_util_info ("adding CHRP NOTE segment");
 
       note_ptr->header.n_namesz = grub_host_to_target32 (sizeof (GRUB_IEEE1275_NOTE_NAME));
-      note_ptr->header.n_descsz = grub_host_to_target32 (note_size);
+      note_ptr->header.n_descsz = grub_host_to_target32 (sizeof (struct grub_ieee1275_note_desc));
       note_ptr->header.n_type = grub_host_to_target32 (GRUB_IEEE1275_NOTE_TYPE);
       strcpy (note_ptr->name, GRUB_IEEE1275_NOTE_NAME);
       note_ptr->descriptor.real_mode = grub_host_to_target32 (0xffffffff);
