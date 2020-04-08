@@ -4729,7 +4729,7 @@ be reloaded after using this command (@pxref{module}).
 Some kernels have known problems. You need to specify --quirk-* for those.
 --quirk-bad-kludge is a problem seen in several products that they include
 loading kludge information with invalid data in ELF file. GRUB prior to 0.97
-and some custom builds prefered ELF information while 0.97 and GRUB 2
+and some custom builds preferred ELF information while 0.97 and GRUB 2
 use kludge. Use this option to ignore kludge.
 Known affected systems: old Solaris, SkyOS.
 
