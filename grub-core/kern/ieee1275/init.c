@@ -46,11 +46,12 @@
 #endif
 #include <grub/lockdown.h>
 
-/* The maximum heap size we're going to claim */
+/* The maximum heap size we're going to claim. Not used by sparc.
+   We allocate 1/4 of the available memory under 4G, up to this limit. */
 #ifdef __i386__
 #define HEAP_MAX_SIZE		(unsigned long) (64 * 1024 * 1024)
-#else
-#define HEAP_MAX_SIZE		(unsigned long) (32 * 1024 * 1024)
+#else // __powerpc__
+#define HEAP_MAX_SIZE		(unsigned long) (1 * 1024 * 1024 * 1024)
 #endif
 
 extern char _end[];
@@ -147,15 +148,44 @@ grub_claim_heap (void)
 				 + GRUB_KERNEL_MACHINE_STACK_SIZE), 0x200000);
 }
 #else
-/* Helper for grub_claim_heap.  */
+/* Helper for grub_claim_heap on powerpc. */
+static int
+heap_size (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
+	   void *data)
+{
+  grub_uint32_t total = *(grub_uint32_t *)data;
+
+  if (type != GRUB_MEMORY_AVAILABLE)
+    return 0;
+
+  /* Do not consider memory beyond 4GB */
+  if (addr > 0xffffffffUL)
+    return 0;
+
+  if (addr + len > 0xffffffffUL)
+    len = 0xffffffffUL - addr;
+
+  total += len;
+  *(grub_uint32_t *)data = total;
+
+  return 0;
+}
+
 static int
 heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
 	   void *data)
 {
-  unsigned long *total = data;
+  grub_uint32_t total = *(grub_uint32_t *)data;
 
   if (type != GRUB_MEMORY_AVAILABLE)
     return 0;
+
+  /* Do not consider memory beyond 4GB */
+  if (addr > 0xffffffffUL)
+    return 0;
+
+  if (addr + len > 0xffffffffUL)
+    len = 0xffffffffUL - addr;
 
   if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_NO_PRE1_5M_CLAIM))
     {
@@ -170,10 +200,6 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
     }
   len -= 1; /* Required for some firmware.  */
 
-  /* Never exceed HEAP_MAX_SIZE  */
-  if (*total + len > HEAP_MAX_SIZE)
-    len = HEAP_MAX_SIZE - *total;
-
   /* In theory, firmware should already prevent this from happening by not
      listing our own image in /memory/available.  The check below is intended
      as a safeguard in case that doesn't happen.  However, it doesn't protect
@@ -185,6 +211,18 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       len = 0;
     }
 
+  /* If this block contains 0x30000000 (768MB), do not claim below that.
+     Linux likes to claim memory at min(RMO top, 768MB) and works down
+     without reference to /memory/available. */
+  if ((addr < 0x30000000) && ((addr + len) > 0x30000000))
+    {
+      len = len - (0x30000000 - addr);
+      addr = 0x30000000;
+    }
+
+  if (len > total)
+    len = total;
+
   if (len)
     {
       grub_err_t err;
@@ -193,10 +231,12 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       if (err)
 	return err;
       grub_mm_init_region ((void *) (grub_addr_t) addr, len);
+      total -= len;
     }
 
-  *total += len;
-  if (*total >= HEAP_MAX_SIZE)
+  *(grub_uint32_t *)data = total;
+
+  if (total == 0)
     return 1;
 
   return 0;
@@ -205,13 +245,22 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
 static void 
 grub_claim_heap (void)
 {
-  unsigned long total = 0;
+  grub_uint32_t total = 0;
 
   if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_FORCE_CLAIM))
-    heap_init (GRUB_IEEE1275_STATIC_HEAP_START, GRUB_IEEE1275_STATIC_HEAP_LEN,
-	       1, &total);
-  else
-    grub_machine_mmap_iterate (heap_init, &total);
+    {
+      heap_init (GRUB_IEEE1275_STATIC_HEAP_START, GRUB_IEEE1275_STATIC_HEAP_LEN,
+		 1, &total);
+      return;
+    }
+
+  grub_machine_mmap_iterate (heap_size, &total);
+
+  total = total / 4;
+  if (total > HEAP_MAX_SIZE)
+    total = HEAP_MAX_SIZE;
+
+  grub_machine_mmap_iterate (heap_init, &total);
 }
 #endif
 
