@@ -1330,12 +1330,12 @@ menu and then wait for the timeout set by @samp{GRUB_TIMEOUT} to expire
 before booting the default entry.  Pressing a key interrupts the timeout.
 
 If this option is set to @samp{countdown} or @samp{hidden}, then, before
-displaying the menu, GRUB will wait for the timeout set by
-@samp{GRUB_TIMEOUT} to expire.  If @key{ESC} is pressed during that time, it
-will display the menu and wait for input.  If a hotkey associated with a
-menu entry is pressed, it will boot the associated menu entry immediately.
-If the timeout expires before either of these happens, it will boot the
-default entry.  In the @samp{countdown} case, it will show a one-line
+displaying the menu, GRUB will wait for the timeout set by @samp{GRUB_TIMEOUT}
+to expire.  If @key{ESC} or @key{F4} are pressed, or @key{SHIFT} is held down
+during that time, it will display the menu and wait for input.  If a hotkey
+associated with a menu entry is pressed, it will boot the associated menu entry
+immediately. If the timeout expires before either of these happens, it will
+boot the default entry.  In the @samp{countdown} case, it will show a one-line
 indication of the remaining time.
 
 @item GRUB_DEFAULT_BUTTON
@@ -1559,16 +1559,16 @@ configurations, but have better replacements:
 
 @table @samp
 @item GRUB_HIDDEN_TIMEOUT
-Wait this many seconds before displaying the menu.  If @key{ESC} is pressed
-during that time, display the menu and wait for input according to
-@samp{GRUB_TIMEOUT}.  If a hotkey associated with a menu entry is pressed,
-boot the associated menu entry immediately.  If the timeout expires before
-either of these happens, display the menu for the number of seconds
-specified in @samp{GRUB_TIMEOUT} before booting the default entry.
+Wait this many seconds before displaying the menu.  If @key{ESC} or @key{F4} are
+pressed, or @key{SHIFT} is held down during that time, display the menu and wait
+for input according to @samp{GRUB_TIMEOUT}.  If a hotkey associated with a menu
+entry is pressed, boot the associated menu entry immediately.  If the timeout
+expires before either of these happens, display the menu for the number of
+seconds specified in @samp{GRUB_TIMEOUT} before booting the default entry.
 
 If you set @samp{GRUB_HIDDEN_TIMEOUT}, you should also set
 @samp{GRUB_TIMEOUT=0} so that the menu is not displayed at all unless
-@key{ESC} is pressed.
+@key{ESC} or @key{F4} are pressed, or @key{SHIFT} is held down.
 
 This option is unset by default, and is deprecated in favour of the less
 confusing @samp{GRUB_TIMEOUT_STYLE=countdown} or
@@ -5162,9 +5162,10 @@ Alias for @code{hashsum --hash sha512 arg @dots{}}. See command @command{hashsum
 
 @deffn Command sleep [@option{--verbose}] [@option{--interruptible}] count
 Sleep for @var{count} seconds. If option @option{--interruptible} is given,
-allow @key{ESC} to interrupt sleep. With @option{--verbose} show countdown
-of remaining seconds. Exit code is set to 0 if timeout expired and to 1
-if timeout was interrupted by @key{ESC}.
+allow pressing @key{ESC}, @key{F4} or holding down @key{SHIFT} to interrupt
+sleep.  With @option{--verbose} show countdown of remaining seconds. Exit code
+is set to 0 if timeout expired and to 1 if timeout was interrupted using any
+of the mentioned keys.
 @end deffn
 
 
