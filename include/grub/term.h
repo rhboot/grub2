@@ -75,9 +75,11 @@
 /* These are used to represent the various color states we use.  */
 typedef enum
   {
+    /* Used for uninitialized grub_term_color_state variables */
+    GRUB_TERM_COLOR_UNDEFINED = -1,
     /* The color used to display all text that does not use the
        user defined colors below.  */
-    GRUB_TERM_COLOR_STANDARD,
+    GRUB_TERM_COLOR_STANDARD = 0,
     /* The user defined colors for normal text.  */
     GRUB_TERM_COLOR_NORMAL,
     /* The user defined colors for highlighted text.  */
