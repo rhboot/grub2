@@ -164,6 +164,11 @@ populate_menu()
     printf "$menu"
 }
 
+# Make BLS the default if GRUB_ENABLE_BLSCFG was not set and grubby is not installed.
+if [ -z "${GRUB_ENABLE_BLSCFG}" ] && [ -z "$(which new-kernel-pkg 2> /dev/null)" ]; then
+	  GRUB_ENABLE_BLSCFG="true"
+fi
+
 if [ "x${GRUB_ENABLE_BLSCFG}" = "xtrue" ]; then
   if [ x$dirname = x/ ]; then
     if [ -z "${prepare_root_cache}" ]; then
