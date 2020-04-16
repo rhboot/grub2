@@ -487,7 +487,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   ret = grub_disk_read (disk, 0, k->area.offset, k->area.size, split_key);
   if (ret)
     {
-      grub_dprintf ("luks2", "Read error: %s\n", grub_errmsg);
+      grub_error (GRUB_ERR_IO, "Read error: %s\n", grub_errmsg);
       goto err;
     }
 
