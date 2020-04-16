@@ -36,9 +36,11 @@ enum grub_json_type
 };
 typedef enum grub_json_type grub_json_type_t;
 
+typedef struct jsmntok jsmntok_t;
+
 struct grub_json
 {
-  void	      *tokens;
+  jsmntok_t   *tokens;
   char	      *string;
   grub_size_t idx;
 };

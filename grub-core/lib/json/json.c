@@ -95,7 +95,7 @@ grub_json_getsize (grub_size_t *out, const grub_json_t *json)
 {
   int size;
 
-  size = ((jsmntok_t *)json->tokens)[json->idx].size;
+  size = json->tokens[json->idx].size;
   if (size < 0)
     return GRUB_ERR_OUT_OF_RANGE;
 
@@ -106,7 +106,7 @@ grub_json_getsize (grub_size_t *out, const grub_json_t *json)
 grub_err_t
 grub_json_gettype (grub_json_type_t *out, const grub_json_t *json)
 {
-  switch (((jsmntok_t *)json->tokens)[json->idx].type)
+  switch (json->tokens[json->idx].type)
     {
     case JSMN_OBJECT:
       *out = GRUB_JSON_OBJECT;
@@ -142,7 +142,7 @@ grub_json_getchild (grub_json_t *out, const grub_json_t *parent, grub_size_t n)
    * array), as well. We thus add the children's size to n on
    * each iteration.
    */
-  p = &((jsmntok_t *)parent->tokens)[parent->idx];
+  p = &parent->tokens[parent->idx];
   while (n--)
     n += p[offset++].size;
 
@@ -197,7 +197,7 @@ get_value (grub_json_type_t *out_type, const char **out_string, const grub_json_
       p = &child;
     }
 
-  tok = &((jsmntok_t *) p->tokens)[p->idx];
+  tok = &p->tokens[p->idx];
   p->string[tok->end] = '\0';
 
   *out_string = p->string + tok->start;
