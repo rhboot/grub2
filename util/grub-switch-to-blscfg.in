@@ -273,7 +273,7 @@ copy_bls() {
 if test -f /run/ostree-booted && test -d /sys/firmware/efi/efivars && \
    ! ${grub_editenv} - list | grep -q blsdir; then
     grub_binary="$(find /usr/lib/ostree-boot/efi/EFI/${EFIDIR}/ -name grub*.efi)"
-    cp ${grub_binary} ${grubdir} || exit 1
+    install -m 700 ${grub_binary} ${grubdir} || exit 1
     # Create a hidden file to indicate that grub2 now has BLS support.
     touch /boot/grub2/.grub2-blscfg-supported
 fi
@@ -307,13 +307,13 @@ if [ "${GENERATE}" -eq 1 ] ; then
 
     if [ -n "${mod_dir}" ]; then
 	for mod in blscfg increment; do
-	    cp ${prefix}/lib/grub/${mod_dir}/${mod}.mod ${grubdir}/$mod_dir/ || exit 1
+	    install -m 700 ${prefix}/lib/grub/${mod_dir}/${mod}.mod ${grubdir}/$mod_dir/ || exit 1
 	done
     fi
 
     cp -af "${GRUB_CONFIG_FILE}" "${GRUB_CONFIG_FILE}${backupsuffix}"
     if ! grub2-mkconfig -o "${GRUB_CONFIG_FILE}" ; then
-        cp -af "${GRUB_CONFIG_FILE}${backupsuffix}" "${GRUB_CONFIG_FILE}"
+        install -m 700 "${GRUB_CONFIG_FILE}${backupsuffix}" "${GRUB_CONFIG_FILE}"
         sed -i"${backupsuffix}" \
             -e 's,^GRUB_ENABLE_BLSCFG=.*,GRUB_ENABLE_BLSCFG=false,' \
             "${etcdefaultgrub}"
