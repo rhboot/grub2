@@ -144,9 +144,10 @@ grub_key_is_interrupt (int key)
   /*
    * ESC sometimes is the BIOS setup hotkey and may be hard to discover, also
    * check F4, which was chosen because is not used as a hotkey to enter the
-   * BIOS setup by any vendor.
+   * BIOS setup by any vendor. Also, F8 which was the key to get the Windows
+   * bootmenu for a long time.
    */
-  if (key == GRUB_TERM_ESC || key == GRUB_TERM_KEY_F4)
+  if (key == GRUB_TERM_ESC || key == GRUB_TERM_KEY_F4 || key == GRUB_TERM_KEY_F8)
     return 1;
 
   /*
