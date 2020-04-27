@@ -254,7 +254,8 @@ SETUP (const char *dir,
        const char *boot_file, const char *core_file,
        const char *dest, int force,
        int fs_probe, int allow_floppy,
-       int add_rs_codes __attribute__ ((unused))) /* unused on sparc64 */
+       int add_rs_codes __attribute__ ((unused)), /* unused on sparc64 */
+       int warn_small)
 {
   char *core_path;
   char *boot_img, *core_img, *boot_path;
@@ -530,7 +531,7 @@ SETUP (const char *dir,
 				 GRUB_EMBED_PCBIOS, &sectors);
     else if (ctx.dest_partmap)
       err = ctx.dest_partmap->embed (dest_dev->disk, &nsec, maxsec,
-				     GRUB_EMBED_PCBIOS, &sectors);
+				     GRUB_EMBED_PCBIOS, &sectors, warn_small);
     else
       err = fs->fs_embed (dest_dev, &nsec, maxsec,
 			  GRUB_EMBED_PCBIOS, &sectors);

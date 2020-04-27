@@ -315,7 +315,7 @@ main (int argc, char *argv[])
 		   arguments.core_file ? : DEFAULT_CORE_FILE,
 		   dest_dev, arguments.force,
 		   arguments.fs_probe, arguments.allow_floppy,
-		   arguments.add_rs_codes);
+		   arguments.add_rs_codes, 0);
 
   /* Free resources.  */
   grub_fini_all ();

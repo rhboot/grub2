@@ -193,13 +193,13 @@ grub_util_bios_setup (const char *dir,
 		      const char *boot_file, const char *core_file,
 		      const char *dest, int force,
 		      int fs_probe, int allow_floppy,
-		      int add_rs_codes);
+		      int add_rs_codes, int warn_short_mbr_gap);
 void
 grub_util_sparc_setup (const char *dir,
 		       const char *boot_file, const char *core_file,
 		       const char *dest, int force,
 		       int fs_probe, int allow_floppy,
-		       int add_rs_codes);
+		       int add_rs_codes, int warn_short_mbr_gap);
 
 char *
 grub_install_get_image_targets_string (void);
@@ -264,5 +264,8 @@ grub_util_get_target_name (const struct grub_install_image_target_desc *t);
 
 extern char *grub_install_copy_buffer;
 #define GRUB_INSTALL_COPY_BUFFER_SIZE 1048576
+
+int
+grub_install_is_short_mbrgap_supported (void);
 
 #endif

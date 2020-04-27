@@ -234,6 +234,31 @@ char *grub_install_source_directory = NULL;
 char *grub_install_locale_directory = NULL;
 char *grub_install_themes_directory = NULL;
 
+int
+grub_install_is_short_mbrgap_supported (void)
+{
+  int i, j;
+  static const char *whitelist[] =
+    {
+     "part_msdos", "biosdisk", "affs", "afs", "bfs", "archelp",
+     "cpio", "cpio_be", "newc", "odc", "ext2", "fat", "exfat",
+     "f2fs", "fshelp", "hfs", "hfsplus", "iso9660", "jfs", "minix",
+     "minix2", "minix3", "minix_be", "minix2_be", "nilfs2", "ntfs",
+     "ntfscomp", "reiserfs", "romfs", "sfs", "tar", "udf", "ufs1",
+     "ufs1_be", "ufs2", "xfs"
+    };
+
+  for (i = 0; i < modules.n_entries; i++) {
+    for (j = 0; j < ARRAY_SIZE (whitelist); j++)
+      if (strcmp(modules.entries[i], whitelist[j]) == 0)
+	break;
+    if (j == ARRAY_SIZE (whitelist))
+      return 0;
+  }
+
+  return 1;
+}
+
 void
 grub_install_push_module (const char *val)
 {

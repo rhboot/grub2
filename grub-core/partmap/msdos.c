@@ -236,7 +236,8 @@ static grub_err_t
 pc_partition_map_embed (struct grub_disk *disk, unsigned int *nsectors,
 			unsigned int max_nsectors,
 			grub_embed_type_t embed_type,
-			grub_disk_addr_t **sectors)
+			grub_disk_addr_t **sectors,
+			int warn_short)
 {
   grub_disk_addr_t end = ~0ULL;
   struct grub_msdos_partition_mbr mbr;
@@ -389,6 +390,9 @@ pc_partition_map_embed (struct grub_disk *disk, unsigned int *nsectors,
 
       return GRUB_ERR_NONE;
     }
+
+  if (end < GRUB_MIN_RECOMMENDED_MBR_GAP && warn_short)
+    grub_util_warn ("You have a short MBR gap and use advanced config. Please increase post-MBR gap.");
 
   if (end <= 1)
     return grub_error (GRUB_ERR_FILE_NOT_FOUND,

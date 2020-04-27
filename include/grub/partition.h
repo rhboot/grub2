@@ -51,11 +51,14 @@ struct grub_partition_map
   grub_err_t (*iterate) (struct grub_disk *disk,
 			 grub_partition_iterate_hook_t hook, void *hook_data);
 #ifdef GRUB_UTIL
+#define GRUB_MIN_RECOMMENDED_MBR_GAP	1900
+
   /* Determine sectors available for embedding.  */
   grub_err_t (*embed) (struct grub_disk *disk, unsigned int *nsectors,
 		       unsigned int max_nsectors,
 		       grub_embed_type_t embed_type,
-		       grub_disk_addr_t **sectors);
+		       grub_disk_addr_t **sectors,
+		       int warn_short);
 #endif
 };
 typedef struct grub_partition_map *grub_partition_map_t;
