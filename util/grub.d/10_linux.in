@@ -194,7 +194,7 @@ if [ "x${GRUB_ENABLE_BLSCFG}" = "xtrue" ]; then
       petitboot_path="/sys/firmware/devicetree/base/ibm,firmware-versions/petitboot"
 
       if test -e ${petitboot_path}; then
-          read -a petitboot_version < ${petitboot_path}
+          read -r -d '' petitboot_version < ${petitboot_path}
           petitboot_version="$(echo ${petitboot_version//v})"
           major_version="$(echo ${petitboot_version} | cut -d . -f1)"
           minor_version="$(echo ${petitboot_version} | cut -d . -f2)"
