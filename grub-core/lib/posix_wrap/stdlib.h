@@ -58,4 +58,12 @@ abs (int c)
   return (c >= 0) ? c : -c;
 }
 
+#define strtol grub_strtol
+
+/* for libgcrypt */
+#define HAVE_STRTOUL
+#define strtoul grub_strtoul
+
+#define strtoull grub_strtoull
+
 #endif
