@@ -31,5 +31,6 @@
 #define INT_MAX GRUB_INT_MAX
 
 #define CHAR_BIT 8
+#define WORD_BIT 32
 
 #endif
