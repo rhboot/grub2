@@ -36,13 +36,13 @@ _asn1_str_cat (char *dest, size_t dest_tot_size, const char *src)
 
   if (dest_tot_size - dest_size > str_size)
     {
-      strcat (dest, src);
+      memcpy (dest + dest_size, src, str_size + 1);
     }
   else
     {
       if (dest_tot_size - dest_size > 0)
 	{
-	  strncat (dest, src, (dest_tot_size - dest_size) - 1);
+	  memcpy (dest + dest_size, src, (dest_tot_size - dest_size) - 1);
 	  dest[dest_tot_size - 1] = 0;
 	}
     }
