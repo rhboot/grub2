@@ -37,5 +37,6 @@
 #define LONG_MAX GRUB_LONG_MAX
 
 #define CHAR_BIT 8
+#define WORD_BIT 32
 
 #endif
