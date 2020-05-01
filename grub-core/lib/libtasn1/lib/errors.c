@@ -57,6 +57,8 @@ static const libtasn1_error_entry error_algorithms[] = {
   {0, 0}
 };
 
+
+#if 0
 /**
  * asn1_perror:
  * @error: is an error returned by a libtasn1 function.
@@ -73,6 +75,7 @@ asn1_perror (int error)
   const char *str = asn1_strerror (error);
   fprintf (stderr, "LIBTASN1 ERROR: %s\n", str ? str : "(null)");
 }
+#endif
 
 /**
  * asn1_strerror:
