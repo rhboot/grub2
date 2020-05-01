@@ -30,8 +30,9 @@
 #include "parser_aux.h"
 #include <gstr.h>
 #include "structure.h"
-#include "c-ctype.h"
 #include "element.h"
+
+#define c_isdigit grub_isdigit
 
 void
 _asn1_hierarchical_name (asn1_node_const node, char *name, int name_size)
