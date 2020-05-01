@@ -191,7 +191,7 @@ _asn1_append_sequence_set (asn1_node node, struct node_tail_cache_st *pcache)
   return ASN1_SUCCESS;
 }
 
-
+#if 0
 /**
  * asn1_write_value:
  * @node_root: pointer to a structure
@@ -645,7 +645,7 @@ asn1_write_value (asn1_node node_root, const char *name,
 
   return ASN1_SUCCESS;
 }
-
+#endif
 
 #define PUT_VALUE( ptr, ptr_size, data, data_size) \
 	*len = data_size; \
