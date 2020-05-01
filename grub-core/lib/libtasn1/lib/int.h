@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #endif
 
-#include <libtasn1.h>
+#include "grub/libtasn1.h"
 
 #define ASN1_SMALL_VALUE_SIZE 16
 
@@ -115,7 +115,7 @@ extern const tag_and_class_st _asn1_tags[];
 #define _asn1_strtoul(n,e,b) strtoul((const char *) n, e, b)
 #define _asn1_strcmp(a,b) strcmp((const char *)a, (const char *)b)
 #define _asn1_strcpy(a,b) strcpy((char *)a, (const char *)b)
-#define _asn1_strcat(a,b) strcat((char *)a, (const char *)b)
+#define _asn1_strcat(a,b) memcpy((char *)a + strlen((const char *)a), (const char *)b, strlen((const char *)b) + 1)
 
 #if SIZEOF_UNSIGNED_LONG_INT == 8
 # define _asn1_strtou64(n,e,b) strtoul((const char *) n, e, b)
