@@ -18,9 +18,9 @@
 *.pp
 *.trs
 *~
-.deps
-.deps-core
-.deps-util
+.deps-core/
+.deps-util/
+.deps/
 .dirstamp
 00_header
 10_*
@@ -43,8 +43,8 @@ aclocal.m4
 ahci_test
 ascii.bitmaps
 ascii.h
-autom4te.cache
-build-aux
+autom4te.cache/
+build-aux/
 build-grub-gen-asciih
 build-grub-gen-widthspec
 build-grub-mkfont
@@ -178,7 +178,7 @@ xzcompress_test
 /docs/version.texi
 /garbage-gen
 /garbage-gen.exe
-/gnulib
+/gnulib/
 /grub-bios-setup
 /grub-bios-setup.exe
 /grub-core/*.module
@@ -226,7 +226,7 @@ xzcompress_test
 /include/grub/gcrypt/gcrypt.h
 /include/grub/machine
 /lib/libgcrypt-grub
-/m4
+/m4/
 /po/*.gmo
 /po/*.mo
 /po/*.po
