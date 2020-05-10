@@ -4011,7 +4011,6 @@ you forget a command, you can run the command @command{help}
 * password_pbkdf2::             Set a hashed password
 * play::                        Play a tune
 * probe::                       Retrieve device info
-* pxe_unload::                  Unload the PXE environment
 * rdmsr::                       Read values from model-specific registers
 * read::                        Read user input
 * reboot::                      Reboot your computer
@@ -4859,16 +4858,6 @@ Retrieve device information. If option @option{--set} is given, assign result
 to variable @var{var}, otherwise print information on the screen.
 
 The option @option{--part-uuid} is currently only implemented for GPT-formatted disks.
-@end deffn
-
-
-@node pxe_unload
-@subsection pxe_unload
-
-@deffn Command pxe_unload
-Unload the PXE environment (@pxref{Network}).
-
-This command is only available on PC BIOS systems.
 @end deffn
 
 
