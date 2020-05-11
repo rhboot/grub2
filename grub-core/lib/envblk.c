@@ -143,7 +143,7 @@ grub_envblk_set (grub_envblk_t envblk, const char *name, const char *value)
               /* Move the following characters backward, and fill the new
                  space with harmless characters.  */
               grub_memmove (p + vl, p + len, pend - (p + len));
-              grub_memset (space + len - vl, '#', len - vl);
+              grub_memset (space - (len - vl), '#', len - vl);
             }
           else
             /* Move the following characters forward.  */
