@@ -363,7 +363,7 @@ grub_try_normal (const char *variable)
 	if (config)
 	  {
 	    grub_file_t file;
-	    file = grub_file_open (config);
+	    file = grub_file_open (config, GRUB_FILE_TYPE_CONFIG);
 	    if (file)
 	      {
 		grub_file_close (file);

@@ -463,7 +463,7 @@ static int read_entry (
 
   p = grub_xasprintf ("(%s)%s/%s", info->devid, info->dirname, filename);
 
-  f = grub_file_open (p);
+  f = grub_file_open (p, GRUB_FILE_TYPE_CONFIG);
   if (!f)
     goto finish;
 

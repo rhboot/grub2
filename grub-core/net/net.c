@@ -1907,7 +1907,7 @@ grub_net_search_configfile (char *config)
 	  grub_dprintf ("net", "probe %s\n", config);
 
           grub_file_t file;
-          file = grub_file_open (config);
+          file = grub_file_open (config, GRUB_FILE_TYPE_CONFIG);
 
           if (file)
             {
