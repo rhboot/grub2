@@ -160,12 +160,20 @@ For this example the configure line might look like (more details below)
 (some options are optional and included here for completeness but some rarely
 used options are omitted):
 
-./configure BUILD_CC=gcc BUILD_PKG_CONFIG=pkg-config --host=amd64-linux-gnu
-CC=amd64-linux-gnu-gcc CFLAGS="-g -O2" PKG_CONFIG=amd64-linux-gnu-pkg-config
---target=arm --with-platform=uboot TARGET_CC=arm-elf-gcc
-TARGET_CFLAGS="-Os -march=armv6" TARGET_CCASFLAGS="-march=armv6"
-TARGET_OBJCOPY="arm-elf-objcopy" TARGET_STRIP="arm-elf-strip"
-TARGET_NM=arm-elf-nm TARGET_RANLIB=arm-elf-ranlib LEX=gflex
+  ./configure --host=x86_64-linux-gnu --target=arm-linux-gnueabihf \
+    --with-platform=efi BUILD_CC=gcc BUILD_PKG_CONFIG=pkg-config \
+    HOST_CC=x86_64-linux-gnu-gcc HOST_CFLAGS='-g -O2' \
+    PKG_CONFIG=x86_64-linux-gnu-pkg-config TARGET_CC=arm-linux-gnueabihf-gcc \
+    TARGET_CFLAGS='-Os -march=armv8.3-a' TARGET_CCASFLAGS='-march=armv8.3-a' \
+    TARGET_OBJCOPY=arm-linux-gnueabihf-objcopy \
+    TARGET_STRIP=arm-linux-gnueabihf-strip TARGET_NM=arm-linux-gnueabihf-nm \
+    TARGET_RANLIB=arm-linux-gnueabihf-ranlib LEX=flex
+
+Normally, for building a GRUB on amd64 with tools to run on amd64 to
+generate images to run on ARM, using your Linux distribution's
+packaged cross compiler, the following would suffice:
+
+  ./configure --target=arm-linux-gnueabihf --with-platform=efi
 
 You need to use following options to specify tools and platforms. For minimum
 version look at prerequisites. All tools not mentioned in this section under
