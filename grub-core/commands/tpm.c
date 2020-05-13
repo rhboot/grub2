@@ -29,13 +29,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-grub_err_t
-grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
-		  const char *description)
-{
-  return grub_tpm_log_event (buf, size, pcr, description);
-}
-
 static grub_err_t
 grub_tpm_verify_init (grub_file_t io,
 		      enum grub_file_type type __attribute__ ((unused)),

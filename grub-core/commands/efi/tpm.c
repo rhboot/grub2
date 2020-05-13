@@ -319,7 +319,7 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
 }
 
 grub_err_t
-grub_tpm_log_event (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
+grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 		    const char *description)
 {
   grub_efi_handle_t tpm_handle;
