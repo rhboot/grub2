@@ -134,23 +134,43 @@ read_config()
     done < ${config_file}
 }
 
-populate_menu()
-{
-    blsdir="/boot/loader/entries"
-    local -a files
-    local IFS=$'\n'
-    gettext_printf "Generating boot entries from BLS files...\n" >&2
+blsdir="/boot/loader/entries"
 
-    files=($(for bls in ${blsdir}/*.conf ; do
-        if ! [[ -e "${bls}" ]] ; then
-            continue
-        fi
+get_sorted_bls()
+{
+    local IFS=$'\n'
+
+    files=($(for bls in ${blsdir}/*.conf; do
         bls="${bls%.conf}"
         bls="${bls##*/}"
         echo "${bls}"
     done | ${kernel_sort} | tac)) || :
 
-    for bls in "${files[@]}" ; do
+    echo "${files[@]}"
+}
+
+update_bls_cmdline()
+{
+    local cmdline="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
+    local -a files=($(get_sorted_bls))
+
+    for bls in "${files[@]}"; do
+        local options="${cmdline}"
+        if [ -z "${bls##*debug*}" ]; then
+            options="${options} ${GRUB_CMDLINE_LINUX_DEBUG}"
+        fi
+        options="$(echo "${options}" | sed -e 's/\//\\\//g')"
+        sed -i -e "s/^options.*/options ${options}/" "${blsdir}/${bls}.conf"
+    done
+}
+
+populate_menu()
+{
+    local -a files=($(get_sorted_bls))
+
+    gettext_printf "Generating boot entries from BLS files...\n" >&2
+
+    for bls in "${files[@]}"; do
         read_config "${blsdir}/${bls}.conf"
 
         menu="${menu}menuentry '${title}' ${grub_arg} --id=${bls} {\n"
@@ -224,6 +244,8 @@ if [ -z "\${kernelopts}" ]; then
 fi
 EOF
 
+  update_bls_cmdline
+
   if [ "x${BLS_POPULATE_MENU}" = "xtrue" ]; then
       populate_menu
   else
@@ -244,7 +266,6 @@ EOF
           fi
       fi
 
-      ${grub_editenv} - set kernelopts="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
       if [ -n "${GRUB_EARLY_INITRD_LINUX_CUSTOM}" ]; then
           ${grub_editenv} - set early_initrd="${GRUB_EARLY_INITRD_LINUX_CUSTOM}"
       fi
