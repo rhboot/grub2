@@ -208,6 +208,9 @@ grub_err_t
 grub_verify_string (char *str, enum grub_verify_string_type type)
 {
   struct grub_file_verifier *ver;
+
+  grub_dprintf ("verify", "string: %s, type: %d\n", str, type);
+
   FOR_LIST_ELEMENTS(ver, grub_file_verifiers)
     {
       grub_err_t err;
