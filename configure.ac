@@ -80,6 +80,12 @@ if test "x$TARGET_CFLAGS" = x; then
   TARGET_CFLAGS=-Os
 fi
 
+# Enable support for "restrict" keyword and other
+# features from gnu99 C language standard.
+BUILD_CFLAGS="-std=gnu99 $BUILD_CFLAGS"
+HOST_CFLAGS="-std=gnu99 $HOST_CFLAGS"
+TARGET_CFLAGS="-std=gnu99 $TARGET_CFLAGS"
+
 # Default HOST_CPPFLAGS
 HOST_CPPFLAGS="$HOST_CPPFLAGS -Wall -W"
 HOST_CPPFLAGS="$HOST_CPPFLAGS -DGRUB_UTIL=1"
