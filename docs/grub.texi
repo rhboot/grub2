@@ -4850,7 +4850,7 @@ a rest.
 Retrieve device information. If option @option{--set} is given, assign result
 to variable @var{var}, otherwise print information on the screen.
 
-The option @option{--part-uuid} is currently only implemented for GPT-formatted disks.
+The option @option{--part-uuid} is currently only implemented for MSDOS and GPT formatted disks.
 @end deffn
 
 
