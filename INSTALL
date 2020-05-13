@@ -190,20 +190,23 @@ corresponding platform are not needed for the platform in question.
 
   - For host
     1. --host= to autoconf name of host.
-    2. CC= for gcc able to compile for host
-    3. HOST_CFLAGS= for C options for host.
-    4. HOST_CPPFLAGS= for C preprocessor options for host.
-    5. HOST_LDFLAGS= for linker options for host.
-    6. PKG_CONFIG= for pkg-config for host (optional).
-    7. Libdevmapper if any must be in standard linker folders (-ldevmapper) (optional).
-    8. Libfuse if any must be in standard linker folders (-lfuse) (optional).
-    9. Libzfs if any must be in standard linker folders (-lzfs) (optional).
-    10. Liblzma if any must be in standard linker folders (-llzma) (optional).
+    2. CC= for gcc able to compile for host.
+    3. CFLAGS= for C options for host.
+    4. HOST_CC= for gcc able to compile for host.
+    5. HOST_CFLAGS= for C options for host.
+    6. HOST_CPPFLAGS= for C preprocessor options for host.
+    7. HOST_LDFLAGS= for linker options for host.
+    8. PKG_CONFIG= for pkg-config for host (optional).
+    9. Libdevmapper if any must be in standard linker folders (-ldevmapper) (optional).
+    10. Libfuse if any must be in standard linker folders (-lfuse) (optional).
+    11. Libzfs if any must be in standard linker folders (-lzfs) (optional).
+    12. Liblzma if any must be in standard linker folders (-llzma) (optional).
+    Note: The HOST_* variables override not prefixed variables.
 
   - For target
     1. --target= to autoconf cpu name of target.
     2. --with-platform to choose firmware.
-    3. TARGET_CC= for gcc able to compile for target
+    3. TARGET_CC= for gcc able to compile for target.
     4. TARGET_CFLAGS= for C options for target.
     5. TARGET_CPPFLAGS= for C preprocessor options for target.
     6. TARGET_CCASFLAGS= for assembler options for target.
@@ -212,6 +215,10 @@ corresponding platform are not needed for the platform in question.
     9. TARGET_STRIP= for strip for target.
     10. TARGET_NM= for nm for target.
     11. TARGET_RANLIB= for ranlib for target.
+    Note: If the TARGET_* variables are not specified then they will default
+          to be the same as the host variables. If host variables are not
+          specified then the TARGET_* variables will default to be the same
+          as not prefixed variables.
 
   - Additionally for emu, for host and target.
     1. SDL is looked for in standard linker directories (-lSDL) (optional)

@@ -26,10 +26,13 @@ dnl This is necessary because the target type in autoconf does not
 dnl describe such a system very well.
 dnl
 dnl The current strategy is to use variables with no prefix (such as
-dnl CC, CFLAGS, etc.) for the host type, variables with prefix "BUILD_"
-dnl (such as BUILD_CC, BUILD_CFLAGS, etc.) for the build type and variables
-dnl with the prefix "TARGET_" (such as TARGET_CC, TARGET_CFLAGS, etc.) are
-dnl used for the target type. See INSTALL for full list of variables.
+dnl CC, CFLAGS, etc.) for the host and target type, variables with
+dnl prefix "BUILD_" (such as BUILD_CC, BUILD_CFLAGS, etc.) for the
+dnl build type, variables with prefix "HOST_" (such as HOST_CC,
+dnl HOST_CFLAGS, etc.) for the host type and variables with the prefix
+dnl "TARGET_" (such as TARGET_CC, TARGET_CFLAGS, etc.) are used for
+dnl the target type. See INSTALL for full list of variables and
+dnl description of the relationships between them.
 
 AC_INIT([GRUB],[2.05],[bug-grub@gnu.org])
 
