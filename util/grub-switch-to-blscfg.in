@@ -190,7 +190,7 @@ fi
 mkbls() {
     local kernelver=$1 && shift
     local datetime=$1 && shift
-    local bootprefix=$1 && shift
+    local kernelopts=$1 && shift
 
     local debugname=""
     local debugid=""
@@ -209,10 +209,9 @@ mkbls() {
         cat <<EOF
 title ${NAME} (${kernelver}) ${VERSION}${debugname}
 version ${kernelver}${debugid}
-linux ${bootprefix}/vmlinuz-${kernelver}
-initrd ${bootprefix}/initramfs-${kernelver}.img
-options \$kernelopts
-id ${ID}-${datetime}-${kernelver}
+linux /vmlinuz-${kernelver}
+initrd /initramfs-${kernelver}.img
+options ${kernelopts}
 grub_users \$grub_users
 grub_arg --unrestricted
 grub_class kernel${flavor}
@@ -236,28 +235,19 @@ copy_bls() {
 
 	linux_relpath="$("${grub_mkrelpath}" "${linux_path}")"
 	bootprefix="${linux_relpath%%"${linux}"}"
+	cmdline="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
 
-	if [ -f "${kernel_dir}/bls.conf" ] ; then
-            cp -af "${kernel_dir}/bls.conf" "${bls_target}"
-            if [ -n "${bootprefix}" ]; then
-		sed -i -e "s,^\(linux[^ \t]*[ \t]\+\).*,\1${bootprefix}${linux},g" "${bls_target}"
-		sed -i -e "/^initrd/ s,\([ \t]\+\)\([^ \t]\+\),\1${bootprefix}\2,g" "${bls_target}"
-            fi
-	else
-            mkbls "${kernelver}" \
-		  "$(date -u +%Y%m%d%H%M%S -d "$(stat -c '%y' "${kernel_dir}")")" \
-		  "${bootprefix}" \
-		  >"${bls_target}"
-	fi
+	mkbls "${kernelver}" \
+	      "$(date -u +%Y%m%d%H%M%S -d "$(stat -c '%y' "${kernel_dir}")")" \
+	      "${bootprefix}" "${cmdline}" >"${bls_target}"
 
 	if [ "x$GRUB_LINUX_MAKE_DEBUG" = "xtrue" ]; then
             bls_debug="$(echo ${bls_target} | sed -e "s/${kernelver}/${kernelver}~debug/")"
             cp -aT  "${bls_target}" "${bls_debug}"
             title="$(grep '^title[ \t]' "${bls_debug}" | sed -e 's/^title[ \t]*//')"
-            blsid="$(grep '^id[ \t]' "${bls_debug}" | sed -e "s/\.${ARCH}/-debug.${arch}/")"
+            options="$(echo "${cmdline} ${GRUB_CMDLINE_LINUX_DEBUG}" | sed -e 's/\//\\\//g')"
             sed -i -e "s/^title.*/title ${title}${GRUB_LINUX_DEBUG_TITLE_POSTFIX}/" "${bls_debug}"
-            sed -i -e "s/^id.*/${blsid}/" "${bls_debug}"
-            sed -i -e "s/^options.*/options \$kernelopts ${GRUB_CMDLINE_LINUX_DEBUG}/" "${bls_debug}"
+            sed -i -e "s/^options.*/options ${options}/" "${bls_debug}"
 	fi
     done
 
