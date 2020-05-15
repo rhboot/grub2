@@ -7,6 +7,7 @@
 FUNCTION (grub_arch_sync_caches)
 #include "cache_flush.S"
 	j $ra
+	 nop
 
 FUNCTION (grub_arch_sync_dma_caches)
 	move $t2, $a0
@@ -66,3 +67,4 @@ FUNCTION (grub_arch_sync_dma_caches)
 	sync_op
 
 	jr $ra
+	 nop
