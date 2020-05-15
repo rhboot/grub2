@@ -141,6 +141,9 @@ get_sorted_bls()
     local IFS=$'\n'
 
     files=($(for bls in ${blsdir}/*.conf; do
+        if ! [[ -e "${bls}" ]] ; then
+            continue
+        fi
         bls="${bls%.conf}"
         bls="${bls##*/}"
         echo "${bls}"
