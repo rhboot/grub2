@@ -42,7 +42,8 @@ grub_tpm_verify_init (grub_file_t io,
 static grub_err_t
 grub_tpm_verify_write (void *context, void *buf, grub_size_t size)
 {
-  return grub_tpm_measure (buf, size, GRUB_BINARY_PCR, context);
+  grub_tpm_measure (buf, size, GRUB_BINARY_PCR, context);
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -50,7 +51,6 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
 {
   const char *prefix = NULL;
   char *description;
-  grub_err_t status;
 
   switch (type)
     {
@@ -66,15 +66,15 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
     }
   description = grub_malloc (grub_strlen (str) + grub_strlen (prefix) + 1);
   if (!description)
-    return grub_errno;
+    return GRUB_ERR_NONE;
   grub_memcpy (description, prefix, grub_strlen (prefix));
   grub_memcpy (description + grub_strlen (prefix), str,
 	       grub_strlen (str) + 1);
-  status =
-    grub_tpm_measure ((unsigned char *) str, grub_strlen (str),
-		      GRUB_STRING_PCR, description);
+
+  grub_tpm_measure ((unsigned char *) str, grub_strlen (str), GRUB_STRING_PCR,
+                    description);
   grub_free (description);
-  return status;
+  return GRUB_ERR_NONE;
 }
 
 struct grub_file_verifier grub_tpm_verifier = {
