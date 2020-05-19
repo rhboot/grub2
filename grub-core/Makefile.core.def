@@ -2500,7 +2500,7 @@ module = {
   name = tpm;
   common = commands/tpm.c;
   efi = commands/efi/tpm.c;
-  enable = x86_64_efi;
+  enable = efi;
 };
 
 module = {
