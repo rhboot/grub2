@@ -138,16 +138,25 @@ blsdir="/boot/loader/entries"
 
 get_sorted_bls()
 {
+    if ! [ -d "${blsdir}" ] || ! [ -e /etc/machine-id ]; then
+        return
+    fi
+
+    read machine_id < /etc/machine-id
+    if [ -z "${machine_id}" ]; then
+        return
+    fi
+
     local IFS=$'\n'
 
-    files=($(for bls in ${blsdir}/*.conf; do
+    files=($(for bls in ${blsdir}/${machine_id}-*.conf; do
         if ! [[ -e "${bls}" ]] ; then
             continue
         fi
         bls="${bls%.conf}"
         bls="${bls##*/}"
         echo "${bls}"
-    done | ${kernel_sort} | tac)) || :
+    done | ${kernel_sort} 2>/dev/null | tac)) || :
 
     echo "${files[@]}"
 }
