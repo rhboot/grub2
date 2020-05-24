@@ -93,13 +93,16 @@ probe_caches (void)
       grub_arch_cache_ilinesz = 8 << (cache_type & 3);
       type = ARCH_ARMV6;
       break;
-    case 0x80 ... 0x8f:
+    default:
+      /*
+       * The CTR register is pretty much unchanged from v7 onwards,
+       * and is guaranteed to be backward compatible (the IDC/DIC bits
+       * allow certain CMOs to be elided, but performing them is never
+       * wrong), hence handling it like its AArch64 equivalent.
+       */
       grub_arch_cache_dlinesz = 4 << ((cache_type >> 16) & 0xf);
       grub_arch_cache_ilinesz = 4 << (cache_type & 0xf);
       type = ARCH_ARMV7;
-      break;
-    default:
-      grub_fatal ("Unsupported cache type 0x%x", cache_type);
     }
   if (grub_arch_cache_dlinesz > grub_arch_cache_ilinesz)
     grub_arch_cache_max_linesz = grub_arch_cache_dlinesz;
