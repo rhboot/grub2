@@ -176,10 +176,10 @@ struct grub_efi_tpm2_protocol
 				       OutputParameterBlockSize,
 				       grub_efi_uint8_t *
 				       OutputParameterBlock);
-  grub_efi_status_t (*get_active_pcr_blanks) (struct grub_efi_tpm2_protocol *
-					      this,
-					      grub_efi_uint32_t *
-					      ActivePcrBanks);
+  grub_efi_status_t (*get_active_pcr_banks) (struct grub_efi_tpm2_protocol *
+					     this,
+					     grub_efi_uint32_t *
+					     ActivePcrBanks);
   grub_efi_status_t (*set_active_pcr_banks) (struct grub_efi_tpm2_protocol *
 					     this,
 					     grub_efi_uint32_t
