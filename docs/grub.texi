@@ -4295,13 +4295,12 @@ hour, minute, and second unchanged.
 
 
 @node devicetree
-@subsection linux
+@subsection devicetree
 
 @deffn Command devicetree file
 Load a device tree blob (.dtb) from a filesystem, for later use by a Linux
 kernel. Does not perform merging with any device tree supplied by firmware,
 but rather replaces it completely.
-@ref{GNU/Linux}.
 @end deffn
 
 @node distrust
