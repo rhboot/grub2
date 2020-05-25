@@ -598,7 +598,7 @@ copy_all (const char *srcd,
   grub_util_fd_closedir (d);
 }
 
-#if !(defined (GRUB_UTIL) && defined(ENABLE_NLS) && ENABLE_NLS)
+#if (defined (GRUB_UTIL) && defined(ENABLE_NLS) && ENABLE_NLS)
 static const char *
 get_localedir (void)
 {
@@ -659,7 +659,7 @@ static void
 grub_install_copy_nls(const char *src __attribute__ ((unused)),
                       const char *dst __attribute__ ((unused)))
 {
-#if !(defined (GRUB_UTIL) && defined(ENABLE_NLS) && ENABLE_NLS)
+#if (defined (GRUB_UTIL) && defined(ENABLE_NLS) && ENABLE_NLS)
   char *dst_locale;
 
   dst_locale = grub_util_path_concat (2, dst, "locale");
