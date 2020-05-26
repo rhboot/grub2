@@ -144,7 +144,7 @@ grub_linuxefi_unload (void)
   return GRUB_ERR_NONE;
 }
 
-#define BOUNCE_BUFFER_MAX 0x10000000ull
+#define BOUNCE_BUFFER_MAX 0x1000000ull
 
 static grub_ssize_t
 read(grub_file_t file, grub_uint8_t *bufp, grub_size_t len)
