@@ -346,6 +346,8 @@ luks2_scan (grub_disk_t disk, const char *check_uuid, int check_boot)
 {
   grub_cryptodisk_t cryptodisk;
   grub_luks2_header_t header;
+  char uuid[sizeof (header.uuid) + 1];
+  grub_size_t i, j;
 
   if (check_boot)
     return NULL;
@@ -356,16 +358,21 @@ luks2_scan (grub_disk_t disk, const char *check_uuid, int check_boot)
       return NULL;
     }
 
-  if (check_uuid && grub_strcasecmp (check_uuid, header.uuid) != 0)
+  for (i = 0, j = 0; i < sizeof (header.uuid); i++)
+    if (header.uuid[i] != '-')
+      uuid[j++] = header.uuid[i];
+  uuid[j] = '\0';
+
+  if (check_uuid && grub_strcasecmp (check_uuid, uuid) != 0)
     return NULL;
 
   cryptodisk = grub_zalloc (sizeof (*cryptodisk));
   if (!cryptodisk)
     return NULL;
 
-  COMPILE_TIME_ASSERT (sizeof (cryptodisk->uuid) >= sizeof (header.uuid));
+  COMPILE_TIME_ASSERT (sizeof (cryptodisk->uuid) >= sizeof (uuid));
+  grub_memcpy (cryptodisk->uuid, uuid, sizeof (uuid));
 
-  grub_memcpy (cryptodisk->uuid, header.uuid, sizeof (header.uuid));
   cryptodisk->modname = "luks2";
   return cryptodisk;
 }
