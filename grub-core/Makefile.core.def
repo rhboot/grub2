@@ -2436,3 +2436,18 @@ module = {
   common = loader/i386/xen_file64.c;
   extra_dist = loader/i386/xen_fileXX.c;
 };
+
+module = {
+  name = asn1;
+  common = lib/libtasn1/lib/decoding.c;
+  common = lib/libtasn1/lib/coding.c;
+  common = lib/libtasn1/lib/element.c;
+  common = lib/libtasn1/lib/structure.c;
+  common = lib/libtasn1/lib/parser_aux.c;
+  common = lib/libtasn1/lib/gstr.c;
+  common = lib/libtasn1/lib/errors.c;
+  common = lib/libtasn1_wrap/wrap.c;
+  cflags = '$(CFLAGS_POSIX) $(CFLAGS_GNULIB)';
+  // -Wno-type-limits comes from libtasn1's configure.ac
+  cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB) -I$(srcdir)/lib/libtasn1/lib -Wno-type-limits';
+};
