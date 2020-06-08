@@ -1887,6 +1887,15 @@ if test x"$rpm_sort_excuse" = x ; then
              [Define to 1 if you have the rpm library.])
 fi
 
+if test x"$LIBRPM" = x ; then
+  # Check for rpm library.
+  AC_CHECK_LIB([rpmio], [rpmvercmp], [],
+               [rpm_sort_excuse="rpmio missing rpmvercmp"])
+   LIBRPM="-lrpmio";
+   AC_DEFINE([HAVE_RPMIO], [1],
+             [Define to 1 if you have the rpm library.])
+fi
+
 AC_SUBST([LIBRPM])
 
 LIBGEOM=
