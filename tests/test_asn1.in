@@ -1,0 +1,12 @@
+#! @BUILD_SHEBANG@
+set -e
+
+. "@builddir@/grub-core/modinfo.sh"
+
+out=`echo test_asn1 | @builddir@/grub-shell`
+
+if [ "$(echo "$out" | tail -n 1)" != "ASN.1 self-tests passed" ]; then
+  echo "ASN.1 test failure: $out"
+  exit 1
+fi
+
