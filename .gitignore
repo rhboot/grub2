@@ -133,4 +133,5 @@ grub-*.tar.*
 /libgrub_a_init.c
 /libgrub_a_init.lst
 /stamp-h.in
+/test_asn1
 /widthspec.h
