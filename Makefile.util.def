@@ -1328,6 +1328,12 @@ script = {
   common = tests/luks2_test.in;
 };
 
+script = {
+  testcase = native;
+  name = test_asn1;
+  common = tests/test_asn1.in;
+};
+
 program = {
   testcase = native;
   name = example_unit_test;
