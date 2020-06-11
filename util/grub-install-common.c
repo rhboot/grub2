@@ -461,10 +461,12 @@ static size_t npubkeys;
 static char *sbat;
 static int disable_shim_lock;
 static grub_compression_t compression;
+static size_t appsig_size;
 
 int
 grub_install_parse (int key, char *arg)
 {
+  const char *end;
   switch (key)
     {
     case 'C':
@@ -561,6 +563,12 @@ grub_install_parse (int key, char *arg)
 	}
       grub_util_error (_("Unrecognized compression `%s'"), arg);
     case GRUB_INSTALL_OPTIONS_GRUB_MKIMAGE:
+      return 1;
+    case GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE:
+      grub_errno = 0;
+      appsig_size = grub_strtol(arg, &end, 10);
+      if (grub_errno)
+        return 0;
       return 1;
     default:
       return 0;
@@ -661,11 +669,13 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 		  " --output '%s' "
 		  " --dtb '%s' "
 		  "--sbat '%s' "
-		  "--format '%s' --compression '%s' %s %s %s\n",
+		  "--format '%s' --compression '%s' "
+		  "--appended-signature-size %zu %s %s %s\n",
 		  dir, prefix,
 		  outname, dtb ? : "", sbat ? : "", mkimage_target,
-		  compnames[compression], note ? "--note" : "",
-		  disable_shim_lock ? "--disable-shim-lock" : "", s);
+		  compnames[compression], appsig_size,
+		  disable_shim_lock ? "--disable-shim-lock" : "",
+		  note ? "--note" : "", s);
   free (s);
 
   tgt = grub_install_get_image_target (mkimage_target);
@@ -675,7 +685,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
   grub_install_generate_image (dir, prefix, fp, outname,
 			       modules.entries, memdisk_path,
 			       pubkeys, npubkeys, config_path, tgt,
-			       note, compression, dtb, sbat,
+			       note, appsig_size, compression, dtb, sbat,
 			       disable_shim_lock);
   while (dc--)
     grub_install_pop_module ();
