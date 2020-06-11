@@ -82,6 +82,7 @@ static struct argp_option options[] = {
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
   {"compression",  'C', "(xz|none|auto)", 0, N_("choose the compression to use for core image"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
+  {"appended-signature-size", 's', N_("SIZE"), 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -124,6 +125,7 @@ struct arguments
   char *font;
   char *config;
   int note;
+  size_t appsig_size;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
 };
@@ -134,6 +136,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
   /* Get the input argument from argp_parse, which we
      know is a pointer to our arguments structure. */
   struct arguments *arguments = state->input;
+  const char* end;
 
   switch (key)
     {
@@ -164,6 +167,13 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
     case 'n':
       arguments->note = 1;
+      break;
+
+    case 's':
+      grub_errno = 0;
+      arguments->appsig_size = grub_strtol(arg, &end, 10);
+      if (grub_errno)
+        return 0;
       break;
 
     case 'm':
@@ -309,6 +319,7 @@ main (int argc, char *argv[])
 			       arguments.memdisk, arguments.pubkeys,
 			       arguments.npubkeys, arguments.config,
 			       arguments.image_target, arguments.note,
+			       arguments.appsig_size,
 			       arguments.comp, arguments.dtb);
 
   grub_util_file_sync  (fp);
