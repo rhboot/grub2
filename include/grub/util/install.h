@@ -63,6 +63,9 @@
     /* TRANSLATORS: "embed" is a verb (command description).  "*/	\
   { "pubkey",   'k', N_("FILE"), 0,					\
       N_("embed FILE as public key for signature checking"), 0},	\
+  { "appended-signature-size", GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE,\
+    "SIZE", 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), \
+    1},                                                                 \
   { "verbose", 'v', 0, 0,						\
     N_("print verbose messages."), 1 }
 
@@ -119,7 +122,8 @@ enum grub_install_options {
   GRUB_INSTALL_OPTIONS_THEMES_DIRECTORY,
   GRUB_INSTALL_OPTIONS_GRUB_MKIMAGE,
   GRUB_INSTALL_OPTIONS_INSTALL_CORE_COMPRESS,
-  GRUB_INSTALL_OPTIONS_DTB
+  GRUB_INSTALL_OPTIONS_DTB,
+  GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE
 };
 
 extern char *grub_install_source_directory;
@@ -179,7 +183,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     size_t npubkeys,
 			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
-			     int note,
+			     int note, size_t appsig_size,
 			     grub_compression_t comp, const char *dtb_file);
 
 const struct grub_install_image_target_desc *
