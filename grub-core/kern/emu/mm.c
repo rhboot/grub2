@@ -26,6 +26,16 @@
 #include <grub/i18n.h>
 
 void *
+grub_calloc (grub_size_t nmemb, grub_size_t size)
+{
+  void *ret;
+  ret = calloc (nmemb, size);
+  if (!ret)
+    grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+  return ret;
+}
+
+void *
 grub_malloc (grub_size_t size)
 {
   void *ret;

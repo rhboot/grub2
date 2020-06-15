@@ -67,8 +67,10 @@
 #include <grub/dl.h>
 #include <grub/i18n.h>
 #include <grub/mm_private.h>
+#include <grub/safemath.h>
 
 #ifdef MM_DEBUG
+# undef grub_calloc
 # undef grub_malloc
 # undef grub_zalloc
 # undef grub_realloc
@@ -375,6 +377,30 @@ grub_memalign (grub_size_t align, grub_size_t size)
   return 0;
 }
 
+/*
+ * Allocate NMEMB instances of SIZE bytes and return the pointer, or error on
+ * integer overflow.
+ */
+void *
+grub_calloc (grub_size_t nmemb, grub_size_t size)
+{
+  void *ret;
+  grub_size_t sz = 0;
+
+  if (grub_mul (nmemb, size, &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+      return NULL;
+    }
+
+  ret = grub_memalign (0, sz);
+  if (!ret)
+    return NULL;
+
+  grub_memset (ret, 0, sz);
+  return ret;
+}
+
 /* Allocate SIZE bytes and return the pointer.  */
 void *
 grub_malloc (grub_size_t size)
@@ -559,6 +585,20 @@ grub_mm_dump (unsigned lineno)
     }
 
   grub_printf ("\n");
+}
+
+void *
+grub_debug_calloc (const char *file, int line, grub_size_t nmemb, grub_size_t size)
+{
+  void *ptr;
+
+  if (grub_mm_debug)
+    grub_printf ("%s:%d: calloc (0x%" PRIxGRUB_SIZE ", 0x%" PRIxGRUB_SIZE ") = ",
+		 file, line, size);
+  ptr = grub_calloc (nmemb, size);
+  if (grub_mm_debug)
+    grub_printf ("%p\n", ptr);
+  return ptr;
 }
 
 void *
