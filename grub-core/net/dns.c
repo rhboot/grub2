@@ -22,6 +22,7 @@
 #include <grub/i18n.h>
 #include <grub/err.h>
 #include <grub/time.h>
+#include <grub/safemath.h>
 
 struct dns_cache_element
 {
@@ -51,9 +52,15 @@ grub_net_add_dns_server (const struct grub_net_network_level_address *s)
     {
       int na = dns_servers_alloc * 2;
       struct grub_net_network_level_address *ns;
+      grub_size_t sz;
+
       if (na < 8)
 	na = 8;
-      ns = grub_realloc (dns_servers, na * sizeof (ns[0]));
+
+      if (grub_mul (na, sizeof (ns[0]), &sz))
+	return GRUB_ERR_OUT_OF_RANGE;
+
+      ns = grub_realloc (dns_servers, sz);
       if (!ns)
 	return grub_errno;
       dns_servers_alloc = na;
