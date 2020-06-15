@@ -286,7 +286,7 @@ handle_install_list (struct install_list *il, const char *val,
       il->n_entries++;
     }
   il->n_alloc = il->n_entries + 1;
-  il->entries = xmalloc (il->n_alloc * sizeof (il->entries[0]));
+  il->entries = xcalloc (il->n_alloc, sizeof (il->entries[0]));
   ptr = val;
   for (ce = il->entries; ; ce++)
     {

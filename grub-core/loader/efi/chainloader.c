@@ -116,7 +116,7 @@ copy_file_path (grub_efi_file_path_device_path_t *fp,
   fp->header.type = GRUB_EFI_MEDIA_DEVICE_PATH_TYPE;
   fp->header.subtype = GRUB_EFI_FILE_PATH_DEVICE_PATH_SUBTYPE;
 
-  path_name = grub_malloc (len * GRUB_MAX_UTF16_PER_UTF8 * sizeof (*path_name));
+  path_name = grub_calloc (len, GRUB_MAX_UTF16_PER_UTF8 * sizeof (*path_name));
   if (!path_name)
     return;
 

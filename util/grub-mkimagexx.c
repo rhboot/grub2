@@ -2294,10 +2294,8 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
 		      + grub_host_to_target16 (e->e_shstrndx) * smd.section_entsize);
   smd.strtab = (char *) e + grub_host_to_target_addr (s->sh_offset);
 
-  smd.addrs = xmalloc (sizeof (*smd.addrs) * smd.num_sections);
-  memset (smd.addrs, 0, sizeof (*smd.addrs) * smd.num_sections);
-  smd.vaddrs = xmalloc (sizeof (*smd.vaddrs) * smd.num_sections);
-  memset (smd.vaddrs, 0, sizeof (*smd.vaddrs) * smd.num_sections);
+  smd.addrs = xcalloc (smd.num_sections, sizeof (*smd.addrs));
+  smd.vaddrs = xcalloc (smd.num_sections, sizeof (*smd.vaddrs));
 
   SUFFIX (locate_sections) (e, kernel_path, &smd, layout, image_target);
 

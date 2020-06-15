@@ -73,7 +73,8 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
     grub_printf ("Vendor: ");
     
     for (vendor_utf16 = st->firmware_vendor; *vendor_utf16; vendor_utf16++);
-    vendor = grub_malloc (4 * (vendor_utf16 - st->firmware_vendor) + 1);
+    /* Allocate extra 3 bytes to simplify math. */
+    vendor = grub_calloc (4, vendor_utf16 - st->firmware_vendor + 1);
     if (!vendor)
       return grub_errno;
     *grub_utf16_to_utf8 ((grub_uint8_t *) vendor, st->firmware_vendor,

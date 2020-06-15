@@ -53,7 +53,7 @@ grub_json_parse (grub_json_t **out, char *string, grub_size_t string_len)
       goto err;
     }
 
-  json->tokens = grub_malloc (sizeof (jsmntok_t) * jsmn_ret);
+  json->tokens = grub_calloc (jsmn_ret, sizeof (jsmntok_t));
   if (!json->tokens)
     {
       ret = GRUB_ERR_OUT_OF_MEMORY;

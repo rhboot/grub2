@@ -553,7 +553,7 @@ gettext_append (struct grub_script_argv *result, const char *orig_str)
   for (iptr = orig_str; *iptr; iptr++)
     if (*iptr == '$')
       dollar_cnt++;
-  ctx.allowed_strings = grub_malloc (sizeof (ctx.allowed_strings[0]) * dollar_cnt);
+  ctx.allowed_strings = grub_calloc (dollar_cnt, sizeof (ctx.allowed_strings[0]));
 
   if (parse_string (orig_str, gettext_save_allow, &ctx, 0))
     goto fail;
