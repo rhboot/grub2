@@ -23,6 +23,7 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/bufio.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -301,9 +302,17 @@ grub_png_decode_image_header (struct grub_png_data *data)
       data->bpp <<= 1;
 
   data->color_bits = color_bits;
-  data->row_bytes = data->image_width * data->bpp;
+
+  if (grub_mul (data->image_width, data->bpp, &data->row_bytes))
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+
   if (data->color_bits <= 4)
-    data->row_bytes = (data->image_width * data->color_bits + 7) / 8;
+    {
+      if (grub_mul (data->image_width, data->color_bits + 7, &data->row_bytes))
+	return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+
+      data->row_bytes >>= 3;
+    }
 
 #ifndef GRUB_CPU_WORDS_BIGENDIAN
   if (data->is_16bit || data->is_gray || data->is_palette)

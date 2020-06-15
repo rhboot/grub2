@@ -28,6 +28,7 @@
 #include <grub/env.h>
 #include <grub/i18n.h>
 #include <grub/charset.h>
+#include <grub/safemath.h>
 
 static grub_uint32_t *kill_buf;
 
@@ -307,12 +308,21 @@ cl_insert (struct cmdline_term *cl_terms, unsigned nterms,
   if (len + (*llen) >= (*max_len))
     {
       grub_uint32_t *nbuf;
-      (*max_len) *= 2;
-      nbuf = grub_realloc ((*buf), sizeof (grub_uint32_t) * (*max_len));
+      grub_size_t sz;
+
+      if (grub_mul (*max_len, 2, max_len) ||
+	  grub_mul (*max_len, sizeof (grub_uint32_t), &sz))
+	{
+	  grub_errno = GRUB_ERR_OUT_OF_RANGE;
+	  goto fail;
+	}
+
+      nbuf = grub_realloc ((*buf), sz);
       if (nbuf)
 	(*buf) = nbuf;
       else
 	{
+ fail:
 	  grub_print_error ();
 	  grub_errno = GRUB_ERR_NONE;
 	  (*max_len) /= 2;
