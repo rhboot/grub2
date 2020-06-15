@@ -48,6 +48,7 @@
 #include <grub/unicode.h>
 #include <grub/term.h>
 #include <grub/normal.h>
+#include <grub/safemath.h>
 
 #if HAVE_FONT_SOURCE
 #include "widthspec.h"
@@ -464,6 +465,7 @@ grub_unicode_aglomerate_comb (const grub_uint32_t *in, grub_size_t inlen,
 	{
 	  struct grub_unicode_combining *n;
 	  unsigned j;
+	  grub_size_t sz;
 
 	  if (!haveout)
 	    continue;
@@ -477,10 +479,14 @@ grub_unicode_aglomerate_comb (const grub_uint32_t *in, grub_size_t inlen,
 	    n = out->combining_inline;
 	  else if (out->ncomb > (int) ARRAY_SIZE (out->combining_inline))
 	    {
-	      n = grub_realloc (out->combining_ptr,
-				sizeof (n[0]) * (out->ncomb + 1));
+	      if (grub_add (out->ncomb, 1, &sz) ||
+		  grub_mul (sz, sizeof (n[0]), &sz))
+		goto fail;
+
+	      n = grub_realloc (out->combining_ptr, sz);
 	      if (!n)
 		{
+ fail:
 		  grub_errno = GRUB_ERR_NONE;
 		  continue;
 		}

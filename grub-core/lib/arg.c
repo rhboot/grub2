@@ -23,6 +23,7 @@
 #include <grub/term.h>
 #include <grub/extcmd.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 /* Built-in parser for default options.  */
 static const struct grub_arg_option help_options[] =
@@ -216,7 +217,13 @@ static inline grub_err_t
 add_arg (char ***argl, int *num, char *s)
 {
   char **p = *argl;
-  *argl = grub_realloc (*argl, (++(*num) + 1) * sizeof (char *));
+  grub_size_t sz;
+
+  if (grub_add (++(*num), 1, &sz) ||
+      grub_mul (sz, sizeof (char *), &sz))
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+
+  *argl = grub_realloc (*argl, sz);
   if (! *argl)
     {
       grub_free (p);
@@ -431,6 +438,7 @@ grub_arg_list_alloc(grub_extcmd_t extcmd, int argc,
   grub_size_t argcnt;
   struct grub_arg_list *list;
   const struct grub_arg_option *options;
+  grub_size_t sz0, sz1;
 
   options = extcmd->options;
   if (! options)
@@ -443,7 +451,15 @@ grub_arg_list_alloc(grub_extcmd_t extcmd, int argc,
 	argcnt += ((grub_size_t) argc + 1) / 2 + 1; /* max possible for any option */
     }
 
-  list = grub_zalloc (sizeof (*list) * i + sizeof (char*) * argcnt);
+  if (grub_mul (sizeof (*list), i, &sz0) ||
+      grub_mul (sizeof (char *), argcnt, &sz1) ||
+      grub_add (sz0, sz1, &sz0))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+      return 0;
+    }
+
+  list = grub_zalloc (sz0);
   if (! list)
     return 0;
 

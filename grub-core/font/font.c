@@ -30,6 +30,7 @@
 #include <grub/unicode.h>
 #include <grub/fontformat.h>
 #include <grub/env.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -360,9 +361,13 @@ static char *
 read_section_as_string (struct font_file_section *section)
 {
   char *str;
+  grub_size_t sz;
   grub_ssize_t ret;
 
-  str = grub_malloc (section->length + 1);
+  if (grub_add (section->length, 1, &sz))
+    return NULL;
+
+  str = grub_malloc (sz);
   if (!str)
     return 0;
 
