@@ -21,6 +21,7 @@
 
 #include <grub/mm.h>
 #include <grub/misc.h>
+#include <grub/safemath.h>
 
 static inline void 
 free (void *ptr)
@@ -37,7 +38,12 @@ malloc (grub_size_t size)
 static inline void *
 calloc (grub_size_t size, grub_size_t nelem)
 {
-  return grub_zalloc (size * nelem);
+  grub_size_t sz;
+
+  if (grub_mul (size, nelem, &sz))
+    return NULL;
+
+  return grub_zalloc (sz);
 }
 
 static inline void *
