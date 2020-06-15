@@ -49,7 +49,7 @@ grub_terminal_input_fake_sequence (int *seq_in, int nseq_in)
     saved = grub_term_inputs;
   if (seq)
     grub_free (seq);
-  seq = grub_malloc (nseq_in * sizeof (seq[0]));
+  seq = grub_calloc (nseq_in, sizeof (seq[0]));
   if (!seq)
     return;
 

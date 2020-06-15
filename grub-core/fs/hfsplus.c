@@ -720,7 +720,7 @@ list_nodes (void *record, void *hook_arg)
   if (! filename)
     return 0;
 
-  keyname = grub_malloc (grub_be_to_cpu16 (catkey->namelen) * sizeof (*keyname));
+  keyname = grub_calloc (grub_be_to_cpu16 (catkey->namelen), sizeof (*keyname));
   if (!keyname)
     {
       grub_free (filename);
@@ -1007,7 +1007,7 @@ grub_hfsplus_label (grub_device_t device, char **label)
     grub_hfsplus_btree_recptr (&data->catalog_tree, node, ptr);
 
   label_len = grub_be_to_cpu16 (catkey->namelen);
-  label_name = grub_malloc (label_len * sizeof (*label_name));
+  label_name = grub_calloc (label_len, sizeof (*label_name));
   if (!label_name)
     {
       grub_free (node);
@@ -1029,7 +1029,7 @@ grub_hfsplus_label (grub_device_t device, char **label)
 	}
     }
 
-  *label = grub_malloc (label_len * GRUB_MAX_UTF8_PER_UTF16 + 1);
+  *label = grub_calloc (label_len, GRUB_MAX_UTF8_PER_UTF16 + 1);
   if (! *label)
     {
       grub_free (label_name);
