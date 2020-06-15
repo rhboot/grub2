@@ -361,8 +361,8 @@ probe (const char *path, char **device_names, char delim)
       grub_util_pull_device (*curdev);
       ndev++;
     }
-  
-  drives_names = xmalloc (sizeof (drives_names[0]) * (ndev + 1)); 
+
+  drives_names = xcalloc (ndev + 1, sizeof (drives_names[0]));
 
   for (curdev = device_names, curdrive = drives_names; *curdev; curdev++,
        curdrive++)

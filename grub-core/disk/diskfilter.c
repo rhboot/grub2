@@ -1134,7 +1134,7 @@ grub_diskfilter_make_raid (grub_size_t uuidlen, char *uuid, int nmemb,
   array->lvs->segments->node_count = nmemb;
   array->lvs->segments->raid_member_size = disk_size;
   array->lvs->segments->nodes
-    = grub_zalloc (nmemb * sizeof (array->lvs->segments->nodes[0]));
+    = grub_calloc (nmemb, sizeof (array->lvs->segments->nodes[0]));
   array->lvs->segments->stripe_size = stripe_size;
   for (i = 0; i < nmemb; i++)
     {
@@ -1226,7 +1226,7 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 	  grub_partition_t p;
 	  for (p = disk->partition; p; p = p->parent)
 	    s++;
-	  pv->partmaps = xmalloc (s * sizeof (pv->partmaps[0]));
+	  pv->partmaps = xcalloc (s, sizeof (pv->partmaps[0]));
 	  s = 0;
 	  for (p = disk->partition; p; p = p->parent)
 	    pv->partmaps[s++] = xstrdup (p->partmap->name);

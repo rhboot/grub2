@@ -185,7 +185,7 @@ ac_data_mpi_copy (gcry_ac_mpi_t *data_mpis, unsigned int data_mpis_n,
   gcry_mpi_t mpi;
   char *label;
 
-  data_mpis_new = gcry_malloc (sizeof (*data_mpis_new) * data_mpis_n);
+  data_mpis_new = gcry_calloc (data_mpis_n, sizeof (*data_mpis_new));
   if (! data_mpis_new)
     {
       err = gcry_error_from_errno (errno);
@@ -572,7 +572,7 @@ _gcry_ac_data_to_sexp (gcry_ac_data_t data, gcry_sexp_t *sexp,
     }
 
   /* Add MPI list.  */
-  arg_list = gcry_malloc (sizeof (*arg_list) * (data_n + 1));
+  arg_list = gcry_calloc (data_n + 1, sizeof (*arg_list));
   if (! arg_list)
     {
       err = gcry_error_from_errno (errno);
@@ -1283,7 +1283,7 @@ ac_data_construct (const char *identifier, int include_flags,
   /* We build a list of arguments to pass to
      gcry_sexp_build_array().  */
   data_length = _gcry_ac_data_length (data);
-  arg_list = gcry_malloc (sizeof (*arg_list) * (data_length * 2));
+  arg_list = gcry_calloc (data_length, sizeof (*arg_list) * 2);
   if (! arg_list)
     {
       err = gcry_error_from_errno (errno);
@@ -1593,7 +1593,7 @@ _gcry_ac_key_pair_generate (gcry_ac_handle_t handle, unsigned int nbits,
 	arg_list_n += 2;
 
   /* Allocate list.  */
-  arg_list = gcry_malloc (sizeof (*arg_list) * arg_list_n);
+  arg_list = gcry_calloc (arg_list_n, sizeof (*arg_list));
   if (! arg_list)
     {
       err = gcry_error_from_errno (errno);

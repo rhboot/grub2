@@ -213,7 +213,7 @@ grub_parser_split_cmdline (const char *cmdline,
     return grub_errno;
   grub_memcpy (args, buffer, bp - buffer);
 
-  *argv = grub_malloc (sizeof (char *) * (*argc + 1));
+  *argv = grub_calloc (*argc + 1, sizeof (char *));
   if (!*argv)
     {
       grub_free (args);

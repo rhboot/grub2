@@ -301,7 +301,7 @@ grub_affs_read_symlink (grub_fshelp_node_t node)
       return 0;
     }
   latin1[symlink_size] = 0;
-  utf8 = grub_malloc (symlink_size * GRUB_MAX_UTF8_PER_LATIN1 + 1);
+  utf8 = grub_calloc (GRUB_MAX_UTF8_PER_LATIN1 + 1, symlink_size);
   if (!utf8)
     {
       grub_free (latin1);
@@ -422,7 +422,7 @@ grub_affs_iterate_dir (grub_fshelp_node_t dir,
 	return 1;
     }
 
-  hashtable = grub_zalloc (data->htsize * sizeof (*hashtable));
+  hashtable = grub_calloc (data->htsize, sizeof (*hashtable));
   if (!hashtable)
     return 1;
 
@@ -628,7 +628,7 @@ grub_affs_label (grub_device_t device, char **label)
       len = file.namelen;
       if (len > sizeof (file.name))
 	len = sizeof (file.name);
-      *label = grub_malloc (len * GRUB_MAX_UTF8_PER_LATIN1 + 1);
+      *label = grub_calloc (GRUB_MAX_UTF8_PER_LATIN1 + 1, len);
       if (*label)
 	*grub_latin1_to_utf8 ((grub_uint8_t *) *label, file.name, len) = '\0';
     }

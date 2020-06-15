@@ -331,7 +331,7 @@ grub_iso9660_convert_string (grub_uint8_t *us, int len)
   int i;
   grub_uint16_t t[MAX_NAMELEN / 2 + 1];
 
-  p = grub_malloc (len * GRUB_MAX_UTF8_PER_UTF16 + 1);
+  p = grub_calloc (len, GRUB_MAX_UTF8_PER_UTF16 + 1);
   if (! p)
     return NULL;
 

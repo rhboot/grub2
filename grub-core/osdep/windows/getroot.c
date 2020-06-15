@@ -59,7 +59,7 @@ grub_get_mount_point (const TCHAR *path)
 
   for (ptr = path; *ptr; ptr++);
   allocsize = (ptr - path + 10) * 2;
-  out = xmalloc (allocsize * sizeof (out[0]));
+  out = xcalloc (allocsize, sizeof (out[0]));
 
   /* When pointing to EFI system partition GetVolumePathName fails
      for ESP root and returns abberant information for everything

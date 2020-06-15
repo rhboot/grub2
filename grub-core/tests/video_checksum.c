@@ -336,7 +336,7 @@ grub_video_capture_write_bmp (const char *fname,
     {
     case 4:
       {
-	grub_uint8_t *buffer = xmalloc (mode_info->width * 3);
+	grub_uint8_t *buffer = xcalloc (3, mode_info->width);
 	grub_uint32_t rmask = ((1 << mode_info->red_mask_size) - 1);
 	grub_uint32_t gmask = ((1 << mode_info->green_mask_size) - 1);
 	grub_uint32_t bmask = ((1 << mode_info->blue_mask_size) - 1);
@@ -367,7 +367,7 @@ grub_video_capture_write_bmp (const char *fname,
       }
     case 3:
       {
-	grub_uint8_t *buffer = xmalloc (mode_info->width * 3);
+	grub_uint8_t *buffer = xcalloc (3, mode_info->width);
 	grub_uint32_t rmask = ((1 << mode_info->red_mask_size) - 1);
 	grub_uint32_t gmask = ((1 << mode_info->green_mask_size) - 1);
 	grub_uint32_t bmask = ((1 << mode_info->blue_mask_size) - 1);
@@ -407,7 +407,7 @@ grub_video_capture_write_bmp (const char *fname,
       }
     case 2:
       {
-	grub_uint8_t *buffer = xmalloc (mode_info->width * 3);
+	grub_uint8_t *buffer = xcalloc (3, mode_info->width);
 	grub_uint16_t rmask = ((1 << mode_info->red_mask_size) - 1);
 	grub_uint16_t gmask = ((1 << mode_info->green_mask_size) - 1);
 	grub_uint16_t bmask = ((1 << mode_info->blue_mask_size) - 1);
