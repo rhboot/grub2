@@ -556,8 +556,8 @@ get_utf8 (grub_uint8_t *in, grub_size_t len)
   grub_uint16_t *tmp;
   grub_size_t i;
 
-  buf = grub_malloc (len * GRUB_MAX_UTF8_PER_UTF16 + 1);
-  tmp = grub_malloc (len * sizeof (tmp[0]));
+  buf = grub_calloc (len, GRUB_MAX_UTF8_PER_UTF16 + 1);
+  tmp = grub_calloc (len, sizeof (tmp[0]));
   if (!buf || !tmp)
     {
       grub_free (buf);
