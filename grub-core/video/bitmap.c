@@ -23,6 +23,7 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -58,7 +59,7 @@ grub_video_bitmap_create (struct grub_video_bitmap **bitmap,
                           enum grub_video_blit_format blit_format)
 {
   struct grub_video_mode_info *mode_info;
-  unsigned int size;
+  grub_size_t size;
 
   if (!bitmap)
     return grub_error (GRUB_ERR_BUG, "invalid argument");
@@ -137,19 +138,25 @@ grub_video_bitmap_create (struct grub_video_bitmap **bitmap,
 
   mode_info->pitch = width * mode_info->bytes_per_pixel;
 
-  /* Calculate size needed for the data.  */
-  size = (width * mode_info->bytes_per_pixel) * height;
+  /* Calculate size needed for the data. */
+  if (grub_mul (width, mode_info->bytes_per_pixel, &size) ||
+      grub_mul (size, height, &size))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+      goto fail;
+    }
 
   (*bitmap)->data = grub_zalloc (size);
   if (! (*bitmap)->data)
-    {
-      grub_free (*bitmap);
-      *bitmap = 0;
-
-      return grub_errno;
-    }
+    goto fail;
 
   return GRUB_ERR_NONE;
+
+ fail:
+  grub_free (*bitmap);
+  *bitmap = NULL;
+
+  return grub_errno;
 }
 
 /* Frees all resources allocated by bitmap.  */
