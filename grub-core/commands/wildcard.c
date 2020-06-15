@@ -23,6 +23,7 @@
 #include <grub/file.h>
 #include <grub/device.h>
 #include <grub/script_sh.h>
+#include <grub/safemath.h>
 
 #include <regex.h>
 
@@ -48,6 +49,7 @@ merge (char **dest, char **ps)
   int i;
   int j;
   char **p;
+  grub_size_t sz;
 
   if (! dest)
     return ps;
@@ -60,7 +62,12 @@ merge (char **dest, char **ps)
   for (j = 0; ps[j]; j++)
     ;
 
-  p = grub_realloc (dest, sizeof (char*) * (i + j + 1));
+  if (grub_add (i, j, &sz) ||
+      grub_add (sz, 1, &sz) ||
+      grub_mul (sz, sizeof (char *), &sz))
+    return dest;
+
+  p = grub_realloc (dest, sz);
   if (! p)
     {
       grub_free (dest);
@@ -115,8 +122,15 @@ make_regex (const char *start, const char *end, regex_t *regexp)
   char ch;
   int i = 0;
   unsigned len = end - start;
-  char *buffer = grub_malloc (len * 2 + 2 + 1); /* worst case size. */
+  char *buffer;
+  grub_size_t sz;
 
+  /* Worst case size is (len * 2 + 2 + 1). */
+  if (grub_mul (len, 2, &sz) ||
+      grub_add (sz, 3, &sz))
+    return 1;
+
+  buffer = grub_malloc (sz);
   if (! buffer)
     return 1;
 
@@ -226,6 +240,7 @@ match_devices_iter (const char *name, void *data)
   struct match_devices_ctx *ctx = data;
   char **t;
   char *buffer;
+  grub_size_t sz;
 
   /* skip partitions if asked to. */
   if (ctx->noparts && grub_strchr (name, ','))
@@ -239,11 +254,16 @@ match_devices_iter (const char *name, void *data)
   if (regexec (ctx->regexp, buffer, 0, 0, 0))
     {
       grub_dprintf ("expand", "not matched\n");
+ fail:
       grub_free (buffer);
       return 0;
     }
 
-  t = grub_realloc (ctx->devs, sizeof (char*) * (ctx->ndev + 2));
+  if (grub_add (ctx->ndev, 2, &sz) ||
+      grub_mul (sz, sizeof (char *), &sz))
+    goto fail;
+
+  t = grub_realloc (ctx->devs, sz);
   if (! t)
     {
       grub_free (buffer);
@@ -300,6 +320,7 @@ match_files_iter (const char *name,
   struct match_files_ctx *ctx = data;
   char **t;
   char *buffer;
+  grub_size_t sz;
 
   /* skip . and .. names */
   if (grub_strcmp(".", name) == 0 || grub_strcmp("..", name) == 0)
@@ -315,9 +336,14 @@ match_files_iter (const char *name,
   if (! buffer)
     return 1;
 
-  t = grub_realloc (ctx->files, sizeof (char*) * (ctx->nfile + 2));
-  if (! t)
+  if (grub_add (ctx->nfile, 2, &sz) ||
+      grub_mul (sz, sizeof (char *), &sz))
+    goto fail;
+
+  t = grub_realloc (ctx->files, sz);
+  if (!t)
     {
+ fail:
       grub_free (buffer);
       return 1;
     }

@@ -32,6 +32,7 @@
 #include <grub/auth.h>
 #include <grub/disk.h>
 #include <grub/partition.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -104,13 +105,22 @@ legacy_file (const char *filename)
 	if (newsuffix)
 	  {
 	    char *t;
-	    
+	    grub_size_t sz;
+
+	    if (grub_add (grub_strlen (suffix), grub_strlen (newsuffix), &sz) ||
+		grub_add (sz, 1, &sz))
+	      {
+		grub_errno = GRUB_ERR_OUT_OF_RANGE;
+		goto fail_0;
+	      }
+
 	    t = suffix;
-	    suffix = grub_realloc (suffix, grub_strlen (suffix)
-				   + grub_strlen (newsuffix) + 1);
+	    suffix = grub_realloc (suffix, sz);
 	    if (!suffix)
 	      {
 		grub_free (t);
+
+ fail_0:
 		grub_free (entrysrc);
 		grub_free (parsed);
 		grub_free (newsuffix);
@@ -154,13 +164,22 @@ legacy_file (const char *filename)
 	  else
 	    {
 	      char *t;
+	      grub_size_t sz;
+
+	      if (grub_add (grub_strlen (entrysrc), grub_strlen (parsed), &sz) ||
+		  grub_add (sz, 1, &sz))
+		{
+		  grub_errno = GRUB_ERR_OUT_OF_RANGE;
+		  goto fail_1;
+		}
 
 	      t = entrysrc;
-	      entrysrc = grub_realloc (entrysrc, grub_strlen (entrysrc)
-				       + grub_strlen (parsed) + 1);
+	      entrysrc = grub_realloc (entrysrc, sz);
 	      if (!entrysrc)
 		{
 		  grub_free (t);
+
+ fail_1:
 		  grub_free (parsed);
 		  grub_free (suffix);
 		  return grub_errno;
