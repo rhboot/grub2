@@ -3325,7 +3325,7 @@ dnode_get_fullpath (const char *fullpath, struct subvolume *subvol,
 	}
       subvol->nkeys = 0;
       zap_iterate (&keychain_dn, 8, count_zap_keys, &ctx, data);
-      subvol->keyring = grub_zalloc (subvol->nkeys * sizeof (subvol->keyring[0]));
+      subvol->keyring = grub_calloc (subvol->nkeys, sizeof (subvol->keyring[0]));
       if (!subvol->keyring)
 	{
 	  grub_free (fsname);
@@ -4336,7 +4336,7 @@ grub_zfs_embed (grub_device_t device __attribute__ ((unused)),
   *nsectors = (VDEV_BOOT_SIZE >> GRUB_DISK_SECTOR_BITS);
   if (*nsectors > max_nsectors)
     *nsectors = max_nsectors;
-  *sectors = grub_malloc (*nsectors * sizeof (**sectors));
+  *sectors = grub_calloc (*nsectors, sizeof (**sectors));
   if (!*sectors)
     return grub_errno;
   for (i = 0; i < *nsectors; i++)

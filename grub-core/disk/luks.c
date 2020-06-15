@@ -336,7 +336,7 @@ luks_recover_key (grub_disk_t source,
 	&& grub_be_to_cpu32 (header.keyblock[i].stripes) > max_stripes)
       max_stripes = grub_be_to_cpu32 (header.keyblock[i].stripes);
 
-  split_key = grub_malloc (keysize * max_stripes);
+  split_key = grub_calloc (keysize, max_stripes);
   if (!split_key)
     return grub_errno;
 
