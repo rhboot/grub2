@@ -295,7 +295,7 @@ grub_xnu_devprop_add_property_utf8 (struct grub_xnu_devprop_device_descriptor *d
     return grub_errno;
 
   len = grub_strlen (name);
-  utf16 = grub_malloc (sizeof (grub_uint16_t) * len);
+  utf16 = grub_calloc (len, sizeof (grub_uint16_t));
   if (!utf16)
     {
       grub_free (utf8);
@@ -331,7 +331,7 @@ grub_xnu_devprop_add_property_utf16 (struct grub_xnu_devprop_device_descriptor *
   grub_uint16_t *utf16;
   grub_err_t err;
 
-  utf16 = grub_malloc (sizeof (grub_uint16_t) * namelen);
+  utf16 = grub_calloc (namelen, sizeof (grub_uint16_t));
   if (!utf16)
     return grub_errno;
   grub_memcpy (utf16, name, sizeof (grub_uint16_t) * namelen);

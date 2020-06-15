@@ -495,9 +495,9 @@ malloc_in_range (struct grub_relocator *rel,
   }
 #endif
 
-  eventt = grub_malloc (maxevents * sizeof (events[0]));
+  eventt = grub_calloc (maxevents, sizeof (events[0]));
   counter = grub_malloc ((DIGITSORT_MASK + 2) * sizeof (counter[0]));
-  events = grub_malloc (maxevents * sizeof (events[0]));
+  events = grub_calloc (maxevents, sizeof (events[0]));
   if (!events || !eventt || !counter)
     {
       grub_dprintf ("relocator", "events or counter allocation failed %d\n",
@@ -963,7 +963,7 @@ malloc_in_range (struct grub_relocator *rel,
 #endif
     unsigned cural = 0;
     int oom = 0;
-    res->subchunks = grub_malloc (sizeof (res->subchunks[0]) * nallocs);
+    res->subchunks = grub_calloc (nallocs, sizeof (res->subchunks[0]));
     if (!res->subchunks)
       oom = 1;
     res->nsubchunks = nallocs;
@@ -1562,8 +1562,8 @@ grub_relocator_prepare_relocs (struct grub_relocator *rel, grub_addr_t addr,
 	    count[(chunk->src & 0xff) + 1]++;
 	  }
     }
-    from = grub_malloc (nchunks * sizeof (sorted[0]));
-    to = grub_malloc (nchunks * sizeof (sorted[0]));
+    from = grub_calloc (nchunks, sizeof (sorted[0]));
+    to = grub_calloc (nchunks, sizeof (sorted[0]));
     if (!from || !to)
       {
 	grub_free (from);

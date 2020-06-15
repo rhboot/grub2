@@ -157,7 +157,7 @@ grub_normal_add_menu_entry (int argc, const char **args,
   grub_dprintf ("menu", "menu_id:\"%s\"\n", menu_id);
 
   /* Save argc, args to pass as parameters to block arg later. */
-  menu_args = grub_malloc (sizeof (char*) * (argc + 1));
+  menu_args = grub_calloc (argc + 1, sizeof (char *));
   if (! menu_args)
     goto fail;
 

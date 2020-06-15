@@ -127,7 +127,7 @@ grub_video_vga_setup (unsigned int width, unsigned int height,
 
   vga_height = height ? : 480;
 
-  framebuffer.temporary_buffer = grub_malloc (vga_height * VGA_WIDTH);
+  framebuffer.temporary_buffer = grub_calloc (vga_height, VGA_WIDTH);
   framebuffer.front_page = 0;
   framebuffer.back_page = 0;
   if (!framebuffer.temporary_buffer)

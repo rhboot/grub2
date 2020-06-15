@@ -297,7 +297,7 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
       /* Power machines documentation specify 672 as maximum SAS disks in
          one system. Using a slightly larger value to be safe. */
       table_size = 768;
-      table = grub_malloc (table_size * sizeof (grub_uint64_t));
+      table = grub_calloc (table_size, sizeof (grub_uint64_t));
 
       if (!table)
         {
