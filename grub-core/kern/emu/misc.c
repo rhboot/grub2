@@ -86,6 +86,18 @@ grub_util_error (const char *fmt, ...)
 }
 
 void *
+xcalloc (grub_size_t nmemb, grub_size_t size)
+{
+  void *p;
+
+  p = calloc (nmemb, size);
+  if (!p)
+    grub_util_error ("%s", _("out of memory"));
+
+  return p;
+}
+
+void *
 xmalloc (grub_size_t size)
 {
   void *p;
