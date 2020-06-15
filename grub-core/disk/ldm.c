@@ -323,8 +323,8 @@ make_vg (grub_disk_t disk,
 	  lv->segments->type = GRUB_DISKFILTER_MIRROR;
 	  lv->segments->node_count = 0;
 	  lv->segments->node_alloc = 8;
-	  lv->segments->nodes = grub_zalloc (sizeof (*lv->segments->nodes)
-					     * lv->segments->node_alloc);
+	  lv->segments->nodes = grub_calloc (lv->segments->node_alloc,
+					     sizeof (*lv->segments->nodes));
 	  if (!lv->segments->nodes)
 	    goto fail2;
 	  ptr = vblk[i].dynamic;
@@ -543,8 +543,8 @@ make_vg (grub_disk_t disk,
 	    {
 	      comp->segment_alloc = 8;
 	      comp->segment_count = 0;
-	      comp->segments = grub_malloc (sizeof (*comp->segments)
-					    * comp->segment_alloc);
+	      comp->segments = grub_calloc (comp->segment_alloc,
+					    sizeof (*comp->segments));
 	      if (!comp->segments)
 		goto fail2;
 	    }
@@ -590,8 +590,8 @@ make_vg (grub_disk_t disk,
 		}
 	      comp->segments->node_count = read_int (ptr + 1, *ptr);
 	      comp->segments->node_alloc = comp->segments->node_count;
-	      comp->segments->nodes = grub_zalloc (sizeof (*comp->segments->nodes)
-						   * comp->segments->node_alloc);
+	      comp->segments->nodes = grub_calloc (comp->segments->node_alloc,
+						   sizeof (*comp->segments->nodes));
 	      if (!lv->segments->nodes)
 		goto fail2;
 	    }
@@ -1017,7 +1017,7 @@ grub_util_ldm_embed (struct grub_disk *disk, unsigned int *nsectors,
       *nsectors = lv->size;
       if (*nsectors > max_nsectors)
 	*nsectors = max_nsectors;
-      *sectors = grub_malloc (*nsectors * sizeof (**sectors));
+      *sectors = grub_calloc (*nsectors, sizeof (**sectors));
       if (!*sectors)
 	return grub_errno;
       for (i = 0; i < *nsectors; i++)

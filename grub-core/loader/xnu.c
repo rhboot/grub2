@@ -801,7 +801,7 @@ grub_cmd_xnu_mkext (grub_command_t cmd __attribute__ ((unused)),
   if (grub_be_to_cpu32 (head.magic) == GRUB_MACHO_FAT_MAGIC)
     {
       narchs = grub_be_to_cpu32 (head.nfat_arch);
-      archs = grub_malloc (sizeof (struct grub_macho_fat_arch) * narchs);
+      archs = grub_calloc (narchs, sizeof (struct grub_macho_fat_arch));
       if (! archs)
 	{
 	  grub_file_close (file);
