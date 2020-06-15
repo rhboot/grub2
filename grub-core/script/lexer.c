@@ -24,6 +24,7 @@
 #include <grub/mm.h>
 #include <grub/script_sh.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 #define yytext_ptr char *
 #include "grub_script.tab.h"
@@ -110,10 +111,14 @@ grub_script_lexer_record (struct grub_parser_param *parser, char *str)
       old = lexer->recording;
       if (lexer->recordlen < len)
 	lexer->recordlen = len;
-      lexer->recordlen *= 2;
+
+      if (grub_mul (lexer->recordlen, 2, &lexer->recordlen))
+	goto fail;
+
       lexer->recording = grub_realloc (lexer->recording, lexer->recordlen);
       if (!lexer->recording)
 	{
+ fail:
 	  grub_free (old);
 	  lexer->recordpos = 0;
 	  lexer->recordlen = 0;
@@ -130,7 +135,7 @@ int
 grub_script_lexer_yywrap (struct grub_parser_param *parserstate,
 			  const char *input)
 {
-  grub_size_t len = 0;
+  grub_size_t len = 0, sz;
   char *p = 0;
   char *line = 0;
   YY_BUFFER_STATE buffer;
@@ -168,12 +173,22 @@ grub_script_lexer_yywrap (struct grub_parser_param *parserstate,
     }
   else if (len && line[len - 1] != '\n')
     {
-      p = grub_realloc (line, len + 2);
+      if (grub_add (len, 2, &sz))
+	{
+	  grub_free (line);
+	  grub_script_yyerror (parserstate, N_("overflow is detected"));
+	  return 1;
+	}
+
+      p = grub_realloc (line, sz);
       if (p)
 	{
 	  p[len++] = '\n';
 	  p[len] = '\0';
 	}
+      else
+	grub_free (line);
+
       line = p;
     }
 

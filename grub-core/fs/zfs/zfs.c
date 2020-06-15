@@ -55,6 +55,7 @@
 #include <grub/deflate.h>
 #include <grub/crypto.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -773,11 +774,14 @@ fill_vdev_info (struct grub_zfs_data *data,
   if (data->n_devices_attached > data->n_devices_allocated)
     {
       void *tmp;
-      data->n_devices_allocated = 2 * data->n_devices_attached + 1;
-      data->devices_attached
-	= grub_realloc (tmp = data->devices_attached,
-			data->n_devices_allocated
-			* sizeof (data->devices_attached[0]));
+      grub_size_t sz;
+
+      if (grub_mul (data->n_devices_attached, 2, &data->n_devices_allocated) ||
+	  grub_add (data->n_devices_allocated, 1, &data->n_devices_allocated) ||
+	  grub_mul (data->n_devices_allocated, sizeof (data->devices_attached[0]), &sz))
+	return GRUB_ERR_OUT_OF_RANGE;
+
+      data->devices_attached = grub_realloc (tmp = data->devices_attached, sz);
       if (!data->devices_attached)
 	{
 	  data->devices_attached = tmp;
@@ -3468,14 +3472,18 @@ grub_zfs_nvlist_lookup_nvlist (const char *nvlist, const char *name)
 {
   char *nvpair;
   char *ret;
-  grub_size_t size;
+  grub_size_t size, sz;
   int found;
 
   found = nvlist_find_value (nvlist, name, DATA_TYPE_NVLIST, &nvpair,
 			     &size, 0);
   if (!found)
     return 0;
-  ret = grub_zalloc (size + 3 * sizeof (grub_uint32_t));
+
+  if (grub_add (size, 3 * sizeof (grub_uint32_t), &sz))
+      return 0;
+
+  ret = grub_zalloc (sz);
   if (!ret)
     return 0;
   grub_memcpy (ret, nvlist, sizeof (grub_uint32_t));
