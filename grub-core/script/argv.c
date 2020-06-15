@@ -20,6 +20,7 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/script_sh.h>
+#include <grub/safemath.h>
 
 /* Return nearest power of two that is >= v.  */
 static unsigned
@@ -81,11 +82,16 @@ int
 grub_script_argv_next (struct grub_script_argv *argv)
 {
   char **p = argv->args;
+  grub_size_t sz;
 
   if (argv->args && argv->argc && argv->args[argv->argc - 1] == 0)
     return 0;
 
-  p = grub_realloc (p, round_up_exp ((argv->argc + 2) * sizeof (char *)));
+  if (grub_add (argv->argc, 2, &sz) ||
+      grub_mul (sz, sizeof (char *), &sz))
+    return 1;
+
+  p = grub_realloc (p, round_up_exp (sz));
   if (! p)
     return 1;
 
@@ -105,13 +111,19 @@ grub_script_argv_append (struct grub_script_argv *argv, const char *s,
 {
   grub_size_t a;
   char *p = argv->args[argv->argc - 1];
+  grub_size_t sz;
 
   if (! s)
     return 0;
 
   a = p ? grub_strlen (p) : 0;
 
-  p = grub_realloc (p, round_up_exp ((a + slen + 1) * sizeof (char)));
+  if (grub_add (a, slen, &sz) ||
+      grub_add (sz, 1, &sz) ||
+      grub_mul (sz, sizeof (char), &sz))
+    return 1;
+
+  p = grub_realloc (p, round_up_exp (sz));
   if (! p)
     return 1;
 

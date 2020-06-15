@@ -27,6 +27,7 @@
 #include <grub/auth.h>
 #include <grub/i18n.h>
 #include <grub/charset.h>
+#include <grub/safemath.h>
 
 enum update_mode
   {
@@ -113,10 +114,18 @@ ensure_space (struct line *linep, int extra)
 {
   if (linep->max_len < linep->len + extra)
     {
-      linep->max_len = 2 * (linep->len + extra);
-      linep->buf = grub_realloc (linep->buf, (linep->max_len + 1) * sizeof (linep->buf[0]));
+      grub_size_t sz0, sz1;
+
+      if (grub_add (linep->len, extra, &sz0) ||
+	  grub_mul (sz0, 2, &sz0) ||
+	  grub_add (sz0, 1, &sz1) ||
+	  grub_mul (sz1, sizeof (linep->buf[0]), &sz1))
+	return 0;
+
+      linep->buf = grub_realloc (linep->buf, sz1);
       if (! linep->buf)
 	return 0;
+      linep->max_len = sz0;
     }
 
   return 1;
