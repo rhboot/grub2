@@ -734,7 +734,7 @@ main (int argc, char *argv[])
 
   grub_util_host_init (&argc, &argv);
 
-  args = xmalloc (argc * sizeof (args[0]));
+  args = xcalloc (argc, sizeof (args[0]));
 
   argp_parse (&argp, argc, argv, 0, 0, 0);
 

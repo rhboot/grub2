@@ -624,6 +624,8 @@ device_map_check_duplicates (const char *dev_map)
   if (! fp)
     return;
 
+  d = xcalloc (alloced, sizeof (d[0]));
+
   while (fgets (buf, sizeof (buf), fp))
     {
       char *p = buf;
@@ -1224,7 +1226,7 @@ main (int argc, char *argv[])
       ndev++;
     }
 
-  grub_drives = xmalloc (sizeof (grub_drives[0]) * (ndev + 1)); 
+  grub_drives = xcalloc (ndev + 1, sizeof (grub_drives[0]));
 
   for (curdev = grub_devices, curdrive = grub_drives; *curdev; curdev++,
        curdrive++)
