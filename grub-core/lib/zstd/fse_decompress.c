@@ -82,7 +82,7 @@
 FSE_DTable* FSE_createDTable (unsigned tableLog)
 {
     if (tableLog > FSE_TABLELOG_ABSOLUTE_MAX) tableLog = FSE_TABLELOG_ABSOLUTE_MAX;
-    return (FSE_DTable*)malloc( FSE_DTABLE_SIZE_U32(tableLog) * sizeof (U32) );
+    return (FSE_DTable*)calloc( FSE_DTABLE_SIZE_U32(tableLog), sizeof (U32) );
 }
 
 void FSE_freeDTable (FSE_DTable* dt)

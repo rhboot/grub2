@@ -89,7 +89,7 @@ grub_util_load_config (struct grub_util_config *cfg)
   argv[0] = "sh";
   argv[1] = "-c";
 
-  script = xmalloc (4 * strlen (cfgfile) + 300);
+  script = xcalloc (4, strlen (cfgfile) + 300);
 
   ptr = script;
   memcpy (ptr, ". '", 3);

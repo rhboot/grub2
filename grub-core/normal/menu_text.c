@@ -78,7 +78,7 @@ grub_print_message_indented_real (const char *msg, int margin_left,
   grub_size_t msg_len = grub_strlen (msg) + 2;
   int ret = 0;
 
-  unicode_msg = grub_malloc (msg_len * sizeof (grub_uint32_t));
+  unicode_msg = grub_calloc (msg_len, sizeof (grub_uint32_t));
  
   if (!unicode_msg)
     return 0;
@@ -211,7 +211,7 @@ print_entry (int y, int highlight, grub_menu_entry_t entry,
 
   title = entry ? entry->title : "";
   title_len = grub_strlen (title);
-  unicode_title = grub_malloc (title_len * sizeof (*unicode_title));
+  unicode_title = grub_calloc (title_len, sizeof (*unicode_title));
   if (! unicode_title)
     /* XXX How to show this error?  */
     return;

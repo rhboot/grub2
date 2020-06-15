@@ -202,7 +202,7 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
 
   len = grub_strlen (var);
   len16 = len * GRUB_MAX_UTF16_PER_UTF8;
-  var16 = grub_malloc ((len16 + 1) * sizeof (var16[0]));
+  var16 = grub_calloc (len16 + 1, sizeof (var16[0]));
   if (!var16)
     return grub_errno;
   len16 = grub_utf8_to_utf16 (var16, len16, (grub_uint8_t *) var, len, NULL);
@@ -237,7 +237,7 @@ grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
 
   len = grub_strlen (var);
   len16 = len * GRUB_MAX_UTF16_PER_UTF8;
-  var16 = grub_malloc ((len16 + 1) * sizeof (var16[0]));
+  var16 = grub_calloc (len16 + 1, sizeof (var16[0]));
   if (!var16)
     return NULL;
   len16 = grub_utf8_to_utf16 (var16, len16, (grub_uint8_t *) var, len, NULL);
@@ -383,7 +383,7 @@ grub_efi_get_filename (grub_efi_device_path_t *dp0)
 	  while (len > 0 && fp->path_name[len - 1] == 0)
 	    len--;
 
-	  dup_name = grub_malloc (len * sizeof (*dup_name));
+	  dup_name = grub_calloc (len, sizeof (*dup_name));
 	  if (!dup_name)
 	    {
 	      grub_free (name);

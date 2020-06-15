@@ -333,8 +333,8 @@ grub_cmd_ipv6_autoconf (struct grub_command *cmd __attribute__ ((unused)),
     ncards++;
   }
 
-  ifaces = grub_zalloc (ncards * sizeof (ifaces[0]));
-  slaacs = grub_zalloc (ncards * sizeof (slaacs[0]));
+  ifaces = grub_calloc (ncards, sizeof (ifaces[0]));
+  slaacs = grub_calloc (ncards, sizeof (slaacs[0]));
   if (!ifaces || !slaacs)
     {
       grub_free (ifaces);

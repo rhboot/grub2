@@ -111,7 +111,7 @@ grub_util_get_windows_path_real (const char *path)
 
   while (1)
     {
-      fpa = xmalloc (alloc * sizeof (fpa[0]));
+      fpa = xcalloc (alloc, sizeof (fpa[0]));
 
       len = GetFullPathName (tpath, alloc, fpa, NULL);
       if (len >= alloc)
@@ -399,7 +399,7 @@ grub_util_fd_opendir (const char *name)
   for (l = 0; name_windows[l]; l++);
   for (l--; l >= 0 && (name_windows[l] == '\\' || name_windows[l] == '/'); l--);
   l++;
-  pattern = xmalloc ((l + 3) * sizeof (pattern[0]));
+  pattern = xcalloc (l + 3, sizeof (pattern[0]));
   memcpy (pattern, name_windows, l * sizeof (pattern[0]));
   pattern[l] = '\\';
   pattern[l + 1] = '*';

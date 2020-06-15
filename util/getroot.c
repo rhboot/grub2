@@ -200,7 +200,7 @@ make_device_name (const char *drive)
   char *ret, *ptr;
   const char *iptr;
 
-  ret = xmalloc (strlen (drive) * 2);
+  ret = xcalloc (2, strlen (drive));
   ptr = ret;
   for (iptr = drive; *iptr; iptr++)
     {

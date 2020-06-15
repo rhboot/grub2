@@ -293,8 +293,7 @@ load_font_index (grub_file_t file, grub_uint32_t sect_length, struct
   font->num_chars = sect_length / FONT_CHAR_INDEX_ENTRY_SIZE;
 
   /* Allocate the character index array.  */
-  font->char_index = grub_malloc (font->num_chars
-				  * sizeof (struct char_index_entry));
+  font->char_index = grub_calloc (font->num_chars, sizeof (struct char_index_entry));
   if (!font->char_index)
     return 1;
   font->bmp_idx = grub_malloc (0x10000 * sizeof (grub_uint16_t));
