@@ -195,7 +195,7 @@ grub_cmd_nativedisk (grub_command_t cmd __attribute__ ((unused)),
   else
     path_prefix = prefix;
 
-  mods = grub_malloc (argc * sizeof (mods[0]));
+  mods = grub_calloc (argc, sizeof (mods[0]));
   if (!mods)
     return grub_errno;
 

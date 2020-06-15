@@ -78,7 +78,7 @@ linux_prepare_atag (void *target_atag)
 
   /* some place for cmdline, initrd and terminator.  */
   tmp_size = get_atag_size (atag_orig) + 20 + (arg_size) / 4;
-  tmp_atag = grub_malloc (tmp_size * sizeof (grub_uint32_t));
+  tmp_atag = grub_calloc (tmp_size, sizeof (grub_uint32_t));
   if (!tmp_atag)
     return grub_errno;
 

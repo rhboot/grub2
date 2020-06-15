@@ -266,7 +266,7 @@ grub_sfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       node->next_extent = node->block;
       node->cache_size = 0;
 
-      node->cache = grub_malloc (sizeof (node->cache[0]) * cache_size);
+      node->cache = grub_calloc (cache_size, sizeof (node->cache[0]));
       if (!node->cache)
 	{
 	  grub_errno = 0;
