@@ -737,7 +737,7 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
     args->ptr = args->prealloc;
   else
     {
-      args->ptr = grub_malloc (args->count * sizeof (args->ptr[0]));
+      args->ptr = grub_calloc (args->count, sizeof (args->ptr[0]));
       if (!args->ptr)
 	{
 	  grub_errno = GRUB_ERR_NONE;
