@@ -199,7 +199,7 @@ gpt_partition_map_embed (struct grub_disk *disk, unsigned int *nsectors,
   *nsectors = ctx.len;
   if (*nsectors > max_nsectors)
     *nsectors = max_nsectors;
-  *sectors = grub_malloc (*nsectors * sizeof (**sectors));
+  *sectors = grub_calloc (*nsectors, sizeof (**sectors));
   if (!*sectors)
     return grub_errno;
   for (i = 0; i < *nsectors; i++)

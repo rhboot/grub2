@@ -650,7 +650,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
   if (args_count < num_disks)
     {
       if (args_count == 0)
-	images = xmalloc (num_disks * sizeof (images[0]));
+	images = xcalloc (num_disks, sizeof (images[0]));
       images[args_count] = grub_canonicalize_file_name (arg);
       args_count++;
       return 0;
@@ -734,7 +734,7 @@ main (int argc, char *argv[])
 
   grub_util_host_init (&argc, &argv);
 
-  args = xmalloc (argc * sizeof (args[0]));
+  args = xcalloc (argc, sizeof (args[0]));
 
   argp_parse (&argp, argc, argv, 0, 0, 0);
 

@@ -217,7 +217,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
     {
       grub_uint8_t *shdr, *shdrptr;
 
-      shdr = grub_malloc ((grub_uint32_t) ehdr->e_shnum * ehdr->e_shentsize);
+      shdr = grub_calloc (ehdr->e_shnum, ehdr->e_shentsize);
       if (!shdr)
 	return grub_errno;
       

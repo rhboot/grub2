@@ -122,7 +122,7 @@ grub_cmd_search (grub_extcmd_context_t ctxt, int argc, char **args)
     for (i = 0; state[SEARCH_HINT_BAREMETAL].args[i]; i++)
       nhints++;
 
-  hints = grub_malloc (sizeof (hints[0]) * nhints);
+  hints = grub_calloc (nhints, sizeof (hints[0]));
   if (!hints)
     return grub_errno;
   j = 0;

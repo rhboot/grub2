@@ -92,7 +92,7 @@ grub_priority_queue_new (grub_size_t elsize,
 {
   struct grub_priority_queue *ret;
   void *els;
-  els = grub_malloc (elsize * 8);
+  els = grub_calloc (8, elsize);
   if (!els)
     return 0;
   ret = (struct grub_priority_queue *) grub_malloc (sizeof (*ret));

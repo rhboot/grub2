@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define xcalloc calloc
 #define xmalloc malloc
 #define grub_memset memset
 #define grub_memcpy memcpy
@@ -158,11 +159,9 @@ rs_encode (gf_single_t *data, grub_size_t s, grub_size_t rs)
   gf_single_t *rs_polynomial;
   int i, j;
   gf_single_t *m;
-  m = xmalloc ((s + rs) * sizeof (gf_single_t));
+  m = xcalloc (s + rs, sizeof (gf_single_t));
   grub_memcpy (m, data, s * sizeof (gf_single_t));
-  grub_memset (m + s, 0, rs * sizeof (gf_single_t));
-  rs_polynomial = xmalloc ((rs + 1) * sizeof (gf_single_t));
-  grub_memset (rs_polynomial, 0, (rs + 1) * sizeof (gf_single_t));
+  rs_polynomial = xcalloc (rs + 1, sizeof (gf_single_t));
   rs_polynomial[rs] = 1;
   /* Multiply with X - a^r */
   for (j = 0; j < rs; j++)

@@ -296,7 +296,7 @@ main (int argc, char *argv[])
   grub_util_host_init (&argc, &argv);
   grub_util_disable_fd_syncs ();
 
-  files = xmalloc ((argc + 1) * sizeof (files[0]));
+  files = xcalloc (argc + 1, sizeof (files[0]));
 
   argp_parse (&argp, argc, argv, 0, 0, 0);
 

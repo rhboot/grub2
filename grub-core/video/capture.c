@@ -89,7 +89,7 @@ grub_video_capture_start (const struct grub_video_mode_info *mode_info,
   framebuffer.mode_info = *mode_info;
   framebuffer.mode_info.blit_format = grub_video_get_blit_format (&framebuffer.mode_info);
 
-  framebuffer.ptr = grub_malloc (framebuffer.mode_info.height * framebuffer.mode_info.pitch);
+  framebuffer.ptr = grub_calloc (framebuffer.mode_info.height, framebuffer.mode_info.pitch);
   if (!framebuffer.ptr)
     return grub_errno;
   

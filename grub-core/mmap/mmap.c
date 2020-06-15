@@ -143,9 +143,9 @@ grub_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
 
   /* Initialize variables. */
   ctx.scanline_events = (struct grub_mmap_scan *)
-    grub_malloc (sizeof (struct grub_mmap_scan) * 2 * mmap_num);
+    grub_calloc (mmap_num, sizeof (struct grub_mmap_scan) * 2);
 
-  present = grub_zalloc (sizeof (present[0]) * current_priority);
+  present = grub_calloc (current_priority, sizeof (present[0]));
 
   if (! ctx.scanline_events || !present)
     {

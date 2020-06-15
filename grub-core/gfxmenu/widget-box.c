@@ -303,10 +303,10 @@ grub_gfxmenu_create_box (const char *pixmaps_prefix,
   box->content_height = 0;
   box->raw_pixmaps =
     (struct grub_video_bitmap **)
-    grub_malloc (BOX_NUM_PIXMAPS * sizeof (struct grub_video_bitmap *));
+    grub_calloc (BOX_NUM_PIXMAPS, sizeof (struct grub_video_bitmap *));
   box->scaled_pixmaps =
     (struct grub_video_bitmap **)
-    grub_malloc (BOX_NUM_PIXMAPS * sizeof (struct grub_video_bitmap *));
+    grub_calloc (BOX_NUM_PIXMAPS, sizeof (struct grub_video_bitmap *));
 
   /* Initialize all pixmap pointers to NULL so that proper destruction can
      be performed if an error is encountered partway through construction.  */

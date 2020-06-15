@@ -404,7 +404,7 @@ lower_bound (struct grub_btrfs_data *data,
     {
       desc->allocated = 16;
       desc->depth = 0;
-      desc->data = grub_malloc (sizeof (desc->data[0]) * desc->allocated);
+      desc->data = grub_calloc (desc->allocated, sizeof (desc->data[0]));
       if (!desc->data)
 	return grub_errno;
     }
@@ -2056,7 +2056,7 @@ grub_btrfs_embed (grub_device_t device __attribute__ ((unused)),
   *nsectors = 64 * 2 - 1;
   if (*nsectors > max_nsectors)
     *nsectors = max_nsectors;
-  *sectors = grub_malloc (*nsectors * sizeof (**sectors));
+  *sectors = grub_calloc (*nsectors, sizeof (**sectors));
   if (!*sectors)
     return grub_errno;
   for (i = 0; i < *nsectors; i++)

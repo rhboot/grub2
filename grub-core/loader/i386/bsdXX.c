@@ -48,7 +48,7 @@ read_headers (grub_file_t file, const char *filename, Elf_Ehdr *e, char **shdr)
   if (e->e_ident[EI_CLASS] != SUFFIX (ELFCLASS))
     return grub_error (GRUB_ERR_BAD_OS, N_("invalid arch-dependent ELF magic"));
 
-  *shdr = grub_malloc ((grub_uint32_t) e->e_shnum * e->e_shentsize);
+  *shdr = grub_calloc (e->e_shnum, e->e_shentsize);
   if (! *shdr)
     return grub_errno;
 

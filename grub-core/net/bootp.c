@@ -1326,7 +1326,7 @@ grub_cmd_bootp (struct grub_command *cmd __attribute__ ((unused)),
   if (ncards == 0)
     return grub_error (GRUB_ERR_NET_NO_CARD, N_("no network card found"));
 
-  ifaces = grub_zalloc (ncards * sizeof (ifaces[0]));
+  ifaces = grub_calloc (ncards, sizeof (ifaces[0]));
   if (!ifaces)
     return grub_errno;
 
