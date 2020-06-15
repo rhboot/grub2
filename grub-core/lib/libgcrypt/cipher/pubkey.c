@@ -2941,7 +2941,7 @@ gcry_pk_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t s_pkey)
        * array to a format string, so we have to do it this way :-(.  */
       /* FIXME: There is now such a format specifier, so we can
          change the code to be more clear. */
-      arg_list = malloc (nelem * sizeof *arg_list);
+      arg_list = calloc (nelem, sizeof *arg_list);
       if (!arg_list)
         {
           rc = gpg_err_code_from_syserror ();
@@ -3233,7 +3233,7 @@ gcry_pk_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_hash, gcry_sexp_t s_skey)
         }
       strcpy (p, "))");
 
-      arg_list = malloc (nelem * sizeof *arg_list);
+      arg_list = calloc (nelem, sizeof *arg_list);
       if (!arg_list)
         {
           rc = gpg_err_code_from_syserror ();

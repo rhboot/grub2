@@ -554,7 +554,7 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
 	      z = 1 << j;	/* table entries for j-bit table */
 
 	      /* allocate and link in new table */
-	      q = (struct huft *) grub_zalloc ((z + 1) * sizeof (struct huft));
+	      q = (struct huft *) grub_calloc (z + 1, sizeof (struct huft));
 	      if (! q)
 		{
 		  if (h)
