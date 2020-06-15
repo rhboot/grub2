@@ -1360,7 +1360,7 @@ grub_hfs_label (grub_device_t device, char **label)
       grub_size_t len = data->sblock.volname[0];
       if (len > sizeof (data->sblock.volname) - 1)
 	len = sizeof (data->sblock.volname) - 1;
-      *label = grub_malloc (len * MAX_UTF8_PER_MAC_ROMAN + 1);
+      *label = grub_calloc (MAX_UTF8_PER_MAC_ROMAN + 1, len);
       if (*label)
 	macroman_to_utf8 (*label, data->sblock.volname + 1,
 			  len + 1, 0);

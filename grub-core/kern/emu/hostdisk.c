@@ -615,7 +615,7 @@ static char *
 grub_util_path_concat_real (size_t n, int ext, va_list ap)
 {
   size_t totlen = 0;
-  char **l = xmalloc ((n + ext) * sizeof (l[0]));
+  char **l = xcalloc (n + ext, sizeof (l[0]));
   char *r, *p, *pi;
   size_t i;
   int first = 1;

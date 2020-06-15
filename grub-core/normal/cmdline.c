@@ -41,7 +41,7 @@ grub_err_t
 grub_set_history (int newsize)
 {
   grub_uint32_t **old_hist_lines = hist_lines;
-  hist_lines = grub_malloc (sizeof (grub_uint32_t *) * newsize);
+  hist_lines = grub_calloc (newsize, sizeof (grub_uint32_t *));
 
   /* Copy the old lines into the new buffer.  */
   if (old_hist_lines)
@@ -114,7 +114,7 @@ static void
 grub_history_set (int pos, grub_uint32_t *s, grub_size_t len)
 {
   grub_free (hist_lines[pos]);
-  hist_lines[pos] = grub_malloc ((len + 1) * sizeof (grub_uint32_t));
+  hist_lines[pos] = grub_calloc (len + 1, sizeof (grub_uint32_t));
   if (!hist_lines[pos])
     {
       grub_print_error ();
@@ -349,7 +349,7 @@ grub_cmdline_get (const char *prompt_translated)
   char *ret;
   unsigned nterms;
 
-  buf = grub_malloc (max_len * sizeof (grub_uint32_t));
+  buf = grub_calloc (max_len, sizeof (grub_uint32_t));
   if (!buf)
     return 0;
 
@@ -377,7 +377,7 @@ grub_cmdline_get (const char *prompt_translated)
     FOR_ACTIVE_TERM_OUTPUTS(cur)
       nterms++;
 
-    cl_terms = grub_malloc (sizeof (cl_terms[0]) * nterms);
+    cl_terms = grub_calloc (nterms, sizeof (cl_terms[0]));
     if (!cl_terms)
       {
 	grub_free (buf);
@@ -385,7 +385,7 @@ grub_cmdline_get (const char *prompt_translated)
       }
     cl_term_cur = cl_terms;
 
-    unicode_msg = grub_malloc (msg_len * sizeof (grub_uint32_t));
+    unicode_msg = grub_calloc (msg_len, sizeof (grub_uint32_t));
     if (!unicode_msg)
       {
 	grub_free (buf);
@@ -495,7 +495,7 @@ grub_cmdline_get (const char *prompt_translated)
 		grub_uint32_t *insert;
 
 		insertlen = grub_strlen (insertu8);
-		insert = grub_malloc ((insertlen + 1) * sizeof (grub_uint32_t));
+		insert = grub_calloc (insertlen + 1, sizeof (grub_uint32_t));
 		if (!insert)
 		  {
 		    grub_free (insertu8);
@@ -602,7 +602,7 @@ grub_cmdline_get (const char *prompt_translated)
 
 	      grub_free (kill_buf);
 
-	      kill_buf = grub_malloc ((n + 1) * sizeof(grub_uint32_t));
+	      kill_buf = grub_calloc (n + 1, sizeof (grub_uint32_t));
 	      if (grub_errno)
 		{
 		  grub_print_error ();

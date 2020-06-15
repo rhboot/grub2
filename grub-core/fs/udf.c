@@ -873,7 +873,7 @@ read_string (const grub_uint8_t *raw, grub_size_t sz, char *outbuf)
     {
       unsigned i;
       utf16len = sz - 1;
-      utf16 = grub_malloc (utf16len * sizeof (utf16[0]));
+      utf16 = grub_calloc (utf16len, sizeof (utf16[0]));
       if (!utf16)
 	return NULL;
       for (i = 0; i < utf16len; i++)
@@ -883,7 +883,7 @@ read_string (const grub_uint8_t *raw, grub_size_t sz, char *outbuf)
     {
       unsigned i;
       utf16len = (sz - 1) / 2;
-      utf16 = grub_malloc (utf16len * sizeof (utf16[0]));
+      utf16 = grub_calloc (utf16len, sizeof (utf16[0]));
       if (!utf16)
 	return NULL;
       for (i = 0; i < utf16len; i++)

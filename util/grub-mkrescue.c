@@ -441,8 +441,8 @@ main (int argc, char *argv[])
   xorriso = xstrdup ("xorriso");
   label_font = grub_util_path_concat (2, pkgdatadir, "unicode.pf2");
 
-  argp_argv = xmalloc (sizeof (argp_argv[0]) * argc);
-  xorriso_tail_argv = xmalloc (sizeof (argp_argv[0]) * argc);
+  argp_argv = xcalloc (argc, sizeof (argp_argv[0]));
+  xorriso_tail_argv = xcalloc (argc, sizeof (argp_argv[0]));
 
   xorriso_tail_argc = 0;
   /* Program name */

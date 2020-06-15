@@ -293,7 +293,7 @@ grub_unicode_glyph_dup (const struct grub_unicode_glyph *in)
   grub_memcpy (out, in, sizeof (*in));
   if (in->ncomb > ARRAY_SIZE (out->combining_inline))
     {
-      out->combining_ptr = grub_malloc (in->ncomb * sizeof (out->combining_ptr[0]));
+      out->combining_ptr = grub_calloc (in->ncomb, sizeof (out->combining_ptr[0]));
       if (!out->combining_ptr)
 	{
 	  grub_free (out);
@@ -315,7 +315,7 @@ grub_unicode_set_glyph (struct grub_unicode_glyph *out,
   grub_memcpy (out, in, sizeof (*in));
   if (in->ncomb > ARRAY_SIZE (out->combining_inline))
     {
-      out->combining_ptr = grub_malloc (in->ncomb * sizeof (out->combining_ptr[0]));
+      out->combining_ptr = grub_calloc (in->ncomb, sizeof (out->combining_ptr[0]));
       if (!out->combining_ptr)
 	return;
       grub_memcpy (out->combining_ptr, in->combining_ptr,

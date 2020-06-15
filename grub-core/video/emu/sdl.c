@@ -172,7 +172,7 @@ grub_video_sdl_set_palette (unsigned int start, unsigned int count,
       if (start + count > mode_info.number_of_colors)
 	count = mode_info.number_of_colors - start;
 
-      tmp = grub_malloc (count * sizeof (tmp[0]));
+      tmp = grub_calloc (count, sizeof (tmp[0]));
       for (i = 0; i < count; i++)
 	{
 	  tmp[i].r = palette_data[i].r;

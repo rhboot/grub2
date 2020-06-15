@@ -133,7 +133,7 @@ grub_uboot_dev_enum (void)
     return num_devices;
 
   max_devices = 2;
-  enum_devices = grub_malloc (sizeof(struct device_info) * max_devices);
+  enum_devices = grub_calloc (max_devices, sizeof(struct device_info));
   if (!enum_devices)
     return 0;
 

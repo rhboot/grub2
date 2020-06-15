@@ -383,7 +383,7 @@ prime_generate_internal (int need_q_factor,
     }
 
   /* Allocate an array to track pool usage. */
-  pool_in_use = gcry_malloc (n * sizeof *pool_in_use);
+  pool_in_use = gcry_calloc (n, sizeof *pool_in_use);
   if (!pool_in_use)
     {
       err = gpg_err_code_from_errno (errno);
@@ -765,7 +765,7 @@ gen_prime (unsigned int nbits, int secret, int randomlevel,
   if (nbits < 16)
     log_fatal ("can't generate a prime with less than %d bits\n", 16);
 
-  mods = gcry_xmalloc( no_of_small_prime_numbers * sizeof *mods );
+  mods = gcry_xcalloc( no_of_small_prime_numbers, sizeof *mods);
   /* Make nbits fit into gcry_mpi_t implementation. */
   val_2  = mpi_alloc_set_ui( 2 );
   val_3 = mpi_alloc_set_ui( 3);

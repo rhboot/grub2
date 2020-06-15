@@ -309,7 +309,7 @@ grub_png_decode_image_header (struct grub_png_data *data)
   if (data->is_16bit || data->is_gray || data->is_palette)
 #endif
     {
-      data->image_data = grub_malloc (data->image_height * data->row_bytes);
+      data->image_data = grub_calloc (data->image_height, data->row_bytes);
       if (grub_errno)
         return grub_errno;
 

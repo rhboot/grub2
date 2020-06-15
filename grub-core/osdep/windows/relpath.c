@@ -72,7 +72,7 @@ grub_make_system_path_relative_to_its_root (const char *path)
       if (dirwindows[0] && dirwindows[1] == ':')
 	offset = 2;
     }
-  ret = xmalloc (sizeof (ret[0]) * (flen - offset + 2));
+  ret = xcalloc (flen - offset + 2, sizeof (ret[0]));
   if (dirwindows[offset] != '\\'
       && dirwindows[offset] != '/'
       && dirwindows[offset])

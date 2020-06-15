@@ -225,8 +225,8 @@ grub_install_register_efi (grub_device_t efidir_grub_dev,
     grub_util_error ("%s", _("no EFI routines are available when running in BIOS mode"));
 
   distrib8_len = grub_strlen (efi_distributor);
-  distributor16 = xmalloc ((distrib8_len + 1) * GRUB_MAX_UTF16_PER_UTF8
-			   * sizeof (grub_uint16_t));
+  distributor16 = xcalloc (distrib8_len + 1,
+			   GRUB_MAX_UTF16_PER_UTF8 * sizeof (grub_uint16_t));
   distrib16_len = grub_utf8_to_utf16 (distributor16, distrib8_len * GRUB_MAX_UTF16_PER_UTF8,
 				      (const grub_uint8_t *) efi_distributor,
 				      distrib8_len, 0);

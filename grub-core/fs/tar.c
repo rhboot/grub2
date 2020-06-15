@@ -120,7 +120,7 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	  if (data->linkname_alloc < linksize + 1)
 	    {
 	      char *n;
-	      n = grub_malloc (2 * (linksize + 1));
+	      n = grub_calloc (2, linksize + 1);
 	      if (!n)
 		return grub_errno;
 	      grub_free (data->linkname);

@@ -100,9 +100,9 @@ write_section_data (FILE* fp, const char *name, char *image,
   char *pe_strtab = (image + pe_chdr->symtab_offset
 		     + pe_chdr->num_symbols * sizeof (struct grub_pe32_symbol));
 
-  section_map = xmalloc ((2 * pe_chdr->num_sections + 5) * sizeof (int));
+  section_map = xcalloc (2 * pe_chdr->num_sections + 5, sizeof (int));
   section_map[0] = 0;
-  shdr = xmalloc ((2 * pe_chdr->num_sections + 5) * sizeof (shdr[0]));
+  shdr = xcalloc (2 * pe_chdr->num_sections + 5, sizeof (shdr[0]));
   idx = 1;
   idx_reloc = pe_chdr->num_sections + 1;
 
@@ -233,7 +233,7 @@ write_reloc_section (FILE* fp, const char *name, char *image,
 
       pe_sec = pe_shdr + shdr[i].sh_link;
       pe_rel = (struct grub_pe32_reloc *) (image + pe_sec->relocations_offset);
-      rel = (elf_reloc_t *) xmalloc (pe_sec->num_relocations * sizeof (elf_reloc_t));
+      rel = (elf_reloc_t *) xcalloc (pe_sec->num_relocations, sizeof (elf_reloc_t));
       num_rels = 0;
       modified = 0;
 
@@ -365,12 +365,10 @@ write_symbol_table (FILE* fp, const char *name, char *image,
   pe_symtab = (struct grub_pe32_symbol *) (image + pe_chdr->symtab_offset);
   pe_strtab = (char *) (pe_symtab + pe_chdr->num_symbols);
 
-  symtab = (Elf_Sym *) xmalloc ((pe_chdr->num_symbols + 1) *
-				sizeof (Elf_Sym));
-  memset (symtab, 0, (pe_chdr->num_symbols + 1) * sizeof (Elf_Sym));
+  symtab = (Elf_Sym *) xcalloc (pe_chdr->num_symbols + 1, sizeof (Elf_Sym));
   num_syms = 1;
 
-  symtab_map = (int *) xmalloc (pe_chdr->num_symbols * sizeof (int));
+  symtab_map = (int *) xcalloc (pe_chdr->num_symbols, sizeof (int));
 
   for (i = 0; i < (int) pe_chdr->num_symbols;
        i += pe_symtab->num_aux + 1, pe_symtab += pe_symtab->num_aux + 1)

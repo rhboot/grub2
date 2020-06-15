@@ -55,7 +55,7 @@ canonicalize_path (const char *path)
     if (*p == '/')
       components++;
 
-  char **path_array = grub_malloc (components * sizeof (*path_array));
+  char **path_array = grub_calloc (components, sizeof (*path_array));
   if (! path_array)
     return 0;
 

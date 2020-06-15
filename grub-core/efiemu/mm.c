@@ -554,11 +554,11 @@ grub_efiemu_mmap_sort_and_uniq (void)
   /* Initialize variables*/
   grub_memset (present, 0, sizeof (int) * GRUB_EFI_MAX_MEMORY_TYPE);
   scanline_events = (struct grub_efiemu_mmap_scan *)
-    grub_malloc (sizeof (struct grub_efiemu_mmap_scan) * 2 * mmap_num);
+    grub_calloc (mmap_num, sizeof (struct grub_efiemu_mmap_scan) * 2);
 
   /* Number of chunks can't increase more than by factor of 2 */
   result = (grub_efi_memory_descriptor_t *)
-    grub_malloc (sizeof (grub_efi_memory_descriptor_t) * 2 * mmap_num);
+    grub_calloc (mmap_num, sizeof (grub_efi_memory_descriptor_t) * 2);
   if (!result || !scanline_events)
     {
       grub_free (result);
@@ -660,7 +660,7 @@ grub_efiemu_mm_do_alloc (void)
 
   /* Preallocate mmap */
   efiemu_mmap = (grub_efi_memory_descriptor_t *)
-    grub_malloc (mmap_reserved_size * sizeof (grub_efi_memory_descriptor_t));
+    grub_calloc (mmap_reserved_size, sizeof (grub_efi_memory_descriptor_t));
   if (!efiemu_mmap)
     {
       grub_efiemu_unload ();

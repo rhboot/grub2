@@ -426,7 +426,7 @@ grub_xendisk_init (void)
   if (!ctr)
     return;
 
-  virtdisks = grub_malloc (ctr * sizeof (virtdisks[0]));
+  virtdisks = grub_calloc (ctr, sizeof (virtdisks[0]));
   if (!virtdisks)
     return;
   if (grub_xenstore_dir ("device/vbd", fill, &ctr))
