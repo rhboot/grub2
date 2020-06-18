@@ -261,7 +261,8 @@ copy_bls() {
 # but only do this if the blsdir is not set, to make sure that the BLS
 # parsing module will search for the BLS snippets in the default path.
 if test -f /run/ostree-booted && test -d /sys/firmware/efi/efivars && \
-   ! ${grub_editenv} - list | grep -q blsdir; then
+   ! ${grub_editenv} - list | grep -q blsdir && \
+   mountpoint -q /boot; then
     grub_binary="$(find /usr/lib/ostree-boot/efi/EFI/${EFIDIR}/ -name grub*.efi)"
     install -m 700 ${grub_binary} ${grubdir} || exit 1
     # Create a hidden file to indicate that grub2 now has BLS support.
