@@ -1089,6 +1089,7 @@ grub_multiboot2_add_module (grub_addr_t start, grub_size_t size,
 {
   struct module *newmod;
   grub_size_t len = 0;
+  grub_err_t err = 0;
 
   newmod = grub_malloc (sizeof (*newmod));
   if (!newmod)
@@ -1107,8 +1108,14 @@ grub_multiboot2_add_module (grub_addr_t start, grub_size_t size,
   newmod->cmdline_size = len;
   total_modcmd += ALIGN_UP (len, MULTIBOOT_TAG_ALIGN);
 
-  grub_create_loader_cmdline (argc, argv, newmod->cmdline,
-			      newmod->cmdline_size);
+  err = grub_create_loader_cmdline (argc, argv, newmod->cmdline,
+				    newmod->cmdline_size);
+  if (err)
+    {
+      grub_free (newmod->cmdline);
+      grub_free (newmod);
+      return err;
+    }
 
   if (modules_last)
     modules_last->next = newmod;
