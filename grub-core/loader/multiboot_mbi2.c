@@ -1070,7 +1070,11 @@ grub_multiboot2_add_module (grub_addr_t start, grub_size_t size,
   err = grub_create_loader_cmdline (argc, argv, newmod->cmdline,
 				    newmod->cmdline_size, GRUB_VERIFY_MODULE_CMDLINE);
   if (err)
-    return err;
+    {
+      grub_free (newmod->cmdline);
+      grub_free (newmod);
+      return err;
+    }
 
   if (modules_last)
     modules_last->next = newmod;
