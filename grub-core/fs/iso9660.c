@@ -533,14 +533,20 @@ add_part (struct iterate_dir_ctx *ctx,
 {
   int size = ctx->symlink ? grub_strlen (ctx->symlink) : 0;
   grub_size_t sz;
+  char *new;
 
   if (grub_add (size, len2, &sz) ||
       grub_add (sz, 1, &sz))
     return;
 
-  ctx->symlink = grub_realloc (ctx->symlink, sz);
-  if (! ctx->symlink)
-    return;
+  new = grub_realloc (ctx->symlink, sz);
+  if (!new)
+    {
+      grub_free (ctx->symlink);
+      ctx->symlink = NULL;
+      return;
+    }
+  ctx->symlink = new;
 
   grub_memcpy (ctx->symlink + size, part, len2);
   ctx->symlink[size + len2] = 0;  
@@ -634,7 +640,12 @@ susp_iterate_dir (struct grub_iso9660_susp_entry *entry,
 		   is the length.  Both are part of the `Component
 		   Record'.  */
 		if (ctx->symlink && !ctx->was_continue)
-		  add_part (ctx, "/", 1);
+		  {
+		    add_part (ctx, "/", 1);
+		    if (grub_errno)
+		      return grub_errno;
+		  }
+
 		add_part (ctx, (char *) &entry->data[pos + 2],
 			  entry->data[pos + 1]);
 		ctx->was_continue = (entry->data[pos] & 1);
@@ -653,6 +664,11 @@ susp_iterate_dir (struct grub_iso9660_susp_entry *entry,
 	      add_part (ctx, "/", 1);
 	      break;
 	    }
+
+	  /* Check if grub_realloc() failed in add_part(). */
+	  if (grub_errno)
+	    return grub_errno;
+
 	  /* In pos + 1 the length of the `Component Record' is
 	     stored.  */
 	  pos += entry->data[pos + 1] + 2;
