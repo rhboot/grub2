@@ -944,7 +944,7 @@ GRUB_MOD_INIT(pgp)
     grub_memset (&pseudo_file, 0, sizeof (pseudo_file));
 
     /* Not an ELF module, skip.  */
-    if (header->type != OBJ_TYPE_PUBKEY)
+    if (header->type != OBJ_TYPE_GPG_PUBKEY)
       continue;
 
     pseudo_file.fs = &pseudo_fs;
