@@ -774,8 +774,10 @@ grub_install_get_image_targets_string (void)
 void
 grub_install_generate_image (const char *dir, const char *prefix,
 			     FILE *out, const char *outname, char *mods[],
-			     char *memdisk_path, char **pubkey_paths,
-			     size_t npubkeys, char *config_path,
+			     char *memdisk_path,
+			     char **pubkey_paths, size_t npubkeys,
+			     char **x509key_paths, size_t nx509keys,
+			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     int note, size_t appsig_size, grub_compression_t comp, const char *dtb_path)
 {
@@ -813,6 +815,19 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	size_t curs;
 	curs = ALIGN_ADDR (grub_util_get_image_size (pubkey_paths[i]));
 	grub_util_info ("the size of public key %u is 0x%"
+			GRUB_HOST_PRIxLONG_LONG,
+			(unsigned) i, (unsigned long long) curs);
+	total_module_size += curs + sizeof (struct grub_module_header);
+      }
+  }
+
+  {
+    size_t i;
+    for (i = 0; i < nx509keys; i++)
+      {
+	size_t curs;
+	curs = ALIGN_ADDR (grub_util_get_image_size (x509key_paths[i]));
+	grub_util_info ("the size of x509 public key %u is 0x%"
 			GRUB_HOST_PRIxLONG_LONG,
 			(unsigned) i, (unsigned long long) curs);
 	total_module_size += curs + sizeof (struct grub_module_header);
@@ -933,7 +948,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	curs = grub_util_get_image_size (pubkey_paths[i]);
 
 	header = (struct grub_module_header *) (kernel_img + offset);
-	header->type = grub_host_to_target32 (OBJ_TYPE_PUBKEY);
+	header->type = grub_host_to_target32 (OBJ_TYPE_GPG_PUBKEY);
 	header->size = grub_host_to_target32 (curs + sizeof (*header));
 	offset += sizeof (*header);
 
@@ -941,6 +956,26 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	offset += ALIGN_ADDR (curs);
       }
   }
+
+  {
+    size_t i;
+    for (i = 0; i < nx509keys; i++)
+      {
+	size_t curs;
+	struct grub_module_header *header;
+
+	curs = grub_util_get_image_size (x509key_paths[i]);
+
+	header = (struct grub_module_header *) (kernel_img + offset);
+	header->type = grub_host_to_target32 (OBJ_TYPE_X509_PUBKEY);
+	header->size = grub_host_to_target32 (curs + sizeof (*header));
+	offset += sizeof (*header);
+
+	grub_util_load_image (x509key_paths[i], kernel_img + offset);
+	offset += ALIGN_ADDR (curs);
+      }
+  }
+
 
   if (memdisk_path)
     {
