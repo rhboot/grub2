@@ -75,7 +75,8 @@ static struct argp_option options[] = {
    /* TRANSLATORS: "embed" is a verb (command description).  "*/
   {"config",   'c', N_("FILE"), 0, N_("embed FILE as an early config"), 0},
    /* TRANSLATORS: "embed" is a verb (command description).  "*/
-  {"pubkey",   'k', N_("FILE"), 0, N_("embed FILE as public key for signature checking"), 0},
+  {"pubkey",   'k', N_("FILE"), 0, N_("embed FILE as public key for PGP signature checking"), 0},
+  {"x509",     'x', N_("FILE"), 0, N_("embed FILE as an x509 certificate for appended signature checking"), 0},
   /* TRANSLATORS: NOTE is a name of segment.  */
   {"note",   'n', 0, 0, N_("add NOTE segment for CHRP IEEE1275"), 0},
   {"output",  'o', N_("FILE"), 0, N_("output a generated image to FILE [default=stdout]"), 0},
@@ -122,6 +123,8 @@ struct arguments
   char *dtb;
   char **pubkeys;
   size_t npubkeys;
+  char **x509keys;
+  size_t nx509keys;
   char *font;
   char *config;
   int note;
@@ -200,6 +203,13 @@ argp_parser (int key, char *arg, struct argp_state *state)
 				     sizeof (arguments->pubkeys[0])
 				     * (arguments->npubkeys + 1));
       arguments->pubkeys[arguments->npubkeys++] = xstrdup (arg);
+      break;
+
+    case 'x':
+      arguments->x509keys = xrealloc (arguments->x509keys,
+				      sizeof (arguments->x509keys[0])
+				      * (arguments->nx509keys + 1));
+      arguments->x509keys[arguments->nx509keys++] = xstrdup (arg);
       break;
 
     case 'c':
@@ -317,7 +327,8 @@ main (int argc, char *argv[])
   grub_install_generate_image (arguments.dir, arguments.prefix, fp,
 			       arguments.output, arguments.modules,
 			       arguments.memdisk, arguments.pubkeys,
-			       arguments.npubkeys, arguments.config,
+			       arguments.npubkeys, arguments.x509keys,
+			       arguments.nx509keys, arguments.config,
 			       arguments.image_target, arguments.note,
 			       arguments.appsig_size,
 			       arguments.comp, arguments.dtb);
