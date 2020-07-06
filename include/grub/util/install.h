@@ -63,6 +63,8 @@
     /* TRANSLATORS: "embed" is a verb (command description).  "*/	\
   { "pubkey",   'k', N_("FILE"), 0,					\
       N_("embed FILE as public key for signature checking"), 0},	\
+  { "x509key",   'x', N_("FILE"), 0,					\
+      N_("embed FILE as an x509 certificate for signature checking"), 0}, \
   { "appended-signature-size", GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE,\
     "SIZE", 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), \
     1},                                                                 \
@@ -179,8 +181,9 @@ void
 grub_install_generate_image (const char *dir, const char *prefix,
 			     FILE *out,
 			     const char *outname, char *mods[],
-			     char *memdisk_path, char **pubkey_paths,
-			     size_t npubkeys,
+			     char *memdisk_path,
+			     char **pubkey_paths, size_t npubkeys,
+			     char **x509key_paths, size_t nx509keys,
 			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     int note, size_t appsig_size,
