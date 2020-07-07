@@ -532,6 +532,12 @@ grub_font_load (const char *filename)
       if (grub_memcmp (section.name, FONT_FORMAT_SECTION_NAMES_FONT_NAME,
 		       sizeof (FONT_FORMAT_SECTION_NAMES_FONT_NAME) - 1) == 0)
 	{
+	  if (font->name != NULL)
+	    {
+	      grub_error (GRUB_ERR_BAD_FONT, "invalid font file: too many NAME sections");
+	      goto fail;
+	    }
+
 	  font->name = read_section_as_string (&section);
 	  if (!font->name)
 	    goto fail;
