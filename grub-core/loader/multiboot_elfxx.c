@@ -109,10 +109,10 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
       if (load_size > mld->max_addr || mld->min_addr > mld->max_addr - load_size)
 	return grub_error (GRUB_ERR_BAD_OS, "invalid min/max address and/or load size");
 
-      err = grub_relocator_alloc_chunk_align (GRUB_MULTIBOOT (relocator), &ch,
-					      mld->min_addr, mld->max_addr - load_size,
-					      load_size, mld->align ? mld->align : 1,
-					      mld->preference, mld->avoid_efi_boot_services);
+      err = grub_relocator_alloc_chunk_align_safe (GRUB_MULTIBOOT (relocator), &ch,
+						   mld->min_addr, mld->max_addr,
+						   load_size, mld->align ? mld->align : 1,
+						   mld->preference, mld->avoid_efi_boot_services);
 
       if (err)
         {
@@ -256,7 +256,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	    continue;
 
 	  err = grub_relocator_alloc_chunk_align (GRUB_MULTIBOOT (relocator), &ch, 0,
-						  (0xffffffff - sh->sh_size) + 1,
+						  UP_TO_TOP32 (sh->sh_size),
 						  sh->sh_size, sh->sh_addralign,
 						  GRUB_RELOCATOR_PREFERENCE_NONE,
 						  mld->avoid_efi_boot_services);
