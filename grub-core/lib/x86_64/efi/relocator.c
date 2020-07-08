@@ -50,10 +50,9 @@ grub_relocator64_efi_boot (struct grub_relocator *rel,
    * 64-bit relocator code may live above 4 GiB quite well.
    * However, I do not want ask for problems. Just in case.
    */
-  err = grub_relocator_alloc_chunk_align (rel, &ch, 0,
-					  0x100000000 - RELOCATOR_SIZEOF (64_efi),
-					  RELOCATOR_SIZEOF (64_efi), 16,
-					  GRUB_RELOCATOR_PREFERENCE_NONE, 1);
+  err = grub_relocator_alloc_chunk_align_safe (rel, &ch, 0, 0x100000000,
+					       RELOCATOR_SIZEOF (64_efi), 16,
+					       GRUB_RELOCATOR_PREFERENCE_NONE, 1);
   if (err)
     return err;
 
