@@ -403,7 +403,7 @@ grub_cmd_module (grub_command_t cmd __attribute__ ((unused)),
   {
     grub_relocator_chunk_t ch;
     err = grub_relocator_alloc_chunk_align (GRUB_MULTIBOOT (relocator), &ch,
-					    lowest_addr, (0xffffffff - size) + 1,
+					    lowest_addr, UP_TO_TOP32 (size),
 					    size, MULTIBOOT_MOD_ALIGN,
 					    GRUB_RELOCATOR_PREFERENCE_NONE, 1);
     if (err)
