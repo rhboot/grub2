@@ -235,15 +235,18 @@ grub_multiboot_load (grub_file_t file, const char *filename)
       grub_size_t code_size;
       void *source;
       grub_relocator_chunk_t ch;
+      int preference = GRUB_RELOCATOR_PREFERENCE_NONE;
 
       if (addr_tag->bss_end_addr)
 	code_size = (addr_tag->bss_end_addr - load_addr);
       else
 	code_size = load_size;
 
-      err = grub_relocator_alloc_chunk_addr (grub_multiboot_relocator, 
-					     &ch, load_addr,
-					     code_size);
+      err = grub_relocator_alloc_chunk_align_safe (grub_multiboot_relocator,
+						   &ch, load_addr,
+						   UP_TO_TOP32(load_addr),
+						   code_size, 0, preference,
+						   keep_bs);
       if (err)
 	{
 	  grub_dprintf ("multiboot_loader", "Error loading aout kludge\n");
@@ -647,7 +650,7 @@ grub_multiboot_make_mbi (grub_uint32_t *target)
   COMPILE_TIME_ASSERT (MULTIBOOT_TAG_ALIGN % sizeof (grub_properly_aligned_t) == 0);
 
   err = grub_relocator_alloc_chunk_align (grub_multiboot_relocator, &ch,
-					  0, 0xffffffff - bufsize,
+					  0, UP_TO_TOP32 (bufsize),
 					  bufsize, MULTIBOOT_TAG_ALIGN,
 					  GRUB_RELOCATOR_PREFERENCE_NONE, 1);
   if (err)

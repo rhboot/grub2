@@ -201,9 +201,8 @@ CONCAT(grub_multiboot_load_elf, XX) (grub_file_t file, const char *filename, voi
 	    grub_relocator_chunk_t ch;
 	    err = grub_relocator_alloc_chunk_align (grub_multiboot_relocator,
 						    &ch, 0,
-						    (0xffffffff - sh->sh_size)
-						    + 1, sh->sh_size,
-						    sh->sh_addralign,
+						    UP_TO_TOP32 (sh->sh_size),
+						    sh->sh_size, sh->sh_addralign,
 						    GRUB_RELOCATOR_PREFERENCE_NONE,
 						    0);
 	    if (err)
