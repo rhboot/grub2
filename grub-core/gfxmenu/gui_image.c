@@ -195,7 +195,10 @@ load_image (grub_gui_image_t self, const char *path)
     return grub_errno;
 
   if (self->bitmap && (self->bitmap != self->raw_bitmap))
-    grub_video_bitmap_destroy (self->bitmap);
+    {
+      grub_video_bitmap_destroy (self->bitmap);
+      self->bitmap = 0;
+    }
   if (self->raw_bitmap)
     grub_video_bitmap_destroy (self->raw_bitmap);
 
