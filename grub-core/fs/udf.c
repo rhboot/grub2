@@ -965,8 +965,10 @@ grub_udf_iterate_dir (grub_fshelp_node_t dir,
 	    return 0;
 
           if (grub_udf_read_icb (dir->data, &dirent.icb, child))
-	    return 0;
-
+	    {
+	      grub_free (child);
+	      return 0;
+	    }
           if (dirent.characteristics & GRUB_UDF_FID_CHAR_PARENT)
 	    {
 	      /* This is the parent directory.  */
@@ -988,11 +990,18 @@ grub_udf_iterate_dir (grub_fshelp_node_t dir,
 				       dirent.file_ident_length,
 				       (char *) raw))
 		  != dirent.file_ident_length)
-		return 0;
+		{
+		  grub_free (child);
+		  return 0;
+		}
 
 	      filename = read_string (raw, dirent.file_ident_length, 0);
 	      if (!filename)
-		grub_print_error ();
+		{
+		  /* As the hook won't get called. */
+		  grub_free (child);
+		  grub_print_error ();
+		}
 
 	      if (filename && hook (filename, type, child, hook_data))
 		{
