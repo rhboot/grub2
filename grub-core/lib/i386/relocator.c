@@ -83,11 +83,10 @@ grub_relocator32_boot (struct grub_relocator *rel,
   /* Specific memory range due to Global Descriptor Table for use by payload
      that we will store in returned chunk.  The address range and preference
      are based on "THE LINUX/x86 BOOT PROTOCOL" specification.  */
-  err = grub_relocator_alloc_chunk_align (rel, &ch, 0x1000,
-					  0x9a000 - RELOCATOR_SIZEOF (32),
-					  RELOCATOR_SIZEOF (32), 16,
-					  GRUB_RELOCATOR_PREFERENCE_LOW,
-					  avoid_efi_bootservices);
+  err = grub_relocator_alloc_chunk_align_safe (rel, &ch, 0x1000, 0x9a000,
+					       RELOCATOR_SIZEOF (32), 16,
+					       GRUB_RELOCATOR_PREFERENCE_LOW,
+					       avoid_efi_bootservices);
   if (err)
     return err;
 
@@ -125,13 +124,10 @@ grub_relocator16_boot (struct grub_relocator *rel,
   grub_relocator_chunk_t ch;
 
   /* Put it higher than the byte it checks for A20 check.  */
-  err = grub_relocator_alloc_chunk_align (rel, &ch, 0x8010,
-					  0xa0000 - RELOCATOR_SIZEOF (16)
-					  - GRUB_RELOCATOR16_STACK_SIZE,
-					  RELOCATOR_SIZEOF (16)
-					  + GRUB_RELOCATOR16_STACK_SIZE, 16,
-					  GRUB_RELOCATOR_PREFERENCE_NONE,
-					  0);
+  err = grub_relocator_alloc_chunk_align_safe (rel, &ch, 0x8010, 0xa0000,
+					       RELOCATOR_SIZEOF (16) +
+					       GRUB_RELOCATOR16_STACK_SIZE, 16,
+					       GRUB_RELOCATOR_PREFERENCE_NONE, 0);
   if (err)
     return err;
 
@@ -183,11 +179,9 @@ grub_relocator64_boot (struct grub_relocator *rel,
   void *relst;
   grub_relocator_chunk_t ch;
 
-  err = grub_relocator_alloc_chunk_align (rel, &ch, min_addr,
-					  max_addr - RELOCATOR_SIZEOF (64),
-					  RELOCATOR_SIZEOF (64), 16,
-					  GRUB_RELOCATOR_PREFERENCE_NONE,
-					  0);
+  err = grub_relocator_alloc_chunk_align_safe (rel, &ch, min_addr, max_addr,
+					       RELOCATOR_SIZEOF (64), 16,
+					       GRUB_RELOCATOR_PREFERENCE_NONE, 0);
   if (err)
     return err;
 

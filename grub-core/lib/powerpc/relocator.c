@@ -115,10 +115,8 @@ grub_relocator32_boot (struct grub_relocator *rel,
   unsigned i;
   grub_relocator_chunk_t ch;
 
-  err = grub_relocator_alloc_chunk_align (rel, &ch, 0,
-					  (0xffffffff - stateset_size)
-					  + 1, stateset_size,
-					  sizeof (grub_uint32_t),
+  err = grub_relocator_alloc_chunk_align (rel, &ch, 0, UP_TO_TOP32 (stateset_size),
+					  stateset_size, sizeof (grub_uint32_t),
 					  GRUB_RELOCATOR_PREFERENCE_NONE, 0);
   if (err)
     return err;

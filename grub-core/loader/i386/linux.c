@@ -231,9 +231,8 @@ allocate_pages (grub_size_t prot_size, grub_size_t *align,
 	for (; err && *align + 1 > min_align; (*align)--)
 	  {
 	    grub_errno = GRUB_ERR_NONE;
-	    err = grub_relocator_alloc_chunk_align (relocator, &ch,
-						    0x1000000,
-						    0xffffffff & ~prot_size,
+	    err = grub_relocator_alloc_chunk_align (relocator, &ch, 0x1000000,
+						    UP_TO_TOP32 (prot_size),
 						    prot_size, 1 << *align,
 						    GRUB_RELOCATOR_PREFERENCE_LOW,
 						    1);
