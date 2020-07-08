@@ -442,12 +442,9 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   {
     grub_relocator_chunk_t ch;
 
-    err = grub_relocator_alloc_chunk_align (relocator, &ch,
-					    (target_addr & 0x1fffffff)
-					    + linux_size + 0x10000,
-					    (0x10000000 - size),
-					    size, 0x10000,
-					    GRUB_RELOCATOR_PREFERENCE_NONE, 0);
+    err = grub_relocator_alloc_chunk_align_safe (relocator, &ch, (target_addr & 0x1fffffff) +
+						 linux_size + 0x10000, 0x10000000, size,
+						 0x10000, GRUB_RELOCATOR_PREFERENCE_NONE, 0);
 
     if (err)
       goto fail;
