@@ -262,20 +262,19 @@ grub_xnu_devprop_add_property (struct grub_xnu_devprop_device_descriptor *dev,
   if (!prop)
     return grub_errno;
 
-  prop->name = utf8;
-  prop->name16 = utf16;
-  prop->name16len = utf16len;
-
-  prop->length = datalen;
-  prop->data = grub_malloc (prop->length);
+  prop->data = grub_malloc (datalen);
   if (!prop->data)
     {
-      grub_free (prop->name);
-      grub_free (prop->name16);
       grub_free (prop);
       return grub_errno;
     }
-  grub_memcpy (prop->data, data, prop->length);
+  grub_memcpy (prop->data, data, datalen);
+
+  prop->name = utf8;
+  prop->name16 = utf16;
+  prop->name16len = utf16len;
+  prop->length = datalen;
+
   grub_list_push (GRUB_AS_LIST_P (&dev->properties),
 		  GRUB_AS_LIST (prop));
   return GRUB_ERR_NONE;
