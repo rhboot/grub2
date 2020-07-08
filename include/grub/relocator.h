@@ -49,6 +49,35 @@ grub_relocator_alloc_chunk_align (struct grub_relocator *rel,
 				  int preference,
 				  int avoid_efi_boot_services);
 
+/*
+ * Wrapper for grub_relocator_alloc_chunk_align() with purpose of
+ * protecting against integer underflow.
+ *
+ * Compare to its callee, max_addr has different meaning here.
+ * It covers entire chunk and not just start address of the chunk.
+ */
+static inline grub_err_t
+grub_relocator_alloc_chunk_align_safe (struct grub_relocator *rel,
+				       grub_relocator_chunk_t *out,
+				       grub_phys_addr_t min_addr,
+				       grub_phys_addr_t max_addr,
+				       grub_size_t size, grub_size_t align,
+				       int preference,
+				       int avoid_efi_boot_services)
+{
+  /* Sanity check and ensure following equation (max_addr - size) is safe. */
+  if (max_addr < size || (max_addr - size) < min_addr)
+    return GRUB_ERR_OUT_OF_RANGE;
+
+  return grub_relocator_alloc_chunk_align (rel, out, min_addr,
+					   max_addr - size,
+					   size, align, preference,
+					   avoid_efi_boot_services);
+}
+
+/* Top 32-bit address minus s bytes and plus 1 byte. */
+#define UP_TO_TOP32(s)	((~(s) & 0xffffffff) + 1)
+
 #define GRUB_RELOCATOR_PREFERENCE_NONE 0
 #define GRUB_RELOCATOR_PREFERENCE_LOW 1
 #define GRUB_RELOCATOR_PREFERENCE_HIGH 2
