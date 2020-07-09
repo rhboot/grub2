@@ -71,12 +71,9 @@ grub_json_parse (grub_json_t **out, char *string, grub_size_t string_len)
   *out = json;
 
  err:
-  if (ret && json)
-    {
-      grub_free (json->string);
-      grub_free (json->tokens);
-      grub_free (json);
-    }
+  if (ret)
+    grub_json_free (json);
+
   return ret;
 }
 

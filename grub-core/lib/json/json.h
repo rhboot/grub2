@@ -50,7 +50,10 @@ typedef struct grub_json grub_json_t;
  * Parse a JSON-encoded string. Note that the string passed to
  * this function will get modified on subsequent calls to
  * grub_json_get*(). Returns the root object of the parsed JSON
- * object, which needs to be free'd via grub_json_free().
+ * object, which needs to be free'd via grub_json_free(). Callers
+ * must ensure that the string outlives the returned root object,
+ * and that child objects must not be used after the root object
+ * has been free'd.
  */
 extern grub_err_t EXPORT_FUNC(grub_json_parse) (grub_json_t **out,
 					        char *string,
