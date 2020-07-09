@@ -1877,13 +1877,19 @@ static SRes LzmaEnc_CodeOneBlock(CLzmaEnc *p, Bool useLimits, UInt32 maxPackSize
       }
       else
       {
-        UInt32 posSlot;
+        UInt32 posSlot, lenToPosState;
         RangeEnc_EncodeBit(&p->rc, &p->isRep[p->state], 0);
         p->state = kMatchNextStates[p->state];
         LenEnc_Encode2(&p->lenEnc, &p->rc, len - LZMA_MATCH_LEN_MIN, posState, !p->fastMode, p->ProbPrices);
         pos -= LZMA_NUM_REPS;
         GetPosSlot(pos, posSlot);
-        RcTree_Encode(&p->rc, p->posSlotEncoder[GetLenToPosState(len)], kNumPosSlotBits, posSlot);
+        lenToPosState = GetLenToPosState(len);
+        if (lenToPosState >= kNumLenToPosStates)
+        {
+          p->result = SZ_ERROR_DATA;
+          return CheckErrors(p);
+        }
+        RcTree_Encode(&p->rc, p->posSlotEncoder[lenToPosState], kNumPosSlotBits, posSlot);
 
         if (posSlot >= kStartPosModelIndex)
         {
