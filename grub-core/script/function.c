@@ -34,6 +34,7 @@ grub_script_function_create (struct grub_script_arg *functionname_arg,
   func = (grub_script_function_t) grub_malloc (sizeof (*func));
   if (! func)
     return 0;
+  func->executing = 0;
 
   func->name = grub_strdup (functionname_arg->str);
   if (! func->name)
@@ -60,10 +61,19 @@ grub_script_function_create (struct grub_script_arg *functionname_arg,
       grub_script_function_t q;
 
       q = *p;
-      grub_script_free (q->func);
-      q->func = cmd;
       grub_free (func);
-      func = q;
+      if (q->executing > 0)
+        {
+          grub_error (GRUB_ERR_BAD_ARGUMENT,
+		      N_("attempt to redefine a function being executed"));
+          func = NULL;
+        }
+      else
+        {
+          grub_script_free (q->func);
+          q->func = cmd;
+          func = q;
+        }
     }
   else
     {
