@@ -289,7 +289,8 @@ function: "function" "name"
 	      grub_script_mem_free (state->func_mem);
 	    else {
 	      script->children = state->scripts;
-	      grub_script_function_create ($2, script);
+	      if (!grub_script_function_create ($2, script))
+		grub_script_free (script);
 	    }
 
 	    state->scripts = $<scripts>3;
