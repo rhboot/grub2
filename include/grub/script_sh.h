@@ -361,6 +361,8 @@ struct grub_script_function
 
   /* The next element.  */
   struct grub_script_function *next;
+
+  unsigned executing;
 };
 typedef struct grub_script_function *grub_script_function_t;
 
