@@ -838,7 +838,9 @@ grub_script_function_call (grub_script_function_t func, int argc, char **args)
   old_scope = scope;
   scope = &new_scope;
 
+  func->executing++;
   ret = grub_script_execute (func->func);
+  func->executing--;
 
   function_return = 0;
   active_loops = loops;
