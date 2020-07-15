@@ -41,6 +41,7 @@
 #include <grub/linux.h>
 #include <grub/i386/memory.h>
 #include <grub/verify.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -636,6 +637,7 @@ grub_cmd_xen (grub_command_t cmd __attribute__ ((unused)),
   grub_relocator_chunk_t ch;
   grub_addr_t kern_start;
   grub_addr_t kern_end;
+  grub_size_t sz;
 
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -703,8 +705,14 @@ grub_cmd_xen (grub_command_t cmd __attribute__ ((unused)),
 
   xen_state.max_addr = ALIGN_UP (kern_end, PAGE_SIZE);
 
-  err = grub_relocator_alloc_chunk_addr (xen_state.relocator, &ch, kern_start,
-					 kern_end - kern_start);
+
+  if (grub_sub (kern_end, kern_start, &sz))
+    {
+      err = GRUB_ERR_OUT_OF_RANGE;
+      goto fail;
+    }
+
+  err = grub_relocator_alloc_chunk_addr (xen_state.relocator, &ch, kern_start, sz);
   if (err)
     goto fail;
   kern_chunk_src = get_virtual_current_address (ch);
