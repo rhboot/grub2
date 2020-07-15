@@ -37,6 +37,7 @@
 #include <grub/linux.h>
 #include <grub/efi/sb.h>
 #include <grub/tpm.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -593,9 +594,13 @@ grub_linux_boot (void)
 
   {
     grub_relocator_chunk_t ch;
+    grub_size_t sz;
+
+    if (grub_add (ctx.real_size, efi_mmap_size, &sz))
+      return GRUB_ERR_OUT_OF_RANGE;
+
     err = grub_relocator_alloc_chunk_addr (relocator, &ch,
-					   ctx.real_mode_target,
-					   (ctx.real_size + efi_mmap_size));
+					   ctx.real_mode_target, sz);
     if (err)
      return err;
     real_mode_mem = get_virtual_current_address (ch);
