@@ -36,6 +36,7 @@
 #include <grub/lib/cmdline.h>
 #include <grub/linux.h>
 #include <grub/efi/sb.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -231,8 +232,12 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     setup_sects = GRUB_LINUX_DEFAULT_SETUP_SECTS;
 
   real_size = setup_sects << GRUB_DISK_SECTOR_BITS;
-  grub_linux16_prot_size = grub_file_size (file)
-    - real_size - GRUB_DISK_SECTOR_SIZE;
+  if (grub_sub (grub_file_size (file), real_size, &grub_linux16_prot_size) ||
+      grub_sub (grub_linux16_prot_size, GRUB_DISK_SECTOR_SIZE, &grub_linux16_prot_size))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+      goto fail;
+    }
 
   if (! grub_linux_is_bzimage
       && GRUB_LINUX_ZIMAGE_ADDR + grub_linux16_prot_size

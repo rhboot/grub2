@@ -39,6 +39,8 @@
 #include <grub/xen.h>
 #include <grub/xen_file.h>
 #include <grub/linux.h>
+#include <grub/i386/memory.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -397,6 +399,11 @@ grub_cmd_xen (grub_command_t cmd __attribute__ ((unused)),
   grub_file_t file;
   grub_elf_t elf;
   grub_err_t err;
+  void *kern_chunk_src;
+  grub_relocator_chunk_t ch;
+  grub_addr_t kern_start;
+  grub_addr_t kern_end;
+  grub_size_t sz;
 
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -448,9 +455,8 @@ grub_cmd_xen (grub_command_t cmd __attribute__ ((unused)),
   if (!relocator)
     goto fail;
 
-  grub_relocator_chunk_t ch;
-  grub_addr_t kern_start = xen_inf.kern_start - xen_inf.paddr_offset;
-  grub_addr_t kern_end = xen_inf.kern_end - xen_inf.paddr_offset;
+  kern_start = xen_inf.kern_start - xen_inf.paddr_offset;
+  kern_end = xen_inf.kern_end - xen_inf.paddr_offset;
 
   if (xen_inf.has_hypercall_page)
     {
@@ -465,8 +471,13 @@ grub_cmd_xen (grub_command_t cmd __attribute__ ((unused)),
 
   max_addr = ALIGN_UP (kern_end, PAGE_SIZE);
 
-  err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_start,
-					 kern_end - kern_start);
+  if (grub_sub (kern_end, kern_start, &sz))
+    {
+      err = GRUB_ERR_OUT_OF_RANGE;
+      goto fail;
+    }
+
+  err = grub_relocator_alloc_chunk_addr (xen_state.relocator, &ch, kern_start, sz);
   if (err)
     goto fail;
   kern_chunk_src = get_virtual_current_address (ch);
