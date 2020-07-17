@@ -1386,8 +1386,8 @@ grub_relocator_alloc_chunk_align (struct grub_relocator *rel,
   };
   grub_addr_t min_addr2 = 0, max_addr2;
 
-  if (max_addr > ~size)
-    max_addr = ~size;
+  if (size && (max_addr > ~size))
+    max_addr = ~size + 1;
 
 #ifdef GRUB_MACHINE_PCBIOS
   if (min_addr < 0x1000)
