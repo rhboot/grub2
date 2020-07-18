@@ -137,8 +137,8 @@ main (int argc, char **argv)
   module_size = grub_util_get_image_size (argv[1]);
   module_img = grub_util_read_image (argv[1]);
   if (archs[arch].voidp_sizeof == 8)
-    grub_module_verify64(module_img, module_size, &archs[arch]);
+    grub_module_verify64(module_img, module_size, &archs[arch], argv[1]);
   else
-    grub_module_verify32(module_img, module_size, &archs[arch]);
+    grub_module_verify32(module_img, module_size, &archs[arch], argv[1]);
   return 0;
 }
