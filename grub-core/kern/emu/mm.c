@@ -60,7 +60,8 @@ grub_zalloc (grub_size_t size)
 void
 grub_free (void *ptr)
 {
-  free (ptr);
+  if (ptr)
+    free (ptr);
 }
 
 void *
