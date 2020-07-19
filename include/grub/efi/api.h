@@ -671,6 +671,7 @@ typedef struct grub_efi_device_path grub_efi_device_path_protocol_t;
 #define GRUB_EFI_DEVICE_PATH_TYPE(dp)		((dp)->type & 0x7f)
 #define GRUB_EFI_DEVICE_PATH_SUBTYPE(dp)	((dp)->subtype)
 #define GRUB_EFI_DEVICE_PATH_LENGTH(dp)		((dp)->length)
+#define GRUB_EFI_DEVICE_PATH_VALID(dp)		((dp) != NULL && GRUB_EFI_DEVICE_PATH_LENGTH (dp) >= 4)
 
 /* The End of Device Path nodes.  */
 #define GRUB_EFI_END_DEVICE_PATH_TYPE			(0xff & 0x7f)
@@ -679,13 +680,16 @@ typedef struct grub_efi_device_path grub_efi_device_path_protocol_t;
 #define GRUB_EFI_END_THIS_DEVICE_PATH_SUBTYPE		0x01
 
 #define GRUB_EFI_END_ENTIRE_DEVICE_PATH(dp)	\
-  (GRUB_EFI_DEVICE_PATH_TYPE (dp) == GRUB_EFI_END_DEVICE_PATH_TYPE \
-   && (GRUB_EFI_DEVICE_PATH_SUBTYPE (dp) \
-       == GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE))
+  (!GRUB_EFI_DEVICE_PATH_VALID (dp) || \
+   (GRUB_EFI_DEVICE_PATH_TYPE (dp) == GRUB_EFI_END_DEVICE_PATH_TYPE \
+    && (GRUB_EFI_DEVICE_PATH_SUBTYPE (dp) \
+	== GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE)))
 
 #define GRUB_EFI_NEXT_DEVICE_PATH(dp)	\
-  ((grub_efi_device_path_t *) ((char *) (dp) \
-                               + GRUB_EFI_DEVICE_PATH_LENGTH (dp)))
+  (GRUB_EFI_DEVICE_PATH_VALID (dp) \
+   ? ((grub_efi_device_path_t *) \
+      ((char *) (dp) + GRUB_EFI_DEVICE_PATH_LENGTH (dp))) \
+   : NULL)
 
 /* Hardware Device Path.  */
 #define GRUB_EFI_HARDWARE_DEVICE_PATH_TYPE		1
