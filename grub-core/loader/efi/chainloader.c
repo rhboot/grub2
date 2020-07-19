@@ -156,9 +156,18 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
 
   size = 0;
   d = dp;
-  while (1)
+  while (d)
     {
-      size += GRUB_EFI_DEVICE_PATH_LENGTH (d);
+      grub_size_t len = GRUB_EFI_DEVICE_PATH_LENGTH (d);
+
+      if (len < 4)
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE,
+		      "malformed EFI Device Path node has length=%d", len);
+	  return NULL;
+	}
+
+      size += len;
       if ((GRUB_EFI_END_ENTIRE_DEVICE_PATH (d)))
 	break;
       d = GRUB_EFI_NEXT_DEVICE_PATH (d);
