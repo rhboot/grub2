@@ -116,6 +116,12 @@ copy_file_path (grub_efi_file_path_device_path_t *fp,
   fp->header.type = GRUB_EFI_MEDIA_DEVICE_PATH_TYPE;
   fp->header.subtype = GRUB_EFI_FILE_PATH_DEVICE_PATH_SUBTYPE;
 
+  if (!GRUB_EFI_DEVICE_PATH_VALID ((grub_efi_device_path_t *)fp))
+    {
+      grub_error (GRUB_ERR_BAD_ARGUMENT, "EFI Device Path is invalid");
+      return;
+    }
+
   path_name = grub_calloc (len, GRUB_MAX_UTF16_PER_UTF8 * sizeof (*path_name));
   if (!path_name)
     return;
@@ -156,9 +162,18 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
 
   size = 0;
   d = dp;
-  while (1)
+  while (d)
     {
-      size += GRUB_EFI_DEVICE_PATH_LENGTH (d);
+      grub_size_t len = GRUB_EFI_DEVICE_PATH_LENGTH (d);
+
+      if (len < 4)
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE,
+		      "malformed EFI Device Path node has length=%d", len);
+	  return NULL;
+	}
+
+      size += len;
       if ((GRUB_EFI_END_ENTIRE_DEVICE_PATH (d)))
 	break;
       d = GRUB_EFI_NEXT_DEVICE_PATH (d);
