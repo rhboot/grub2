@@ -25,6 +25,7 @@
 #include <grub/lvm.h>
 #include <grub/partition.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 #ifdef GRUB_UTIL
 #include <grub/emu/misc.h>
@@ -102,10 +103,12 @@ grub_lvm_detect (grub_disk_t disk,
 {
   grub_err_t err;
   grub_uint64_t mda_offset, mda_size;
+  grub_size_t ptr;
   char buf[GRUB_LVM_LABEL_SIZE];
   char vg_id[GRUB_LVM_ID_STRLEN+1];
   char pv_id[GRUB_LVM_ID_STRLEN+1];
-  char *metadatabuf, *p, *q, *vgname;
+  char *metadatabuf, *mda_end, *vgname;
+  char *p, *q;
   struct grub_lvm_label_header *lh = (struct grub_lvm_label_header *) buf;
   struct grub_lvm_pv_header *pvh;
   struct grub_lvm_disk_locn *dlocn;
@@ -205,18 +208,30 @@ grub_lvm_detect (grub_disk_t disk,
 		   grub_le_to_cpu64 (rlocn->size) -
 		   grub_le_to_cpu64 (mdah->size));
     }
-  p = q = metadatabuf + grub_le_to_cpu64 (rlocn->offset);
 
-  while (*q != ' ' && q < metadatabuf + mda_size)
-    q++;
-
-  if (q == metadatabuf + mda_size)
+  if (grub_add ((grub_size_t)metadatabuf,
+		(grub_size_t)grub_le_to_cpu64 (rlocn->offset),
+		&ptr))
     {
+error_parsing_metadata:
 #ifdef GRUB_UTIL
       grub_util_info ("error parsing metadata");
 #endif
       goto fail2;
     }
+
+  p = q = (char *)ptr;
+
+  if (grub_add ((grub_size_t)metadatabuf, (grub_size_t)mda_size, &ptr))
+    goto error_parsing_metadata;
+
+  mda_end = (char *)ptr;
+
+  while (*q != ' ' && q < mda_end)
+    q++;
+
+  if (q == mda_end)
+    goto error_parsing_metadata;
 
   vgname_len = q - p;
   vgname = grub_malloc (vgname_len + 1);
@@ -367,8 +382,25 @@ grub_lvm_detect (grub_disk_t disk,
 	      {
 		const char *iptr;
 		char *optr;
-		lv->fullname = grub_malloc (sizeof ("lvm/") - 1 + 2 * vgname_len
-					    + 1 + 2 * s + 1);
+
+		/* this is kind of hard to read with our safe (but rather
+		 * baroque) math primatives, but it boils down to:
+		 *
+		 * sz0 = vgname_len * 2 + 1
+		 *       + s * 2 + 1
+		 *       + sizeof ("lvm/") - 1;
+		 */
+		grub_size_t sz0 = vgname_len, sz1 = s;
+
+		if (grub_mul (sz0, 2, &sz0) ||
+		    grub_add (sz0, 1, &sz0) ||
+		    grub_mul (sz1, 2, &sz1) ||
+		    grub_add (sz1, 1, &sz1) ||
+		    grub_add (sz0, sz1, &sz0) ||
+		    grub_add (sz0, sizeof ("lvm/") - 1, &sz0))
+		  goto lvs_fail;
+
+		lv->fullname = grub_malloc (sz0);
 		if (!lv->fullname)
 		  goto lvs_fail;
 
