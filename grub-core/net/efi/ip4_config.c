@@ -4,15 +4,20 @@
 #include <grub/misc.h>
 #include <grub/net/efi.h>
 #include <grub/charset.h>
+#include <grub/safemath.h>
 
 char *
 grub_efi_hw_address_to_string (grub_efi_uint32_t hw_address_size, grub_efi_mac_address_t hw_address)
 {
   char *hw_addr, *p;
-  int sz, s;
-  int i;
+  grub_size_t sz, s, i;
 
-  sz = (int)hw_address_size * (sizeof ("XX:") - 1) + 1;
+  if (grub_mul (hw_address_size, sizeof ("XX:") - 1, &sz) ||
+      grub_add (sz, 1, &sz))
+    {
+      grub_errno = GRUB_ERR_OUT_OF_RANGE;
+      return NULL;
+    }
 
   hw_addr = grub_malloc (sz);
   if (!hw_addr)
@@ -20,7 +25,7 @@ grub_efi_hw_address_to_string (grub_efi_uint32_t hw_address_size, grub_efi_mac_a
 
   p = hw_addr;
   s = sz;
-  for (i = 0; i < (int)hw_address_size; i++)
+  for (i = 0; i < hw_address_size; i++)
     {
       grub_snprintf (p, sz, "%02x:", hw_address[i]);
       p +=  sizeof ("XX:") - 1;
@@ -227,14 +232,20 @@ grub_efi_ip4_interface_route_table (struct grub_efi_net_device *dev)
 {
   grub_efi_ip4_config2_interface_info_t *interface_info;
   char **ret;
-  int i, id;
+  int id;
+  grub_size_t i, nmemb;
 
   interface_info = efi_ip4_config_interface_info (dev->ip4_config);
   if (!interface_info)
     return NULL;
 
-  ret = grub_malloc (sizeof (*ret) * (interface_info->route_table_size + 1));
+  if (grub_add (interface_info->route_table_size, 1, &nmemb))
+    {
+      grub_errno = GRUB_ERR_OUT_OF_RANGE;
+      return NULL;
+    }
 
+  ret = grub_calloc (nmemb, sizeof (*ret));
   if (!ret)
     {
       grub_free (interface_info);
@@ -242,7 +253,7 @@ grub_efi_ip4_interface_route_table (struct grub_efi_net_device *dev)
     }
 
   id = 0;
-  for (i = 0; i < (int)interface_info->route_table_size; i++)
+  for (i = 0; i < interface_info->route_table_size; i++)
     {
       char *subnet, *gateway, *mask;
       grub_uint32_t u32_subnet, u32_gateway;
