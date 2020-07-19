@@ -515,14 +515,15 @@ grub_cmd_devprop_load (grub_command_t cmd __attribute__ ((unused)),
 
       devhead = buf;
       buf = devhead + 1;
-      dpstart = buf;
+      dp = dpstart = buf;
 
-      do
+      while (GRUB_EFI_DEVICE_PATH_VALID (dp) && buf < bufend)
 	{
-	  dp = buf;
 	  buf = (char *) buf + GRUB_EFI_DEVICE_PATH_LENGTH (dp);
+	  if (GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp))
+	    break;
+	  dp = buf;
 	}
-      while (!GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp) && buf < bufend);
 
       dev = grub_xnu_devprop_add_device (dpstart, (char *) buf
 					 - (char *) dpstart);
