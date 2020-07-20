@@ -729,7 +729,7 @@ grub_efi_net_parse_address (const char *address,
 	{
 	  grub_uint32_t subnet_mask_size;
 
-	  subnet_mask_size = grub_strtoul (rest + 1, (char **) &rest, 0);
+	  subnet_mask_size = grub_strtoul (rest + 1, &rest, 0);
 
 	  if (!grub_errno && subnet_mask_size <= 32 && *rest == 0)
 	    {
@@ -758,7 +758,7 @@ grub_efi_net_parse_address (const char *address,
 	{
 	  grub_efi_uint8_t prefix_length;
 
-	  prefix_length = grub_strtoul (rest + 1, (char **) &rest, 0);
+	  prefix_length = grub_strtoul (rest + 1, &rest, 0);
 	  if (!grub_errno && prefix_length <= 128 && *rest == 0)
 	    {
 	      ip6->prefix_length = prefix_length;
