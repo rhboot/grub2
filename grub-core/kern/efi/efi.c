@@ -162,9 +162,10 @@ grub_exit (int retval)
   if (retval == 0)
     rc = GRUB_EFI_SUCCESS;
 
-  grub_machine_fini (GRUB_LOADER_FLAG_NORETURN);
-  efi_call_4 (grub_efi_system_table->boot_services->exit,
-              grub_efi_image_handle, rc, 0, 0);
+  grub_machine_fini (GRUB_LOADER_FLAG_NORETURN |
+		     GRUB_LOADER_FLAG_EFI_KEEP_ALLOCATED_MEMORY);
+  efi_call_4 (grub_efi_system_table->runtime_services->reset_system,
+              GRUB_EFI_RESET_COLD, rc, 0, NULL);
   for (;;) ;
 }
 
