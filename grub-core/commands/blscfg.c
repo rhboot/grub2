@@ -612,7 +612,7 @@ static char **bls_make_list (struct bls_entry *entry, const char *key, int *num)
   return list;
 }
 
-static char *field_append(bool is_var, char *buffer, char *start, char *end)
+static char *field_append(bool is_var, char *buffer, const char *start, const char *end)
 {
   char *tmp = grub_strndup(start, end - start + 1);
   const char *field = tmp;
@@ -641,11 +641,11 @@ static char *field_append(bool is_var, char *buffer, char *start, char *end)
   return buffer;
 }
 
-static char *expand_val(char *value)
+static char *expand_val(const char *value)
 {
   char *buffer = NULL;
-  char *start = value;
-  char *end = value;
+  const char *start = value;
+  const char *end = value;
   bool is_var = false;
 
   if (!value)
