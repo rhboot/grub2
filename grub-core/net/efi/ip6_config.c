@@ -85,7 +85,7 @@ grub_efi_string_to_ip6_address (const char *val, grub_efi_ipv6_address_t *addres
 	  ptr++;
 	  continue;
 	}
-      t = grub_strtoul (ptr, (char **) &ptr, 16);
+      t = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	{
 	  grub_errno = GRUB_ERR_NONE;
