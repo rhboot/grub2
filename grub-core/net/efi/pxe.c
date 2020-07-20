@@ -187,7 +187,7 @@ parse_ip6 (const char *val, grub_uint64_t *ip, const char **rest)
 	  ptr++;
 	  continue;
 	}
-      t = grub_strtoul (ptr, (char **) &ptr, 16);
+      t = grub_strtoul (ptr, &ptr, 16);
       if (grub_errno)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -225,7 +225,7 @@ pxe_open (struct grub_efi_net_device *dev,
 	  int type __attribute__((unused)))
 {
   int i;
-  char *p;
+  const char *p;
   grub_efi_status_t status;
   grub_efi_pxe_ip_address_t server_ip;
   grub_efi_uint64_t file_size = 0;
@@ -313,7 +313,7 @@ pxe_read (struct grub_efi_net_device *dev,
 	  grub_size_t len)
 {
   int i;
-  char *p;
+  const char *p;
   grub_efi_status_t status;
   grub_efi_pxe_t *pxe = (prefer_ip6) ? dev->ip6_pxe : dev->ip4_pxe;
   grub_efi_uint64_t bufsz = len;
