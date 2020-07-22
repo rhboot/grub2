@@ -1,0 +1,6 @@
+#!/bin/sh
+
+TIMEOUT_USEC=$(cat /run/systemd/reboot-to-boot-loader-menu)
+TIMEOUT=$(((TIMEOUT_USEC + 500000) / 1000000))
+
+@grub_editenv@ - set menu_show_once_timeout=$TIMEOUT
