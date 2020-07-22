@@ -1,0 +1,8 @@
+[Unit]
+Description=Grub2 systemctl reboot --boot-loader-menu=... support
+Before=umount.target systemd-reboot.service
+DefaultDependencies=no
+ConditionPathExists=/run/systemd/reboot-to-boot-loader-menu
+
+[Service]
+ExecStart=@libexecdir@/@grubdirname@/systemd-integration.sh
