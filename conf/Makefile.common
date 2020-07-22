@@ -63,8 +63,11 @@ CCASFLAGS_LIBRARY = $(UTILS_CCASFLAGS)
 # Other variables
 
 grubconfdir = $(sysconfdir)/grub.d
+grublibexecdir = $(libexecdir)/$(grubdirname)
 platformdir = $(pkglibdir)/$(target_cpu)-$(platform)
 starfielddir = $(pkgdatadir)/themes/starfield
+systemdunitdir = ${prefix}/lib/systemd/system
+systemd_logind_service_ddir = $(systemdunitdir)/systemd-logind.service.d
 
 CFLAGS_GNULIB = -Wno-undef -Wno-unused -Wno-unused-parameter -Wno-redundant-decls -Wno-unreachable-code -Werror=trampolines -fno-trampolines
 CPPFLAGS_GNULIB = -I$(top_builddir)/grub-core/lib/gnulib -I$(top_srcdir)/grub-core/lib/gnulib
@@ -121,6 +124,9 @@ noinst_LIBRARIES =
 dist_noinst_DATA =
 platform_SCRIPTS =
 platform_PROGRAMS =
+grublibexec_SCRIPTS =
+systemdunit_SCRIPTS =
+systemd_logind_service_d_SCRIPTS =
 
 TESTS =
 EXTRA_DIST =
