@@ -30,6 +30,7 @@
 #include <grub/cpu/efi/memory.h>
 #include <grub/tpm.h>
 #include <grub/safemath.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -101,7 +102,7 @@ kernel_alloc(grub_efi_uintn_t size, const char * const errmsg)
 
       pages = BYTES_TO_PAGES(size);
       grub_dprintf ("linux", "Trying to allocate %lu pages from %p\n",
-		    pages, (void *)max);
+		    (unsigned long)pages, (void *)(unsigned long)max);
 
       prev_max = max;
       addr = grub_efi_allocate_pages_real (max, pages,
@@ -307,12 +308,15 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  rc = grub_linuxefi_secure_validate (kernel, filelen);
-  if (rc < 0)
+  if (grub_efi_secure_boot ())
     {
-      grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"),
-		  argv[0]);
-      goto fail;
+      rc = grub_linuxefi_secure_validate (kernel, filelen);
+      if (rc <= 0)
+	{
+	  grub_error (GRUB_ERR_INVALID_COMMAND,
+		      N_("%s has invalid signature"), argv[0]);
+	  goto fail;
+	}
     }
 
   lh = (struct linux_i386_kernel_header *)kernel;
@@ -386,6 +390,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   setup_header_end_offset = *((grub_uint8_t *)kernel + 0x201);
   grub_dprintf ("linux", "copying %lu bytes from %p to %p\n",
+		(unsigned long)
 		MIN((grub_size_t)0x202+setup_header_end_offset,
 		    sizeof (*params)) - 0x1f1,
 		(grub_uint8_t *)kernel + 0x1f1,
