@@ -1,0 +1,2 @@
+[Service]
+Environment=SYSTEMD_REBOOT_TO_BOOT_LOADER_MENU=true
