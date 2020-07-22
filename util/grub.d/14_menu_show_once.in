@@ -1,0 +1,13 @@
+#! /bin/sh
+# Force the menu to be shown once, with a timeout of ${menu_show_once_timeout}
+# if requested by ${menu_show_once_timeout} being set in the env.
+cat << EOF
+if [ x\$feature_timeout_style = xy ]; then
+  if [ "\${menu_show_once_timeout}" ]; then
+    set timeout_style=menu
+    set timeout="\${menu_show_once_timeout}"
+    unset menu_show_once_timeout
+    save_env menu_show_once_timeout
+  fi
+fi
+EOF
