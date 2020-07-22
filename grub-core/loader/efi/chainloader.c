@@ -115,7 +115,7 @@ grub_chainloader_boot (void)
   return grub_errno;
 }
 
-static void
+static grub_err_t
 copy_file_path (grub_efi_file_path_device_path_t *fp,
 		const char *str, grub_efi_uint16_t len)
 {
@@ -125,15 +125,9 @@ copy_file_path (grub_efi_file_path_device_path_t *fp,
   fp->header.type = GRUB_EFI_MEDIA_DEVICE_PATH_TYPE;
   fp->header.subtype = GRUB_EFI_FILE_PATH_DEVICE_PATH_SUBTYPE;
 
-  if (!GRUB_EFI_DEVICE_PATH_VALID ((grub_efi_device_path_t *)fp))
-    {
-      grub_error (GRUB_ERR_BAD_ARGUMENT, "EFI Device Path is invalid");
-      return;
-    }
-
   path_name = grub_calloc (len, GRUB_MAX_UTF16_PER_UTF8 * sizeof (*path_name));
   if (!path_name)
-    return;
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, "failed to allocate path buffer");
 
   size = grub_utf8_to_utf16 (path_name, len * GRUB_MAX_UTF16_PER_UTF8,
 			     (const grub_uint8_t *) str, len, 0);
@@ -145,6 +139,8 @@ copy_file_path (grub_efi_file_path_device_path_t *fp,
   /* File Path is NULL terminated */
   fp->path_name[size++] = '\0';
   fp->header.length = size * sizeof (grub_efi_char16_t) + sizeof (*fp);
+  grub_free (path_name);
+  return GRUB_ERR_NONE;
 }
 
 static grub_efi_device_path_t *
@@ -202,13 +198,19 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
   /* Fill the file path for the directory.  */
   d = (grub_efi_device_path_t *) ((char *) file_path
 				  + ((char *) d - (char *) dp));
-  copy_file_path ((grub_efi_file_path_device_path_t *) d,
-		  dir_start, dir_end - dir_start);
+  if (copy_file_path ((grub_efi_file_path_device_path_t *) d,
+		      dir_start, dir_end - dir_start) != GRUB_ERR_NONE)
+    {
+    fail:
+      grub_free (file_path);
+      return 0;
+    }
 
   /* Fill the file path for the file.  */
   d = GRUB_EFI_NEXT_DEVICE_PATH (d);
-  copy_file_path ((grub_efi_file_path_device_path_t *) d,
-		  dir_end + 1, grub_strlen (dir_end + 1));
+  if (copy_file_path ((grub_efi_file_path_device_path_t *) d,
+		      dir_end + 1, grub_strlen (dir_end + 1)) != GRUB_ERR_NONE)
+    goto fail;
 
   /* Fill the end of device path nodes.  */
   d = GRUB_EFI_NEXT_DEVICE_PATH (d);
