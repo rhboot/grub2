@@ -33,6 +33,7 @@ struct grub_efi_shim_lock
 };
 typedef struct grub_efi_shim_lock grub_efi_shim_lock_t;
 
+// Returns 1 on success, -1 on error, 0 when not available
 int
 grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
 {
