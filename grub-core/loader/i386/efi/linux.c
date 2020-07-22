@@ -313,12 +313,15 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_tpm_measure (kernel, filelen, GRUB_BINARY_PCR, "grub_linuxefi", "Kernel");
   grub_print_error();
 
-  rc = grub_linuxefi_secure_validate (kernel, filelen);
-  if (rc < 0)
+  if (grub_efi_secure_boot ())
     {
-      grub_error (GRUB_ERR_INVALID_COMMAND, N_("%s has invalid signature"),
-		  argv[0]);
-      goto fail;
+      rc = grub_linuxefi_secure_validate (kernel, filelen);
+      if (rc <= 0)
+	{
+	  grub_error (GRUB_ERR_INVALID_COMMAND,
+		      N_("%s has invalid signature"), argv[0]);
+	  goto fail;
+	}
     }
 
   lh = (struct linux_i386_kernel_header *)kernel;
