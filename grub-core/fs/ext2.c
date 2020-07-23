@@ -719,7 +719,8 @@ grub_ext2_read_symlink (grub_fshelp_node_t node)
        }
     }
 
-  if (grub_add (grub_le_to_cpu32 (diro->inode.size), 1, &sz))
+  sz = grub_le_to_cpu32 (diro->inode.size);
+  if (grub_add (sz, (grub_size_t)1, &sz))
     {
       grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
       return NULL;

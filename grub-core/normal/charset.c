@@ -479,8 +479,9 @@ grub_unicode_aglomerate_comb (const grub_uint32_t *in, grub_size_t inlen,
 	    n = out->combining_inline;
 	  else if (out->ncomb > (int) ARRAY_SIZE (out->combining_inline))
 	    {
-	      if (grub_add (out->ncomb, 1, &sz) ||
-		  grub_mul (sz, sizeof (n[0]), &sz))
+	      grub_size_t ncomb = out->ncomb, one = 1, nsz = sizeof (n[0]);
+	      if (grub_add (ncomb, one, &sz) ||
+		  grub_mul (sz, nsz, &sz))
 		goto fail;
 
 	      n = grub_realloc (out->combining_ptr, sz);
