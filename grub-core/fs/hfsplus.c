@@ -478,7 +478,7 @@ grub_hfsplus_read_symlink (grub_fshelp_node_t node)
   grub_ssize_t numread;
   grub_size_t sz = node->size;
 
-  if (grub_add (sz, 1, &sz))
+  if (grub_add (sz, (grub_size_t)1, &sz))
     return NULL;
 
   symlink = grub_malloc (sz);

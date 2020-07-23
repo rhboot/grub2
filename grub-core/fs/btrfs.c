@@ -323,10 +323,15 @@ save_ref (struct grub_btrfs_leaf_descriptor *desc,
     {
       void *newdata;
       grub_size_t sz;
+      grub_size_t alloced, datasz, two = 2;
 
-      if (grub_mul (desc->allocated, 2, &desc->allocated) ||
-	  grub_mul (desc->allocated, sizeof (desc->data[0]), &sz))
+      alloced = desc->allocated;
+      datasz = sizeof (desc->data[0]);
+
+      if (grub_mul (alloced, two, &alloced) ||
+	  grub_mul (alloced, datasz, &sz))
 	return GRUB_ERR_OUT_OF_RANGE;
+      desc->allocated = alloced;
 
       newdata = grub_realloc (desc->data, sz);
       if (!newdata)
@@ -624,12 +629,17 @@ find_device (struct grub_btrfs_data *data, grub_uint64_t id, int do_rescan)
     {
       void *tmp;
       grub_size_t sz;
+      grub_size_t alloced = data->n_devices_allocated;
+      grub_size_t attached_sz = sizeof(data->devices_attached[0]);
+      grub_size_t attached = data->n_devices_attached;
+      const grub_size_t one = 1, two = 2;
 
-      if (grub_mul (data->n_devices_attached, 2, &data->n_devices_allocated) ||
-	  grub_add (data->n_devices_allocated, 1, &data->n_devices_allocated) ||
-	  grub_mul (data->n_devices_allocated, sizeof (data->devices_attached[0]), &sz))
+      if (grub_mul (attached, two, &alloced) ||
+	  grub_add (alloced, one, &alloced) ||
+	  grub_mul (alloced, attached_sz, &sz))
 	goto fail;
 
+      data->n_devices_allocated = alloced;
       data->devices_attached = grub_realloc (tmp = data->devices_attached, sz);
       if (!data->devices_attached)
 	{

@@ -361,10 +361,10 @@ static char *
 read_section_as_string (struct font_file_section *section)
 {
   char *str;
-  grub_size_t sz;
+  grub_size_t sz = section->length, one = 1;
   grub_ssize_t ret;
 
-  if (grub_add (section->length, 1, &sz))
+  if (grub_add (sz, one, &sz))
     return NULL;
 
   str = grub_malloc (sz);

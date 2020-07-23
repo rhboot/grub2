@@ -536,7 +536,7 @@ add_part (struct iterate_dir_ctx *ctx,
   char *new;
 
   if (grub_add (size, len2, &sz) ||
-      grub_add (sz, 1, &sz))
+      grub_add (sz, (grub_size_t)1, &sz))
     return;
 
   new = grub_realloc (ctx->symlink, sz);
@@ -580,14 +580,14 @@ susp_iterate_dir (struct grub_iso9660_susp_entry *entry,
 	    {
 	      off = grub_strlen (ctx->filename);
 	      if (grub_add (csize, off, &sz) ||
-		  grub_add (sz, 1, &sz))
+		  grub_add (sz, (grub_size_t)1, &sz))
 		return GRUB_ERR_OUT_OF_RANGE;
 	      ctx->filename = grub_realloc (ctx->filename, sz);
 	    }
 	  else
 	    {
 	      off = 0;
-	      if (grub_add (csize, 1, &sz))
+	      if (grub_add (csize, (grub_size_t)1, &sz))
 		return GRUB_ERR_OUT_OF_RANGE;
 	      ctx->filename = grub_zalloc (sz);
 	    }
@@ -807,7 +807,7 @@ grub_iso9660_iterate_dir (grub_fshelp_node_t dir,
 		struct grub_fshelp_node *new_node;
 		grub_size_t sz;
 
-		if (grub_mul (node->alloc_dirents, 2, &node->alloc_dirents) ||
+		if (grub_mul (node->alloc_dirents, (grub_size_t)2, &node->alloc_dirents) ||
 		    grub_sub (node->alloc_dirents, ARRAY_SIZE (node->dirents), &sz) ||
 		    grub_mul (sz, sizeof (node->dirents[0]), &sz) ||
 		    grub_add (sz, sizeof (struct grub_fshelp_node), &sz))
