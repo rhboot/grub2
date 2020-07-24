@@ -151,8 +151,8 @@ grub_initrd_init (int argc, char *argv[],
   initrd_ctx->nfiles = 0;
   initrd_ctx->components = 0;
 
-  initrd_ctx->components = grub_zalloc (argc
-					* sizeof (initrd_ctx->components[0]));
+  initrd_ctx->components = grub_calloc (argc,
+					sizeof (initrd_ctx->components[0]));
   if (!initrd_ctx->components)
     return grub_errno;
 
