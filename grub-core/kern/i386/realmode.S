@@ -77,7 +77,7 @@ protstack:
  *  description.
  */
 
-	.p2align	5	/* force 4-byte alignment */
+	.p2align	5	/* force 32-byte alignment */
 gdt:
 	.word	0, 0
 	.byte	0, 0, 0, 0
