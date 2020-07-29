@@ -73,6 +73,7 @@ grub_functional_all_tests (grub_extcmd_context_t ctxt __attribute__ ((unused)),
   grub_dl_load ("xnu_uuid_test");
   grub_dl_load ("pbkdf2_test");
   grub_dl_load ("signature_test");
+  grub_dl_load ("appended_signature_test");
   grub_dl_load ("sleep_test");
   grub_dl_load ("bswap_test");
   grub_dl_load ("ctz_test");
