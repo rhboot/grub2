@@ -34,47 +34,6 @@
 
 #define EV_IPL 0x0d
 
-/* TCG_PassThroughToTPM Input Parameter Block. */
-typedef struct
-{
-  grub_uint16_t IPBLength;
-  grub_uint16_t Reserved1;
-  grub_uint16_t OPBLength;
-  grub_uint16_t Reserved2;
-  grub_uint8_t  TPMOperandIn[1];
-} GRUB_PACKED PassThroughToTPM_InputParamBlock;
-
-/* TCG_PassThroughToTPM Output Parameter Block. */
-typedef struct
-{
-  grub_uint16_t OPBLength;
-  grub_uint16_t Reserved;
-  grub_uint8_t  TPMOperandOut[1];
-} GRUB_PACKED PassThroughToTPM_OutputParamBlock;
-
-typedef struct
-{
-  grub_uint16_t tag;
-  grub_uint32_t paramSize;
-  grub_uint32_t ordinal;
-  grub_uint32_t pcrNum;
-  /* The 160 bit value representing the event to be recorded. */
-  grub_uint8_t  inDigest[SHA1_DIGEST_SIZE];
-} GRUB_PACKED ExtendIncoming;
-
-/* TPM_Extend Outgoing Operand. */
-typedef struct
-{
-  grub_uint16_t tag;
-  grub_uint32_t paramSize;
-  grub_uint32_t returnCode;
-  /* The PCR value after execution of the command. */
-  grub_uint8_t  outDigest[SHA1_DIGEST_SIZE];
-} GRUB_PACKED ExtendOutgoing;
-
 grub_err_t grub_tpm_measure (unsigned char *buf, grub_size_t size,
 			     grub_uint8_t pcr, const char *description);
-grub_err_t grub_tpm_init (void);
-grub_err_t grub_tpm_execute (PassThroughToTPM_InputParamBlock *inbuf,
-			     PassThroughToTPM_OutputParamBlock *outbuf);
 #endif
