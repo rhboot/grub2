@@ -82,6 +82,8 @@ enum grub_file_type
     GRUB_FILE_TYPE_PUBLIC_KEY,
     /* File holding public key to add to trused keys.  */
     GRUB_FILE_TYPE_PUBLIC_KEY_TRUST,
+    /* File holding x509 certificiate to add to trusted keys.  */
+    GRUB_FILE_TYPE_CERTIFICATE_TRUST,
     /* File of which we intend to print a blocklist to the user.  */
     GRUB_FILE_TYPE_PRINT_BLOCKLIST,
     /* File we intend to use for test loading or testing speed.  */
