@@ -243,11 +243,22 @@ grub_dl_get (const char *name)
   return 0;
 }
 
+#ifdef GRUB_MACHINE_EMU
+/*
+ * Under grub-emu, modules are faked and NULL is passed to GRUB_MOD_INIT.
+ * So we fake this out to avoid a NULL deref.
+ */
+static inline void
+grub_dl_set_persistent (grub_dl_t mod __attribute__((unused)))
+{
+}
+#else
 static inline void
 grub_dl_set_persistent (grub_dl_t mod)
 {
   mod->persistent = 1;
 }
+#endif
 
 static inline int
 grub_dl_is_persistent (grub_dl_t mod)
