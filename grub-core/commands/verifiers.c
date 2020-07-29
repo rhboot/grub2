@@ -218,6 +218,52 @@ grub_verify_string (char *str, enum grub_verify_string_type type)
   return GRUB_ERR_NONE;
 }
 
+/* List of modules which may allow for verifcation to be bypassed. */
+static const char *const disabled_mods[] = { "iorw", "memrw", "wrmsr", NULL };
+
+/*
+ * Does the module in file `io' allow for the a verifier to be bypassed?
+ *
+ * Returns 1 if so, otherwise 0.
+ */
+char
+grub_is_dangerous_module (grub_file_t io)
+{
+  char *b, *e;
+  int i;
+
+  /* Establish GRUB module name. */
+  b = grub_strrchr (io->name, '/');
+  e = grub_strrchr (io->name, '.');
+
+  b = b ? (b + 1) : io->name;
+  e = e ? e : io->name + grub_strlen (io->name);
+  e = (e > b) ? e : io->name + grub_strlen (io->name);
+
+  for (i = 0; disabled_mods[i]; i++)
+    if (!grub_strncmp (b, disabled_mods[i],
+		       grub_strlen (b) - grub_strlen (e)))
+      return 1;
+  return 0;
+}
+
+/*
+ * Is there already an unsafe module in memory?
+ * Returns the name if one is loaded, otherwise NULL.
+ */
+const char *
+grub_dangerous_module_loaded (void)
+{
+  int i;
+
+  for (i = 0; disabled_mods[i]; i++)
+    if (grub_dl_get (disabled_mods[i]))
+      {
+	return disabled_mods[i];
+      }
+  return NULL;
+}
+
 GRUB_MOD_INIT(verifiers)
 {
   grub_file_filter_register (GRUB_FILE_FILTER_VERIFY, grub_verifiers_open);
