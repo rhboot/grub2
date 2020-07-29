@@ -922,6 +922,18 @@ module = {
 };
 
 module = {
+  name = appendedsig;
+  common = commands/appendedsig/appendedsig.c;
+  common = commands/appendedsig/x509.c;
+  common = commands/appendedsig/pkcs7.c;
+  common = commands/appendedsig/asn1util.c;
+  common = commands/appendedsig/gnutls_asn1_tab.c;
+  common = commands/appendedsig/pkix_asn1_tab.c;
+  cflags = '$(CFLAGS_POSIX)';
+  cppflags = '-I$(srcdir)/lib/posix_wrap';
+};
+
+module = {
   name = verifiers;
   common = commands/verifiers.c;
 };
