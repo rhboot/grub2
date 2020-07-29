@@ -2041,6 +2041,12 @@ module = {
 };
 
 module = {
+  name = appended_signature_test;
+  common = tests/appended_signature_test.c;
+  common = tests/appended_signatures.h;
+};
+
+module = {
   name = signature_test;
   common = tests/signature_test.c;
   common = tests/signatures.h;
