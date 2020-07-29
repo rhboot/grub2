@@ -76,3 +76,16 @@ grub_verifier_unregister (struct grub_file_verifier *ver)
 
 grub_err_t
 grub_verify_string (char *str, enum grub_verify_string_type type);
+
+/*
+ * Does the module in file `io' allow for the a verifier to be bypassed?
+ *
+ * Returns 1 if so, otherwise 0.
+ */
+char grub_is_dangerous_module (grub_file_t io);
+
+/*
+ * Is there already an unsafe module in memory?
+ * Returns the name if one is loaded, otherwise NULL.
+ */
+const char *grub_dangerous_module_loaded (void);
