@@ -464,8 +464,8 @@ grub_cryptodisk_setcipher (grub_cryptodisk_t crypt, const char *ciphername, cons
       secondary_cipher = grub_crypto_cipher_open (ciph);
       if (!secondary_cipher)
       {
-	  ret = grub_error (GRUB_ERR_FILE_NOT_FOUND, "Secondary cipher %s isn't available",
-			    secondary_cipher);
+	  ret = grub_error (GRUB_ERR_FILE_NOT_FOUND,
+			    "Secondary cipher %s isn't available", ciphername);
 	  goto err;
       }
       if (cipher->cipher->blocksize != GRUB_CRYPTODISK_GF_BYTES)
