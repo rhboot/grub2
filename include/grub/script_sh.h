@@ -318,7 +318,7 @@ void *grub_script_malloc (struct grub_parser_param *state, grub_size_t size);
 union YYSTYPE;
 int grub_script_yylex (union YYSTYPE *, struct grub_parser_param *);
 int grub_script_yyparse (struct grub_parser_param *);
-void grub_script_yyerror (struct grub_parser_param *, char const *);
+void grub_script_yyerror (struct grub_parser_param *, const char *);
 
 /* Commands to execute, don't use these directly.  */
 grub_err_t grub_script_execute_cmdline (struct grub_script_cmd *cmd);
