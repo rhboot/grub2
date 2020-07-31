@@ -4497,22 +4497,22 @@ about each of the commands whose names begin with those @var{patterns}.
 @node initrd
 @subsection initrd
 
-@deffn Command initrd file
-Load an initial ramdisk for a Linux kernel image, and set the appropriate
-parameters in the Linux setup area in memory.  This may only be used after
-the @command{linux} command (@pxref{linux}) has been run.  See also
-@ref{GNU/Linux}.
+@deffn Command initrd file [file @dots{}]
+Load, in order, all initial ramdisks for a Linux kernel image, and set
+the appropriate parameters in the Linux setup area in memory.  This may only
+be used after the @command{linux} command (@pxref{linux}) has been run.  See
+also @ref{GNU/Linux}.
 @end deffn
 
 
 @node initrd16
 @subsection initrd16
 
-@deffn Command initrd16 file
-Load an initial ramdisk for a Linux kernel image to be booted in 16-bit
-mode, and set the appropriate parameters in the Linux setup area in memory.
-This may only be used after the @command{linux16} command (@pxref{linux16})
-has been run.  See also @ref{GNU/Linux}.
+@deffn Command initrd16 file [file @dots{}]
+Load, in order, all initial ramdisks for a Linux kernel image to be booted in
+16-bit mode, and set the appropriate parameters in the Linux setup area in
+memory.  This may only be used after the @command{linux16} command
+(@pxref{linux16}) has been run.  See also @ref{GNU/Linux}.
 
 This command is only available on x86 systems.
 @end deffn
