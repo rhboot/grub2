@@ -307,7 +307,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  grub_tpm_measure (kernel, filelen, GRUB_BINARY_PCR, "grub_linuxefi", "Kernel");
+  grub_tpm_measure (kernel, filelen, GRUB_BINARY_PCR, "grub_linuxefi: Kernel");
   grub_print_error();
 
   if (grub_efi_secure_boot ())
