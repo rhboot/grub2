@@ -18,6 +18,7 @@
 
 #include <grub/loader.h>
 #include <grub/file.h>
+#include <grub/efi/sb.h>
 #include <grub/err.h>
 #include <grub/types.h>
 #include <grub/mm.h>
