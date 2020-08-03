@@ -274,7 +274,7 @@ grub_video_bochs_setup (unsigned int width, unsigned int height,
 		       " supported by bochs video");
 
   if (depth == 4)
-    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "4-bpp isn't cupported");
+    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "4-bpp isn't supported");
 
   bytes_per_pixel = (depth + 7) / 8;
   if (depth == 4)
