@@ -348,6 +348,9 @@ progress_bar_set_property (void *vself, const char *name, const char *value)
 	   Please use the shortest form available in you language.  */
 	value = _("%ds");
 
+      if (grub_printf_fmt_check(value, "%d") != GRUB_ERR_NONE)
+	value = ""; /* Unsupported format. */
+
       self->template = grub_strdup (value);
     }
   else if (grub_strcmp (name, "font") == 0)
