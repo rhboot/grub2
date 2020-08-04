@@ -1318,11 +1318,18 @@ grub_efi_net_boot_from_https (void)
 
   dp = grub_efi_get_device_path (image->device_handle);
 
-  while (1)
+  while (dp)
     {
+      grub_efi_uint16_t len = GRUB_EFI_DEVICE_PATH_LENGTH (dp);
+      if (len < 4)
+      {
+	grub_error(GRUB_ERR_OUT_OF_RANGE,
+		   "malformed EFI Device Path node has length=%d", len);
+	break;
+      }
+
       grub_efi_uint8_t type = GRUB_EFI_DEVICE_PATH_TYPE (dp);
       grub_efi_uint8_t subtype = GRUB_EFI_DEVICE_PATH_SUBTYPE (dp);
-      grub_efi_uint16_t len = GRUB_EFI_DEVICE_PATH_LENGTH (dp);
 
       if ((type == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE)
 	  && (subtype == GRUB_EFI_URI_DEVICE_PATH_SUBTYPE))
@@ -1335,7 +1342,7 @@ grub_efi_net_boot_from_https (void)
 
       if (GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp))
         break;
-      dp = (grub_efi_device_path_t *) ((char *) dp + len);
+      dp = GRUB_EFI_NEXT_DEVICE_PATH(dp);
     }
 
   return 0;
@@ -1353,11 +1360,18 @@ grub_efi_net_boot_from_opa (void)
 
   dp = grub_efi_get_device_path (image->device_handle);
 
-  while (1)
+  while (dp)
     {
+      grub_efi_uint16_t len = GRUB_EFI_DEVICE_PATH_LENGTH (dp);
+      if (len < 4)
+      {
+	grub_error(GRUB_ERR_OUT_OF_RANGE,
+		   "malformed EFI Device Path node has length=%d", len);
+	break;
+      }
+
       grub_efi_uint8_t type = GRUB_EFI_DEVICE_PATH_TYPE (dp);
       grub_efi_uint8_t subtype = GRUB_EFI_DEVICE_PATH_SUBTYPE (dp);
-      grub_efi_uint16_t len = GRUB_EFI_DEVICE_PATH_LENGTH (dp);
 
       if ((type == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE)
 	  && (subtype == GRUB_EFI_MAC_ADDRESS_DEVICE_PATH_SUBTYPE))
@@ -1368,7 +1382,7 @@ grub_efi_net_boot_from_opa (void)
 
       if (GRUB_EFI_END_ENTIRE_DEVICE_PATH (dp))
         break;
-      dp = (grub_efi_device_path_t *) ((char *) dp + len);
+      dp = GRUB_EFI_NEXT_DEVICE_PATH(dp);
     }
 
   return 0;
