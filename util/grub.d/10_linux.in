@@ -158,7 +158,17 @@ linux_entry ()
     populate_header_warn
 
     cat << EOF
-set default_kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+# The kernelopts variable should be defined in the grubenv file. But to ensure that menu
+# entries populated from BootLoaderSpec files that use this variable work correctly even
+# without a grubenv file, define a fallback kernelopts variable if this has not been set.
+#
+# The kernelopts variable in the grubenv file can be modified using the grubby tool or by
+# executing the grub2-mkconfig tool. For the latter, the values of the GRUB_CMDLINE_LINUX
+# and GRUB_CMDLINE_LINUX_DEFAULT options from /etc/default/grub file are used to set both
+# the kernelopts variable in the grubenv file and the fallback kernelopts variable.
+if [ -z "\${kernelopts}" ]; then
+  set kernelopts="root=${linux_root_device_thisversion} ro ${args}"
+fi
 
 insmod blscfg
 blscfg
