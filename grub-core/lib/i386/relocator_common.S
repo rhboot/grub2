@@ -29,8 +29,6 @@
 #endif
 
 	.macro DISABLE_PAGING
-#ifdef GRUB_MACHINE_IEEE1275
-#endif
 
 	movl	%cr0, %eax
 	andl	$(~GRUB_MEMORY_CPU_CR0_PAGING_ON), %eax
