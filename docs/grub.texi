@@ -695,13 +695,6 @@ floppy instead of exposing the USB drive as a hard disk (they call it
 This install doesn't conflict with standard install as long as they are in
 separate directories.
 
-Note that @command{grub2-install} is actually just a shell script and the
-real task is done by other tools such as @command{grub2-mkimage}. Therefore,
-you may run those commands directly to install GRUB, without using
-@command{grub2-install}. Don't do that, however, unless you are very familiar
-with the internals of GRUB. Installing a boot loader on a running OS may be
-extremely dangerous.
-
 On EFI systems for fixed disk install you have to mount EFI System Partition.
 If you mount it at @file{/boot/efi} then you don't need any special arguments:
 
