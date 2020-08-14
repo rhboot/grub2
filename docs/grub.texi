@@ -5789,6 +5789,48 @@ On UEFI platforms, @file{core.img} is a PE binary. Therefore, it can be signed
 with a tool such as @command{pesign} or @command{sbsign}. It will also be
 necessary to enrol the public key used into a relevant firmware key database.
 
+@section Signing GRUB with an appended signature
+
+The @file{core.img} itself can be signed with a Linux kernel module-style
+appended signature.
+
+To support IEEE1275 platforms where the boot image is often loaded directly
+from a disk partition rather than from a file system, the @file{core.img}
+can specify the size and location of the appended signature with an ELF
+note added by @command{grub-install}.
+
+An image can be signed this way using the @command{sign-file} command from
+the Linux kernel:
+
+@example
+@group
+# grub.key is your private key and certificate.der is your public key
+
+# Determine the size of the appended signature. It depends on the signing
+# certificate and the hash algorithm
+touch empty
+sign-file SHA256 grub.key certificate.der empty empty.sig
+SIG_SIZE=`stat -c '%s' empty.sig`
+rm empty empty.sig
+
+# Build a grub image with $SIG_SIZE reserved for the signature
+grub-install --appended-signature-size $SIG_SIZE --modules="..." ...
+
+# Replace the reserved size with a signature:
+# cut off the last $SIG_SIZE bytes with truncate's minus modifier
+truncate -s -$SIG_SIZE /boot/grub/powerpc-ieee1275/core.elf core.elf.unsigned
+# sign the trimmed file with an appended signature, restoring the correct size
+sign-file SHA256 grub.key certificate.der core.elf.unsigned core.elf.signed
+
+# Don't forget to install the signed image as required
+# (e.g. on powerpc-ieee1275, to the PReP partition)
+@end group
+@end example
+
+As with UEFI secure boot, it is necessary to build in the required modules,
+or sign them separately.
+
+
 @node Platform limitations
 @chapter Platform limitations
 
