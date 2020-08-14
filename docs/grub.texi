@@ -5610,6 +5610,7 @@ environment variables and commands are listed in the same order.
 @menu
 * Authentication and authorisation:: Users and access control
 * Using digital signatures::         Booting digitally signed code
+* Signing GRUB itself::              Ensuring the integrity of the GRUB core image
 @end menu
 
 @node Authentication and authorisation
@@ -5687,7 +5688,7 @@ commands.
 
 GRUB's @file{core.img} can optionally provide enforcement that all files
 subsequently read from disk are covered by a valid digital signature.
-This document does @strong{not} cover how to ensure that your
+This section does @strong{not} cover how to ensure that your
 platform's firmware (e.g., Coreboot) validates @file{core.img}.
 
 If environment variable @code{check_signatures}
@@ -5771,6 +5772,22 @@ the machine from altering that machine's firmware (e.g., Coreboot
 or BIOS) configuration to cause the machine to boot from a different
 (attacker-controlled) device.  GRUB is at best only one link in a
 secure boot chain.
+
+@node Signing GRUB itself
+@section Signing GRUB itself
+
+To ensure a complete secure-boot chain, there must be a way for the code that
+loads GRUB to verify the integrity of the core image.
+
+This is ultimately platform-specific and individual platforms can define their
+own mechanisms. However, there are general-purpose mechanisms that can be used
+with GRUB.
+
+@section Signing GRUB for UEFI secure boot
+
+On UEFI platforms, @file{core.img} is a PE binary. Therefore, it can be signed
+with a tool such as @command{pesign} or @command{sbsign}. It will also be
+necessary to enrol the public key used into a relevant firmware key database.
 
 @node Platform limitations
 @chapter Platform limitations
