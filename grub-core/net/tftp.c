@@ -183,8 +183,20 @@ tftp_receive (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	  return GRUB_ERR_NONE;
 	}
 
-      /* Ack old/retransmitted block. */
-      if (grub_be_to_cpu16 (tftph->u.data.block) < data->block + 1)
+      /*
+       * Ack old/retransmitted block.
+       *
+       * The block number is a 16-bit counter which only allows to fetch
+       * files no bigger than 65535 * blksize. To avoid this limit, the
+       * counter is rolled over. This behavior isn't defined in RFC 1350
+       * but is handled by many TFTP servers and it's what GRUB was doing
+       * before implicitly due an overflow.
+       *
+       * Fixing that bug led to TFTP timeouts, since GRUB wasn't acking
+       * data packets anymore for files with size bigger than the maximum
+       * mentioned above. Restore the old behavior to prevent this issue.
+       */
+      if (grub_be_to_cpu16 (tftph->u.data.block) < ((data->block + 1) & 0xffffu))
 	ack (data, grub_be_to_cpu16 (tftph->u.data.block));
       /* Ignore unexpected block. */
       else if (grub_be_to_cpu16 (tftph->u.data.block) > data->block + 1)
