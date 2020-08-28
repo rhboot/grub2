@@ -796,7 +796,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    MOUNTFS=ext2
 		    "mkfs.ext2" -L "$FSLABEL" -q "${MOUNTDEVICE}"  ;;
 		xf2fs)
-		    "mkfs.f2fs" -l "$FSLABEL" -q "${LODEVICES[0]}" ;;
+		    "mkfs.f2fs" -l "$FSLABEL" -q "${MOUNTDEVICE}" ;;
 		xnilfs2)
 		    "mkfs.nilfs2" -L "$FSLABEL" -b $BLKSIZE  -q "${MOUNTDEVICE}" ;;
 		xext2_old)
