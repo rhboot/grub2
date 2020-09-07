@@ -1311,5 +1311,6 @@ GRUB_MOD_FINI (cryptodisk)
 {
   grub_disk_dev_unregister (&grub_cryptodisk_dev);
   cryptodisk_cleanup ();
+  grub_unregister_extcmd (cmd);
   grub_procfs_unregister (&luks_script);
 }
