@@ -610,14 +610,16 @@ luks2_recover_key (grub_disk_t disk,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));
       if (ret)
 	{
-	  grub_dprintf ("luks2", "Decryption with keyslot %"PRIuGRUB_SIZE" failed\n", i);
+	  grub_dprintf ("luks2", "Decryption with keyslot %"PRIuGRUB_SIZE" failed: %s\n",
+			i, grub_errmsg);
 	  continue;
 	}
 
       ret = luks2_verify_key (&digest, candidate_key, keyslot.key_size);
       if (ret)
 	{
-	  grub_dprintf ("luks2", "Could not open keyslot %"PRIuGRUB_SIZE"\n", i);
+	  grub_dprintf ("luks2", "Could not open keyslot %"PRIuGRUB_SIZE": %s\n",
+			i, grub_errmsg);
 	  continue;
 	}
 
