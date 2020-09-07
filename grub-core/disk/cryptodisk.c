@@ -757,9 +757,8 @@ grub_cryptodisk_read (grub_disk_t disk, grub_disk_addr_t sector,
 		size, sector, dev->offset);
 
   err = grub_disk_read (dev->source_disk,
-			(sector << (disk->log_sector_size
-				   - GRUB_DISK_SECTOR_BITS)) + dev->offset, 0,
-			size << disk->log_sector_size, buf);
+			grub_disk_from_native_sector (disk, sector + dev->offset),
+			0, size << disk->log_sector_size, buf);
   if (err)
     {
       grub_dprintf ("cryptodisk", "grub_disk_read failed with error %d\n", err);
@@ -816,12 +815,10 @@ grub_cryptodisk_write (grub_disk_t disk, grub_disk_addr_t sector,
     }
 
   /* Since ->write was called so disk.mod is loaded but be paranoid  */
-  
+  sector = sector + dev->offset;
   if (grub_disk_write_weak)
     err = grub_disk_write_weak (dev->source_disk,
-				(sector << (disk->log_sector_size
-					    - GRUB_DISK_SECTOR_BITS))
-				+ dev->offset,
+				grub_disk_from_native_sector (disk, sector),
 				0, size << disk->log_sector_size, tmp);
   else
     err = grub_error (GRUB_ERR_BUG, "disk.mod not loaded");
