@@ -36,13 +36,14 @@ enum grub_json_type
 };
 typedef enum grub_json_type grub_json_type_t;
 
-typedef struct jsmntok jsmntok_t;
+/* Forward-declaration to avoid including jsmn.h. */
+struct jsmntok;
 
 struct grub_json
 {
-  jsmntok_t   *tokens;
-  char	      *string;
-  grub_size_t idx;
+  struct jsmntok *tokens;
+  char		 *string;
+  grub_size_t	 idx;
 };
 typedef struct grub_json grub_json_t;
 
