@@ -95,6 +95,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
       || grub_be_to_cpu16 (header.version) != 1)
     return NULL;
 
+  grub_memset (uuid, 0, sizeof (uuid));
   optr = uuid;
   for (iptr = header.uuid; iptr < &header.uuid[ARRAY_SIZE (header.uuid)];
        iptr++)
@@ -125,7 +126,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   newdev->source_disk = NULL;
   newdev->log_sector_size = 9;
   newdev->total_length = grub_disk_get_size (disk) - newdev->offset;
-  grub_memcpy (newdev->uuid, uuid, sizeof (newdev->uuid));
+  grub_memcpy (newdev->uuid, uuid, sizeof (uuid));
   newdev->modname = "luks";
 
   /* Configure the hash used for the AF splitter and HMAC.  */
