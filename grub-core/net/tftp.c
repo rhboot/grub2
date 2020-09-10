@@ -183,11 +183,22 @@ tftp_receive (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	  return GRUB_ERR_NONE;
 	}
 
-      /* Ack old/retransmitted block. */
-      if (grub_be_to_cpu16 (tftph->u.data.block) < data->block + 1)
+      /*
+       * Ack old/retransmitted block.
+       *
+       * The block number is a 16-bit counter, thus the maximum file size that
+       * could be transfered is 65535 * block size. Most TFTP hosts support to
+       * roll-over the block counter to allow unlimited transfer file size.
+       *
+       * This behavior is not defined in the RFC 1350 [0] but is implemented by
+       * most TFTP clients and hosts.
+       *
+       * [0]: https://tools.ietf.org/html/rfc1350
+       */
+      if (grub_be_to_cpu16 (tftph->u.data.block) < ((grub_uint16_t) (data->block + 1)))
 	ack (data, grub_be_to_cpu16 (tftph->u.data.block));
       /* Ignore unexpected block. */
-      else if (grub_be_to_cpu16 (tftph->u.data.block) > data->block + 1)
+      else if (grub_be_to_cpu16 (tftph->u.data.block) > ((grub_uint16_t) (data->block + 1)))
 	grub_dprintf ("tftp", "TFTP unexpected block # %d\n", tftph->u.data.block);
       else
 	{
