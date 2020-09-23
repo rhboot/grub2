@@ -22,9 +22,16 @@
 #include <grub/efi/pe32.h>
 #include <grub/efi/sb.h>
 #include <grub/err.h>
+#include <grub/file.h>
 #include <grub/i386/linux.h>
 #include <grub/mm.h>
 #include <grub/types.h>
+#include <grub/verify.h>
+
+static grub_efi_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
+
+/* List of modules which cannot be loaded if UEFI secure boot mode is enabled. */
+static const char * const disabled_mods[] = {"iorw", "memrw", "wrmsr", NULL};
 
 /*
  * Determine whether we're in secure boot mode.
@@ -106,4 +113,102 @@ grub_efi_get_secureboot (void)
   grub_dprintf ("efi", "UEFI Secure Boot state: %s\n", secureboot_str);
 
   return secureboot;
+}
+
+static grub_err_t
+shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
+			 enum grub_file_type type,
+			 void **context __attribute__ ((unused)),
+			 enum grub_verify_flags *flags)
+{
+  const char *b, *e;
+  int i;
+
+  *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
+
+  switch (type & GRUB_FILE_TYPE_MASK)
+    {
+    case GRUB_FILE_TYPE_GRUB_MODULE:
+      /* Establish GRUB module name. */
+      b = grub_strrchr (io->name, '/');
+      e = grub_strrchr (io->name, '.');
+
+      b = b ? (b + 1) : io->name;
+      e = e ? e : io->name + grub_strlen (io->name);
+      e = (e > b) ? e : io->name + grub_strlen (io->name);
+
+      for (i = 0; disabled_mods[i]; i++)
+	if (!grub_strncmp (b, disabled_mods[i], grub_strlen (b) - grub_strlen (e)))
+	  {
+	    grub_error (GRUB_ERR_ACCESS_DENIED,
+			N_("module cannot be loaded in UEFI secure boot mode: %s"),
+			io->name);
+	    return GRUB_ERR_ACCESS_DENIED;
+	  }
+
+      /* Fall through. */
+
+    case GRUB_FILE_TYPE_ACPI_TABLE:
+    case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
+      *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
+
+      return GRUB_ERR_NONE;
+
+    case GRUB_FILE_TYPE_LINUX_KERNEL:
+    case GRUB_FILE_TYPE_MULTIBOOT_KERNEL:
+    case GRUB_FILE_TYPE_BSD_KERNEL:
+    case GRUB_FILE_TYPE_XNU_KERNEL:
+    case GRUB_FILE_TYPE_PLAN9_KERNEL:
+      for (i = 0; disabled_mods[i]; i++)
+	if (grub_dl_get (disabled_mods[i]))
+	  {
+	    grub_error (GRUB_ERR_ACCESS_DENIED,
+			N_("cannot boot due to dangerous module in memory: %s"),
+			disabled_mods[i]);
+	    return GRUB_ERR_ACCESS_DENIED;
+	  }
+
+      *flags = GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
+
+      /* Fall through. */
+
+    default:
+      return GRUB_ERR_NONE;
+    }
+}
+
+static grub_err_t
+shim_lock_verifier_write (void *context __attribute__ ((unused)), void *buf, grub_size_t size)
+{
+  grub_efi_shim_lock_protocol_t *sl = grub_efi_locate_protocol (&shim_lock_guid, 0);
+
+  if (!sl)
+    return grub_error (GRUB_ERR_ACCESS_DENIED, N_("shim_lock protocol not found"));
+
+  if (sl->verify (buf, size) != GRUB_EFI_SUCCESS)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad shim signature"));
+
+  return GRUB_ERR_NONE;
+}
+
+struct grub_file_verifier shim_lock_verifier =
+  {
+    .name = "shim_lock_verifier",
+    .init = shim_lock_verifier_init,
+    .write = shim_lock_verifier_write
+  };
+
+void
+grub_shim_lock_verifier_setup (void)
+{
+  grub_efi_shim_lock_protocol_t *sl =
+    grub_efi_locate_protocol (&shim_lock_guid, 0);
+
+  if (!sl)
+    return;
+
+  if (grub_efi_get_secureboot () != GRUB_EFI_SECUREBOOT_MODE_ENABLED)
+    return;
+
+  grub_verifier_register (&shim_lock_verifier);
 }

@@ -5910,15 +5910,16 @@ secure boot chain.
 @section UEFI secure boot and shim support
 
 The GRUB, except the @command{chainloader} command, works with the UEFI secure
-boot and the shim. This functionality is provided by the shim_lock module. It
-is recommend to build in this and other required modules into the @file{core.img}.
+boot and the shim. This functionality is provided by the shim_lock verifier. It
+is built into the @file{core.img} and is registered if the UEFI secure boot is
+enabled.
+
 All modules not stored in the @file{core.img} and the ACPI tables for the
 @command{acpi} command have to be signed, e.g. using PGP. Additionally, the
 @command{iorw}, the @command{memrw} and the @command{wrmsr} commands are
 prohibited if the UEFI secure boot is enabled. This is done due to
 security reasons. All above mentioned requirements are enforced by the
-shim_lock module. And itself it is a persistent module which means that
-it cannot be unloaded if it was loaded into the memory.
+shim_lock verifier logic.
 
 @node Measured Boot
 @section Measuring boot components

@@ -945,12 +945,6 @@ module = {
 };
 
 module = {
-  name = shim_lock;
-  common = commands/efi/shim_lock.c;
-  enable = efi;
-};
-
-module = {
   name = hdparm;
   common = commands/hdparm.c;
   enable = pci;
