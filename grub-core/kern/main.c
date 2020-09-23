@@ -29,6 +29,7 @@
 #include <grub/command.h>
 #include <grub/reader.h>
 #include <grub/parser.h>
+#include <grub/verify.h>
 
 #ifdef GRUB_MACHINE_PCBIOS
 #include <grub/machine/memory.h>
@@ -273,6 +274,9 @@ grub_main (void)
   grub_setcolorstate (GRUB_TERM_COLOR_HIGHLIGHT);
   grub_printf ("Welcome to GRUB!\n\n");
   grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
+
+  /* Init verifiers API. */
+  grub_verifiers_init ();
 
   grub_load_config ();
 

@@ -64,7 +64,10 @@ struct grub_file_verifier
   grub_err_t (*verify_string) (char *str, enum grub_verify_string_type type);
 };
 
-extern struct grub_file_verifier *grub_file_verifiers;
+extern struct grub_file_verifier *EXPORT_VAR (grub_file_verifiers);
+
+extern void
+grub_verifiers_init (void);
 
 static inline void
 grub_verifier_register (struct grub_file_verifier *ver)
@@ -78,7 +81,7 @@ grub_verifier_unregister (struct grub_file_verifier *ver)
   grub_list_remove (GRUB_AS_LIST (ver));
 }
 
-grub_err_t
-grub_verify_string (char *str, enum grub_verify_string_type type);
+extern grub_err_t
+EXPORT_FUNC (grub_verify_string) (char *str, enum grub_verify_string_type type);
 
 #endif /* ! GRUB_VERIFY_HEADER */

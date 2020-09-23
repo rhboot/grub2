@@ -91,6 +91,7 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/parser.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/partition.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/term.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/time.h
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/verify.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/mm_private.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/net.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/memory.h

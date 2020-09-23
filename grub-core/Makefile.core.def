@@ -140,6 +140,7 @@ kernel = {
   common = kern/rescue_parser.c;
   common = kern/rescue_reader.c;
   common = kern/term.c;
+  common = kern/verifiers.c;
 
   noemu = kern/compiler-rt.c;
   noemu = kern/mm.c;
@@ -941,11 +942,6 @@ module = {
   common = commands/pgp.c;
   cflags = '$(CFLAGS_POSIX)';
   cppflags = '-I$(srcdir)/lib/posix_wrap';
-};
-
-module = {
-  name = verifiers;
-  common = commands/verifiers.c;
 };
 
 module = {
