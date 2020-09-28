@@ -4038,6 +4038,11 @@ Normally, this command will replace the Root System Description Pointer
 (RSDP) in the Extended BIOS Data Area to point to the new tables. If the
 @option{--no-ebda} option is used, the new tables will be known only to
 GRUB, but may be used by GRUB's EFI emulation.
+
+Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
+      Otherwise an attacker can instruct the GRUB to load an SSDT table to
+      overwrite the kernel lockdown configuration and later load and execute
+      unsigned code.
 @end deffn
 
 
