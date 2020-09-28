@@ -268,6 +268,30 @@ grub_parse_cmdline (void)
     }
 }
 
+static void
+grub_get_ieee1275_secure_boot (void)
+{
+  grub_ieee1275_phandle_t root;
+  int rc;
+  grub_uint32_t is_sb;
+
+  grub_ieee1275_finddevice ("/", &root);
+
+  rc = grub_ieee1275_get_integer_property (root, "ibm,secure-boot", &is_sb,
+                                           sizeof (is_sb), 0);
+
+  /* ibm,secure-boot:
+   * 0 - disabled
+   * 1 - audit
+   * 2 - enforce
+   * 3 - enforce + OS-specific behaviour
+   *
+   * We only support enforce.
+   */
+  if (rc >= 0 && is_sb >= 2)
+    grub_env_set("check_appended_signatures", "forced");
+}
+
 grub_addr_t grub_modbase;
 
 void
@@ -290,6 +314,8 @@ grub_machine_init (void)
 #else
   grub_install_get_time_ms (grub_rtc_get_time_ms);
 #endif
+
+  grub_get_ieee1275_secure_boot ();
 }
 
 void
