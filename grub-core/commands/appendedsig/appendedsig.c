@@ -95,8 +95,22 @@ static char *
 grub_env_write_sec (struct grub_env_var *var __attribute__((unused)),
 		    const char *val)
 {
+  if (check_sigs == 2)
+    return grub_strdup ("forced");
   check_sigs = (*val == '1') || (*val == 'e');
   return grub_strdup (check_sigs ? "enforce" : "no");
+}
+
+static const char *
+grub_env_read_sec (struct grub_env_var *var __attribute__ ((unused)),
+                         const char *val __attribute__ ((unused)))
+{
+  if (check_sigs == 2)
+    return "forced";
+  else if (check_sigs == 1)
+    return "enforce";
+  else
+    return "no";
 }
 
 static grub_err_t
@@ -552,14 +566,20 @@ GRUB_MOD_INIT (appendedsig)
   val = grub_env_get ("check_appended_signatures");
   grub_dprintf ("appendedsig", "check_appended_signatures='%s'\n", val);
 
-  if (val && (val[0] == '1' || val[0] == 'e'))
-    check_sigs = 1;
-  else
-    check_sigs = 0;
+  if (val)
+  {
+    if (val[0] == '2' || val[0] == 'f')
+      check_sigs = 2;
+    else if (val[0] == '1' || val[0] == 'e')
+      check_sigs = 1;
+    else
+      check_sigs = 0;
+  }
 
   grub_trusted_key = NULL;
 
-  grub_register_variable_hook ("check_appended_signatures", 0,
+  grub_register_variable_hook ("check_appended_signatures",
+  			       grub_env_read_sec,
 			       grub_env_write_sec);
   grub_env_export ("check_appended_signatures");
 
@@ -603,11 +623,15 @@ GRUB_MOD_INIT (appendedsig)
     grub_trusted_key = pk;
   }
 
-  if (!val || val[0] == '\0')
-    {
-      grub_env_set ("check_appended_signatures",
-		    grub_trusted_key ? "enforce" : "no");
-    }
+  /*
+   * When controlled by ibm,secure-boot, we don't want the presence of
+   * a certificate to enforce secure boot.
+   * if (!val || val[0] == '\0')
+   * {
+   *    grub_env_set ("check_appended_signatures",
+   *		      grub_trusted_key ? "enforce" : "no");
+   * }
+   */
 
   cmd_trust =
     grub_register_command ("trust_certificate", grub_cmd_trust,
