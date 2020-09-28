@@ -5405,6 +5405,9 @@ only applies to the particular cpu/core/thread that runs the command.
 Also, if you specify a reserved or unimplemented MSR address, it will
 cause a general protection exception (which is not currently being handled)
 and the system will reboot.
+
+Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
+      This is done to prevent subverting various security mechanisms.
 @end deffn
 
 @node xen_hypervisor
@@ -5915,12 +5918,12 @@ boot and the shim. This functionality is provided by the shim_lock verifier. It
 is built into the @file{core.img} and is registered if the UEFI secure boot is
 enabled.
 
-All modules not stored in the @file{core.img} and the ACPI tables for the
-@command{acpi} command have to be signed, e.g. using PGP. Additionally, the
-@command{iorw}, the @command{memrw} and the @command{wrmsr} commands are
-prohibited if the UEFI secure boot is enabled. This is done due to
-security reasons. All above mentioned requirements are enforced by the
-shim_lock verifier logic.
+All GRUB modules not stored in the @file{core.img}, OS kernels, ACPI tables,
+Device Trees, etc. have to be signed, e.g, using PGP. Additionally, the commands
+that can be used to subvert the UEFI secure boot mechanism, such as @command{iorw}
+and @command{memrw} will not be available when the UEFI secure boot is enabled.
+This is done for security reasons and are enforced by the GRUB Lockdown mechanism
+(@pxref{Lockdown}).
 
 @node Measured Boot
 @section Measuring boot components

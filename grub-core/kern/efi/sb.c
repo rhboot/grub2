@@ -30,9 +30,6 @@
 
 static grub_efi_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
 
-/* List of modules which cannot be loaded if UEFI secure boot mode is enabled. */
-static const char * const disabled_mods[] = {"iorw", "memrw", "wrmsr", NULL};
-
 /*
  * Determine whether we're in secure boot mode.
  *
@@ -121,53 +118,15 @@ shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
 			 void **context __attribute__ ((unused)),
 			 enum grub_verify_flags *flags)
 {
-  const char *b, *e;
-  int i;
-
   *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
 
   switch (type & GRUB_FILE_TYPE_MASK)
     {
-    case GRUB_FILE_TYPE_GRUB_MODULE:
-      /* Establish GRUB module name. */
-      b = grub_strrchr (io->name, '/');
-      e = grub_strrchr (io->name, '.');
-
-      b = b ? (b + 1) : io->name;
-      e = e ? e : io->name + grub_strlen (io->name);
-      e = (e > b) ? e : io->name + grub_strlen (io->name);
-
-      for (i = 0; disabled_mods[i]; i++)
-	if (!grub_strncmp (b, disabled_mods[i], grub_strlen (b) - grub_strlen (e)))
-	  {
-	    grub_error (GRUB_ERR_ACCESS_DENIED,
-			N_("module cannot be loaded in UEFI secure boot mode: %s"),
-			io->name);
-	    return GRUB_ERR_ACCESS_DENIED;
-	  }
-
-      /* Fall through. */
-
-    case GRUB_FILE_TYPE_ACPI_TABLE:
-    case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
-      *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
-
-      return GRUB_ERR_NONE;
-
     case GRUB_FILE_TYPE_LINUX_KERNEL:
     case GRUB_FILE_TYPE_MULTIBOOT_KERNEL:
     case GRUB_FILE_TYPE_BSD_KERNEL:
     case GRUB_FILE_TYPE_XNU_KERNEL:
     case GRUB_FILE_TYPE_PLAN9_KERNEL:
-      for (i = 0; disabled_mods[i]; i++)
-	if (grub_dl_get (disabled_mods[i]))
-	  {
-	    grub_error (GRUB_ERR_ACCESS_DENIED,
-			N_("cannot boot due to dangerous module in memory: %s"),
-			disabled_mods[i]);
-	    return GRUB_ERR_ACCESS_DENIED;
-	  }
-
       *flags = GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
 
       /* Fall through. */

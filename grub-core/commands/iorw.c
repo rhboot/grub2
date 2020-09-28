@@ -23,6 +23,7 @@
 #include <grub/env.h>
 #include <grub/cpu/io.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -131,17 +132,17 @@ GRUB_MOD_INIT(memrw)
 			  N_("PORT"), N_("Read 32-bit value from PORT."),
 			  options);
   cmd_write_byte =
-    grub_register_command ("outb", grub_cmd_write,
-			   N_("PORT VALUE [MASK]"),
-			   N_("Write 8-bit VALUE to PORT."));
+    grub_register_command_lockdown ("outb", grub_cmd_write,
+                                    N_("PORT VALUE [MASK]"),
+                                    N_("Write 8-bit VALUE to PORT."));
   cmd_write_word =
-    grub_register_command ("outw", grub_cmd_write,
-			   N_("PORT VALUE [MASK]"),
-			   N_("Write 16-bit VALUE to PORT."));
+    grub_register_command_lockdown ("outw", grub_cmd_write,
+                                    N_("PORT VALUE [MASK]"),
+                                    N_("Write 16-bit VALUE to PORT."));
   cmd_write_dword =
-    grub_register_command ("outl", grub_cmd_write,
-			   N_("ADDR VALUE [MASK]"),
-			   N_("Write 32-bit VALUE to PORT."));
+    grub_register_command_lockdown ("outl", grub_cmd_write,
+                                    N_("ADDR VALUE [MASK]"),
+                                    N_("Write 32-bit VALUE to PORT."));
 }
 
 GRUB_MOD_FINI(memrw)

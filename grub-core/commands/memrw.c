@@ -22,6 +22,7 @@
 #include <grub/extcmd.h>
 #include <grub/env.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -133,17 +134,17 @@ GRUB_MOD_INIT(memrw)
 			  N_("ADDR"), N_("Read 32-bit value from ADDR."),
 			  options);
   cmd_write_byte =
-    grub_register_command ("write_byte", grub_cmd_write,
-			   N_("ADDR VALUE [MASK]"),
-			   N_("Write 8-bit VALUE to ADDR."));
+    grub_register_command_lockdown ("write_byte", grub_cmd_write,
+                                    N_("ADDR VALUE [MASK]"),
+                                    N_("Write 8-bit VALUE to ADDR."));
   cmd_write_word =
-    grub_register_command ("write_word", grub_cmd_write,
-			   N_("ADDR VALUE [MASK]"),
-			   N_("Write 16-bit VALUE to ADDR."));
+    grub_register_command_lockdown ("write_word", grub_cmd_write,
+                                    N_("ADDR VALUE [MASK]"),
+                                    N_("Write 16-bit VALUE to ADDR."));
   cmd_write_dword =
-    grub_register_command ("write_dword", grub_cmd_write,
-			   N_("ADDR VALUE [MASK]"),
-			   N_("Write 32-bit VALUE to ADDR."));
+    grub_register_command_lockdown ("write_dword", grub_cmd_write,
+                                    N_("ADDR VALUE [MASK]"),
+                                    N_("Write 32-bit VALUE to ADDR."));
 }
 
 GRUB_MOD_FINI(memrw)
