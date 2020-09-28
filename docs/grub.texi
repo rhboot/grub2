@@ -6227,8 +6227,8 @@ Measured boot is currently only supported on EFI platforms.
 @section Lockdown when booting on a secure setup
 
 The GRUB can be locked down when booted on a secure boot environment, for example
-if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
-be restricted and some operations/commands cannot be executed.
+if UEFI or Power secure boot is enabled. On a locked down configuration, the
+GRUB will be restricted and some operations/commands cannot be executed.
 
 The @samp{lockdown} variable is set to @samp{y} when the GRUB is locked down.
 Otherwise it does not exit.
