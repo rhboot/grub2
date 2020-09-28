@@ -24,7 +24,8 @@
 #define GRUB_LOCKDOWN_DISABLED       0
 #define GRUB_LOCKDOWN_ENABLED        1
 
-#ifdef GRUB_MACHINE_EFI
+#if defined(GRUB_MACHINE_EFI) || \
+    (defined(__powerpc__) && defined(GRUB_MACHINE_IEEE1275))
 extern void
 EXPORT_FUNC (grub_lockdown) (void);
 extern int
