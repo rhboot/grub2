@@ -205,6 +205,7 @@ kernel = {
   efi = kern/acpi.c;
   efi = kern/efi/acpi.c;
   efi = kern/efi/sb.c;
+  efi = kern/lockdown.c;
   i386_coreboot = kern/i386/pc/acpi.c;
   i386_multiboot = kern/i386/pc/acpi.c;
   i386_coreboot = kern/acpi.c;

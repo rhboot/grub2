@@ -5749,6 +5749,7 @@ environment variables and commands are listed in the same order.
 * Using digital signatures::         Booting digitally signed code
 * UEFI secure boot and shim::        Booting digitally signed PE files
 * Measured Boot::                    Measuring boot components
+* Lockdown::                         Lockdown when booting on a secure setup
 @end menu
 
 @node Authentication and authorisation
@@ -5957,6 +5958,13 @@ into @file{core.img} in order to avoid a potential gap in measurement between
 @file{core.img} being loaded and the tpm module being loaded.
 
 Measured boot is currently only supported on EFI platforms.
+
+@node Lockdown
+@section Lockdown when booting on a secure setup
+
+The GRUB can be locked down when booted on a secure boot environment, for example
+if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
+be restricted and some operations/commands cannot be executed.
 
 @node Platform limitations
 @chapter Platform limitations

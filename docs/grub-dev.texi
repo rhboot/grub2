@@ -86,6 +86,7 @@ This edition documents version @value{VERSION}.
 * PFF2 Font File Format::
 * Graphical Menu Software Design::
 * Verifiers framework::
+* Lockdown framework::
 * Copying This Manual::         Copying This Manual
 * Index::
 @end menu
@@ -2122,6 +2123,32 @@ verification. If you return no error then verification continues.
 Optionally at the end of the file @samp{fini}, if it exists, is called with just
 the context. If you return no error during any of @samp{init}, @samp{write} and
 @samp{fini} then the file is considered as having succeded verification.
+
+@node Lockdown framework
+@chapter Lockdown framework
+
+The GRUB can be locked down, which is a restricted mode where some operations
+are not allowed. For instance, some commands cannot be used when the GRUB is
+locked down.
+
+The function
+@code{grub_lockdown()} is used to lockdown GRUB and the function
+@code{grub_is_lockdown()} function can be used to check whether lockdown is
+enabled or not. When enabled, the function returns @samp{GRUB_LOCKDOWN_ENABLED}
+and @samp{GRUB_LOCKDOWN_DISABLED} when is not enabled.
+
+The following functions can be used to register the commands that can only be
+used when lockdown is disabled:
+
+@itemize
+
+@item @code{grub_cmd_lockdown()} registers command which should not run when the
+GRUB is in lockdown mode.
+
+@item @code{grub_cmd_lockdown()} registers extended command which should not run
+when the GRUB is in lockdown mode.
+
+@end itemize
 
 @node Copying This Manual
 @appendix Copying This Manual
