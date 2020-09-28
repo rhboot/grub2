@@ -27,6 +27,7 @@
 #include <grub/mm.h>
 #include <grub/memory.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 #ifdef GRUB_MACHINE_EFI
 #include <grub/efi/efi.h>
@@ -775,13 +776,13 @@ static grub_extcmd_t cmd;
 
 GRUB_MOD_INIT(acpi)
 {
-  cmd = grub_register_extcmd ("acpi", grub_cmd_acpi, 0,
-			      N_("[-1|-2] [--exclude=TABLE1,TABLE2|"
-			      "--load-only=TABLE1,TABLE2] FILE1"
-			      " [FILE2] [...]"),
-			      N_("Load host ACPI tables and tables "
-			      "specified by arguments."),
-			      options);
+  cmd = grub_register_extcmd_lockdown ("acpi", grub_cmd_acpi, 0,
+                                       N_("[-1|-2] [--exclude=TABLE1,TABLE2|"
+                                          "--load-only=TABLE1,TABLE2] FILE1"
+                                          " [FILE2] [...]"),
+                                       N_("Load host ACPI tables and tables "
+                                          "specified by arguments."),
+                                       options);
 }
 
 GRUB_MOD_FINI(acpi)
