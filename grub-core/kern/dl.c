@@ -621,6 +621,15 @@ grub_dl_unref (grub_dl_t mod)
   return --mod->ref_count;
 }
 
+int
+grub_dl_ref_count (grub_dl_t mod)
+{
+  if (mod == NULL)
+    return 0;
+
+  return mod->ref_count;
+}
+
 static void
 grub_dl_flush_cache (grub_dl_t mod)
 {
