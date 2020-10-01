@@ -2388,6 +2388,14 @@ module = {
 };
 
 module = {
+  name = pkcs1_v15;
+  common = lib/pkcs1_v15.c;
+
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cppflags = '$(CPPFLAGS_GCRY)';
+};
+
+module = {
   name = all_video;
   common = lib/fake_module.c;
 };
