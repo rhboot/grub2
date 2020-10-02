@@ -147,10 +147,6 @@ const char *hashes[] = {
   [0x0b] = "sha224"
 };
 
-struct gcry_pk_spec *grub_crypto_pk_dsa;
-struct gcry_pk_spec *grub_crypto_pk_ecdsa;
-struct gcry_pk_spec *grub_crypto_pk_rsa;
-
 static int
 dsa_pad (gcry_mpi_t *hmpi, grub_uint8_t *hval,
 	 const gcry_md_spec_t *hash, struct grub_public_subkey *sk);
