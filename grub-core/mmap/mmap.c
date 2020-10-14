@@ -20,6 +20,7 @@
 #include <grub/memory.h>
 #include <grub/machine/memory.h>
 #include <grub/err.h>
+#include <grub/lockdown.h>
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/command.h>
@@ -534,12 +535,12 @@ static grub_command_t cmd, cmd_cut;
 
 GRUB_MOD_INIT(mmap)
 {
-  cmd = grub_register_command ("badram", grub_cmd_badram,
-			       N_("ADDR1,MASK1[,ADDR2,MASK2[,...]]"),
-			       N_("Declare memory regions as faulty (badram)."));
-  cmd_cut = grub_register_command ("cutmem", grub_cmd_cutmem,
-				   N_("FROM[K|M|G] TO[K|M|G]"),
-				   N_("Remove any memory regions in specified range."));
+  cmd = grub_register_command_lockdown ("badram", grub_cmd_badram,
+                                        N_("ADDR1,MASK1[,ADDR2,MASK2[,...]]"),
+                                        N_("Declare memory regions as faulty (badram)."));
+  cmd_cut = grub_register_command_lockdown ("cutmem", grub_cmd_cutmem,
+                                            N_("FROM[K|M|G] TO[K|M|G]"),
+                                            N_("Remove any memory regions in specified range."));
 
 }
 
