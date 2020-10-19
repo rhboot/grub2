@@ -501,10 +501,10 @@ grub_cryptodisk_setcipher (grub_cryptodisk_t crypt, const char *ciphername, cons
 
   if (cipheriv == NULL)
       ;
-  else if (grub_memcmp (cipheriv, "plain", sizeof ("plain") - 1) == 0)
-      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN;
   else if (grub_memcmp (cipheriv, "plain64", sizeof ("plain64") - 1) == 0)
       mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN64;
+  else if (grub_memcmp (cipheriv, "plain", sizeof ("plain") - 1) == 0)
+      mode_iv = GRUB_CRYPTODISK_MODE_IV_PLAIN;
   else if (grub_memcmp (cipheriv, "benbi", sizeof ("benbi") - 1) == 0)
     {
       if (cipher->cipher->blocksize & (cipher->cipher->blocksize - 1)
