@@ -125,8 +125,6 @@ read_block_header (struct grub_lzopio *lzopio)
 			  sizeof (lzopio->block.ucheck)) !=
 	  sizeof (lzopio->block.ucheck))
 	return -1;
-
-      lzopio->block.ucheck = lzopio->block.ucheck;
     }
 
   /* Read checksum of compressed data.  */
@@ -143,8 +141,6 @@ read_block_header (struct grub_lzopio *lzopio)
 			      sizeof (lzopio->block.ccheck)) !=
 	      sizeof (lzopio->block.ccheck))
 	    return -1;
-
-	  lzopio->block.ccheck = lzopio->block.ccheck;
 	}
     }
 
