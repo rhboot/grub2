@@ -1,0 +1,14 @@
+--- grub-core/gnulib/regexec.c	2020-10-21 14:25:35.310195912 +0000
++++ grub-core/gnulib/regexec.c	2020-10-21 14:32:07.961765604 +0000
+@@ -828,7 +828,11 @@
+ 		    break;
+		  if (BE (err != REG_NOMATCH, 0))
+ 		    goto free_return;
++#ifdef DEBUG
++		  /* Only used for assertion below when DEBUG is set, otherwise
++		     it will be over-written when we loop around.  */
+		  match_last = REG_MISSING;
++#endif
+ 		}
+ 	      else
+ 		break; /* We found a match.  */
