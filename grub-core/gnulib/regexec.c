@@ -879,7 +879,11 @@ re_search_internal (const regex_t *preg,
 		    break;
 		  if (BE (err != REG_NOMATCH, 0))
 		    goto free_return;
+#ifdef DEBUG
+		  /* Only used for assertion below when DEBUG is set, otherwise
+		     it will be over-written when we loop around.  */
 		  match_last = REG_MISSING;
+#endif
 		}
 	      else
 		break; /* We found a match.  */
