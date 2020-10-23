@@ -109,10 +109,13 @@ grub_partition_map_probe (const grub_partition_map_t partmap,
 grub_partition_t
 grub_partition_probe (struct grub_disk *disk, const char *str)
 {
-  grub_partition_t part = 0;
+  grub_partition_t part;
   grub_partition_t curpart = 0;
   grub_partition_t tail;
   const char *ptr;
+
+  if (str == NULL)
+    return 0;
 
   part = tail = disk->partition;
 
