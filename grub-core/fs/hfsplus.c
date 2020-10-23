@@ -1012,6 +1012,15 @@ grub_hfsplus_label (grub_device_t device, char **label)
     grub_hfsplus_btree_recptr (&data->catalog_tree, node, ptr);
 
   label_len = grub_be_to_cpu16 (catkey->namelen);
+
+  /* Ensure that the length is >= 0. */
+  if (label_len < 0)
+    label_len = 0;
+
+  /* Ensure label length is at most 255 Unicode characters. */
+  if (label_len > 255)
+    label_len = 255;
+
   label_name = grub_calloc (label_len, sizeof (*label_name));
   if (!label_name)
     {
