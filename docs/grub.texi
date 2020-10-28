@@ -5820,15 +5820,9 @@ verified with a public key currently trusted by GRUB
 validation fails, then file @file{foo} cannot be opened.  This failure
 may halt or otherwise impact the boot process.
 
-@comment Unfortunately --pubkey is not yet supported by grub-install,
-@comment but we should not bring up internal detail grub-mkimage here
-@comment in the user guide (as opposed to developer's manual).
-
-@comment An initial trusted public key can be embedded within the GRUB
-@comment @file{core.img} using the @code{--pubkey} option to
-@comment @command{grub-mkimage} (@pxref{Invoking grub-install}).  Presently it
-@comment is necessary to write a custom wrapper around @command{grub-mkimage}
-@comment using the @code{--grub-mkimage} flag to @command{grub-install}.
+An initial trusted public key can be embedded within the GRUB @file{core.img}
+using the @code{--pubkey} option to @command{grub-install}
+(@pxref{Invoking grub-install}).
 
 GRUB uses GPG-style detached signatures (meaning that a file
 @file{foo.sig} will be produced when file @file{foo} is signed), and
