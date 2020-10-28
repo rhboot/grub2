@@ -52,15 +52,13 @@
 #ifdef __i386__
 #define HEAP_MAX_SIZE		(unsigned long) (64 * 1024 * 1024)
 #else
-#define HEAP_MAX_SIZE		(unsigned long) (32 * 1024 * 1024)
+#define HEAP_MAX_SIZE		(unsigned long) (256 * 1024 * 1024)
 #endif
 
-/* If possible, we will avoid claiming heap above this address, because it
-   seems to cause relocation problems with OSes that link at 4 MiB */
 #ifdef __i386__
 #define HEAP_MAX_ADDR		(unsigned long) (64 * 1024 * 1024)
 #else
-#define HEAP_MAX_ADDR		(unsigned long) (32 * 1024 * 1024)
+#define HEAP_MAX_ADDR		(unsigned long) (256 * 1024 * 1024)
 #endif
 
 extern char _end[];
