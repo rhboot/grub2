@@ -130,6 +130,26 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
 }
 
 static grub_err_t
+grub_efi_log_event_status (grub_efi_status_t status)
+{
+  switch (status)
+    {
+    case GRUB_EFI_SUCCESS:
+      return 0;
+    case GRUB_EFI_DEVICE_ERROR:
+      return grub_error (GRUB_ERR_IO, N_("Command failed"));
+    case GRUB_EFI_INVALID_PARAMETER:
+      return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Invalid parameter"));
+    case GRUB_EFI_BUFFER_TOO_SMALL:
+      return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Output buffer too small"));
+    case GRUB_EFI_NOT_FOUND:
+      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("TPM unavailable"));
+    default:
+      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("Unknown TPM error"));
+    }
+}
+
+static grub_err_t
 grub_tpm1_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
 		     grub_size_t size, grub_uint8_t pcr,
 		     const char *description)
@@ -162,22 +182,7 @@ grub_tpm1_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
 		       algorithm, event, &eventnum, &lastevent);
   grub_free (event);
 
-  switch (status)
-    {
-    case GRUB_EFI_SUCCESS:
-      return 0;
-    case GRUB_EFI_DEVICE_ERROR:
-      return grub_error (GRUB_ERR_IO, N_("Command failed"));
-    case GRUB_EFI_INVALID_PARAMETER:
-      return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Invalid parameter"));
-    case GRUB_EFI_BUFFER_TOO_SMALL:
-      return grub_error (GRUB_ERR_BAD_ARGUMENT,
-			 N_("Output buffer too small"));
-    case GRUB_EFI_NOT_FOUND:
-      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("TPM unavailable"));
-    default:
-      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("Unknown TPM error"));
-    }
+  return grub_efi_log_event_status (status);
 }
 
 static grub_err_t
@@ -213,22 +218,7 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
 		       (grub_uint64_t) size, event);
   grub_free (event);
 
-  switch (status)
-    {
-    case GRUB_EFI_SUCCESS:
-      return 0;
-    case GRUB_EFI_DEVICE_ERROR:
-      return grub_error (GRUB_ERR_IO, N_("Command failed"));
-    case GRUB_EFI_INVALID_PARAMETER:
-      return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Invalid parameter"));
-    case GRUB_EFI_BUFFER_TOO_SMALL:
-      return grub_error (GRUB_ERR_BAD_ARGUMENT,
-			 N_("Output buffer too small"));
-    case GRUB_EFI_NOT_FOUND:
-      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("TPM unavailable"));
-    default:
-      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("Unknown TPM error"));
-    }
+  return grub_efi_log_event_status (status);
 }
 
 grub_err_t
