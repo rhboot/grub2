@@ -56,9 +56,13 @@ grub_tpm1_present (grub_efi_tpm_protocol_t *tpm)
 
   if (status != GRUB_EFI_SUCCESS || caps.TPMDeactivatedFlag
       || !caps.TPMPresentFlag)
-    return tpm1_present = 0;
+    tpm1_present = 0;
+  else
+    tpm1_present = 1;
 
-  return tpm1_present = 1;
+  grub_dprintf ("tpm", "tpm1%s present\n", tpm1_present ? "" : " NOT");
+
+  return (grub_efi_boolean_t) tpm1_present;
 }
 
 static grub_efi_boolean_t
@@ -75,9 +79,13 @@ grub_tpm2_present (grub_efi_tpm2_protocol_t *tpm)
   status = efi_call_2 (tpm->get_capability, tpm, &caps);
 
   if (status != GRUB_EFI_SUCCESS || !caps.TPMPresentFlag)
-    return tpm2_present = 0;
+    tpm2_present = 0;
+  else
+    tpm2_present = 1;
 
-  return tpm2_present = 1;
+  grub_dprintf ("tpm", "tpm2%s present\n", tpm2_present ? "" : " NOT");
+
+  return (grub_efi_boolean_t) tpm2_present;
 }
 
 static grub_efi_boolean_t
@@ -102,6 +110,7 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       *tpm_handle = handles[0];
       grub_tpm_version = 1;
       *protocol_version = 1;
+      grub_dprintf ("tpm", "TPM handle Found, version: 1\n");
       return 1;
     }
 
@@ -113,6 +122,7 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       *tpm_handle = handles[0];
       grub_tpm_version = 2;
       *protocol_version = 2;
+      grub_dprintf ("tpm", "TPM handle Found, version: 2\n");
       return 1;
     }
 
@@ -230,6 +240,9 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 
   if (!grub_tpm_handle_find (&tpm_handle, &protocol_version))
     return 0;
+
+  grub_dprintf ("tpm", "log_event, pcr = %d, size = 0x%" PRIxGRUB_SIZE ", %s\n",
+                pcr, size, description);
 
   if (protocol_version == 1)
     return grub_tpm1_log_event (tpm_handle, buf, size, pcr, description);
