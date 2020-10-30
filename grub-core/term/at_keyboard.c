@@ -176,7 +176,7 @@ set_scancodes (void)
       return;
     }
 
-#if !USE_SCANCODE_SET
+#if 0 && !USE_SCANCODE_SET
   grub_dprintf ("atkeyb", "set_scancodes: forcing current_set = 1\n");
   ps2_state.current_set = 1;
   return;
