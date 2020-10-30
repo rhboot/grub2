@@ -135,20 +135,32 @@ query_mode (void)
   int e;
 
   e = write_mode (0);
-  if (!e)
+  if (!e) {
+    grub_dprintf ("atkeyb", "query_mode: write_mode(0) == 0\n");
     return 0;
+  }
 
   do {
     keyboard_controller_wait_until_ready ();
     ret = grub_inb (KEYBOARD_REG_DATA);
   } while (ret == GRUB_AT_ACK);
+
+  grub_dprintf ("atkeyb", "query_mode: grub_inb(KEYBOARD_REG_DATA) == %u\n", ret);
+
   /* QEMU translates the set even in no-translate mode.  */
-  if (ret == 0x43 || ret == 1)
+  if (ret == 0x43 || ret == 1) {
+    grub_dprintf ("atkeyb", "query_mode: returning 1\n");
     return 1;
-  if (ret == 0x41 || ret == 2)
+  }
+  if (ret == 0x41 || ret == 2) {
+    grub_dprintf ("atkeyb", "query_mode: returning 2\n");
     return 2;
-  if (ret == 0x3f || ret == 3)
+  }
+  if (ret == 0x3f || ret == 3) {
+    grub_dprintf ("atkeyb", "query_mode: returning 3\n");
     return 3;
+  }
+  grub_dprintf ("atkeyb", "query_mode: returning 0\n");
   return 0;
 }
 
@@ -165,9 +177,11 @@ set_scancodes (void)
     }
 
 #if !USE_SCANCODE_SET
+  grub_dprintf ("atkeyb", "set_scancodes: forcing current_set = 1\n");
   ps2_state.current_set = 1;
   return;
 #else
+  grub_dprintf ("atkeyb", "set_scancodes: detecting current_set\n");
 
   grub_keyboard_controller_write (grub_keyboard_controller_orig
 				  & ~KEYBOARD_AT_TRANSLATE
@@ -241,6 +255,9 @@ grub_at_keyboard_getkey (struct grub_term_input *term __attribute__ ((unused)))
   ret = grub_ps2_process_incoming_byte (&ps2_state, at_key);
   if (old_led != ps2_state.led_status)
     keyboard_controller_led (ps2_state.led_status);
+
+  grub_dprintf ("atkeyb", "Detected at_key 0x%x translated into key 0x%x\n", at_key, ret);
+
   return ret;
 }
 
