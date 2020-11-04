@@ -31,6 +31,7 @@
 #include <grub/fbfill.h>
 #include <grub/fbutil.h>
 #include <grub/types.h>
+#include <grub/safemath.h>
 #include <grub/video.h>
 
 /* Generic filler that works for every supported mode.  */
@@ -61,7 +62,9 @@ grub_video_fbfill_direct32 (struct grub_video_fbblit_info *dst,
 
   /* Calculate the number of bytes to advance from the end of one line
      to the beginning of the next line.  */
-  rowskip = dst->mode_info->pitch - dst->mode_info->bytes_per_pixel * width;
+  if (grub_mul (dst->mode_info->bytes_per_pixel, width, &rowskip) ||
+      grub_sub (dst->mode_info->pitch, rowskip, &rowskip))
+    return;
 
   /* Get the start address.  */
   dstptr = grub_video_fb_get_video_ptr (dst, x, y);
@@ -98,7 +101,9 @@ grub_video_fbfill_direct24 (struct grub_video_fbblit_info *dst,
 #endif
   /* Calculate the number of bytes to advance from the end of one line
      to the beginning of the next line.  */
-  rowskip = dst->mode_info->pitch - dst->mode_info->bytes_per_pixel * width;
+  if (grub_mul (dst->mode_info->bytes_per_pixel, width, &rowskip) ||
+      grub_sub (dst->mode_info->pitch, rowskip, &rowskip))
+    return;
 
   /* Get the start address.  */
   dstptr = grub_video_fb_get_video_ptr (dst, x, y);
@@ -131,7 +136,9 @@ grub_video_fbfill_direct16 (struct grub_video_fbblit_info *dst,
 
   /* Calculate the number of bytes to advance from the end of one line
      to the beginning of the next line.  */
-  rowskip = (dst->mode_info->pitch - dst->mode_info->bytes_per_pixel * width);
+  if (grub_mul (dst->mode_info->bytes_per_pixel, width, &rowskip) ||
+      grub_sub (dst->mode_info->pitch, rowskip, &rowskip))
+    return;
 
   /* Get the start address.  */
   dstptr = grub_video_fb_get_video_ptr (dst, x, y);
@@ -161,7 +168,9 @@ grub_video_fbfill_direct8 (struct grub_video_fbblit_info *dst,
 
   /* Calculate the number of bytes to advance from the end of one line
      to the beginning of the next line.  */
-  rowskip = dst->mode_info->pitch - dst->mode_info->bytes_per_pixel * width;
+  if (grub_mul (dst->mode_info->bytes_per_pixel, width, &rowskip) ||
+      grub_sub (dst->mode_info->pitch, rowskip, &rowskip))
+    return;
 
   /* Get the start address.  */
   dstptr = grub_video_fb_get_video_ptr (dst, x, y);
