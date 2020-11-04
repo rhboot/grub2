@@ -25,6 +25,7 @@
 #include <grub/fbutil.h>
 #include <grub/bitmap.h>
 #include <grub/dl.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1417,15 +1418,23 @@ doublebuf_blit_update_screen (void)
 {
   if (framebuffer.current_dirty.first_line
       <= framebuffer.current_dirty.last_line)
-    grub_memcpy ((char *) framebuffer.pages[0]
-		 + framebuffer.current_dirty.first_line
-		 * framebuffer.back_target->mode_info.pitch,
-		 (char *) framebuffer.back_target->data
-		 + framebuffer.current_dirty.first_line
-		 * framebuffer.back_target->mode_info.pitch,
-		 framebuffer.back_target->mode_info.pitch
-		 * (framebuffer.current_dirty.last_line
-		    - framebuffer.current_dirty.first_line));
+    {
+      grub_size_t copy_size;
+
+      if (grub_sub (framebuffer.current_dirty.last_line,
+		    framebuffer.current_dirty.first_line, &copy_size) ||
+	  grub_mul (framebuffer.back_target->mode_info.pitch, copy_size, &copy_size))
+	{
+	  /* Shouldn't happen, but if it does we've a bug. */
+	  return GRUB_ERR_BUG;
+	}
+
+      grub_memcpy ((char *) framebuffer.pages[0] + framebuffer.current_dirty.first_line *
+		   framebuffer.back_target->mode_info.pitch,
+		   (char *) framebuffer.back_target->data + framebuffer.current_dirty.first_line *
+		   framebuffer.back_target->mode_info.pitch,
+		   copy_size);
+    }
   framebuffer.current_dirty.first_line
     = framebuffer.back_target->mode_info.height;
   framebuffer.current_dirty.last_line = 0;
@@ -1439,7 +1448,7 @@ grub_video_fb_doublebuf_blit_init (struct grub_video_fbrender_target **back,
 				   volatile void *framebuf)
 {
   grub_err_t err;
-  grub_size_t page_size = mode_info.pitch * mode_info.height;
+  grub_size_t page_size = (grub_size_t) mode_info.pitch * mode_info.height;
 
   framebuffer.offscreen_buffer = grub_zalloc (page_size);
   if (! framebuffer.offscreen_buffer)
@@ -1482,12 +1491,23 @@ doublebuf_pageflipping_update_screen (void)
     last_line = framebuffer.previous_dirty.last_line;
 
   if (first_line <= last_line)
-    grub_memcpy ((char *) framebuffer.pages[framebuffer.render_page]
-		 + first_line * framebuffer.back_target->mode_info.pitch,
-		 (char *) framebuffer.back_target->data
-		 + first_line * framebuffer.back_target->mode_info.pitch,
-		 framebuffer.back_target->mode_info.pitch
-		 * (last_line - first_line));
+    {
+      grub_size_t copy_size;
+
+      if (grub_sub (last_line, first_line, &copy_size) ||
+	  grub_mul (framebuffer.back_target->mode_info.pitch, copy_size, &copy_size))
+	{
+	  /* Shouldn't happen, but if it does we've a bug. */
+	  return GRUB_ERR_BUG;
+	}
+
+      grub_memcpy ((char *) framebuffer.pages[framebuffer.render_page] + first_line *
+		   framebuffer.back_target->mode_info.pitch,
+		   (char *) framebuffer.back_target->data + first_line *
+		   framebuffer.back_target->mode_info.pitch,
+		   copy_size);
+    }
+
   framebuffer.previous_dirty = framebuffer.current_dirty;
   framebuffer.current_dirty.first_line
     = framebuffer.back_target->mode_info.height;
