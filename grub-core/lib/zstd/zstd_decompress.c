@@ -1325,7 +1325,7 @@ typedef enum { ZSTD_lo_isRegularOffset, ZSTD_lo_isLongOffset=1 } ZSTD_longOffset
 FORCE_INLINE_TEMPLATE seq_t
 ZSTD_decodeSequence(seqState_t* seqState, const ZSTD_longOffset_e longOffsets)
 {
-    seq_t seq;
+    seq_t seq = {0};
     U32 const llBits = seqState->stateLL.table[seqState->stateLL.state].nbAdditionalBits;
     U32 const mlBits = seqState->stateML.table[seqState->stateML.state].nbAdditionalBits;
     U32 const ofBits = seqState->stateOffb.table[seqState->stateOffb.state].nbAdditionalBits;
