@@ -1754,6 +1754,9 @@ clean_state_log_if_needed (re_match_context_t *mctx, Idx next_state_log_idx)
 {
   Idx top = mctx->state_log_top;
 
+  if (mctx->state_log == NULL)
+    return REG_NOERROR;
+
   if ((next_state_log_idx >= mctx->input.bufs_len
        && mctx->input.bufs_len < mctx->input.len)
       || (next_state_log_idx >= mctx->input.valid_len
