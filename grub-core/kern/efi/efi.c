@@ -400,6 +400,7 @@ grub_efi_get_filename (grub_efi_device_path_t *dp0)
 	    {
 	      grub_error (GRUB_ERR_OUT_OF_RANGE,
 			  "malformed EFI Device Path node has length=%d", len);
+	      grub_free (name);
 	      return NULL;
 	    }
 
