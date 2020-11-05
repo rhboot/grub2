@@ -128,6 +128,7 @@ open_envblk_file (const char *name)
 {
   FILE *fp;
   char *buf;
+  long loc;
   size_t size;
   grub_envblk_t envblk;
 
@@ -146,7 +147,12 @@ open_envblk_file (const char *name)
     grub_util_error (_("cannot seek `%s': %s"), name,
 		     strerror (errno));
 
-  size = (size_t) ftell (fp);
+  loc = ftell (fp);
+  if (loc < 0)
+    grub_util_error (_("cannot get file location `%s': %s"), name,
+		     strerror (errno));
+
+  size = (size_t) loc;
 
   if (fseek (fp, 0, SEEK_SET) < 0)
     grub_util_error (_("cannot seek `%s': %s"), name,
