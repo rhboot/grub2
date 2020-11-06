@@ -165,7 +165,7 @@ set_scancodes (void)
     }
 
 #if !USE_SCANCODE_SET
-  ps2_state.current_set = 1;
+  ps2_state.current_set = grub_keyboard_orig_set;
   return;
 #else
 
