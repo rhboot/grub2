@@ -72,6 +72,14 @@
 # endif
 #endif
 
+#ifndef __CHAR_BIT__
+# error __CHAR_BIT__ is not defined
+#elif __CHAR_BIT__ != 8
+# error __CHAR_BIT__ is not equal 8
+#else
+# define GRUB_CHAR_BIT	__CHAR_BIT__
+#endif
+
 /* Define various wide integers.  */
 typedef signed char		grub_int8_t;
 typedef short			grub_int16_t;
@@ -316,7 +324,5 @@ static inline void grub_set_unaligned64 (void *ptr, grub_uint64_t val)
   struct grub_unaligned_uint64_t *dd = (struct grub_unaligned_uint64_t *) ptr;
   dd->d = val;
 }
-
-#define GRUB_CHAR_BIT 8
 
 #endif /* ! GRUB_TYPES_HEADER */
