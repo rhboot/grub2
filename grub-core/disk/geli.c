@@ -361,7 +361,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
     }
   newdev->cipher = cipher;
   newdev->secondary_cipher = secondary_cipher;
-  newdev->offset = 0;
+  newdev->offset_sectors = 0;
   newdev->source_disk = NULL;
   newdev->benbi_log = 0;
   if (grub_le_to_cpu16 (header.alg) == 0x16)

@@ -754,10 +754,10 @@ grub_cryptodisk_read (grub_disk_t disk, grub_disk_addr_t sector,
   grub_dprintf ("cryptodisk",
 		"Reading %" PRIuGRUB_SIZE " sectors from sector 0x%"
 		PRIxGRUB_UINT64_T " with offset of %" PRIuGRUB_UINT64_T "\n",
-		size, sector, dev->offset);
+		size, sector, dev->offset_sectors);
 
   err = grub_disk_read (dev->source_disk,
-			grub_disk_from_native_sector (disk, sector + dev->offset),
+			grub_disk_from_native_sector (disk, sector + dev->offset_sectors),
 			0, size << disk->log_sector_size, buf);
   if (err)
     {
@@ -803,7 +803,7 @@ grub_cryptodisk_write (grub_disk_t disk, grub_disk_addr_t sector,
   grub_dprintf ("cryptodisk",
 		"Writing %" PRIuGRUB_SIZE " sectors to sector 0x%"
 		PRIxGRUB_UINT64_T " with offset of %" PRIuGRUB_UINT64_T "\n",
-		size, sector, dev->offset);
+		size, sector, dev->offset_sectors);
 
   gcry_err = grub_cryptodisk_endecrypt (dev, (grub_uint8_t *) tmp,
 					size << disk->log_sector_size,
@@ -815,7 +815,7 @@ grub_cryptodisk_write (grub_disk_t disk, grub_disk_addr_t sector,
     }
 
   /* Since ->write was called so disk.mod is loaded but be paranoid  */
-  sector = sector + dev->offset;
+  sector = sector + dev->offset_sectors;
   if (grub_disk_write_weak)
     err = grub_disk_write_weak (dev->source_disk,
 				grub_disk_from_native_sector (disk, sector),
@@ -1228,7 +1228,7 @@ luks_script_get (grub_size_t *sz)
 	ptr = grub_stpcpy (ptr, "luks_mount ");
 	ptr = grub_stpcpy (ptr, i->uuid);
 	*ptr++ = ' ';
-	grub_snprintf (ptr, 21, "%" PRIuGRUB_UINT64_T " ", i->offset);
+	grub_snprintf (ptr, 21, "%" PRIuGRUB_UINT64_T " ", i->offset_sectors);
 	while (*ptr)
 	  ptr++;
 	for (iptr = i->cipher->cipher->name; *iptr; iptr++)

@@ -122,10 +122,10 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   newdev = grub_zalloc (sizeof (struct grub_cryptodisk));
   if (!newdev)
       return NULL;
-  newdev->offset = grub_be_to_cpu32 (header.payloadOffset);
+  newdev->offset_sectors = grub_be_to_cpu32 (header.payloadOffset);
   newdev->source_disk = NULL;
   newdev->log_sector_size = 9;
-  newdev->total_sectors = grub_disk_get_size (disk) - newdev->offset;
+  newdev->total_sectors = grub_disk_get_size (disk) - newdev->offset_sectors;
   grub_memcpy (newdev->uuid, uuid, sizeof (uuid));
   newdev->modname = "luks";
 
