@@ -275,10 +275,10 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not get digests");
   for (j = 0; j < size; j++)
     {
-      if (grub_json_getchild (&digest, &digests, i) ||
+      if (grub_json_getchild (&digest, &digests, j) ||
           grub_json_getchild (&digest, &digest, 0) ||
           luks2_parse_digest (d, &digest))
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest %"PRIuGRUB_SIZE, i);
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest %"PRIuGRUB_SIZE, j);
 
       if ((d->keyslots & (1 << idx)))
 	break;
@@ -292,11 +292,11 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not get segments");
   for (j = 0; j < size; j++)
     {
-      if (grub_json_getchild (&segment, &segments, i) ||
+      if (grub_json_getchild (&segment, &segments, j) ||
 	  grub_json_getuint64 (&idx, &segment, NULL) ||
 	  grub_json_getchild (&segment, &segment, 0) ||
           luks2_parse_segment (s, &segment))
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment %"PRIuGRUB_SIZE, i);
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment %"PRIuGRUB_SIZE, j);
 
       if ((d->segments & (1 << idx)))
 	break;
