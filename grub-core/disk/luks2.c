@@ -415,7 +415,7 @@ luks2_verify_key (grub_luks2_digest_t *d, grub_uint8_t *candidate_key,
 
 static grub_err_t
 luks2_decrypt_key (grub_uint8_t *out_key,
-		   grub_disk_t disk, grub_cryptodisk_t crypt,
+		   grub_disk_t source, grub_cryptodisk_t crypt,
 		   grub_luks2_keyslot_t *k,
 		   const grub_uint8_t *passphrase, grub_size_t passphraselen)
 {
@@ -491,7 +491,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
     }
 
   grub_errno = GRUB_ERR_NONE;
-  ret = grub_disk_read (disk, 0, k->area.offset, k->area.size, split_key);
+  ret = grub_disk_read (source, 0, k->area.offset, k->area.size, split_key);
   if (ret)
     {
       grub_error (GRUB_ERR_IO, "Read error: %s\n", grub_errmsg);
@@ -530,7 +530,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
 }
 
 static grub_err_t
-luks2_recover_key (grub_disk_t disk,
+luks2_recover_key (grub_disk_t source,
 		   grub_cryptodisk_t crypt)
 {
   grub_uint8_t candidate_key[GRUB_CRYPTODISK_MAX_KEYLEN];
@@ -545,7 +545,7 @@ luks2_recover_key (grub_disk_t disk,
   grub_json_t *json = NULL, keyslots;
   grub_err_t ret;
 
-  ret = luks2_read_header (disk, &header);
+  ret = luks2_read_header (source, &header);
   if (ret)
     return ret;
 
@@ -554,7 +554,7 @@ luks2_recover_key (grub_disk_t disk,
       return GRUB_ERR_OUT_OF_MEMORY;
 
   /* Read the JSON area. */
-  ret = grub_disk_read (disk, 0, grub_be_to_cpu64 (header.hdr_offset) + sizeof (header),
+  ret = grub_disk_read (source, 0, grub_be_to_cpu64 (header.hdr_offset) + sizeof (header),
 			grub_be_to_cpu64 (header.hdr_size) - sizeof (header), json_header);
   if (ret)
       goto err;
@@ -571,10 +571,10 @@ luks2_recover_key (grub_disk_t disk,
     }
 
   /* Get the passphrase from the user. */
-  if (disk->partition)
-    part = grub_partition_get_name (disk->partition);
-  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), disk->name,
-		disk->partition ? "," : "", part ? : "",
+  if (source->partition)
+    part = grub_partition_get_name (source->partition);
+  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+		source->partition ? "," : "", part ? : "",
 		crypt->uuid);
   if (!grub_password_get (passphrase, MAX_PASSPHRASE))
     {
@@ -609,11 +609,11 @@ luks2_recover_key (grub_disk_t disk,
       crypt->log_sector_size = sizeof (unsigned int) * 8
 		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
       if (grub_strcmp (segment.size, "dynamic") == 0)
-	crypt->total_sectors = grub_disk_get_size (disk) - crypt->offset_sectors;
+	crypt->total_sectors = grub_disk_get_size (source) - crypt->offset_sectors;
       else
 	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10);
 
-      ret = luks2_decrypt_key (candidate_key, disk, crypt, &keyslot,
+      ret = luks2_decrypt_key (candidate_key, source, crypt, &keyslot,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));
       if (ret)
 	{
