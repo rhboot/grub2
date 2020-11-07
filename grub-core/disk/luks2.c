@@ -609,9 +609,9 @@ luks2_recover_key (grub_disk_t disk,
       crypt->log_sector_size = sizeof (unsigned int) * 8
 		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
       if (grub_strcmp (segment.size, "dynamic") == 0)
-	crypt->total_length = grub_disk_get_size (disk) - crypt->offset;
+	crypt->total_sectors = grub_disk_get_size (disk) - crypt->offset;
       else
-	crypt->total_length = grub_strtoull (segment.size, NULL, 10);
+	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10);
 
       ret = luks2_decrypt_key (candidate_key, disk, crypt, &keyslot,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));

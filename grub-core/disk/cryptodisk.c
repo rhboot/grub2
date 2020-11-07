@@ -699,7 +699,7 @@ grub_cryptodisk_open (const char *name, grub_disk_t disk)
     }
 
   disk->data = dev;
-  disk->total_sectors = dev->total_length;
+  disk->total_sectors = dev->total_sectors;
   disk->max_agglomerate = GRUB_DISK_MAX_MAX_AGGLOMERATE;
   disk->id = dev->id;
   dev->ref++;

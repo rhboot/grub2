@@ -67,7 +67,8 @@ struct grub_cryptodisk
 
   char *source;
   grub_disk_addr_t offset;
-  grub_disk_addr_t total_length;
+  /* Total number of encrypted sectors of size (1 << log_sector_size). */
+  grub_disk_addr_t total_sectors;
   grub_disk_t source_disk;
   int ref;
   grub_crypto_cipher_handle_t cipher;
