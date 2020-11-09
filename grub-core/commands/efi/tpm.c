@@ -283,7 +283,7 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
     return 0;
 
   event =
-    grub_zalloc (sizeof (EFI_TCG2_EVENT) + grub_strlen (description) + 1);
+    grub_zalloc (sizeof (*event) - sizeof (event->Event) + grub_strlen (description) + 1);
   if (!event)
     return grub_error (GRUB_ERR_OUT_OF_MEMORY,
 		       N_("cannot allocate TPM event buffer"));
