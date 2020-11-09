@@ -19,6 +19,8 @@
 #ifndef GRUB_ARM64_LINUX_HEADER
 #define GRUB_ARM64_LINUX_HEADER 1
 
+#include <grub/types.h>
+
 #define GRUB_LINUX_ARM64_MAGIC_SIGNATURE 0x644d5241 /* 'ARM\x64' */
 
 /* From linux/Documentation/arm64/booting.txt */
