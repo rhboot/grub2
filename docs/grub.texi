@@ -822,25 +822,46 @@ four primary partitions and additional logical partitions.  With this
 partition table format, there are two ways to install GRUB: it can be
 embedded in the area between the MBR and the first partition (called by
 various names, such as the "boot track", "MBR gap", or "embedding area", and
-which is usually at least 31 KiB), or the core image can be installed in a
+which is usually at least 1000 KiB), or the core image can be installed in a
 file system and a list of the blocks that make it up can be stored in the
 first sector of that partition.
 
-Each of these has different problems.  There is no way to reserve space in
+Modern tools usually leave MBR gap of at least 1023 KiB. This amount is
+sufficient to cover most configurations. Hence this value is recommended
+by the GRUB team.
+
+Historically many tools left only 31 KiB of space. This is not enough to
+parse reliably difficult structures like Btrfs, ZFS, RAID or LVM, or to
+use difficult disk access methods like ahci. Hence GRUB will warn if attempted
+to install into small MBR gap except in a small number of configurations
+that were grandfathered. The grandfathered config must:
+
+* use biosdisk as disk access module for @file{/boot}
+* not use any additional partition maps to access @file{/boot}
+* @file{/boot} must be on one of following filesystems:
+   * AFFS, AFS, BFS, cpio, newc, odc, ext2/3/4, FAT, exFAT,
+   F2FS, HFS, uncompressed HFS+, ISO9660, JFS, Minix, Minix2, Minix3, NILFS2,
+   NTFS, ReiserFS, ROMFS, SFS, tar, UDF, UFS1, UFS2, XFS
+
+MBR gap has few technical problems.  There is no way to reserve space in
 the embedding area with complete safety, and some proprietary software is
 known to use it to make it difficult for users to work around licensing
-restrictions; and systems are sometimes partitioned without leaving enough
-space before the first partition.  On the other hand, installing to a
-filesystem means that GRUB is vulnerable to its blocks being moved around by
-filesystem features such as tail packing, or even by aggressive fsck
-implementations, so this approach is quite fragile; and this approach can
-only be used if the @file{/boot} filesystem is on the same disk that the
-BIOS boots from, so that GRUB does not have to rely on guessing BIOS drive
-numbers.
+restrictions. GRUB works it around by detecting sectors by other software and
+avoiding them and protecting its own sectors using Reed-Solomon encoding.
+
+GRUB team recommends having MBR gap of at least 1000 KiB
+
+Should it be not possible GRUB has support for a fallback solution which is
+heavily recommended against. Installing to a filesystem means that GRUB is
+vulnerable to its blocks being moved around by filesystem features such as
+tail packing, or even by aggressive fsck implementations, so this approach
+is quite fragile; and this approach can only be used if the @file{/boot}
+filesystem is on the same disk that the BIOS boots from, so that GRUB does
+not have to rely on guessing BIOS drive numbers.
 
 The GRUB development team generally recommends embedding GRUB before the
 first partition, unless you have special requirements.  You must ensure that
-the first partition starts at least 31 KiB (63 sectors) from the start of
+the first partition starts at least 1000 KiB (2000 sectors) from the start of
 the disk; on modern disks, it is often a performance advantage to align
 partitions on larger boundaries anyway, so the first partition might start 1
 MiB from the start of the disk.
