@@ -140,6 +140,7 @@ grub_parser_split_cmdline (const char *cmdline,
   char buffer[1024];
   char *bp = buffer;
   char *rd = (char *) cmdline;
+  char *rp = rd;
   char varname[200];
   char *vp = varname;
   char *args;
@@ -149,10 +150,18 @@ grub_parser_split_cmdline (const char *cmdline,
   *argv = NULL;
   do
     {
-      if (!rd || !*rd)
+      if (rp == NULL || *rp == '\0')
 	{
+	  if (rd != cmdline)
+	    {
+	      grub_free (rd);
+	      rd = rp = NULL;
+	    }
 	  if (getline)
-	    getline (&rd, 1, getline_data);
+	    {
+	      getline (&rd, 1, getline_data);
+	      rp = rd;
+	    }
 	  else
 	    break;
 	}
@@ -160,12 +169,12 @@ grub_parser_split_cmdline (const char *cmdline,
       if (!rd)
 	break;
 
-      for (; *rd; rd++)
+      for (; *rp != '\0'; rp++)
 	{
 	  grub_parser_state_t newstate;
 	  char use;
 
-	  newstate = grub_parser_cmdline_state (state, *rd, &use);
+	  newstate = grub_parser_cmdline_state (state, *rp, &use);
 
 	  /* If a variable was being processed and this character does
 	     not describe the variable anymore, write the variable to
@@ -197,6 +206,9 @@ grub_parser_split_cmdline (const char *cmdline,
 	}
     }
   while (state != GRUB_PARSER_STATE_TEXT && !check_varstate (state));
+
+  if (rd != cmdline)
+    grub_free (rd);
 
   /* A special case for when the last character was part of a
      variable.  */
