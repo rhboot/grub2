@@ -899,6 +899,22 @@ main (int argc, char *argv[])
 
   platform = grub_install_get_target (grub_install_source_directory);
 
+  switch (platform)
+    {
+    case GRUB_INSTALL_PLATFORM_ARM_EFI:
+    case GRUB_INSTALL_PLATFORM_ARM64_EFI:
+    case GRUB_INSTALL_PLATFORM_I386_EFI:
+    case GRUB_INSTALL_PLATFORM_IA64_EFI:
+    case GRUB_INSTALL_PLATFORM_X86_64_EFI:
+      is_efi = 1;
+      grub_util_error (_("this utility cannot be used for EFI platforms"
+                         " because it does not support UEFI Secure Boot"));
+      break;
+    default:
+      is_efi = 0;
+      break;
+    }
+
   {
     char *platname = grub_install_get_platform_name (platform);
     fprintf (stderr, _("Installing for %s platform.\n"), platname);
@@ -1011,28 +1027,7 @@ main (int argc, char *argv[])
   grub_hostfs_init ();
   grub_host_init ();
 
-  switch (platform)
-    {
-    case GRUB_INSTALL_PLATFORM_I386_EFI:
-    case GRUB_INSTALL_PLATFORM_X86_64_EFI:
-    case GRUB_INSTALL_PLATFORM_ARM_EFI:
-    case GRUB_INSTALL_PLATFORM_ARM64_EFI:
-    case GRUB_INSTALL_PLATFORM_RISCV32_EFI:
-    case GRUB_INSTALL_PLATFORM_RISCV64_EFI:
-    case GRUB_INSTALL_PLATFORM_IA64_EFI:
-      is_efi = 1;
-      break;
-    default:
-      is_efi = 0;
-      break;
-
-      /* pacify warning.  */
-    case GRUB_INSTALL_PLATFORM_MAX:
-      break;
-    }
-
   /* Find the EFI System Partition.  */
-
   if (is_efi)
     {
       grub_fs_t fs;
