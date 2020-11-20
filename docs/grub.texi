@@ -6509,6 +6509,13 @@ grub2-install @var{install_device}
 The device name @var{install_device} is an OS device name or a GRUB
 device name.
 
+In order to support UEFI Secure Boot, the resulting GRUB EFI binary must
+be signed by a recognized private key. For this reason, for EFI
+platforms, most distributions also ship prebuilt GRUB EFI binaries
+signed by a distribution-specific private key. In this case, however,
+@command{grub2-install} should not be used because it would overwrite
+the signed EFI binary.
+
 @command{grub2-install} accepts the following options:
 
 @table @option
