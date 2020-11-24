@@ -2667,6 +2667,11 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
   blksz = grub_zfs_to_cpu16 (mdn->dn.dn_datablkszsec, 
 			     mdn->endian) << SPA_MINBLOCKSHIFT;
   epbs = zfs_log2 (blksz) - DNODE_SHIFT;
+
+  /* While this should never happen, we should check that epbs is not negative. */
+  if (epbs < 0)
+    epbs = 0;
+
   blkid = objnum >> epbs;
   idx = objnum & ((1 << epbs) - 1);
 
