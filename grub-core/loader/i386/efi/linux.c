@@ -195,6 +195,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   grub_file_t *files = 0;
   int i, nfiles = 0;
   grub_size_t size = 0;
+  grub_size_t aligned_size = 0;
   grub_uint8_t *ptr;
 
   if (argc == 0)
@@ -209,27 +210,21 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  files = grub_calloc (argc, sizeof (files[0]));
-  if (!files)
+  if (grub_initrd_init (argc, argv, &initrd_ctx))
     goto fail;
 
-  for (i = 0; i < argc; i++)
-    {
-      files[i] = grub_file_open (argv[i], GRUB_FILE_TYPE_LINUX_INITRD | GRUB_FILE_TYPE_NO_DECOMPRESS);
-      if (! files[i])
-        goto fail;
-      nfiles++;
-      if (grub_add (size, ALIGN_UP (grub_file_size (files[i]), 4), &size))
-	{
-	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
-	  goto fail;
-	}
-    }
+  size = grub_get_initrd_size (&initrd_ctx);
+  aligned_size = ALIGN_UP (size, 4);
 
-  initrd_mem = kernel_alloc(size, N_("can't allocate initrd"));
+  initrd_mem = kernel_alloc(aligned_size, N_("can't allocate initrd"));
   if (initrd_mem == NULL)
     goto fail;
-  grub_dprintf ("linux", "initrd_mem = %p\n", initrd_mem);
+
+  if (grub_initrd_load (&initrd_ctx, argv, initrd_mem))
+    goto fail;
+
+  grub_dprintf ("linux", "Initrd, addr=0x%x, size=0x%x\n",
+		(unsigned) addr, (unsigned) size);
 
   params->ramdisk_size = LOW_U32(size);
   params->ramdisk_image = LOW_U32(initrd_mem);
@@ -238,33 +233,13 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   params->ext_ramdisk_image = HIGH_U32(initrd_mem);
 #endif
 
-  ptr = initrd_mem;
-
-  for (i = 0; i < nfiles; i++)
-    {
-      grub_ssize_t cursize = grub_file_size (files[i]);
-      if (read (files[i], ptr, cursize) != cursize)
-        {
-          if (!grub_errno)
-            grub_error (GRUB_ERR_FILE_READ_ERROR, N_("premature end of file %s"),
-                        argv[i]);
-          goto fail;
-        }
-      ptr += cursize;
-      grub_memset (ptr, 0, ALIGN_UP_OVERHEAD (cursize, 4));
-      ptr += ALIGN_UP_OVERHEAD (cursize, 4);
-    }
-
-  params->ramdisk_size = size;
 
  fail:
-  for (i = 0; i < nfiles; i++)
-    grub_file_close (files[i]);
-  grub_free (files);
+  grub_initrd_close (&initrd_ctx);
 
   if (initrd_mem && grub_errno)
     grub_efi_free_pages ((grub_efi_physical_address_t)(grub_addr_t)initrd_mem,
-			 BYTES_TO_PAGES(size));
+			 BYTES_TO_PAGES(aligned_size));
 
   return grub_errno;
 }
