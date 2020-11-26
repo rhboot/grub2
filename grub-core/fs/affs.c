@@ -400,12 +400,12 @@ grub_affs_iterate_dir (grub_fshelp_node_t dir,
 {
   unsigned int i;
   struct grub_affs_file file;
-  struct grub_fshelp_node *node = 0;
+  struct grub_fshelp_node *node, *orig_node;
   struct grub_affs_data *data = dir->data;
   grub_uint32_t *hashtable;
 
   /* Create the directory entries for `.' and `..'.  */
-  node = grub_zalloc (sizeof (*node));
+  node = orig_node = grub_zalloc (sizeof (*node));
   if (!node)
     return 1;
     
@@ -414,9 +414,6 @@ grub_affs_iterate_dir (grub_fshelp_node_t dir,
     return 1;
   if (dir->parent)
     {
-      node = grub_zalloc (sizeof (*node));
-      if (!node)
-	return 1;
       *node = *dir->parent;
       if (hook ("..", GRUB_FSHELP_DIR, node, hook_data))
 	return 1;
@@ -456,17 +453,18 @@ grub_affs_iterate_dir (grub_fshelp_node_t dir,
 
 	  if (grub_affs_create_node (dir, hook, hook_data, &node, &hashtable,
 				     next, &file))
-	    return 1;
+	    {
+	      /* Node has been replaced in function. */
+	      grub_free (orig_node);
+	      return 1;
+	    }
 
 	  next = grub_be_to_cpu32 (file.next);
 	}
     }
 
-  grub_free (hashtable);
-  return 0;
-
  fail:
-  grub_free (node);
+  grub_free (orig_node);
   grub_free (hashtable);
   return 0;
 }
