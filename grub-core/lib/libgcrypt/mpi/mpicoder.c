@@ -379,6 +379,9 @@ gcry_mpi_scan (struct gcry_mpi **ret_mpi, enum gcry_mpi_format format,
   unsigned int len;
   int secure = (buffer && gcry_is_secure (buffer));
 
+  if (!buffer)
+    return gcry_error (GPG_ERR_INV_ARG);
+
   if (format == GCRYMPI_FMT_SSH)
     len = 0;
   else
