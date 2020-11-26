@@ -737,7 +737,10 @@ syslinux_parse_real (struct syslinux_menu *menu)
 		  && grub_strncasecmp ("help", ptr3, ptr4 - ptr3) == 0))
 	    {
 	      if (helptext (ptr5, file, menu))
-		return 1;
+		{
+		  grub_free (buf);
+		  return 1;
+		}
 	      continue;
 	    }
 
@@ -757,6 +760,7 @@ syslinux_parse_real (struct syslinux_menu *menu)
     }
  fail:
   grub_file_close (file);
+  grub_free (buf);
   return err;
 }
 
