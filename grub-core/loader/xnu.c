@@ -1392,9 +1392,9 @@ grub_xnu_fill_devicetree (void)
     name[len] = 0;
 
     curvalue = grub_xnu_create_value (curkey, name);
+    grub_free (name);
     if (!curvalue)
       return grub_errno;
-    grub_free (name);
    
     data = grub_malloc (grub_strlen (var->value) + 1);
     if (!data)
