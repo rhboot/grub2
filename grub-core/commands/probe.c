@@ -111,7 +111,11 @@ grub_cmd_probe (grub_extcmd_context_t ctxt, int argc, char **args)
 	  grub_disk_t disk = grub_disk_open(dev->disk->name);
 
 	  if (!disk)
-	    return grub_errno;
+	    {
+	      grub_device_close (dev);
+	      return grub_errno;
+	    }
+
 	  if (grub_strcmp(dev->disk->partition->partmap->name, "gpt") == 0)
 	    {
 	      struct grub_gpt_partentry entry;
