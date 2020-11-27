@@ -89,8 +89,13 @@ grub_net_link_layer_add_address (struct grub_net_card *card,
 
   /* Add sender to cache table.  */
   if (card->link_layer_table == NULL)
-    card->link_layer_table = grub_zalloc (LINK_LAYER_CACHE_SIZE
-					  * sizeof (card->link_layer_table[0]));
+    {
+      card->link_layer_table = grub_zalloc (LINK_LAYER_CACHE_SIZE
+					    * sizeof (card->link_layer_table[0]));
+      if (card->link_layer_table == NULL)
+	return;
+    }
+
   entry = &(card->link_layer_table[card->new_ll_entry]);
   entry->avail = 1;
   grub_memcpy (&entry->ll_address, ll, sizeof (entry->ll_address));
