@@ -228,26 +228,33 @@ grub_xnu_writetree_toheap (grub_addr_t *target, grub_size_t *size)
   if (! memorymap)
     return grub_errno;
 
-  driverkey = (struct grub_xnu_devtree_key *) grub_malloc (sizeof (*driverkey));
+  driverkey = (struct grub_xnu_devtree_key *) grub_zalloc (sizeof (*driverkey));
   if (! driverkey)
     return grub_errno;
   driverkey->name = grub_strdup ("DeviceTree");
   if (! driverkey->name)
-    return grub_errno;
+    {
+      err = grub_errno;
+      goto fail;
+    }
+
   driverkey->datasize = sizeof (*extdesc);
   driverkey->next = memorymap->first_child;
   memorymap->first_child = driverkey;
   driverkey->data = extdesc
     = (struct grub_xnu_extdesc *) grub_malloc (sizeof (*extdesc));
   if (! driverkey->data)
-    return grub_errno;
+    {
+      err = grub_errno;
+      goto fail;
+    }
 
   /* Allocate the space based on the size with dummy value. */
   *size = grub_xnu_writetree_get_size (grub_xnu_devtree_root, "/");
   err = grub_xnu_heap_malloc (ALIGN_UP (*size + 1, GRUB_XNU_PAGESIZE),
 			      &src, target);
   if (err)
-    return err;
+    goto fail;
 
   /* Put real data in the dummy. */
   extdesc->addr = *target;
@@ -256,6 +263,15 @@ grub_xnu_writetree_toheap (grub_addr_t *target, grub_size_t *size)
   /* Write the tree to heap. */
   grub_xnu_writetree_toheap_real (src, grub_xnu_devtree_root, "/");
   return GRUB_ERR_NONE;
+
+ fail:
+  memorymap->first_child = NULL;
+
+  grub_free (driverkey->data);
+  grub_free (driverkey->name);
+  grub_free (driverkey);
+
+  return err;
 }
 
 /* Find a key or value in parent key. */
