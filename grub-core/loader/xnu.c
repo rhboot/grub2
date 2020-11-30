@@ -662,6 +662,9 @@ grub_xnu_load_driver (char *infoplistname, grub_file_t binaryfile,
   char *name, *nameend;
   int namelen;
 
+  if (infoplistname == NULL)
+    return grub_error (GRUB_ERR_BAD_FILENAME, N_("missing p-list filename"));
+
   name = get_name_ptr (infoplistname);
   nameend = grub_strchr (name, '/');
 
@@ -693,10 +696,7 @@ grub_xnu_load_driver (char *infoplistname, grub_file_t binaryfile,
   else
     macho = 0;
 
-  if (infoplistname)
-    infoplist = grub_file_open (infoplistname);
-  else
-    infoplist = 0;
+  infoplist = grub_file_open (infoplistname);
   grub_errno = GRUB_ERR_NONE;
   if (infoplist)
     {
