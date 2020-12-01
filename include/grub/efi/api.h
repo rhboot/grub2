@@ -344,6 +344,11 @@
     { 0xab, 0xb6, 0x3d, 0xd8, 0x10, 0xdd, 0x8b, 0x23 } \
   }
 
+#define GRUB_EFI_RNG_PROTOCOL_GUID \
+  { 0x3152bca5, 0xeade, 0x433d, \
+    { 0x86, 0x2e, 0xc0, 0x1c, 0xdc, 0x29, 0x1f, 0x44 } \
+  }
+
 struct grub_efi_sal_system_table
 {
   grub_uint32_t signature;
@@ -1704,6 +1709,20 @@ struct grub_efi_shim_lock_protocol
   grub_efi_status_t (*verify) (void *buffer, grub_uint32_t size);
 };
 typedef struct grub_efi_shim_lock_protocol grub_efi_shim_lock_protocol_t;
+
+typedef grub_efi_guid_t grub_efi_rng_algorithm_t;
+
+struct grub_efi_rng_protocol
+{
+  grub_efi_status_t (*get_info) (struct grub_efi_rng_protocol *this,
+				 grub_efi_uintn_t *rng_algorithm_list_size,
+				 grub_efi_rng_algorithm_t *rng_algorithm_list);
+  grub_efi_status_t (*get_rng) (struct grub_efi_rng_protocol *this,
+				grub_efi_rng_algorithm_t *rng_algorithm,
+				grub_efi_uintn_t rng_value_length,
+				grub_efi_uint8_t *rng_value);
+};
+typedef struct grub_efi_rng_protocol grub_efi_rng_protocol_t;
 
 #if (GRUB_TARGET_SIZEOF_VOID_P == 4) || defined (__ia64__) \
   || defined (__aarch64__) || defined (__MINGW64__) || defined (__CYGWIN__) \
