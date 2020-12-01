@@ -161,6 +161,12 @@ typedef struct grub_disk_memberlist *grub_disk_memberlist_t;
 #define GRUB_DISK_SECTOR_SIZE	0x200
 #define GRUB_DISK_SECTOR_BITS	9
 
+/*
+ * Some drivers have problems with disks above reasonable sizes.
+ * Set max disk size at 1 EiB.
+ */
+#define GRUB_DISK_MAX_SECTORS	(1ULL << (60 - GRUB_DISK_SECTOR_BITS))
+
 /* The maximum number of disk caches.  */
 #define GRUB_DISK_CACHE_NUM	1021
 

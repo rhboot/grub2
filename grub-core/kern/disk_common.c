@@ -32,13 +32,14 @@ grub_disk_adjust_range (grub_disk_t disk, grub_disk_addr_t *sector,
   /* Transform total_sectors to number of 512B blocks.  */
   total_sectors = disk->total_sectors << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS);
 
-  /* Some drivers have problems with disks above reasonable.
-     Treat unknown as 1EiB disk. While on it, clamp the size to 1EiB.
-     Just one condition is enough since GRUB_DISK_UNKNOWN_SIZE << ls is always
-     above 9EiB.
-  */
-  if (total_sectors > (1ULL << 51))
-    total_sectors = (1ULL << 51);
+  /*
+   * Some drivers have problems with disks above reasonable sizes.
+   * Clamp the size to GRUB_DISK_MAX_SECTORS. Just one condition is enough
+   * since GRUB_DISK_SIZE_UNKNOWN is always above GRUB_DISK_MAX_SECTORS,
+   * assuming a maximum 4 KiB sector size.
+   */
+  if (total_sectors > GRUB_DISK_MAX_SECTORS)
+    total_sectors = GRUB_DISK_MAX_SECTORS;
 
   if ((total_sectors <= *sector
        || ((*offset + size + GRUB_DISK_SECTOR_SIZE - 1)
