@@ -128,11 +128,17 @@ check_list (const gcry_md_spec_t *hash, const char *hashfilename,
 	  high = hextoval (*p++);
 	  low = hextoval (*p++);
 	  if (high < 0 || low < 0)
-	    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "invalid hash list");
+	    {
+	      grub_free (buf);
+	      return grub_error (GRUB_ERR_BAD_FILE_TYPE, "invalid hash list");
+	    }
 	  expected[i] = (high << 4) | low;
 	}
       if ((p[0] != ' ' && p[0] != '\t') || (p[1] != ' ' && p[1] != '\t'))
-	return grub_error (GRUB_ERR_BAD_FILE_TYPE, "invalid hash list");
+	{
+	  grub_free (buf);
+	  return grub_error (GRUB_ERR_BAD_FILE_TYPE, "invalid hash list");
+	}
       p += 2;
       if (prefix)
 	{
@@ -140,7 +146,10 @@ check_list (const gcry_md_spec_t *hash, const char *hashfilename,
 	  
 	  filename = grub_xasprintf ("%s/%s", prefix, p);
 	  if (!filename)
-	    return grub_errno;
+	    {
+	      grub_free (buf);
+	      return grub_errno;
+	    }
 	  file = grub_file_open (filename, GRUB_FILE_TYPE_TO_HASH
 				 | (!uncompress ? GRUB_FILE_TYPE_NO_DECOMPRESS
 				    : GRUB_FILE_TYPE_NONE));
