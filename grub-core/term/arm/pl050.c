@@ -29,7 +29,7 @@
 
 static volatile grub_uint32_t *pl050_regs;
 
-struct grub_ps2_state ps2_state;
+static struct grub_ps2_state ps2_state;
 
 static void
 keyboard_controller_wait_until_ready (void)

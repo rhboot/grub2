@@ -30,7 +30,7 @@
 #include <grub/fdtbus.h>
 #include <grub/arm/cros_ec.h>
 
-struct grub_ps2_state ps2_state;
+static struct grub_ps2_state ps2_state;
 
 struct grub_cros_ec_keyscan old_scan;
 
