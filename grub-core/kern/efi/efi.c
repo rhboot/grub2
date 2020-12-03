@@ -242,8 +242,11 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
 }
 
 grub_efi_status_t
-grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
-		       grub_size_t *datasize_out, void **data_out)
+grub_efi_get_variable_with_attributes (const char *var,
+				       const grub_efi_guid_t *guid,
+				       grub_size_t *datasize_out,
+				       void **data_out,
+				       grub_efi_uint32_t *attributes)
 {
   grub_efi_status_t status;
   grub_efi_uintn_t datasize = 0;
@@ -280,7 +283,7 @@ grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
       return GRUB_EFI_OUT_OF_RESOURCES;
     }
 
-  status = efi_call_5 (r->get_variable, var16, guid, NULL, &datasize, data);
+  status = efi_call_5 (r->get_variable, var16, guid, attributes, &datasize, data);
   grub_free (var16);
 
   if (status == GRUB_EFI_SUCCESS)
@@ -292,6 +295,13 @@ grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
 
   grub_free (data);
   return status;
+}
+
+grub_efi_status_t
+grub_efi_get_variable (const char *var, const grub_efi_guid_t *guid,
+		       grub_size_t *datasize_out, void **data_out)
+{
+  return grub_efi_get_variable_with_attributes (var, guid, datasize_out, data_out, NULL);
 }
 
 #pragma GCC diagnostic ignored "-Wcast-align"
