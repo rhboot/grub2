@@ -27,18 +27,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-#define GRUB_EFI_SHIM_LOCK_GUID \
-  { 0x605dab50, 0xe046, 0x4300, \
-    { 0xab, 0xb6, 0x3d, 0xd8, 0x10, 0xdd, 0x8b, 0x23 } \
-  }
-
-struct grub_efi_shim_lock_protocol
-{
-  grub_efi_status_t
-  (*verify) (void *buffer, grub_uint32_t size);
-};
-typedef struct grub_efi_shim_lock_protocol grub_efi_shim_lock_protocol_t;
-
 static grub_efi_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
 static grub_efi_shim_lock_protocol_t *sl;
 
