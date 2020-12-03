@@ -277,7 +277,11 @@ struct linux_kernel_params
 
   grub_uint8_t mmap_size;		/* 1e8 */
 
-  grub_uint8_t padding9[0x1f1 - 0x1e9];
+  grub_uint8_t padding9[0x1ec - 0x1e9];
+
+  grub_uint8_t secure_boot;             /* 1ec */
+
+  grub_uint8_t padding10[0x1f1 - 0x1ed];
 
   /* Linux setup header copy - BEGIN. */
   grub_uint8_t setup_sects;		/* The size of the setup in sectors */
@@ -288,7 +292,7 @@ struct linux_kernel_params
   grub_uint16_t vid_mode;		/* Video mode control */
   grub_uint16_t root_dev;		/* Default root device number */
 
-  grub_uint8_t padding10;		/* 1fe */
+  grub_uint8_t padding11;		/* 1fe */
   grub_uint8_t ps_mouse;		/* 1ff */
 
   grub_uint16_t jump;			/* Jump instruction */
