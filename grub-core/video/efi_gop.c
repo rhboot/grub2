@@ -302,7 +302,7 @@ grub_video_gop_get_edid (struct grub_video_edid_info *edid_info)
       char edidname[] = "agp-internal-edid";
       grub_size_t datasize;
       grub_uint8_t *data;
-      data = grub_efi_get_variable (edidname, &efi_var_guid, &datasize);
+      grub_efi_get_variable (edidname, &efi_var_guid, &datasize, (void **) &data);
       if (data && datasize > 16)
 	{
 	  copy_size = datasize - 16;
