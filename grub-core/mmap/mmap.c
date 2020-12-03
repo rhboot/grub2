@@ -270,6 +270,7 @@ grub_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
 		   hook_data))
 	{
 	  grub_free (ctx.scanline_events);
+	  grub_free (present);
 	  return GRUB_ERR_NONE;
 	}
 
@@ -282,6 +283,7 @@ grub_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
     }
 
   grub_free (ctx.scanline_events);
+  grub_free (present);
   return GRUB_ERR_NONE;
 }
 
