@@ -323,8 +323,10 @@ query_mode (void)
   int e;
 
   e = write_mode (0);
-  if (!e)
+  if (!e) {
+    grub_dprintf("atkeyb", "query_mode: write_mode(0) failed\n");
     return 0;
+  }
 
   keyboard_controller_wait_until_ready ();
 
@@ -333,12 +335,18 @@ query_mode (void)
   while (ret == GRUB_AT_ACK);
 
   /* QEMU translates the set even in no-translate mode.  */
-  if (ret == 0x43 || ret == 1)
+  if (ret == 0x43 || ret == 1) {
+    grub_dprintf("atkeyb", "query_mode: returning 1 (ret=0x%x)\n", ret);
     return 1;
-  if (ret == 0x41 || ret == 2)
+  }
+  if (ret == 0x41 || ret == 2) {
+    grub_dprintf("atkeyb", "query_mode: returning 2 (ret=0x%x)\n", ret);
     return 2;
-  if (ret == 0x3f || ret == 3)
+  }
+  if (ret == 0x3f || ret == 3) {
+    grub_dprintf("atkeyb", "query_mode: returning 3 (ret=0x%x)\n", ret);
     return 3;
+  }
   return 0;
 }
 
@@ -355,7 +363,13 @@ set_scancodes (void)
     }
 
 #if !USE_SCANCODE_SET
-  current_set = 1;
+  if ((grub_keyboard_controller_orig & KEYBOARD_AT_TRANSLATE) == KEYBOARD_AT_TRANSLATE) {
+    grub_dprintf ("atkeyb", "queried set is %d but keyboard in Translate mode, so actually in set 1\n", grub_keyboard_orig_set);
+    current_set = 1;
+  } else {
+    grub_dprintf ("atkeyb", "using queried set %d\n", grub_keyboard_orig_set);
+    current_set = grub_keyboard_orig_set;
+  }
   return;
 #else
 
@@ -629,6 +643,7 @@ grub_keyboard_controller_init (void)
   grub_keyboard_orig_set = 2;
 #else
   grub_keyboard_controller_orig = grub_keyboard_controller_read ();
+  grub_dprintf ("atkeyb", "grub_keyboard_controller_orig = 0x%x\n", grub_keyboard_controller_orig);
   grub_keyboard_orig_set = query_mode ();
 #endif
   set_scancodes ();
@@ -638,11 +653,15 @@ grub_keyboard_controller_init (void)
 static grub_err_t
 grub_keyboard_controller_fini (struct grub_term_input *term __attribute__ ((unused)))
 {
+/* In !USE_SCANCODE_SET mode, we didn't change anything, so nothing to restore */
+#if USE_SCANCODE_SET
   if (current_set == 0)
     return GRUB_ERR_NONE;
+  grub_dprintf ("atkeyb", "restoring set %d, controller 0x%x\n", grub_keyboard_orig_set, grub_keyboard_controller_orig);
   if (grub_keyboard_orig_set)
     write_mode (grub_keyboard_orig_set);
   grub_keyboard_controller_write (grub_keyboard_controller_orig);
+#endif
   return GRUB_ERR_NONE;
 }
 

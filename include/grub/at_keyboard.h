@@ -19,6 +19,10 @@
 #ifndef GRUB_AT_KEYBOARD_HEADER
 #define GRUB_AT_KEYBOARD_HEADER	1
 
+/*
+ * Refer to https://wiki.osdev.org/%228042%22_PS/2_Controller for details.
+ */
+
 /* Used for sending commands to the controller.  */
 #define KEYBOARD_COMMAND_ISREADY(x)	!((x) & 0x02)
 #define KEYBOARD_COMMAND_READ		0x20
