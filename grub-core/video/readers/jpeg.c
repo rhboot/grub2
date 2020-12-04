@@ -253,6 +253,12 @@ grub_jpeg_decode_quan_table (struct grub_jpeg_data *data)
   next_marker = data->file->offset;
   next_marker += grub_jpeg_get_word (data);
 
+  if (next_marker > data->file->size)
+    {
+      /* Should never be set beyond the size of the file. */
+      return grub_error (GRUB_ERR_BAD_FILE_TYPE, "jpeg: invalid next reference");
+    }
+
   while (data->file->offset + sizeof (data->quan_table[id]) + 1
 	 <= next_marker)
     {
