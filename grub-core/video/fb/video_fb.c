@@ -1537,7 +1537,13 @@ doublebuf_pageflipping_init (struct grub_video_mode_info *mode_info,
 			     volatile void *page1_ptr)
 {
   grub_err_t err;
-  grub_size_t page_size = mode_info->pitch * mode_info->height;
+  grub_size_t page_size = 0;
+
+  if (grub_mul (mode_info->pitch, mode_info->height, &page_size))
+    {
+      /* Shouldn't happen, but if it does we've a bug. */
+      return GRUB_ERR_BUG;
+    }
 
   framebuffer.offscreen_buffer = grub_malloc (page_size);
   if (! framebuffer.offscreen_buffer)
