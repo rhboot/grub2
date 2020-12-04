@@ -92,23 +92,15 @@ grub_cmd_loopback (grub_extcmd_context_t ctxt, int argc, char **args)
   if (argc < 2)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
 
+  /* Check that a device with requested name does not already exist. */
+  for (newdev = loopback_list; newdev; newdev = newdev->next)
+    if (grub_strcmp (newdev->devname, args[0]) == 0)
+      return grub_error (GRUB_ERR_BAD_ARGUMENT, "device name already exists");
+
   file = grub_file_open (args[1], GRUB_FILE_TYPE_LOOPBACK
 			 | GRUB_FILE_TYPE_NO_DECOMPRESS);
   if (! file)
     return grub_errno;
-
-  /* First try to replace the old device.  */
-  for (newdev = loopback_list; newdev; newdev = newdev->next)
-    if (grub_strcmp (newdev->devname, args[0]) == 0)
-      break;
-
-  if (newdev)
-    {
-      grub_file_close (newdev->file);
-      newdev->file = file;
-
-      return 0;
-    }
 
   /* Unable to replace it, make a new entry.  */
   newdev = grub_malloc (sizeof (struct grub_loopback));
