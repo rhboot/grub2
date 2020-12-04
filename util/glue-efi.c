@@ -39,13 +39,23 @@ write_fat (FILE *in32, FILE *in64, FILE *out, const char *out_filename,
   struct grub_macho_fat_header head;
   struct grub_macho_fat_arch arch32, arch64;
   grub_uint32_t size32, size64;
+  long size;
   char *buf;
 
   fseek (in32, 0, SEEK_END);
-  size32 = ftell (in32);
+  size = ftell (in32);
+  if (size < 0)
+    grub_util_error ("cannot get end of input file '%s': %s",
+		     name32, strerror (errno));
+  size32 = (grub_uint32_t) size;
   fseek (in32, 0, SEEK_SET);
+
   fseek (in64, 0, SEEK_END);
-  size64 = ftell (in64);
+  size = ftell (in64);
+  if (size < 0)
+    grub_util_error ("cannot get end of input file '%s': %s",
+		     name64, strerror (errno));
+  size64 = (grub_uint64_t) size;
   fseek (in64, 0, SEEK_SET);
 
   head.magic = grub_cpu_to_le32_compile_time (GRUB_MACHO_FAT_EFI_MAGIC);
