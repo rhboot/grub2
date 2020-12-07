@@ -199,6 +199,7 @@ make_vg (grub_disk_t disk,
     {
       grub_free (vg->uuid);
       grub_free (vg->name);
+      grub_free (vg);
       return NULL;
     }
   grub_memcpy (vg->uuid, label->group_guid, LDM_GUID_STRLEN);
