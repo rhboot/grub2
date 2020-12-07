@@ -771,7 +771,7 @@ list_set_property (void *vself, const char *name, const char *value)
         {
           self->need_to_recreate_boxes = 1;
           grub_free (self->selected_item_box_pattern);
-          self->selected_item_box_pattern = value ? grub_strdup (value) : 0;
+          self->selected_item_box_pattern = grub_strdup (value);
           self->selected_item_box_pattern_inherit = 0;
         }
     }
