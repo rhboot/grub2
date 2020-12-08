@@ -111,7 +111,7 @@ grub_mdraid_detect (grub_disk_t disk,
   grub_uint64_t size;
   grub_uint8_t minor_version;
 
-  size = grub_disk_get_size (disk);
+  size = grub_disk_native_sectors (disk);
 
   /* Check for an 1.x superblock.
    * It's always aligned to a 4K boundary

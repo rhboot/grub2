@@ -430,7 +430,7 @@ grub_machine_get_bootlocation (char **device, char **path)
     }
 
   if (poff == 0
-      && pend == grub_disk_get_size (parent))
+      && pend == grub_disk_native_sectors (parent))
     {
       grub_disk_close (parent);
       *device = dname;

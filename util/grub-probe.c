@@ -398,7 +398,7 @@ probe (const char *path, char **device_names, char delim)
 	  if (! dev || !dev->disk)
 	    grub_util_error ("%s", grub_errmsg);
 
-	  dsize = grub_disk_get_size (dev->disk);
+	  dsize = grub_disk_native_sectors (dev->disk);
 	  for (addr = 0; addr < dsize;
 	       addr += sizeof (buffer) / GRUB_DISK_SECTOR_SIZE)
 	    {

@@ -898,7 +898,7 @@ grub_ldm_detect (grub_disk_t disk,
 	    /* LDM is never inside a partition.  */
 	    if (!has_ldm || disk->partition)
 	      continue;
-	    sector = grub_disk_get_size (disk);
+	    sector = grub_disk_native_sectors (disk);
 	    if (sector == GRUB_DISK_SIZE_UNKNOWN)
 	      continue;
 	    sector--;
@@ -1015,7 +1015,7 @@ grub_util_is_ldm (grub_disk_t disk)
 	  /* LDM is never inside a partition.  */
 	  if (!has_ldm || disk->partition)
 	    continue;
-	  sector = grub_disk_get_size (disk);
+	  sector = grub_disk_native_sectors (disk);
 	  if (sector == GRUB_DISK_SIZE_UNKNOWN)
 	    continue;
 	  sector--;
