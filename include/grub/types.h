@@ -161,6 +161,13 @@ typedef grub_int32_t	grub_ssize_t;
 #endif
 # define GRUB_LONG_MIN (-GRUB_LONG_MAX - 1)
 
+/*
+ * Cast to unsigned long long so that the "return value" is always a consistent
+ * type and to ensure an unsigned value regardless of type parameter.
+ */
+#define GRUB_TYPE_U_MAX(type) ((unsigned long long)((typeof (type))(~0)))
+#define GRUB_TYPE_U_MIN(type) 0ULL
+
 typedef grub_uint64_t grub_properly_aligned_t;
 
 #define GRUB_PROPERLY_ALIGNED_ARRAY(name, size) grub_properly_aligned_t name[((size) + sizeof (grub_properly_aligned_t) - 1) / sizeof (grub_properly_aligned_t)]

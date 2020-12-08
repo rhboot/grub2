@@ -284,23 +284,23 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	  iv[1] = grub_cpu_to_le32 (sector >> GRUB_TYPE_BITS (iv[0]));
 	  /* FALLTHROUGH */
 	case GRUB_CRYPTODISK_MODE_IV_PLAIN:
-	  iv[0] = grub_cpu_to_le32 (sector & 0xFFFFFFFF);
+	  iv[0] = grub_cpu_to_le32 (sector & GRUB_TYPE_U_MAX (iv[0]));
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_BYTECOUNT64:
 	  iv[1] = grub_cpu_to_le32 (sector >> (GRUB_TYPE_BITS (iv[1])
 					       - dev->log_sector_size));
 	  iv[0] = grub_cpu_to_le32 ((sector << dev->log_sector_size)
-				    & 0xFFFFFFFF);
+				    & GRUB_TYPE_U_MAX (iv[0]));
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_BENBI:
 	  {
 	    grub_uint64_t num = (sector << dev->benbi_log) + 1;
 	    iv[sz - 2] = grub_cpu_to_be32 (num >> GRUB_TYPE_BITS (iv[0]));
-	    iv[sz - 1] = grub_cpu_to_be32 (num & 0xFFFFFFFF);
+	    iv[sz - 1] = grub_cpu_to_be32 (num & GRUB_TYPE_U_MAX (iv[0]));
 	  }
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_ESSIV:
-	  iv[0] = grub_cpu_to_le32 (sector & 0xFFFFFFFF);
+	  iv[0] = grub_cpu_to_le32 (sector & GRUB_TYPE_U_MAX (iv[0]));
 	  err = grub_crypto_ecb_encrypt (dev->essiv_cipher, iv, iv,
 					 dev->cipher->cipher->blocksize);
 	  if (err)
