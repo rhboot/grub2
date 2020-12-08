@@ -429,7 +429,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   grub_uint8_t salt[GRUB_CRYPTODISK_MAX_KEYLEN];
   grub_uint8_t *split_key = NULL;
   grub_size_t saltlen = sizeof (salt);
-  char cipher[32], *p;;
+  char cipher[32], *p;
   const gcry_md_spec_t *hash;
   gcry_err_code_t gcry_ret;
   grub_err_t ret;
@@ -615,9 +615,10 @@ luks2_recover_key (grub_disk_t source,
       crypt->log_sector_size = sizeof (unsigned int) * 8
 		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
       if (grub_strcmp (segment.size, "dynamic") == 0)
-	crypt->total_sectors = grub_disk_native_sectors (source) - crypt->offset_sectors;
+	crypt->total_sectors = (grub_disk_native_sectors (source) >> (crypt->log_sector_size - source->log_sector_size))
+			       - crypt->offset_sectors;
       else
-	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10);
+	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10) >> crypt->log_sector_size;
 
       ret = luks2_decrypt_key (candidate_key, source, crypt, &keyslot,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));
