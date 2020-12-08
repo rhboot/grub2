@@ -200,7 +200,7 @@ luks2_parse_segment (grub_luks2_segment_t *out, const grub_json_t *segment)
       grub_json_getstring (&out->size, segment, "size") ||
       grub_json_getstring (&out->encryption, segment, "encryption") ||
       grub_json_getint64 (&out->sector_size, segment, "sector_size"))
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, "Missing segment parameters", type);
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "Missing segment parameters");
 
   return GRUB_ERR_NONE;
 }
@@ -228,7 +228,7 @@ luks2_parse_digest (grub_luks2_digest_t *out, const grub_json_t *digest)
 
   if (grub_json_getsize (&size, &segments))
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		       "Digest references no segments", type);
+		       "Digest references no segments");
 
   for (i = 0; i < size; i++)
     {
@@ -240,7 +240,7 @@ luks2_parse_digest (grub_luks2_digest_t *out, const grub_json_t *digest)
 
   if (grub_json_getsize (&size, &keyslots))
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		       "Digest references no keyslots", type);
+		       "Digest references no keyslots");
 
   for (i = 0; i < size; i++)
     {
