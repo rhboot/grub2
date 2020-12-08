@@ -276,8 +276,8 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
   for (i = 0; i < size; i++)
     {
       if (grub_json_getchild (&digest, &digests, i) ||
-          grub_json_getchild (&digest, &digest, 0) ||
-          luks2_parse_digest (d, &digest))
+	  grub_json_getchild (&digest, &digest, 0) ||
+	  luks2_parse_digest (d, &digest))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest %"PRIuGRUB_SIZE, i);
 
       if ((d->keyslots & (1 << idx)))
@@ -295,7 +295,7 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
       if (grub_json_getchild (&segment, &segments, i) ||
 	  grub_json_getuint64 (&idx, &segment, NULL) ||
 	  grub_json_getchild (&segment, &segment, 0) ||
-          luks2_parse_segment (s, &segment))
+	  luks2_parse_segment (s, &segment))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment %"PRIuGRUB_SIZE, i);
 
       if ((d->segments & (1 << idx)))
@@ -600,7 +600,7 @@ luks2_recover_key (grub_disk_t source,
 	{
 	  grub_dprintf ("luks2", "Ignoring keyslot %"PRIuGRUB_SIZE" due to priority\n", i);
 	  continue;
-        }
+	}
 
       grub_dprintf ("luks2", "Trying keyslot %"PRIuGRUB_SIZE"\n", i);
 
