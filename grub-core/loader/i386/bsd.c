@@ -1606,7 +1606,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
   kernel_type = KERNEL_TYPE_OPENBSD;
   bootflags = grub_bsd_parse_flags (ctxt->state, openbsd_flags);
 
-  if (ctxt->state[OPENBSD_ROOT_ARG].set)
+  if (ctxt->state[OPENBSD_ROOT_ARG].set && ctxt->state[OPENBSD_ROOT_ARG].arg != NULL)
     {
       const char *arg = ctxt->state[OPENBSD_ROOT_ARG].arg;
       unsigned type, unit, part;
@@ -1623,7 +1623,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
 			   "unknown disk type name");
 
       unit = grub_strtoul (arg, (char **) &arg, 10);
-      if (! (arg && *arg >= 'a' && *arg <= 'z'))
+      if (! (*arg >= 'a' && *arg <= 'z'))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT,
 			   "only device specifications of form "
 			   "<type><number><lowercase letter> are supported");
