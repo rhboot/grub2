@@ -48,6 +48,12 @@ typedef enum
 
 #define GRUB_CRYPTODISK_MAX_UUID_LENGTH 71
 
+/* LUKS1 specification defines the block size to always be 512 bytes. */
+#define GRUB_LUKS1_LOG_SECTOR_SIZE  9
+
+/* By default dm-crypt increments the IV every 512 bytes. */
+#define GRUB_CRYPTODISK_IV_LOG_SIZE 9
+
 #define GRUB_CRYPTODISK_GF_LOG_SIZE 7
 #define GRUB_CRYPTODISK_GF_SIZE (1U << GRUB_CRYPTODISK_GF_LOG_SIZE)
 #define GRUB_CRYPTODISK_GF_LOG_BYTES (GRUB_CRYPTODISK_GF_LOG_SIZE - 3)
@@ -144,7 +150,7 @@ grub_cryptodisk_setkey (grub_cryptodisk_t dev,
 gcry_err_code_t
 grub_cryptodisk_decrypt (struct grub_cryptodisk *dev,
 			 grub_uint8_t * data, grub_size_t len,
-			 grub_disk_addr_t sector);
+			 grub_disk_addr_t sector, grub_size_t log_sector_size);
 grub_err_t
 grub_cryptodisk_insert (grub_cryptodisk_t newdev, const char *name,
 			grub_disk_t source);

@@ -224,7 +224,8 @@ lrw_xor (const struct lrw_sector *sec,
 static gcry_err_code_t
 grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 			   grub_uint8_t * data, grub_size_t len,
-			   grub_disk_addr_t sector, int do_encrypt)
+			   grub_disk_addr_t sector, grub_size_t log_sector_size,
+			   int do_encrypt)
 {
   grub_size_t i;
   gcry_err_code_t err;
@@ -237,7 +238,7 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
     return (do_encrypt ? grub_crypto_ecb_encrypt (dev->cipher, data, data, len)
 	    : grub_crypto_ecb_decrypt (dev->cipher, data, data, len));
 
-  for (i = 0; i < len; i += (1U << dev->log_sector_size))
+  for (i = 0; i < len; i += (1U << log_sector_size))
     {
       grub_size_t sz = ((dev->cipher->cipher->blocksize
 			 + sizeof (grub_uint32_t) - 1)
@@ -270,7 +271,7 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	    if (!ctx)
 	      return GPG_ERR_OUT_OF_MEMORY;
 
-	    tmp = grub_cpu_to_le64 (sector << dev->log_sector_size);
+	    tmp = grub_cpu_to_le64 (sector << log_sector_size);
 	    dev->iv_hash->init (ctx);
 	    dev->iv_hash->write (ctx, dev->iv_prefix, dev->iv_prefix_len);
 	    dev->iv_hash->write (ctx, &tmp, sizeof (tmp));
@@ -281,15 +282,27 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	  }
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_PLAIN64:
-	  iv[1] = grub_cpu_to_le32 (sector >> GRUB_TYPE_BITS (iv[0]));
-	  /* FALLTHROUGH */
 	case GRUB_CRYPTODISK_MODE_IV_PLAIN:
-	  iv[0] = grub_cpu_to_le32 (sector & GRUB_TYPE_U_MAX (iv[0]));
+	  /*
+	   * The IV is a 32 or 64 bit value of the dm-crypt native sector
+	   * number. If using 32 bit IV mode, zero out the most significant
+	   * 32 bits.
+	   */
+	  {
+	    grub_uint64_t iv64;
+
+	    iv64 = grub_cpu_to_le64 (sector << (log_sector_size
+						 - GRUB_CRYPTODISK_IV_LOG_SIZE));
+	    grub_set_unaligned64 (iv, iv64);
+	    if (dev->mode_iv == GRUB_CRYPTODISK_MODE_IV_PLAIN)
+	      iv[1] = 0;
+	  }
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_BYTECOUNT64:
+	  /* The IV is the 64 bit byte offset of the sector. */
 	  iv[1] = grub_cpu_to_le32 (sector >> (GRUB_TYPE_BITS (iv[1])
-					       - dev->log_sector_size));
-	  iv[0] = grub_cpu_to_le32 ((sector << dev->log_sector_size)
+					       - log_sector_size));
+	  iv[0] = grub_cpu_to_le32 ((sector << log_sector_size)
 				    & GRUB_TYPE_U_MAX (iv[0]));
 	  break;
 	case GRUB_CRYPTODISK_MODE_IV_BENBI:
@@ -312,10 +325,10 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	case GRUB_CRYPTODISK_MODE_CBC:
 	  if (do_encrypt)
 	    err = grub_crypto_cbc_encrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size), iv);
+					   (1U << log_sector_size), iv);
 	  else
 	    err = grub_crypto_cbc_decrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size), iv);
+					   (1U << log_sector_size), iv);
 	  if (err)
 	    return err;
 	  break;
@@ -323,10 +336,10 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	case GRUB_CRYPTODISK_MODE_PCBC:
 	  if (do_encrypt)
 	    err = grub_crypto_pcbc_encrypt (dev->cipher, data + i, data + i,
-					    (1U << dev->log_sector_size), iv);
+					    (1U << log_sector_size), iv);
 	  else
 	    err = grub_crypto_pcbc_decrypt (dev->cipher, data + i, data + i,
-					    (1U << dev->log_sector_size), iv);
+					    (1U << log_sector_size), iv);
 	  if (err)
 	    return err;
 	  break;
@@ -338,7 +351,7 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	    if (err)
 	      return err;
 	    
-	    for (j = 0; j < (1U << dev->log_sector_size);
+	    for (j = 0; j < (1U << log_sector_size);
 		 j += dev->cipher->cipher->blocksize)
 	      {
 		grub_crypto_xor (data + i + j, data + i + j, iv,
@@ -369,11 +382,11 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	    if (do_encrypt)
 	      err = grub_crypto_ecb_encrypt (dev->cipher, data + i, 
 					     data + i,
-					     (1U << dev->log_sector_size));
+					     (1U << log_sector_size));
 	    else
 	      err = grub_crypto_ecb_decrypt (dev->cipher, data + i, 
 					     data + i,
-					     (1U << dev->log_sector_size));
+					     (1U << log_sector_size));
 	    if (err)
 	      return err;
 	    lrw_xor (&sec, dev, data + i);
@@ -382,10 +395,10 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	case GRUB_CRYPTODISK_MODE_ECB:
 	  if (do_encrypt)
 	    err = grub_crypto_ecb_encrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size));
+					   (1U << log_sector_size));
 	  else
 	    err = grub_crypto_ecb_decrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size));
+					   (1U << log_sector_size));
 	  if (err)
 	    return err;
 	  break;
@@ -400,9 +413,9 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 gcry_err_code_t
 grub_cryptodisk_decrypt (struct grub_cryptodisk *dev,
 			 grub_uint8_t * data, grub_size_t len,
-			 grub_disk_addr_t sector)
+			 grub_disk_addr_t sector, grub_size_t log_sector_size)
 {
-  return grub_cryptodisk_endecrypt (dev, data, len, sector, 0);
+  return grub_cryptodisk_endecrypt (dev, data, len, sector, log_sector_size, 0);
 }
 
 grub_err_t
@@ -767,7 +780,7 @@ grub_cryptodisk_read (grub_disk_t disk, grub_disk_addr_t sector,
     }
   gcry_err = grub_cryptodisk_endecrypt (dev, (grub_uint8_t *) buf,
 					size << disk->log_sector_size,
-					sector, 0);
+					sector, dev->log_sector_size, 0);
   return grub_crypto_gcry_error (gcry_err);
 }
 
@@ -808,7 +821,7 @@ grub_cryptodisk_write (grub_disk_t disk, grub_disk_addr_t sector,
 
   gcry_err = grub_cryptodisk_endecrypt (dev, (grub_uint8_t *) tmp,
 					size << disk->log_sector_size,
-					sector, 1);
+					sector, disk->log_sector_size, 1);
   if (gcry_err)
     {
       grub_free (tmp);
