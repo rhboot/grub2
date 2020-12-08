@@ -65,6 +65,8 @@ typedef struct grub_luks2_header grub_luks2_header_t;
 
 struct grub_luks2_keyslot
 {
+  /* The integer key to the associative array of keyslots. */
+  grub_uint64_t idx;
   grub_int64_t key_size;
   grub_int64_t priority;
   struct
@@ -103,6 +105,7 @@ typedef struct grub_luks2_keyslot grub_luks2_keyslot_t;
 
 struct grub_luks2_segment
 {
+  grub_uint64_t idx;
   grub_uint64_t offset;
   const char	*size;
   const char	*encryption;
@@ -112,6 +115,7 @@ typedef struct grub_luks2_segment grub_luks2_segment_t;
 
 struct grub_luks2_digest
 {
+  grub_uint64_t idx;
   /* Both keyslots and segments are interpreted as bitfields here */
   grub_uint64_t	keyslots;
   grub_uint64_t	segments;
@@ -261,12 +265,11 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
 {
   grub_json_t keyslots, keyslot, digests, digest, segments, segment;
   grub_size_t i, size;
-  grub_uint64_t idx;
 
   /* Get nth keyslot */
   if (grub_json_getvalue (&keyslots, root, "keyslots") ||
       grub_json_getchild (&keyslot, &keyslots, keyslot_idx) ||
-      grub_json_getuint64 (&idx, &keyslot, NULL) ||
+      grub_json_getuint64 (&k->idx, &keyslot, NULL) ||
       grub_json_getchild (&keyslot, &keyslot, 0) ||
       luks2_parse_keyslot (k, &keyslot))
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse keyslot %"PRIuGRUB_SIZE, keyslot_idx);
@@ -278,11 +281,12 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
   for (i = 0; i < size; i++)
     {
       if (grub_json_getchild (&digest, &digests, i) ||
+	  grub_json_getuint64 (&d->idx, &digest, NULL) ||
 	  grub_json_getchild (&digest, &digest, 0) ||
 	  luks2_parse_digest (d, &digest))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest %"PRIuGRUB_SIZE, i);
 
-      if ((d->keyslots & (1 << idx)))
+      if ((d->keyslots & (1 << k->idx)))
 	break;
     }
   if (i == size)
@@ -295,12 +299,12 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
   for (i = 0; i < size; i++)
     {
       if (grub_json_getchild (&segment, &segments, i) ||
-	  grub_json_getuint64 (&idx, &segment, NULL) ||
+	  grub_json_getuint64 (&s->idx, &segment, NULL) ||
 	  grub_json_getchild (&segment, &segment, 0) ||
 	  luks2_parse_segment (s, &segment))
 	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment %"PRIuGRUB_SIZE, i);
 
-      if ((d->segments & (1 << idx)))
+      if ((d->segments & (1 << s->idx)))
 	break;
     }
   if (i == size)
