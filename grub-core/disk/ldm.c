@@ -321,7 +321,10 @@ make_vg (grub_disk_t disk,
 	  lv->visible = 1;
 	  lv->segments = grub_zalloc (sizeof (*lv->segments));
 	  if (!lv->segments)
-	    goto fail2;
+	    {
+	      grub_free (lv);
+	      goto fail2;
+	    }
 	  lv->segments->start_extent = 0;
 	  lv->segments->type = GRUB_DISKFILTER_MIRROR;
 	  lv->segments->node_count = 0;
@@ -329,7 +332,10 @@ make_vg (grub_disk_t disk,
 	  lv->segments->nodes = grub_calloc (lv->segments->node_alloc,
 					     sizeof (*lv->segments->nodes));
 	  if (!lv->segments->nodes)
-	    goto fail2;
+	    {
+	      grub_free (lv);
+	      goto fail2;
+	    }
 	  ptr = vblk[i].dynamic;
 	  if (ptr + *ptr + 1 >= vblk[i].dynamic
 	      + sizeof (vblk[i].dynamic))
