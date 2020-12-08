@@ -230,6 +230,7 @@ luks2_parse_digest (grub_luks2_digest_t *out, const grub_json_t *digest)
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
 		       "Digest references no segments");
 
+  out->segments = 0;
   for (i = 0; i < size; i++)
     {
       if (grub_json_getchild (&o, &segments, i) ||
@@ -242,6 +243,7 @@ luks2_parse_digest (grub_luks2_digest_t *out, const grub_json_t *digest)
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
 		       "Digest references no keyslots");
 
+  out->keyslots = 0;
   for (i = 0; i < size; i++)
     {
       if (grub_json_getchild (&o, &keyslots, i) ||
