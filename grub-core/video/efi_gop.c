@@ -235,7 +235,7 @@ grub_video_gop_fill_real_mode_info (unsigned mode,
   return GRUB_ERR_NONE;
 }
 
-static grub_err_t
+static void
 grub_video_gop_fill_mode_info (unsigned mode,
 			       struct grub_efi_gop_mode_info *in,
 			       struct grub_video_mode_info *out)
@@ -260,8 +260,6 @@ grub_video_gop_fill_mode_info (unsigned mode,
   out->blit_format = GRUB_VIDEO_BLIT_FORMAT_BGRA_8888;
   out->mode_type |= (GRUB_VIDEO_MODE_TYPE_DOUBLE_BUFFERED
 		     | GRUB_VIDEO_MODE_TYPE_UPDATING_SWAP);
-
-  return GRUB_ERR_NONE;
 }
 
 static int
@@ -274,7 +272,6 @@ grub_video_gop_iterate (int (*hook) (const struct grub_video_mode_info *info, vo
       grub_efi_uintn_t size;
       grub_efi_status_t status;
       struct grub_efi_gop_mode_info *info = NULL;
-      grub_err_t err;
       struct grub_video_mode_info mode_info;
 	 
       status = efi_call_4 (gop->query_mode, gop, mode, &size, &info);
@@ -285,12 +282,7 @@ grub_video_gop_iterate (int (*hook) (const struct grub_video_mode_info *info, vo
 	  continue;
 	}
 
-      err = grub_video_gop_fill_mode_info (mode, info, &mode_info);
-      if (err)
-	{
-	  grub_errno = GRUB_ERR_NONE;
-	  continue;
-	}
+      grub_video_gop_fill_mode_info (mode, info, &mode_info);
       if (hook (&mode_info, hook_arg))
 	return 1;
     }
@@ -474,13 +466,8 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 
   info = gop->mode->info;
 
-  err = grub_video_gop_fill_mode_info (gop->mode->mode, info,
-				       &framebuffer.mode_info);
-  if (err)
-    {
-      grub_dprintf ("video", "GOP: couldn't fill mode info\n");
-      return err;
-    }
+  grub_video_gop_fill_mode_info (gop->mode->mode, info,
+				 &framebuffer.mode_info);
 
   framebuffer.ptr = (void *) (grub_addr_t) gop->mode->fb_base;
   framebuffer.offscreen
@@ -494,8 +481,8 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
     {
       grub_dprintf ("video", "GOP: couldn't allocate shadow\n");
       grub_errno = 0;
-      err = grub_video_gop_fill_mode_info (gop->mode->mode, info,
-					   &framebuffer.mode_info);
+      grub_video_gop_fill_mode_info (gop->mode->mode, info,
+				     &framebuffer.mode_info);
       buffer = framebuffer.ptr;
     }
     
