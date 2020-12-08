@@ -148,7 +148,7 @@ scan_disk_partition_iter (grub_disk_t disk, grub_partition_t p, void *data)
 	if (m->disk && m->disk->id == disk->id
 	    && m->disk->dev->id == disk->dev->id
 	    && m->part_start == grub_partition_get_start (disk->partition)
-	    && m->part_size == grub_disk_get_size (disk))
+	    && m->part_size == grub_disk_native_sectors (disk))
 	  return 0;
     }
 
@@ -1190,13 +1190,13 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 
   grub_dprintf ("diskfilter", "Inserting %s (+%lld,%lld) into %s (%s)\n", disk->name,
 		(unsigned long long) grub_partition_get_start (disk->partition),
-		(unsigned long long) grub_disk_get_size (disk),
+		(unsigned long long) grub_disk_native_sectors (disk),
 		array->name, diskfilter->name);
 #ifdef GRUB_UTIL
   grub_util_info ("Inserting %s (+%" GRUB_HOST_PRIuLONG_LONG ",%"
 		  GRUB_HOST_PRIuLONG_LONG ") into %s (%s)\n", disk->name,
 		  (unsigned long long) grub_partition_get_start (disk->partition),
-		  (unsigned long long) grub_disk_get_size (disk),
+		  (unsigned long long) grub_disk_native_sectors (disk),
 		  array->name, diskfilter->name);
   array->driver = diskfilter;
 #endif
@@ -1210,7 +1210,7 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 	struct grub_diskfilter_lv *lv;
 	/* FIXME: Check whether the update time of the superblocks are
 	   the same.  */
-	if (pv->disk && grub_disk_get_size (disk) >= pv->part_size)
+	if (pv->disk && grub_disk_native_sectors (disk) >= pv->part_size)
 	  return GRUB_ERR_NONE;
 	pv->disk = grub_disk_open (disk->name);
 	if (!pv->disk)
@@ -1219,7 +1219,7 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 	   raid device, we shouldn't change it.  */
 	pv->start_sector -= pv->part_start;
 	pv->part_start = grub_partition_get_start (disk->partition);
-	pv->part_size = grub_disk_get_size (disk);
+	pv->part_size = grub_disk_native_sectors (disk);
 
 #ifdef GRUB_UTIL
 	{
@@ -1311,7 +1311,7 @@ grub_diskfilter_get_pv_from_disk (grub_disk_t disk,
 	if (pv->disk && pv->disk->id == disk->id
 	    && pv->disk->dev->id == disk->dev->id
 	    && pv->part_start == grub_partition_get_start (disk->partition)
-	    && pv->part_size == grub_disk_get_size (disk))
+	    && pv->part_size == grub_disk_native_sectors (disk))
 	  {
 	    if (vg_out)
 	      *vg_out = vg;

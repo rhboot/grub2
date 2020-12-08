@@ -867,7 +867,7 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
       if (ctx.hd->partition_start == 0
 	  && (ctx.hd->partition_size << (parent->log_sector_size
 					 - GRUB_DISK_SECTOR_BITS))
-	  == grub_disk_get_size (parent))
+	  == grub_disk_native_sectors (parent))
 	{
 	  dev_name = grub_strdup (parent->name);
 	}

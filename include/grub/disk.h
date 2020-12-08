@@ -177,7 +177,7 @@ typedef struct grub_disk_memberlist *grub_disk_memberlist_t;
 
 #define GRUB_DISK_MAX_MAX_AGGLOMERATE ((1 << (30 - GRUB_DISK_CACHE_BITS - GRUB_DISK_SECTOR_BITS)) - 1)
 
-/* Return value of grub_disk_get_size() in case disk size is unknown. */
+/* Return value of grub_disk_native_sectors() in case disk size is unknown. */
 #define GRUB_DISK_SIZE_UNKNOWN	 0xffffffffffffffffULL
 
 /* Convert to GRUB native disk sized sector from disk sized sector. */
@@ -225,7 +225,7 @@ extern grub_err_t (*EXPORT_VAR(grub_disk_write_weak)) (grub_disk_t disk,
 						       const void *buf);
 
 
-grub_uint64_t EXPORT_FUNC(grub_disk_get_size) (grub_disk_t disk);
+grub_uint64_t EXPORT_FUNC(grub_disk_native_sectors) (grub_disk_t disk);
 
 #if DISK_CACHE_STATS
 void

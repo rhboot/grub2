@@ -609,7 +609,7 @@ luks2_recover_key (grub_disk_t source,
       crypt->log_sector_size = sizeof (unsigned int) * 8
 		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
       if (grub_strcmp (segment.size, "dynamic") == 0)
-	crypt->total_sectors = grub_disk_get_size (source) - crypt->offset_sectors;
+	crypt->total_sectors = grub_disk_native_sectors (source) - crypt->offset_sectors;
       else
 	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10);
 

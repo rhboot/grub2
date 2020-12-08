@@ -258,7 +258,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   if (2 * GRUB_MD_SHA256->mdlen + 1 > GRUB_CRYPTODISK_MAX_UUID_LENGTH)
     return NULL;
 
-  sector = grub_disk_get_size (disk);
+  sector = grub_disk_native_sectors (disk);
   if (sector == GRUB_DISK_SIZE_UNKNOWN || sector == 0)
     return NULL;
 
@@ -391,7 +391,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
 
   newdev->modname = "geli";
 
-  newdev->total_sectors = grub_disk_get_size (disk) - 1;
+  newdev->total_sectors = grub_disk_native_sectors (disk) - 1;
   grub_memcpy (newdev->uuid, uuid, sizeof (newdev->uuid));
   COMPILE_TIME_ASSERT (sizeof (newdev->uuid) >= 32 * 2 + 1);
   return newdev;
@@ -420,7 +420,7 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev)
   if (dev->hash->mdlen > GRUB_CRYPTO_MAX_MDLEN)
     return grub_error (GRUB_ERR_BUG, "mdlen is too long");
 
-  sector = grub_disk_get_size (source);
+  sector = grub_disk_native_sectors (source);
   if (sector == GRUB_DISK_SIZE_UNKNOWN || sector == 0)
     return grub_error (GRUB_ERR_BUG, "not a geli");
 

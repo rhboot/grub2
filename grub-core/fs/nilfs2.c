@@ -753,7 +753,7 @@ grub_nilfs2_load_sb (struct grub_nilfs2_data *data)
     partition_size = (grub_le_to_cpu64 (data->sblock.s_dev_size)
 		      >> GRUB_DISK_SECTOR_BITS);
   else
-    partition_size = grub_disk_get_size (disk);
+    partition_size = grub_disk_native_sectors (disk);
   if (partition_size != GRUB_DISK_SIZE_UNKNOWN)
     {
       /* Read second super block. */

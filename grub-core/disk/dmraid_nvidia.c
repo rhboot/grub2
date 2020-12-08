@@ -107,7 +107,7 @@ grub_dmraid_nv_detect (grub_disk_t disk,
     /* Skip partition.  */
     return NULL;
 
-  sector = grub_disk_get_size (disk);
+  sector = grub_disk_native_sectors (disk);
   if (sector == GRUB_DISK_SIZE_UNKNOWN)
     /* Not raid.  */
     return NULL;
