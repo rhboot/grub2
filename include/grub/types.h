@@ -80,6 +80,8 @@
 # define GRUB_CHAR_BIT	__CHAR_BIT__
 #endif
 
+#define GRUB_TYPE_BITS(type) (sizeof(type) * GRUB_CHAR_BIT)
+
 /* Define various wide integers.  */
 typedef signed char		grub_int8_t;
 typedef short			grub_int16_t;
