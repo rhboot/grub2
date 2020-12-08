@@ -564,7 +564,7 @@ find_bestub (uberblock_phys_t * ub_array,
       ubptr = (uberblock_phys_t *) ((grub_properly_aligned_t *) ub_array
 				    + ((i << ub_shift)
 				       / sizeof (grub_properly_aligned_t)));
-      err = uberblock_verify (ubptr, offset, 1 << ub_shift);
+      err = uberblock_verify (ubptr, offset, (grub_size_t) 1 << ub_shift);
       if (err)
 	{
 	  grub_errno = GRUB_ERR_NONE;
@@ -1543,7 +1543,7 @@ read_device (grub_uint64_t offset, struct grub_zfs_device_desc *desc,
 
 	    high = grub_divmod64 ((offset >> desc->ashift) + c,
 				  desc->n_children, &devn);
-	    csize = bsize << desc->ashift;
+	    csize = (grub_size_t) bsize << desc->ashift;
 	    if (csize > len)
 	      csize = len;
 
@@ -1635,8 +1635,8 @@ read_device (grub_uint64_t offset, struct grub_zfs_device_desc *desc,
 
 	    while (len > 0)
 	      {
-		grub_size_t csize;
-		csize = ((s / (desc->n_children - desc->nparity))
+		grub_size_t csize = s;
+		csize = ((csize / (desc->n_children - desc->nparity))
 			 << desc->ashift);
 		if (csize > len)
 		  csize = len;
