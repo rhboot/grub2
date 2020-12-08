@@ -615,6 +615,17 @@ luks2_recover_key (grub_disk_t source,
 
       grub_dprintf ("luks2", "Trying keyslot \"%"PRIuGRUB_UINT64_T"\"\n", keyslot.idx);
 
+      /* Sector size should be one of 512, 1024, 2048, or 4096. */
+      if (!(segment.sector_size == 512 || segment.sector_size == 1024 ||
+	    segment.sector_size == 2048 || segment.sector_size == 4096))
+	{
+	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" sector"
+				 " size %"PRIuGRUB_UINT64_T" is not one of"
+				 " 512, 1024, 2048, or 4096\n",
+				 segment.idx, segment.sector_size);
+	  continue;
+	}
+
       /* Set up disk according to keyslot's segment. */
       crypt->offset_sectors = grub_divmod64 (segment.offset, segment.sector_size, NULL);
       crypt->log_sector_size = sizeof (unsigned int) * 8
