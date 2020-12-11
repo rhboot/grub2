@@ -75,6 +75,9 @@ grub_usb_controller_iterate (grub_usb_controller_iterate_hook_t hook,
 grub_usb_err_t
 grub_usb_clear_halt (grub_usb_device_t dev, int endpoint)
 {
+  if (endpoint >= GRUB_USB_MAX_TOGGLE)
+    return GRUB_USB_ERR_BADDEVICE;
+
   dev->toggle[endpoint] = 0;
   return grub_usb_control_msg (dev, (GRUB_USB_REQTYPE_OUT
 				     | GRUB_USB_REQTYPE_STANDARD
@@ -134,10 +137,10 @@ grub_usb_device_initialize (grub_usb_device_t dev)
     return err;
   descdev = &dev->descdev;
 
-  for (i = 0; i < 8; i++)
+  for (i = 0; i < GRUB_USB_MAX_CONF; i++)
     dev->config[i].descconf = NULL;
 
-  if (descdev->configcnt == 0)
+  if (descdev->configcnt == 0 || descdev->configcnt > GRUB_USB_MAX_CONF)
     {
       err = GRUB_USB_ERR_BADDEVICE;
       goto fail;
@@ -171,6 +174,12 @@ grub_usb_device_initialize (grub_usb_device_t dev)
 
       /* Skip the configuration descriptor.  */
       pos = dev->config[i].descconf->length;
+
+      if (dev->config[i].descconf->numif > GRUB_USB_MAX_IF)
+        {
+          err = GRUB_USB_ERR_BADDEVICE;
+          goto fail;
+        }
 
       /* Read all interfaces.  */
       for (currif = 0; currif < dev->config[i].descconf->numif; currif++)
@@ -217,7 +226,7 @@ grub_usb_device_initialize (grub_usb_device_t dev)
 
  fail:
 
-  for (i = 0; i < 8; i++)
+  for (i = 0; i < GRUB_USB_MAX_CONF; i++)
     grub_free (dev->config[i].descconf);
 
   return err;
