@@ -372,15 +372,24 @@ grub_efi_get_memory_map (grub_efi_uintn_t *memory_map_size,
   if (grub_efi_is_finished)
     {
       int ret = 1;
-      if (*memory_map_size < finish_mmap_size)
+
+      if (memory_map != NULL)
 	{
-	  grub_memcpy (memory_map, finish_mmap_buf, *memory_map_size);
-	  ret = 0;
+	  if (*memory_map_size < finish_mmap_size)
+	    {
+	      grub_memcpy (memory_map, finish_mmap_buf, *memory_map_size);
+	      ret = 0;
+	    }
+          else
+	    grub_memcpy (memory_map, finish_mmap_buf, finish_mmap_size);
 	}
       else
 	{
-	  grub_memcpy (memory_map, finish_mmap_buf, finish_mmap_size);
-	  ret = 1;
+	  /*
+	   * Incomplete, no buffer to copy into, same as
+	   * GRUB_EFI_BUFFER_TOO_SMALL below.
+	   */
+	  ret = 0;
 	}
       *memory_map_size = finish_mmap_size;
       if (map_key)
