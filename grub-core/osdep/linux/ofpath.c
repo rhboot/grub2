@@ -37,6 +37,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <ctype.h>
+#include <dirent.h>
 
 #ifdef __sparc__
 typedef enum
@@ -755,12 +756,73 @@ strip_trailing_digits (const char *p)
   return new;
 }
 
+static char *
+get_slave_from_dm(const char * device){
+  char *curr_device, *tmp;
+  char *directory;
+  char *ret = NULL;
+
+  directory = grub_strdup (device);
+  tmp = get_basename(directory);
+  curr_device = grub_strdup (tmp);
+  *tmp = '\0';
+
+  /* Recursively check for slaves devices so we can find the root device */
+  while ((curr_device[0] == 'd') && (curr_device[1] == 'm') && (curr_device[2] == '-')){
+    DIR *dp;
+    struct dirent *ep;
+    char* device_path;
+
+    device_path = grub_xasprintf ("/sys/block/%s/slaves", curr_device);
+    dp = opendir(device_path);
+    free(device_path);
+
+    if (dp != NULL)
+    {
+      ep = readdir (dp);
+      while (ep != NULL){
+
+	/* avoid some system directories */
+        if (!strcmp(ep->d_name,"."))
+            goto next_dir;
+        if (!strcmp(ep->d_name,".."))
+            goto next_dir;
+
+	free (curr_device);
+	free (ret);
+	curr_device = grub_strdup (ep->d_name);
+	ret = grub_xasprintf ("%s%s", directory, curr_device);
+	break;
+
+        next_dir:
+         ep = readdir (dp);
+         continue;
+      }
+      closedir (dp);
+    }
+    else
+      grub_util_warn (_("cannot open directory `%s'"), device_path);
+  }
+
+  free (directory);
+  free (curr_device);
+
+  return ret;
+}
+
 char *
 grub_util_devname_to_ofpath (const char *sys_devname)
 {
-  char *name_buf, *device, *devnode, *devicenode, *ofpath;
+  char *name_buf, *device, *devnode, *devicenode, *ofpath, *realname;
 
   name_buf = xrealpath (sys_devname);
+
+  realname = get_slave_from_dm (name_buf);
+  if (realname)
+    {
+      free (name_buf);
+      name_buf = realname;
+    }
 
   device = get_basename (name_buf);
   devnode = strip_trailing_digits (name_buf);
