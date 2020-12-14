@@ -350,6 +350,38 @@ of_path_of_ide(const char *sys_devname __attribute__((unused)), const char *devi
   return ret;
 }
 
+
+static void
+of_fc_port_name(const char *path, const char *subpath, char *port_name)
+{
+  char *bname, *basepath, *p;
+  int fd;
+
+  bname = xmalloc(sizeof(char)*150);
+  basepath = xmalloc(strlen(path));
+
+  /* Generate the path to get port name information from the drive */
+  strncpy(basepath,path,subpath-path);
+  basepath[subpath-path-1] = '\0';
+  p = get_basename(basepath);
+  snprintf(bname,sizeof(char)*150,"%s/fc_transport/%s/port_name",basepath,p);
+
+  /* Read the information from the port name */
+  fd = open (bname, O_RDONLY);
+  if (fd < 0)
+    grub_util_error (_("cannot open `%s': %s"), bname, strerror (errno));
+
+  if (read(fd,port_name,sizeof(char)*19) < 0)
+    grub_util_error (_("cannot read `%s': %s"), bname, strerror (errno));
+
+  sscanf(port_name,"0x%s",port_name);
+  
+  close(fd);
+
+  free(bname);
+  free(basepath);
+}
+
 #ifdef __sparc__
 static char *
 of_path_of_nvme(const char *sys_devname __attribute__((unused)),
@@ -577,6 +609,16 @@ of_path_of_scsi(const char *sys_devname __attribute__((unused)), const char *dev
   digit_string = trailing_digits (device);
   if (strncmp (of_path, "/vdevice/", sizeof ("/vdevice/") - 1) == 0)
     {
+      if(strstr(of_path,"vfc-client"))
+      {
+	char * port_name = xmalloc(sizeof(char)*17);
+	of_fc_port_name(sysfs_path, p, port_name);
+	
+	snprintf(disk,sizeof(disk),"/%s@%s", disk_name, port_name);
+	free(port_name);
+      }
+      else
+      {
       unsigned long id = 0x8000 | (tgt << 8) | (bus << 5) | lun;
       if (*digit_string == '\0')
 	{
@@ -590,6 +632,13 @@ of_path_of_scsi(const char *sys_devname __attribute__((unused)), const char *dev
 	  snprintf(disk, sizeof (disk),
 		   "/%s@%04lx000000000000:%c", disk_name, id, 'a' + (part - 1));
 	}
+	}
+    } else if (strstr(of_path,"fibre-channel")||(strstr(of_path,"vfc-client"))){
+	char * port_name = xmalloc(sizeof(char)*17);
+	of_fc_port_name(sysfs_path, p, port_name);
+	
+	snprintf(disk,sizeof(disk),"/%s@%s", disk_name, port_name);
+	free(port_name);
     }
   else
     {
