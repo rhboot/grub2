@@ -115,7 +115,7 @@ int
 EXPORT_FUNC (__clzsi2) (grub_uint32_t val);
 #endif
 
-#if defined(__riscv) || defined(__sparc__)
+#if defined(__mips__) || defined(__riscv) || defined(__sparc__)
 int
 EXPORT_FUNC (__clzdi2) (grub_uint64_t val);
 #endif
