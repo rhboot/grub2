@@ -600,6 +600,15 @@ luks2_recover_key (grub_disk_t source,
       goto err;
     }
 
+  if (grub_disk_native_sectors (source) == GRUB_DISK_SIZE_UNKNOWN)
+    {
+      /* FIXME: Allow use of source disk, and maybe cause errors in read. */
+      grub_dprintf ("luks2", "Source disk %s has an unknown size, "
+			     "conservatively returning error\n", source->name);
+      ret = grub_error (GRUB_ERR_BUG, "Unknown size of luks2 source device");
+      goto err;
+    }
+
   /* Try all keyslot */
   for (json_idx = 0; json_idx < size; json_idx++)
     {
