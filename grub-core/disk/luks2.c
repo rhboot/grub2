@@ -642,8 +642,7 @@ luks2_recover_key (grub_disk_t source,
 
       /* Set up disk according to keyslot's segment. */
       crypt->offset_sectors = grub_divmod64 (segment.offset, segment.sector_size, NULL);
-      crypt->log_sector_size = sizeof (unsigned int) * 8
-		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
+      crypt->log_sector_size = grub_log2ull (segment.sector_size);
       /* Set to the source disk/partition size, which is the maximum we allow. */
       max_crypt_sectors = grub_disk_native_sectors (source);
       max_crypt_sectors = grub_convert_sector (max_crypt_sectors, GRUB_DISK_SECTOR_BITS,
