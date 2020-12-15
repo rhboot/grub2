@@ -482,4 +482,6 @@ void EXPORT_FUNC(grub_real_boot_time) (const char *file,
 #define grub_max(a, b) (((a) > (b)) ? (a) : (b))
 #define grub_min(a, b) (((a) < (b)) ? (a) : (b))
 
+#define grub_log2ull(n) (GRUB_TYPE_BITS (grub_uint64_t) - __builtin_clzll (n) - 1)
+
 #endif /* ! GRUB_MISC_HEADER */
