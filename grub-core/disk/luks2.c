@@ -612,9 +612,14 @@ luks2_recover_key (grub_disk_t source,
   /* Try all keyslot */
   for (json_idx = 0; json_idx < size; json_idx++)
     {
+      typeof (source->total_sectors) max_crypt_sectors = 0;
+
+      grub_errno = GRUB_ERR_NONE;
       ret = luks2_get_keyslot (&keyslot, &digest, &segment, json, json_idx);
       if (ret)
 	goto err;
+      if (grub_errno != GRUB_ERR_NONE)
+	  grub_dprintf ("luks2", "Ignoring unhandled error %d from luks2_get_keyslot\n", grub_errno);
 
       if (keyslot.priority == 0)
 	{
@@ -639,11 +644,77 @@ luks2_recover_key (grub_disk_t source,
       crypt->offset_sectors = grub_divmod64 (segment.offset, segment.sector_size, NULL);
       crypt->log_sector_size = sizeof (unsigned int) * 8
 		- __builtin_clz ((unsigned int) segment.sector_size) - 1;
+      /* Set to the source disk/partition size, which is the maximum we allow. */
+      max_crypt_sectors = grub_disk_native_sectors (source);
+      max_crypt_sectors = grub_convert_sector (max_crypt_sectors, GRUB_DISK_SECTOR_BITS,
+					       crypt->log_sector_size);
+
+      if (max_crypt_sectors < crypt->offset_sectors)
+	{
+	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has offset"
+				 " %"PRIuGRUB_UINT64_T" which is greater than"
+				 " source disk size %"PRIuGRUB_UINT64_T","
+				 " skipping\n", segment.idx, crypt->offset_sectors,
+				 max_crypt_sectors);
+	  continue;
+	}
+
       if (grub_strcmp (segment.size, "dynamic") == 0)
-	crypt->total_sectors = (grub_disk_native_sectors (source) >> (crypt->log_sector_size - GRUB_DISK_SECTOR_BITS))
-			       - crypt->offset_sectors;
+	crypt->total_sectors = max_crypt_sectors - crypt->offset_sectors;
       else
-	crypt->total_sectors = grub_strtoull (segment.size, NULL, 10) >> crypt->log_sector_size;
+	{
+	  grub_errno = GRUB_ERR_NONE;
+
+	  /* Convert segment.size to sectors, rounding up to nearest sector */
+	  crypt->total_sectors = grub_strtoull (segment.size, NULL, 10);
+
+	  if (grub_errno == GRUB_ERR_NONE)
+	    {
+	      crypt->total_sectors = ALIGN_UP (crypt->total_sectors,
+					       1 << crypt->log_sector_size);
+	      crypt->total_sectors >>= crypt->log_sector_size;
+	    }
+	  else if (grub_errno == GRUB_ERR_BAD_NUMBER)
+	    {
+	      grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" size"
+				     " \"%s\" is not a parsable number,"
+				     " skipping keyslot\n",
+				     segment.idx, segment.size);
+	      continue;
+	    }
+	  else if (grub_errno == GRUB_ERR_OUT_OF_RANGE)
+	    {
+	      /*
+	       * There was an overflow in parsing segment.size, so disk must
+	       * be very large or the string is incorrect.
+	       *
+	       * TODO: Allow reading of at least up max_crypt_sectors. Really,
+	       * its very unlikely one would be booting from such a large drive
+	       * anyway. Use another smaller LUKS2 boot device.
+	       */
+	      grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" size"
+				     " %s overflowed 64-bit unsigned integer,"
+				     " skipping keyslot\n", segment.idx, segment.size);
+	      continue;
+	    }
+	}
+
+      if (crypt->total_sectors == 0)
+	{
+	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has zero"
+				 " sectors, skipping\n", segment.idx);
+	  continue;
+	}
+      else if (max_crypt_sectors < (crypt->offset_sectors + crypt->total_sectors))
+	{
+	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has last"
+				 " data position greater than source disk size,"
+				 " the end of the crypto device will be"
+				 " inaccessible\n", segment.idx);
+
+	  /* Allow decryption up to the end of the source disk. */
+	  crypt->total_sectors = max_crypt_sectors - crypt->offset_sectors;
+	}
 
       ret = luks2_decrypt_key (candidate_key, source, crypt, &keyslot,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));

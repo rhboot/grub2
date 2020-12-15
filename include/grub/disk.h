@@ -27,6 +27,8 @@
 #include <grub/device.h>
 /* For NULL.  */
 #include <grub/mm.h>
+/* For ALIGN_UP.  */
+#include <grub/misc.h>
 
 /* These are used to set a device id. When you add a new disk device,
    you must define a new id for it here.  */
@@ -179,6 +181,23 @@ typedef struct grub_disk_memberlist *grub_disk_memberlist_t;
 
 /* Return value of grub_disk_native_sectors() in case disk size is unknown. */
 #define GRUB_DISK_SIZE_UNKNOWN	 0xffffffffffffffffULL
+
+/* Convert sector number from one sector size to another. */
+static inline grub_disk_addr_t
+grub_convert_sector (grub_disk_addr_t sector,
+		     grub_size_t log_sector_size_from,
+		     grub_size_t log_sector_size_to)
+{
+  if (log_sector_size_from == log_sector_size_to)
+    return sector;
+  else if (log_sector_size_from < log_sector_size_to)
+    {
+      sector = ALIGN_UP (sector, 1 << (log_sector_size_to - log_sector_size_from));
+      return sector >> (log_sector_size_to - log_sector_size_from);
+    }
+  else
+    return sector << (log_sector_size_from - log_sector_size_to);
+}
 
 /* Convert to GRUB native disk sized sector from disk sized sector. */
 static inline grub_disk_addr_t
