@@ -5964,6 +5964,15 @@ GRUB2 is designed to be portable and is actually ported across platforms. We
 try to keep all platforms at the level. Unfortunately some platforms are better
 supported than others. This is detailed in current and 2 following sections.
 
+All platforms have an artificially GRUB imposed disk size restriction of 1 EiB.
+In some cases, larger disk sizes can be used, but access will not be allowed
+beyond 1 EiB.
+
+LUKS2 devices with size larger than 16 EiB are currently not supported. They
+can not be created as crypto devices by cryptomount, so can not even be
+partially read from. LUKS have no limitations other than those imposed by the
+format.
+
 ARC platform is unable to change datetime (firmware doesn't seem to provide a
 function for it).
 EMU has similar limitation.
@@ -5982,8 +5991,8 @@ by national encoding compatible only in pseudographics.
 Unicode is the most versatile charset which supports many languages. However
 the actual console may be much more limited depending on firmware
 
-On BIOS network is supported only if the image is loaded through network.
-On sparc64 GRUB is unable to determine which server it was booted from.
+On BIOS, network is supported only if the image is loaded through network.
+On sparc64, GRUB is unable to determine which server it was booted from.
 
 Direct ATA/AHCI support allows to circumvent various firmware limitations but
 isn't needed for normal operation except on baremetal ports.
@@ -6012,7 +6021,7 @@ Bootlocation is ability of GRUB to automatically detect where it boots from.
 ``disk'' means the detection is limited to detecting the disk with partition
 being discovered on install time. ``partition'' means that disk and partiton
 can be automatically discovered. ``file'' means that boot image file name as
-well as disk and partition can be discovered. For consistency default install ignores
+well as disk and partition can be discovered. For consistency, default install ignores
 partition and relies solely on disk detection. If no bootlocation discovery is available
 or boot and grub-root disks are different, UUID is used instead. On ARC if no device
 to install to is specified, UUID is used instead as well.
