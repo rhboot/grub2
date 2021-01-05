@@ -1,7 +1,7 @@
 /* parser.c - the part of the parser that can return partial tokens */
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2005,2007,2009  Free Software Foundation, Inc.
+ *  Copyright (C) 2005,2007,2009,2021  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,6 +129,46 @@ add_var (char *varname, char **bp, char **vp,
     *((*bp)++) = *val;
 }
 
+static grub_err_t
+process_char (char c, char *buffer, char **bp, char *varname, char **vp,
+	      grub_parser_state_t state, int *argc,
+	      grub_parser_state_t *newstate)
+{
+  char use;
+
+  *newstate = grub_parser_cmdline_state (state, c, &use);
+
+  /*
+   * If a variable was being processed and this character does
+   * not describe the variable anymore, write the variable to
+   * the buffer.
+   */
+  add_var (varname, bp, vp, state, *newstate);
+
+  if (check_varstate (*newstate))
+    {
+      if (use)
+	*((*vp)++) = use;
+    }
+  else if (*newstate == GRUB_PARSER_STATE_TEXT &&
+	   state != GRUB_PARSER_STATE_ESC && grub_isspace (use))
+    {
+      /*
+       * Don't add more than one argument if multiple
+       * spaces are used.
+       */
+      if (*bp != buffer && *((*bp) - 1) != '\0')
+	{
+	  *((*bp)++) = '\0';
+	  (*argc)++;
+	}
+    }
+  else if (use)
+    *((*bp)++) = use;
+
+  return GRUB_ERR_NONE;
+}
+
 grub_err_t
 grub_parser_split_cmdline (const char *cmdline,
 			   grub_reader_getline_t getline, void *getline_data,
@@ -172,35 +212,13 @@ grub_parser_split_cmdline (const char *cmdline,
       for (; *rp != '\0'; rp++)
 	{
 	  grub_parser_state_t newstate;
-	  char use;
 
-	  newstate = grub_parser_cmdline_state (state, *rp, &use);
-
-	  /* If a variable was being processed and this character does
-	     not describe the variable anymore, write the variable to
-	     the buffer.  */
-	  add_var (varname, &bp, &vp, state, newstate);
-
-	  if (check_varstate (newstate))
+	  if (process_char (*rp, buffer, &bp, varname, &vp, state, argc,
+			    &newstate) != GRUB_ERR_NONE)
 	    {
-	      if (use)
-		*(vp++) = use;
-	    }
-	  else
-	    {
-	      if (newstate == GRUB_PARSER_STATE_TEXT
-		  && state != GRUB_PARSER_STATE_ESC && grub_isspace (use))
-		{
-		  /* Don't add more than one argument if multiple
-		     spaces are used.  */
-		  if (bp != buffer && *(bp - 1))
-		    {
-		      *(bp++) = '\0';
-		      (*argc)++;
-		    }
-		}
-	      else if (use)
-		*(bp++) = use;
+	      if (rd != cmdline)
+		grub_free (rd);
+	      return grub_errno;
 	    }
 	  state = newstate;
 	}
