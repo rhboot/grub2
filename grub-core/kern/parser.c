@@ -221,18 +221,12 @@ grub_parser_split_cmdline (const char *cmdline,
 
 	  if (process_char (*rp, buffer, &bp, varname, &vp, state, argc,
 			    &newstate) != GRUB_ERR_NONE)
-	    {
-	      if (rd != cmdline)
-		grub_free (rd);
-	      return grub_errno;
-	    }
+	    goto fail;
+
 	  state = newstate;
 	}
     }
   while (state != GRUB_PARSER_STATE_TEXT && !check_varstate (state));
-
-  if (rd != cmdline)
-    grub_free (rd);
 
   /* A special case for when the last character was part of a
      variable.  */
@@ -243,20 +237,20 @@ grub_parser_split_cmdline (const char *cmdline,
 
   /* If there are no args, then we're done. */
   if (!*argc)
-    return 0;
+    {
+      grub_errno = GRUB_ERR_NONE;
+      goto out;
+    }
 
   /* Reserve memory for the return values.  */
   args = grub_malloc (bp - buffer);
   if (!args)
-    return grub_errno;
+    goto fail;
   grub_memcpy (args, buffer, bp - buffer);
 
   *argv = grub_calloc (*argc + 1, sizeof (char *));
   if (!*argv)
-    {
-      grub_free (args);
-      return grub_errno;
-    }
+    goto fail;
 
   /* The arguments are separated with 0's, setup argv so it points to
      the right values.  */
@@ -269,7 +263,18 @@ grub_parser_split_cmdline (const char *cmdline,
       bp++;
     }
 
-  return 0;
+  grub_errno = GRUB_ERR_NONE;
+
+ out:
+  if (rd != cmdline)
+    grub_free (rd);
+
+  return grub_errno;
+
+ fail:
+  grub_free (*argv);
+  grub_free (args);
+  goto out;
 }
 
 /* Helper for grub_parser_execute.  */
