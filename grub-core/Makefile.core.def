@@ -112,6 +112,7 @@ kernel = {
   arm_efi_startup = kern/arm/efi/startup.S;
   arm64_efi_startup = kern/arm64/efi/startup.S;
 
+  common = kern/buffer.c;
   common = kern/command.c;
   common = kern/corecmd.c;
   common = kern/device.c;
