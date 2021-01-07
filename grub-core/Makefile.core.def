@@ -123,6 +123,7 @@ kernel = {
   riscv32_efi_startup = kern/riscv/efi/startup.S;
   riscv64_efi_startup = kern/riscv/efi/startup.S;
 
+  common = kern/buffer.c;
   common = kern/command.c;
   common = kern/corecmd.c;
   common = kern/device.c;
