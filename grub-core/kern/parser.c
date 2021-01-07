@@ -129,6 +129,16 @@ add_var (char *varname, char **bp, char **vp,
     *((*bp)++) = *val;
 }
 
+static void
+terminate_arg (char *buffer, char **bp, int *argc)
+{
+  if (*bp != buffer && *((*bp) - 1) != '\0')
+    {
+      *((*bp)++) = '\0';
+      (*argc)++;
+    }
+}
+
 static grub_err_t
 process_char (char c, char *buffer, char **bp, char *varname, char **vp,
 	      grub_parser_state_t state, int *argc,
@@ -157,11 +167,7 @@ process_char (char c, char *buffer, char **bp, char *varname, char **vp,
        * Don't add more than one argument if multiple
        * spaces are used.
        */
-      if (*bp != buffer && *((*bp) - 1) != '\0')
-	{
-	  *((*bp)++) = '\0';
-	  (*argc)++;
-	}
+      terminate_arg (buffer, bp, argc);
     }
   else if (use)
     *((*bp)++) = use;
@@ -232,11 +238,8 @@ grub_parser_split_cmdline (const char *cmdline,
      variable.  */
   add_var (varname, &bp, &vp, state, GRUB_PARSER_STATE_TEXT);
 
-  if (bp != buffer && *(bp - 1))
-    {
-      *(bp++) = '\0';
-      (*argc)++;
-    }
+  /* Ensure that the last argument is terminated. */
+  terminate_arg (buffer, &bp, argc);
 
   /* If there are no args, then we're done. */
   if (!*argc)
