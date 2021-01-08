@@ -729,10 +729,11 @@ grub_ext2_read_symlink (grub_fshelp_node_t node)
   if (! symlink)
     return 0;
 
-  /* If the filesize of the symlink is bigger than
-     60 the symlink is stored in a separate block,
-     otherwise it is stored in the inode.  */
-  if (grub_le_to_cpu32 (diro->inode.size) <= sizeof (diro->inode.symlink))
+  /*
+   * If the filesize of the symlink is equal to or bigger than 60 the symlink
+   * is stored in a separate block, otherwise it is stored in the inode.
+   */
+  if (grub_le_to_cpu32 (diro->inode.size) < sizeof (diro->inode.symlink))
     grub_memcpy (symlink,
 		 diro->inode.symlink,
 		 grub_le_to_cpu32 (diro->inode.size));
