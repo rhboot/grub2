@@ -5412,7 +5412,9 @@ This command is only available on PC BIOS systems.
 
 @deffn Command set [envvar=value]
 Set the environment variable @var{envvar} to @var{value}. If invoked with no
-arguments, print all environment variables with their values.
+arguments, print all environment variables with their values. For the list of
+environment variables currently used by GRUB itself see the relevant section
+@pxref{Environment}.
 @end deffn
 
 
