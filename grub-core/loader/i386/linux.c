@@ -736,7 +736,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       for (align = 0; align < 32; align++)
 	if (grub_le_to_cpu32 (lh.kernel_alignment) & (1 << align))
 	  break;
-      relocatable = grub_le_to_cpu32 (lh.relocatable);
+      relocatable = lh.relocatable;
     }
   else
     {
