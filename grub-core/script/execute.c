@@ -519,7 +519,7 @@ gettext_putvar (const char *str, grub_size_t len,
     return 0;
 
   /* Enough for any number.  */
-  if (len == 1 && str[0] == '#')
+  if (len == 1 && str[0] == '#' && scope != NULL)
     {
       grub_snprintf (*ptr, 30, "%u", scope->argv.argc);
       *ptr += grub_strlen (*ptr);
