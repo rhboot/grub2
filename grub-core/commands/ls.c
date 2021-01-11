@@ -196,7 +196,7 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
       goto fail;
     }
 
-  if (! *path)
+  if (! *path && device_name)
     {
       if (grub_errno == GRUB_ERR_UNKNOWN_FS)
 	grub_errno = GRUB_ERR_NONE;
