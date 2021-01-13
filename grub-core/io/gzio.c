@@ -669,6 +669,13 @@ inflate_codes_in_window (grub_gzio_t gzio)
     {
       if (! gzio->code_state)
 	{
+
+	  if (gzio->tl == NULL)
+	    {
+	      grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "NULL gzio->tl");
+	      return 1;
+	    }
+
 	  NEEDBITS ((unsigned) gzio->bl);
 	  if ((e = (t = gzio->tl + ((unsigned) b & ml))->e) > 16)
 	    do
@@ -706,6 +713,12 @@ inflate_codes_in_window (grub_gzio_t gzio)
 	      NEEDBITS (e);
 	      n = t->v.n + ((unsigned) b & mask_bits[e]);
 	      DUMPBITS (e);
+
+	      if (gzio->td == NULL)
+		{
+		  grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "NULL gzio->td");
+		  return 1;
+		}
 
 	      /* decode distance of block to copy */
 	      NEEDBITS ((unsigned) gzio->bd);
@@ -917,6 +930,13 @@ init_dynamic_block (grub_gzio_t gzio)
   n = nl + nd;
   m = mask_bits[gzio->bl];
   i = l = 0;
+
+  if (gzio->tl == NULL)
+    {
+      grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "NULL gzio->tl");
+      return;
+    }
+
   while ((unsigned) i < n)
     {
       NEEDBITS ((unsigned) gzio->bl);
