@@ -419,6 +419,10 @@ grub_strtoull (const char * restrict str, const char ** const restrict end,
 	{
 	  grub_error (GRUB_ERR_OUT_OF_RANGE,
 		      N_("overflow is detected"));
+
+          if (end)
+            *end = (char *) str;
+
 	  return ~0ULL;
 	}
 
@@ -430,6 +434,10 @@ grub_strtoull (const char * restrict str, const char ** const restrict end,
     {
       grub_error (GRUB_ERR_BAD_NUMBER,
 		  N_("unrecognized number"));
+
+      if (end)
+        *end = (char *) str;
+
       return 0;
     }
 
