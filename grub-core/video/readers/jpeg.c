@@ -526,6 +526,14 @@ grub_jpeg_decode_du (struct grub_jpeg_data *data, int id, jpeg_data_unit_t du)
       val = grub_jpeg_get_number (data, num & 0xF);
       num >>= 4;
       pos += num;
+
+      if (pos >= ARRAY_SIZE (jpeg_zigzag_order))
+	{
+	  grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		      "jpeg: invalid position in zigzag order!?");
+	  return;
+	}
+
       du[jpeg_zigzag_order[pos]] = val * (int) data->quan_table[qt][pos];
       pos++;
     }
