@@ -646,6 +646,10 @@ grub_jpeg_decode_data (struct grub_jpeg_data *data)
   nr1 = (data->image_height + vb - 1) >> (3 + data->log_vs);
   nc1 = (data->image_width + hb - 1)  >> (3 + data->log_hs);
 
+  if (data->bitmap_ptr == NULL)
+    return grub_error(GRUB_ERR_BAD_FILE_TYPE,
+		      "jpeg: attempted to decode data before start of stream");
+
   for (; data->r1 < nr1 && (!data->dri || rst);
        data->r1++, data->bitmap_ptr += (vb * data->image_width - hb * nc1) * 3)
     for (c1 = 0;  c1 < nc1 && (!data->dri || rst);
