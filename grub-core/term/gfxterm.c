@@ -232,6 +232,15 @@ grub_virtual_screen_setup (unsigned int x, unsigned int y,
   virtual_screen.columns = virtual_screen.width / virtual_screen.normal_char_width;
   virtual_screen.rows = virtual_screen.height / virtual_screen.normal_char_height;
 
+  /*
+   * There must be a minimum number of rows and columns for the screen to
+   * make sense. Arbitrarily pick half of 80x24. If either dimensions is 0
+   * we would allocate 0 bytes for the text_buffer.
+   */
+  if (virtual_screen.columns < 40 || virtual_screen.rows < 12)
+    return grub_error (GRUB_ERR_BAD_FONT,
+		       "font: glyphs too large to fit on screen");
+
   /* Allocate memory for text buffer.  */
   virtual_screen.text_buffer =
     (struct grub_colored_char *) grub_malloc (virtual_screen.columns
