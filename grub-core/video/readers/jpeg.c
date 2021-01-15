@@ -333,7 +333,11 @@ grub_jpeg_decode_sof (struct grub_jpeg_data *data)
       else if (ss != JPEG_SAMPLING_1x1)
 	return grub_error (GRUB_ERR_BAD_FILE_TYPE,
 			   "jpeg: sampling method not supported");
+
       data->comp_index[id][0] = grub_jpeg_get_byte (data);
+      if (data->comp_index[id][0] > 1)
+	return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			   "jpeg: too many quantization tables");
     }
 
   if (data->file->offset != next_marker)
@@ -602,6 +606,10 @@ grub_jpeg_decode_sos (struct grub_jpeg_data *data)
       ht = grub_jpeg_get_byte (data);
       data->comp_index[id][1] = (ht >> 4);
       data->comp_index[id][2] = (ht & 0xF) + 2;
+
+      if ((data->comp_index[id][1] < 0) || (data->comp_index[id][1] > 3) ||
+	  (data->comp_index[id][2] < 0) || (data->comp_index[id][2] > 3))
+	return grub_error (GRUB_ERR_BAD_FILE_TYPE, "jpeg: invalid hufftable index");
     }
 
   grub_jpeg_get_byte (data);	/* Skip 3 unused bytes.  */
