@@ -1083,6 +1083,9 @@ grub_btrfs_read_logical (struct grub_btrfs_data *data, grub_disk_addr_t addr,
 	       * stripen is computed without the parities
 	       * (0 for A0, A1, A2, 1 for B0, B1, B2, etc.).
 	       */
+	      if (nparities >= nstripes)
+		return grub_error (GRUB_ERR_BAD_FS,
+				   "invalid RAID5/6: nparities >= nstripes");
 	      high = grub_divmod64 (stripe_nr, nstripes - nparities, &stripen);
 
 	      /*
