@@ -362,6 +362,18 @@ grub_fshelp_read_file (grub_disk_t disk, grub_fshelp_node_t node,
   grub_disk_addr_t i, blockcnt;
   int blocksize = 1 << (log2blocksize + GRUB_DISK_SECTOR_BITS);
 
+  /*
+   * Catch blatantly invalid log2blocksize. We could be a lot stricter, but
+   * this is the most permissive we can be before we start to see integer
+   * overflow/underflow issues.
+   */
+  if (log2blocksize + GRUB_DISK_SECTOR_BITS >= 31)
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE,
+		  N_("blocksize too large"));
+      return -1;
+    }
+
   if (pos > filesize)
     {
       grub_error (GRUB_ERR_OUT_OF_RANGE,
