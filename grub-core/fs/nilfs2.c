@@ -433,7 +433,7 @@ grub_nilfs2_btree_node_lookup (struct grub_nilfs2_data *data,
 			       grub_uint64_t key, int *indexp)
 {
   grub_uint64_t nkey;
-  int index, low, high, s;
+  int index = 0, low, high, s;
 
   low = 0;
 
@@ -441,10 +441,10 @@ grub_nilfs2_btree_node_lookup (struct grub_nilfs2_data *data,
   if (high >= grub_nilfs2_btree_node_nchildren_max (data, node))
     {
       grub_error (GRUB_ERR_BAD_FS, "too many children");
+      *indexp = index;
       return 0;
     }
 
-  index = 0;
   s = 0;
   while (low <= high)
     {
@@ -526,6 +526,10 @@ grub_nilfs2_btree_lookup (struct grub_nilfs2_data *data,
   level = grub_nilfs2_btree_get_level (node);
 
   found = grub_nilfs2_btree_node_lookup (data, node, key, &index);
+
+  if (grub_errno != GRUB_ERR_NONE)
+    goto fail;
+
   ptr = grub_nilfs2_btree_node_get_ptr (data, node, index);
   if (need_translate)
     ptr = grub_nilfs2_dat_translate (data, ptr);
@@ -550,7 +554,8 @@ grub_nilfs2_btree_lookup (struct grub_nilfs2_data *data,
       else
 	index = 0;
 
-      if (index < grub_nilfs2_btree_node_nchildren_max (data, node))
+      if (index < grub_nilfs2_btree_node_nchildren_max (data, node) &&
+	  grub_errno == GRUB_ERR_NONE)
 	{
 	  ptr = grub_nilfs2_btree_node_get_ptr (data, node, index);
 	  if (need_translate)
