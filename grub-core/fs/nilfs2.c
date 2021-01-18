@@ -569,6 +569,11 @@ grub_nilfs2_btree_lookup (struct grub_nilfs2_data *data,
 static inline grub_uint64_t
 grub_nilfs2_direct_lookup (struct grub_nilfs2_inode *inode, grub_uint64_t key)
 {
+  if (1 + key > 6)
+    {
+      grub_error (GRUB_ERR_BAD_FS, "key is too large");
+      return 0xffffffffffffffff;
+    }
   return grub_le_to_cpu64 (inode->i_bmap[1 + key]);
 }
 
@@ -584,7 +589,7 @@ grub_nilfs2_bmap_lookup (struct grub_nilfs2_data *data,
     {
       grub_uint64_t ptr;
       ptr = grub_nilfs2_direct_lookup (inode, key);
-      if (need_translate)
+      if (ptr != ((grub_uint64_t) 0xffffffffffffffff) && need_translate)
 	ptr = grub_nilfs2_dat_translate (data, ptr);
       return ptr;
     }
