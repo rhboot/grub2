@@ -304,7 +304,16 @@ getblk (struct grub_jfs_treehead *treehead,
 			   << (grub_le_to_cpu16 (data->sblock.log2_blksz)
 			       - GRUB_DISK_SECTOR_BITS), 0,
 			   sizeof (*tree), (char *) tree))
-	ret = getblk (&tree->treehead, &tree->extents[0], 254, data, blk);
+	{
+	  if (grub_memcmp (&tree->treehead, treehead, sizeof (struct grub_jfs_treehead)) ||
+	      grub_memcmp (&tree->extents, extents, 254 * sizeof (struct grub_jfs_tree_extent)))
+	    ret = getblk (&tree->treehead, &tree->extents[0], 254, data, blk);
+	  else
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "jfs: infinite recursion detected");
+	      ret = -1;
+	    }
+	}
       grub_free (tree);
       return ret;
     }
