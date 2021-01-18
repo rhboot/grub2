@@ -416,14 +416,34 @@ grub_nilfs2_btree_node_get_key (struct grub_nilfs2_btree_node *node,
 }
 
 static inline int
-grub_nilfs2_btree_node_lookup (struct grub_nilfs2_btree_node *node,
+grub_nilfs2_btree_node_nchildren_max (struct grub_nilfs2_data *data,
+				      struct grub_nilfs2_btree_node *node)
+{
+  int node_children_max = ((NILFS2_BLOCK_SIZE (data) -
+			    sizeof (struct grub_nilfs2_btree_node) -
+			    NILFS_BTREE_NODE_EXTRA_PAD_SIZE) /
+			   (sizeof (grub_uint64_t) + sizeof (grub_uint64_t)));
+
+  return (node->bn_flags & NILFS_BTREE_NODE_ROOT) ? 3 : node_children_max;
+}
+
+static inline int
+grub_nilfs2_btree_node_lookup (struct grub_nilfs2_data *data,
+			       struct grub_nilfs2_btree_node *node,
 			       grub_uint64_t key, int *indexp)
 {
   grub_uint64_t nkey;
   int index, low, high, s;
 
   low = 0;
+
   high = grub_le_to_cpu16 (node->bn_nchildren) - 1;
+  if (high >= grub_nilfs2_btree_node_nchildren_max (data, node))
+    {
+      grub_error (GRUB_ERR_BAD_FS, "too many children");
+      return 0;
+    }
+
   index = 0;
   s = 0;
   while (low <= high)
@@ -457,18 +477,6 @@ grub_nilfs2_btree_node_lookup (struct grub_nilfs2_btree_node *node,
 
   *indexp = index;
   return s == 0;
-}
-
-static inline int
-grub_nilfs2_btree_node_nchildren_max (struct grub_nilfs2_data *data,
-				      struct grub_nilfs2_btree_node *node)
-{
-  int node_children_max = ((NILFS2_BLOCK_SIZE (data) -
-			    sizeof (struct grub_nilfs2_btree_node) -
-			    NILFS_BTREE_NODE_EXTRA_PAD_SIZE) /
-			   (sizeof (grub_uint64_t) + sizeof (grub_uint64_t)));
-
-  return (node->bn_flags & NILFS_BTREE_NODE_ROOT) ? 3 : node_children_max;
 }
 
 static inline grub_uint64_t *
@@ -517,7 +525,7 @@ grub_nilfs2_btree_lookup (struct grub_nilfs2_data *data,
   node = grub_nilfs2_btree_get_root (inode);
   level = grub_nilfs2_btree_get_level (node);
 
-  found = grub_nilfs2_btree_node_lookup (node, key, &index);
+  found = grub_nilfs2_btree_node_lookup (data, node, key, &index);
   ptr = grub_nilfs2_btree_node_get_ptr (data, node, index);
   if (need_translate)
     ptr = grub_nilfs2_dat_translate (data, ptr);
@@ -538,7 +546,7 @@ grub_nilfs2_btree_lookup (struct grub_nilfs2_data *data,
 	}
 
       if (!found)
-	found = grub_nilfs2_btree_node_lookup (node, key, &index);
+	found = grub_nilfs2_btree_node_lookup (data, node, key, &index);
       else
 	index = 0;
 
