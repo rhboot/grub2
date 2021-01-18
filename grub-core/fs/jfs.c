@@ -563,7 +563,7 @@ grub_jfs_getent (struct grub_jfs_diropen *diro)
 
   /* Move down to the leaf level.  */
   nextent = leaf->next;
-  if (leaf->next != 255)
+  if (leaf->next != 255 && len > 0)
     do
       {
  	next_leaf = &diro->next_leaf[nextent];
