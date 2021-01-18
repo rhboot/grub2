@@ -383,9 +383,9 @@ next (struct grub_btrfs_data *data,
 
       err = grub_btrfs_read_logical (data, grub_le_to_cpu64 (node.addr),
 				     &head, sizeof (head), 0);
-      check_btrfs_header (data, &head, grub_le_to_cpu64 (node.addr));
       if (err)
 	return -err;
+      check_btrfs_header (data, &head, grub_le_to_cpu64 (node.addr));
 
       save_ref (desc, grub_le_to_cpu64 (node.addr), 0,
 		grub_le_to_cpu32 (head.nitems), !head.level);
@@ -445,9 +445,9 @@ lower_bound (struct grub_btrfs_data *data,
       /* FIXME: preread few nodes into buffer. */
       err = grub_btrfs_read_logical (data, addr, &head, sizeof (head),
 				     recursion_depth + 1);
-      check_btrfs_header (data, &head, addr);
       if (err)
 	return err;
+      check_btrfs_header (data, &head, addr);
       addr += sizeof (head);
       if (head.level)
 	{
