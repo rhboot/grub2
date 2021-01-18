@@ -373,6 +373,7 @@ grub_sfs_mount (grub_disk_t disk)
   struct grub_sfs_objc *rootobjc;
   char *rootobjc_data = 0;
   grub_uint32_t blk;
+  unsigned int max_len;
 
   data = grub_malloc (sizeof (*data));
   if (!data)
@@ -421,7 +422,13 @@ grub_sfs_mount (grub_disk_t disk)
   data->diropen.data = data;
   data->diropen.cache = 0;
   data->disk = disk;
-  data->label = grub_strdup ((char *) (rootobjc->objects[0].filename));
+
+  /* We only read 1 block of data, so truncate the name if needed. */
+  max_len = ((GRUB_DISK_SECTOR_SIZE << data->log_blocksize)
+	     - 24    /* offsetof (struct grub_sfs_objc, objects) */
+	     - 25);  /* offsetof (struct grub_sfs_obj, filename) */
+  data->label = grub_zalloc (max_len + 1);
+  grub_strncpy (data->label, (char *) rootobjc->objects[0].filename, max_len);
 
   grub_free (rootobjc_data);
   return data;
