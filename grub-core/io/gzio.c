@@ -941,7 +941,7 @@ init_dynamic_block (grub_gzio_t gzio)
 	  if ((unsigned) i + j > n)
 	    {
 	      grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "too many codes found");
-	      return;
+	      goto fail;
 	    }
 	  while (j--)
 	    ll[i++] = l;
@@ -954,7 +954,7 @@ init_dynamic_block (grub_gzio_t gzio)
 	  if ((unsigned) i + j > n)
 	    {
 	      grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "too many codes found");
-	      return;
+	      goto fail;
 	    }
 	  while (j--)
 	    ll[i++] = 0;
@@ -969,7 +969,7 @@ init_dynamic_block (grub_gzio_t gzio)
 	  if ((unsigned) i + j > n)
 	    {
 	      grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "too many codes found");
-	      return;
+	      goto fail;
 	    }
 	  while (j--)
 	    ll[i++] = 0;
@@ -1007,6 +1007,12 @@ init_dynamic_block (grub_gzio_t gzio)
   /* indicate we're now working on a block */
   gzio->code_state = 0;
   gzio->block_len++;
+  return;
+
+ fail:
+  huft_free (gzio->tl);
+  gzio->td = NULL;
+  gzio->tl = NULL;
 }
 
 
