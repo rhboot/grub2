@@ -409,6 +409,8 @@ grub_lvm_detect (grub_disk_t disk,
 	      goto fail4;
 	    }
 	}
+      else
+        goto fail4;
 
       p = grub_strstr (p, "logical_volumes {");
       if (p)
