@@ -215,6 +215,16 @@ grub_lvm_detect (grub_disk_t disk,
   if (grub_le_to_cpu64 (rlocn->offset) + grub_le_to_cpu64 (rlocn->size) >
       grub_le_to_cpu64 (mdah->size))
     {
+      if (2 * mda_size < GRUB_LVM_MDA_HEADER_SIZE ||
+          (grub_le_to_cpu64 (rlocn->offset) + grub_le_to_cpu64 (rlocn->size) -
+	   grub_le_to_cpu64 (mdah->size) > mda_size - GRUB_LVM_MDA_HEADER_SIZE))
+	{
+#ifdef GRUB_UTIL
+	  grub_util_info ("cannot copy metadata wrap in circular buffer");
+#endif
+	  goto fail2;
+	}
+
       /* Metadata is circular. Copy the wrap in place. */
       grub_memcpy (metadatabuf + mda_size,
 		   metadatabuf + GRUB_LVM_MDA_HEADER_SIZE,
