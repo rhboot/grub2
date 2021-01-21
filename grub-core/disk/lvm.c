@@ -142,6 +142,20 @@ grub_lvm_detect (grub_disk_t disk,
       goto fail;
     }
 
+  /*
+   * We read a grub_lvm_pv_header and then 2 grub_lvm_disk_locns that
+   * immediately follow the PV header. Make sure we have space for both.
+   */
+  if (grub_le_to_cpu32 (lh->offset_xl) >=
+      GRUB_LVM_LABEL_SIZE - sizeof (struct grub_lvm_pv_header) -
+      2 * sizeof (struct grub_lvm_disk_locn))
+    {
+#ifdef GRUB_UTIL
+      grub_util_info ("LVM PV header/disk locations are beyond the end of the block");
+#endif
+      goto fail;
+    }
+
   pvh = (struct grub_lvm_pv_header *) (buf + grub_le_to_cpu32(lh->offset_xl));
 
   for (i = 0, j = 0; i < GRUB_LVM_ID_LEN; i++)
