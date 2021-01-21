@@ -578,7 +578,16 @@ grub_lvm_detect (grub_disk_t disk,
 			}
 
 		      if (seg->node_count != 1)
-			seg->stripe_size = grub_lvm_getvalue (&p, "stripe_size = ");
+			{
+			  seg->stripe_size = grub_lvm_getvalue (&p, "stripe_size = ");
+			  if (p == NULL)
+			    {
+#ifdef GRUB_UTIL
+			      grub_util_info ("unknown stripe_size");
+#endif
+			      goto lvs_segment_fail;
+			    }
+			}
 
 		      seg->nodes = grub_calloc (seg->node_count,
 						sizeof (*stripe));
@@ -598,7 +607,7 @@ grub_lvm_detect (grub_disk_t disk,
 			{
 			  p = grub_strchr (p, '"');
 			  if (p == NULL)
-			    continue;
+			    goto lvs_segment_fail2;
 			  q = ++p;
 			  while (*q != '"')
 			    q++;
@@ -617,7 +626,10 @@ grub_lvm_detect (grub_disk_t disk,
 			  stripe->start = grub_lvm_getvalue (&p, ",")
 			    * vg->extent_size;
 			  if (p == NULL)
-			    continue;
+			    {
+			      grub_free (stripe->name);
+			      goto lvs_segment_fail2;
+			    }
 
 			  stripe++;
 			}
@@ -654,7 +666,7 @@ grub_lvm_detect (grub_disk_t disk,
 
 			  p = grub_strchr (p, '"');
 			  if (p == NULL)
-			    continue;
+			    goto lvs_segment_fail2;
 			  q = ++p;
 			  while (*q != '"')
 			    q++;
@@ -742,7 +754,7 @@ grub_lvm_detect (grub_disk_t disk,
 			  p = p ? grub_strchr (p + 1, '"') : 0;
 			  p = p ? grub_strchr (p + 1, '"') : 0;
 			  if (p == NULL)
-			    continue;
+			    goto lvs_segment_fail2;
 			  q = ++p;
 			  while (*q != '"')
 			    q++;
