@@ -1010,6 +1010,7 @@ init_dynamic_block (grub_gzio_t gzio)
   gzio->bl = lbits;
   if (huft_build (ll, nl, 257, cplens, cplext, &gzio->tl, &gzio->bl) != 0)
     {
+      gzio->tl = 0;
       grub_error (GRUB_ERR_BAD_COMPRESSED_DATA,
 		  "failed in building a Huffman code table");
       return;
@@ -1019,6 +1020,7 @@ init_dynamic_block (grub_gzio_t gzio)
     {
       huft_free (gzio->tl);
       gzio->tl = 0;
+      gzio->td = 0;
       grub_error (GRUB_ERR_BAD_COMPRESSED_DATA,
 		  "failed in building a Huffman code table");
       return;
