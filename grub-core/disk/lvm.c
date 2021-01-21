@@ -352,16 +352,22 @@ grub_lvm_detect (grub_disk_t disk,
 	  while (1)
 	    {
 	      grub_ssize_t s;
-	      while (grub_isspace (*p))
+	      while (grub_isspace (*p) && p < mda_end)
 		p++;
+
+	      if (p == mda_end)
+		goto fail4;
 
 	      if (*p == '}')
 		break;
 
 	      pv = grub_zalloc (sizeof (*pv));
 	      q = p;
-	      while (*q != ' ')
+	      while (*q != ' ' && q < mda_end)
 		q++;
+
+	      if (q == mda_end)
+		goto pvs_fail_noname;
 
 	      s = q - p;
 	      pv->name = grub_malloc (s + 1);
@@ -405,6 +411,7 @@ grub_lvm_detect (grub_disk_t disk,
 	      continue;
 	    pvs_fail:
 	      grub_free (pv->name);
+	    pvs_fail_noname:
 	      grub_free (pv);
 	      goto fail4;
 	    }
@@ -426,8 +433,11 @@ grub_lvm_detect (grub_disk_t disk,
 	      struct grub_diskfilter_segment *seg;
 	      int is_pvmove;
 
-	      while (grub_isspace (*p))
+	      while (grub_isspace (*p) && p < mda_end)
 		p++;
+
+	      if (p == mda_end)
+		goto fail4;
 
 	      if (*p == '}')
 		break;
@@ -435,8 +445,11 @@ grub_lvm_detect (grub_disk_t disk,
 	      lv = grub_zalloc (sizeof (*lv));
 
 	      q = p;
-	      while (*q != ' ')
+	      while (*q != ' ' && q < mda_end)
 		q++;
+
+	      if (q == mda_end)
+		goto lvs_fail;
 
 	      s = q - p;
 	      lv->name = grub_strndup (p, s);
@@ -609,8 +622,11 @@ grub_lvm_detect (grub_disk_t disk,
 			  if (p == NULL)
 			    goto lvs_segment_fail2;
 			  q = ++p;
-			  while (*q != '"')
+			  while (q < mda_end && *q != '"')
 			    q++;
+
+			  if (q == mda_end)
+			    goto lvs_segment_fail2;
 
 			  s = q - p;
 
@@ -668,8 +684,11 @@ grub_lvm_detect (grub_disk_t disk,
 			  if (p == NULL)
 			    goto lvs_segment_fail2;
 			  q = ++p;
-			  while (*q != '"')
+			  while (q < mda_end && *q != '"')
 			    q++;
+
+			  if (q == mda_end)
+			    goto lvs_segment_fail2;
 
 			  s = q - p;
 
@@ -826,6 +845,8 @@ grub_lvm_detect (grub_disk_t disk,
 			goto cache_lv_fail;
 
 		      p3 = ++p2;
+		      if (p3 == mda_end)
+			goto cache_lv_fail;
 		      p3 = grub_strchr (p3, '"');
 		      if (!p3)
 			goto cache_lv_fail;
@@ -847,6 +868,8 @@ grub_lvm_detect (grub_disk_t disk,
 			goto cache_lv_fail;
 
 		      p3 = ++p2;
+		      if (p3 == mda_end)
+			goto cache_lv_fail;
 		      p3 = grub_strchr (p3, '"');
 		      if (!p3)
 			goto cache_lv_fail;
