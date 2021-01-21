@@ -371,6 +371,8 @@ error_parsing_metadata:
 	      goto fail4;
 	    }
 	}
+      else
+        goto fail4;
 
       p = grub_strstr (p, "logical_volumes {");
       if (p)
