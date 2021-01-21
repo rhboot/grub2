@@ -311,10 +311,10 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	case GRUB_CRYPTODISK_MODE_CBC:
 	  if (do_encrypt)
 	    err = grub_crypto_cbc_encrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size), iv);
+					   ((grub_size_t) 1 << dev->log_sector_size), iv);
 	  else
 	    err = grub_crypto_cbc_decrypt (dev->cipher, data + i, data + i,
-					   (1U << dev->log_sector_size), iv);
+					   ((grub_size_t) 1 << dev->log_sector_size), iv);
 	  if (err)
 	    return err;
 	  break;
@@ -322,10 +322,10 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	case GRUB_CRYPTODISK_MODE_PCBC:
 	  if (do_encrypt)
 	    err = grub_crypto_pcbc_encrypt (dev->cipher, data + i, data + i,
-					    (1U << dev->log_sector_size), iv);
+					    ((grub_size_t) 1 << dev->log_sector_size), iv);
 	  else
 	    err = grub_crypto_pcbc_decrypt (dev->cipher, data + i, data + i,
-					    (1U << dev->log_sector_size), iv);
+					    ((grub_size_t) 1 << dev->log_sector_size), iv);
 	  if (err)
 	    return err;
 	  break;
