@@ -507,6 +507,7 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
     }
 
   /* Make a table of values in order of bit lengths */
+  grub_memset (v, N_MAX, ARRAY_SIZE (v));
   p = b;
   i = 0;
   do
@@ -588,10 +589,17 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
 	      r.v.n = (ush) (*p);	/* simple code is just the value */
 	      p++;		/* one compiler does not like *p++ */
 	    }
-	  else
+	  else if (*p < N_MAX)
 	    {
 	      r.e = (uch) e[*p - s];	/* non-simple--look up in lists */
 	      r.v.n = d[*p++ - s];
+	    }
+	  else
+	    {
+	      /* Detected an uninitialised value, abort. */
+	      if (h)
+		huft_free (u[0]);
+	      return 2;
 	    }
 
 	  /* fill code-like entries with r */
