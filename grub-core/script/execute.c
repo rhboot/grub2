@@ -658,6 +658,9 @@ grub_script_arglist_to_argv (struct grub_script_arglist *arglist,
   struct grub_script_arg *arg = 0;
   struct grub_script_argv result = { 0, 0, 0 };
 
+  if (arglist == NULL)
+    return 1;
+
   for (; arglist && arglist->arg; arglist = arglist->next)
     {
       if (grub_script_argv_next (&result))
