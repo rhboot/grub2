@@ -146,6 +146,7 @@ grub_parser_split_cmdline (const char *cmdline,
   int i;
 
   *argc = 0;
+  *argv = NULL;
   do
     {
       if (!rd || !*rd)
@@ -206,6 +207,10 @@ grub_parser_split_cmdline (const char *cmdline,
       *(bp++) = '\0';
       (*argc)++;
     }
+
+  /* If there are no args, then we're done. */
+  if (!*argc)
+    return 0;
 
   /* Reserve memory for the return values.  */
   args = grub_malloc (bp - buffer);
