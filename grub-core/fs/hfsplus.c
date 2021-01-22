@@ -635,6 +635,10 @@ grub_hfsplus_btree_search (struct grub_hfsplus_btree *btree,
 	      pointer = ((char *) currkey
 			 + grub_be_to_cpu16 (currkey->keylen)
 			 + 2);
+
+	      if ((char *) pointer > node + btree->nodesize - 2)
+		return grub_error (GRUB_ERR_BAD_FS, "HFS+ key beyond end of node");
+
 	      currnode = grub_be_to_cpu32 (grub_get_unaligned32 (pointer));
 	      match = 1;
 	    }
