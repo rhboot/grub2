@@ -212,6 +212,14 @@ grub_lvm_detect (grub_disk_t disk,
     }
 
   rlocn = mdah->raw_locns;
+  if (grub_le_to_cpu64 (rlocn->offset) >= grub_le_to_cpu64 (mda_size))
+    {
+#ifdef GRUB_UTIL
+      grub_util_info ("metadata offset is beyond end of metadata area");
+#endif
+      goto fail2;
+    }
+
   if (grub_le_to_cpu64 (rlocn->offset) + grub_le_to_cpu64 (rlocn->size) >
       grub_le_to_cpu64 (mdah->size))
     {
