@@ -239,7 +239,7 @@ setparams_prefix (int argc, char **args)
       len += 3; /* 3 = 1 space + 2 quotes */
       p = args[i];
       while (*p)
-	len += (*p++ == '\'' ? 3 : 1);
+	len += (*p++ == '\'' ? 4 : 1);
     }
 
   result = grub_malloc (len + 2);
