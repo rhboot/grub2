@@ -981,9 +981,13 @@ grub_lvm_detect (grub_disk_t disk,
 		    }
 		if (lv1->segments[i].nodes[j].pv == NULL)
 		  for (lv2 = vg->lvs; lv2; lv2 = lv2->next)
-		    if (grub_strcmp (lv2->name,
-				     lv1->segments[i].nodes[j].name) == 0)
-		      lv1->segments[i].nodes[j].lv = lv2;
+		    {
+		      if (lv1 == lv2)
+		        continue;
+		      if (grub_strcmp (lv2->name,
+				       lv1->segments[i].nodes[j].name) == 0)
+			lv1->segments[i].nodes[j].lv = lv2;
+		    }
 	      }
 	
       }
