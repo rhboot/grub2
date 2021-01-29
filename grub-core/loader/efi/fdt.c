@@ -25,6 +25,7 @@
 #include <grub/efi/efi.h>
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
+#include <grub/cpu/efi/memory.h>
 
 static void *loaded_fdt;
 static void *fdt;
@@ -60,7 +61,10 @@ grub_fdt_load (grub_size_t additional_size)
   size += additional_size;
 
   grub_dprintf ("linux", "allocating %d bytes for fdt\n", size);
-  fdt = grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (size));
+  fdt = grub_efi_allocate_pages_real (GRUB_EFI_MAX_USABLE_ADDRESS,
+				      GRUB_EFI_BYTES_TO_PAGES (size),
+				      GRUB_EFI_ALLOCATE_MAX_ADDRESS,
+				      GRUB_EFI_ACPI_RECLAIM_MEMORY);
   if (!fdt)
     return NULL;
 
