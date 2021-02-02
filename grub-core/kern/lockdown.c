@@ -18,6 +18,7 @@
  */
 
 #include <grub/dl.h>
+#include <grub/env.h>
 #include <grub/file.h>
 #include <grub/lockdown.h>
 
@@ -84,6 +85,9 @@ grub_lockdown (void)
 #if 0
   grub_verifier_register (&lockdown_verifier);
 #endif
+
+  grub_env_set ("lockdown", "y");
+  grub_env_export ("lockdown");
 }
 
 int

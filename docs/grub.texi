@@ -5985,6 +5985,9 @@ The GRUB can be locked down when booted on a secure boot environment, for exampl
 if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
 be restricted and some operations/commands cannot be executed.
 
+The @samp{lockdown} variable is set to @samp{y} when the GRUB is locked down.
+Otherwise it does not exit.
+
 @node Platform limitations
 @chapter Platform limitations
 
