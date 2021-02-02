@@ -113,6 +113,8 @@ struct grub_hfsplus_data
   struct grub_hfsplus_btree extoverflow_tree;
   struct grub_hfsplus_btree attr_tree;
 
+  int extoverflow_tree_ready;
+
   struct grub_hfsplus_file dirroot;
   struct grub_hfsplus_file opened_file;
 
