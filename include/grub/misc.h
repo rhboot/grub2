@@ -488,6 +488,22 @@ grub_error_load (const struct grub_error_saved *save)
   grub_errno = save->grub_errno;
 }
 
+/*
+ * grub_printf_fmt_checks() a fmt string for printf() against an expected
+ * format. It is intended for cases where the fmt string could come from
+ * an outside source and cannot be trusted.
+ *
+ * While expected fmt accepts a printf() format string it should be kept
+ * as simple as possible. The printf() format strings with positional
+ * parameters are NOT accepted, neither for fmt nor for fmt_expected.
+ *
+ * The fmt is accepted if it has equal or less arguments than fmt_expected
+ * and if the type of all arguments match.
+ *
+ * Returns GRUB_ERR_NONE if fmt is acceptable.
+ */
+grub_err_t EXPORT_FUNC (grub_printf_fmt_check) (const char *fmt, const char *fmt_expected);
+
 #if BOOT_TIME_STATS
 struct grub_boot_time
 {
