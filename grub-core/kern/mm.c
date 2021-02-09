@@ -594,7 +594,7 @@ grub_debug_calloc (const char *file, int line, grub_size_t nmemb, grub_size_t si
 
   if (grub_mm_debug)
     grub_printf ("%s:%d: calloc (0x%" PRIxGRUB_SIZE ", 0x%" PRIxGRUB_SIZE ") = ",
-		 file, line, size);
+		 file, line, nmemb, size);
   ptr = grub_calloc (nmemb, size);
   if (grub_mm_debug)
     grub_printf ("%p\n", ptr);
