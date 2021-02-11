@@ -1304,7 +1304,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    o->code_size = grub_host_to_target32 (layout.exec_size);
 	    o->data_size = grub_cpu_to_le32 (reloc_addr - layout.exec_size
 					     - header_size);
-	    o->bss_size = grub_cpu_to_le32 (layout.bss_size);
 	    o->entry_addr = grub_cpu_to_le32 (layout.start_address);
 	    o->code_base = grub_cpu_to_le32 (header_size);
 
@@ -1342,7 +1341,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    o->code_size = grub_host_to_target32 (layout.exec_size);
 	    o->data_size = grub_cpu_to_le32 (reloc_addr - layout.exec_size
 					     - header_size);
-	    o->bss_size = grub_cpu_to_le32 (layout.bss_size);
 	    o->entry_addr = grub_cpu_to_le32 (layout.start_address);
 	    o->code_base = grub_cpu_to_le32 (header_size);
 	    o->image_base = 0;
@@ -1387,21 +1385,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	  = grub_cpu_to_le32_compile_time (GRUB_PE32_SCN_CNT_INITIALIZED_DATA
 			      | GRUB_PE32_SCN_MEM_READ
 			      | GRUB_PE32_SCN_MEM_WRITE);
-
-#if 0
-	bss_section = data_section + 1;
-	strcpy (bss_section->name, ".bss");
-	bss_section->virtual_size = grub_cpu_to_le32 (layout.bss_size);
-	bss_section->virtual_address = grub_cpu_to_le32 (header_size + layout.kernel_size);
-	bss_section->raw_data_size = 0;
-	bss_section->raw_data_offset = 0;
-	bss_section->characteristics
-	  = grub_cpu_to_le32_compile_time (GRUB_PE32_SCN_MEM_READ
-			      | GRUB_PE32_SCN_MEM_WRITE
-			      | GRUB_PE32_SCN_ALIGN_64BYTES
-			      | GRUB_PE32_SCN_CNT_INITIALIZED_DATA
-			      | 0x80);
-#endif
     
 	mods_section = data_section + 1;
 	strcpy (mods_section->name, "mods");
