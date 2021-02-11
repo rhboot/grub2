@@ -20,7 +20,6 @@
 #include <grub/dl.h>
 #include <grub/env.h>
 #include <grub/net.h>
-#include <grub/net/url.h>
 #include <grub/time.h>
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>

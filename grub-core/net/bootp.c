@@ -24,7 +24,6 @@
 #include <grub/net/ip.h>
 #include <grub/net/netbuff.h>
 #include <grub/net/udp.h>
-#include <grub/net/url.h>
 #include <grub/datetime.h>
 #include <grub/time.h>
 #include <grub/list.h>
