@@ -37,7 +37,8 @@ union printf_arg
   enum
     {
       INT, LONG, LONGLONG,
-      UNSIGNED_INT = 3, UNSIGNED_LONG, UNSIGNED_LONGLONG
+      UNSIGNED_INT = 3, UNSIGNED_LONG, UNSIGNED_LONGLONG,
+      STRING
     } type;
   long long ll;
 };
@@ -857,11 +858,13 @@ parse_printf_arg_fmt (const char *fmt0, struct printf_args *args)
 	  args->ptr[curn].type = INT + longfmt;
 	  break;
 	case 'p':
-	case 's':
 	  if (sizeof (void *) == sizeof (long long))
 	    args->ptr[curn].type = UNSIGNED_LONGLONG;
 	  else
 	    args->ptr[curn].type = UNSIGNED_INT;
+	  break;
+	case 's':
+	  args->ptr[curn].type = STRING;
 	  break;
 	case 'C':
 	case 'c':
@@ -896,6 +899,12 @@ parse_printf_args (const char *fmt0, struct printf_args *args, va_list args_in)
       case LONGLONG:
       case UNSIGNED_LONGLONG:
 	args->ptr[n].ll = va_arg (args_in, long long);
+	break;
+      case STRING:
+	if (sizeof (void *) == sizeof (long long))
+	  args->ptr[n].ll = va_arg (args_in, long long);
+	else
+	  args->ptr[n].ll = va_arg (args_in, unsigned int);
 	break;
       }
 }
