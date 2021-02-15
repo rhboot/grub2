@@ -711,8 +711,7 @@ grub_lltoa (char *str, int c, unsigned long long n)
 }
 
 static void
-parse_printf_args (const char *fmt0, struct printf_args *args,
-		   va_list args_in)
+parse_printf_arg_fmt (const char *fmt0, struct printf_args *args)
 {
   const char *fmt;
   char c;
@@ -870,6 +869,14 @@ parse_printf_args (const char *fmt0, struct printf_args *args,
 	  break;
 	}
     }
+}
+
+static void
+parse_printf_args (const char *fmt0, struct printf_args *args, va_list args_in)
+{
+  grub_size_t n;
+
+  parse_printf_arg_fmt (fmt0, args);
 
   for (n = 0; n < args->count; n++)
     switch (args->ptr[n].type)
