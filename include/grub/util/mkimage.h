@@ -24,6 +24,7 @@ struct grub_mkimage_layout
   size_t exec_size;
   size_t kernel_size;
   size_t bss_size;
+  size_t sbat_size;
   grub_uint64_t start_address;
   void *reloc_section;
   size_t reloc_size;

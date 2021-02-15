@@ -5719,6 +5719,7 @@ environment variables and commands are listed in the same order.
 * Using GPG-style digital signatures:: Booting digitally signed code
 * Using appended signatures::          An alternative approach to booting digitally signed code
 * Signing GRUB itself::                Ensuring the integrity of the GRUB core image
+* Secure Boot Advanced Targeting::   Embedded information for generation number based revocation
 * Lockdown::                           Lockdown when booting on a secure setup
 @end menu
 
@@ -6009,6 +6010,24 @@ sign-file SHA256 grub.key certificate.der core.elf.unsigned core.elf.signed
 As with UEFI secure boot, it is necessary to build in the required modules,
 or sign them separately.
 
+
+@node Secure Boot Advanced Targeting
+@section Embedded information for generation number based revocation
+
+The Secure Boot Advanced Targeting (SBAT) is a mechanism to allow the revocation
+of components in the boot path by using generation numbers embedded into the EFI
+binaries. The SBAT metadata is located in an .sbat data section that has set of
+UTF-8 strings as comma-separated values (CSV). See
+@uref{https://github.com/rhboot/shim/blob/main/SBAT.md} for more details.
+
+To add a data section containing the SBAT information into the binary, the
+@option{--sbat} option of @command{grub-mkimage} command should be used. The content
+of a CSV file, encoded with UTF-8, is copied as is to the .sbat data section into
+the generated EFI binary. The CSV file can be stored anywhere on the file system.
+
+@example
+grub-mkimage -O x86_64-efi -o grubx64.efi -p '(tftp)/grub' --sbat sbat.csv efinet tftp
+@end example
 
 @node Lockdown
 @section Lockdown when booting on a secure setup
