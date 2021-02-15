@@ -536,7 +536,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
   grub_install_generate_image (dir, prefix, fp, outname,
 			       modules.entries, memdisk_path,
 			       pubkeys, npubkeys, config_path, tgt,
-			       note, compression, dtb);
+			       note, compression, dtb, NULL);
   while (dc--)
     grub_install_pop_module ();
 }

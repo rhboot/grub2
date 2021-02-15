@@ -5784,6 +5784,7 @@ environment variables and commands are listed in the same order.
 * Authentication and authorisation:: Users and access control
 * Using digital signatures::         Booting digitally signed code
 * UEFI secure boot and shim::        Booting digitally signed PE files
+* Secure Boot Advanced Targeting::   Embedded information for generation number based revocation
 * Measured Boot::                    Measuring boot components
 * Lockdown::                         Lockdown when booting on a secure setup
 @end menu
@@ -5957,6 +5958,24 @@ that can be used to subvert the UEFI secure boot mechanism, such as @command{ior
 and @command{memrw} will not be available when the UEFI secure boot is enabled.
 This is done for security reasons and are enforced by the GRUB Lockdown mechanism
 (@pxref{Lockdown}).
+
+@node Secure Boot Advanced Targeting
+@section Embedded information for generation number based revocation
+
+The Secure Boot Advanced Targeting (SBAT) is a mechanism to allow the revocation
+of components in the boot path by using generation numbers embedded into the EFI
+binaries. The SBAT metadata is located in an .sbat data section that has set of
+UTF-8 strings as comma-separated values (CSV). See
+@uref{https://github.com/rhboot/shim/blob/main/SBAT.md} for more details.
+
+To add a data section containing the SBAT information into the binary, the
+@option{--sbat} option of @command{grub-mkimage} command should be used. The content
+of a CSV file, encoded with UTF-8, is copied as is to the .sbat data section into
+the generated EFI binary. The CSV file can be stored anywhere on the file system.
+
+@example
+grub-mkimage -O x86_64-efi -o grubx64.efi -p '(tftp)/grub' --sbat sbat.csv efinet tftp
+@end example
 
 @node Measured Boot
 @section Measuring boot components
