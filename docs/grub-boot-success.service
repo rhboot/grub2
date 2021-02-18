@@ -4,3 +4,4 @@ Description=Mark boot as successful
 [Service]
 Type=oneshot
 ExecStart=/usr/sbin/grub2-set-bootflag boot_success
+KillMode=none
