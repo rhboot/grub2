@@ -444,6 +444,7 @@ tftp_close (struct grub_file *file)
       grub_net_udp_close (data->sock);
     }
   grub_free (data);
+  file->data = NULL;
   return GRUB_ERR_NONE;
 }
 
