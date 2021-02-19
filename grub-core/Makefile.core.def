@@ -197,6 +197,7 @@ kernel = {
   efi = term/efi/console.c;
   efi = kern/acpi.c;
   efi = kern/efi/acpi.c;
+  efi = kern/lockdown.c;
   efi = lib/envblk.c;
   efi = kern/efi/tpm.c;
   i386_coreboot = kern/i386/pc/acpi.c;

@@ -86,6 +86,11 @@ EXPORT_FUNC(grub_register_command_prio) (const char *name,
 					 const char *summary,
 					 const char *description,
 					 int prio);
+grub_command_t
+EXPORT_FUNC(grub_register_command_lockdown) (const char *name,
+                                             grub_command_func_t func,
+                                             const char *summary,
+                                             const char *description);
 void EXPORT_FUNC(grub_unregister_command) (grub_command_t cmd);
 
 static inline grub_command_t
