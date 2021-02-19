@@ -5687,6 +5687,7 @@ environment variables and commands are listed in the same order.
 * Using GPG-style digital signatures:: Booting digitally signed code
 * Using appended signatures::          An alternative approach to booting digitally signed code
 * Signing GRUB itself::                Ensuring the integrity of the GRUB core image
+* Lockdown::                           Lockdown when booting on a secure setup
 @end menu
 
 @node Authentication and authorisation
@@ -5976,6 +5977,13 @@ sign-file SHA256 grub.key certificate.der core.elf.unsigned core.elf.signed
 As with UEFI secure boot, it is necessary to build in the required modules,
 or sign them separately.
 
+
+@node Lockdown
+@section Lockdown when booting on a secure setup
+
+The GRUB can be locked down when booted on a secure boot environment, for example
+if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
+be restricted and some operations/commands cannot be executed.
 
 @node Platform limitations
 @chapter Platform limitations
