@@ -1330,12 +1330,41 @@ fi]
 
 CFLAGS="$TARGET_CFLAGS"
 
-# Smashing stack protector.
+# Stack smashing protector.
 grub_CHECK_STACK_PROTECTOR
-# Need that, because some distributions ship compilers that include
-# `-fstack-protector' in the default specs.
-if test "x$ssp_possible" = xyes; then
-  TARGET_CFLAGS="$TARGET_CFLAGS -fno-stack-protector"
+AC_ARG_ENABLE([stack-protector],
+	      AS_HELP_STRING([--enable-stack-protector],
+			     [enable the stack protector]),
+	      [],
+	      [enable_stack_protector=no])
+if test "x$enable_stack_protector" = xno; then
+  if test "x$ssp_possible" = xyes; then
+    # Need that, because some distributions ship compilers that include
+    # `-fstack-protector' in the default specs.
+    TARGET_CFLAGS="$TARGET_CFLAGS -fno-stack-protector"
+  fi
+elif test "x$platform" != xefi; then
+  AC_MSG_ERROR([--enable-stack-protector is only supported on EFI platforms])
+elif test "x$ssp_global_possible" != xyes; then
+  AC_MSG_ERROR([--enable-stack-protector is not supported (compiler doesn't support -mstack-protector-guard=global)])
+else
+  TARGET_CFLAGS="$TARGET_CFLAGS -mstack-protector-guard=global"
+  if test "x$enable_stack_protector" = xyes; then
+    if test "x$ssp_possible" != xyes; then
+      AC_MSG_ERROR([--enable-stack-protector is not supported (compiler doesn't support -fstack-protector)])
+    fi
+    TARGET_CFLAGS="$TARGET_CFLAGS -fstack-protector"
+  elif test "x$enable_stack_protector" = xstrong; then
+    if test "x$ssp_strong_possible" != xyes; then
+      AC_MSG_ERROR([--enable-stack-protector=strong is not supported (compiler doesn't support -fstack-protector-strong)])
+    fi
+    TARGET_CFLAGS="$TARGET_CFLAGS -fstack-protector-strong"
+  else
+    # Note, -fstack-protector-all requires that the protector is disabled for
+    # functions that appear in the call stack when the canary is initialized.
+    AC_MSG_ERROR([invalid value $enable_stack_protector for --enable-stack-protector])
+  fi
+  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -DGRUB_STACK_PROTECTOR=1"
 fi
 
 CFLAGS="$TARGET_CFLAGS"
@@ -2246,6 +2275,11 @@ if test x"$liblzma_excuse" != x ; then
 echo "Without liblzma (no support for XZ-compressed mips images) ($liblzma_excuse)"
 else
 echo "With liblzma from $LIBLZMA (support for XZ-compressed mips images)"
+fi
+if test "x$enable_stack_protector" != xno; then
+echo "With stack smashing protector: Yes"
+else
+echo "With stack smashing protector: No"
 fi
 echo "*******************************************************"
 ]
