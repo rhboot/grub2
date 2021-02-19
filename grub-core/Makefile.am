@@ -92,6 +92,7 @@ endif
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/mm.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/parser.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/partition.h
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/stack_protector.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/term.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/time.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/mm_private.h
