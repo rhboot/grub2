@@ -19,6 +19,7 @@
 
 #include <grub/mm.h>
 #include <grub/list.h>
+#include <grub/lockdown.h>
 #include <grub/misc.h>
 #include <grub/extcmd.h>
 #include <grub/script_sh.h>
@@ -108,6 +109,28 @@ grub_register_extcmd (const char *name, grub_extcmd_func_t func,
 {
   return grub_register_extcmd_prio (name, func, flags,
 				    summary, description, parser, 1);
+}
+
+static grub_err_t
+grub_extcmd_lockdown (grub_extcmd_context_t ctxt __attribute__ ((unused)),
+                      int argc __attribute__ ((unused)),
+                      char **argv __attribute__ ((unused)))
+{
+  return grub_error (GRUB_ERR_ACCESS_DENIED,
+                     N_("%s: the command is not allowed when lockdown is enforced"),
+                     ctxt->extcmd->cmd->name);
+}
+
+grub_extcmd_t
+grub_register_extcmd_lockdown (const char *name, grub_extcmd_func_t func,
+                               grub_command_flags_t flags, const char *summary,
+                               const char *description,
+                               const struct grub_arg_option *parser)
+{
+  if (grub_is_lockdown () == GRUB_LOCKDOWN_ENABLED)
+    func = grub_extcmd_lockdown;
+
+  return grub_register_extcmd (name, func, flags, summary, description, parser);
 }
 
 void
