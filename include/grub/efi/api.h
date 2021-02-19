@@ -344,6 +344,11 @@
       { 0x89, 0x29, 0x48, 0xbc, 0xd9, 0x0a, 0xd3, 0x1a } \
   }
 
+#define GRUB_EFI_RNG_PROTOCOL_GUID \
+  { 0x3152bca5, 0xeade, 0x433d, \
+    { 0x86, 0x2e, 0xc0, 0x1c, 0xdc, 0x29, 0x1f, 0x44 } \
+  }
+
 struct grub_efi_sal_system_table
 {
   grub_uint32_t signature;
@@ -2066,6 +2071,20 @@ struct grub_efi_ip6_config_manual_address {
   grub_efi_uint8_t prefix_length;
 };
 typedef struct grub_efi_ip6_config_manual_address grub_efi_ip6_config_manual_address_t;
+
+typedef grub_efi_guid_t grub_efi_rng_algorithm_t;
+
+struct grub_efi_rng_protocol
+{
+  grub_efi_status_t (*get_info) (struct grub_efi_rng_protocol *this,
+				 grub_efi_uintn_t *rng_algorithm_list_size,
+				 grub_efi_rng_algorithm_t *rng_algorithm_list);
+  grub_efi_status_t (*get_rng) (struct grub_efi_rng_protocol *this,
+				grub_efi_rng_algorithm_t *rng_algorithm,
+				grub_efi_uintn_t rng_value_length,
+				grub_efi_uint8_t *rng_value);
+};
+typedef struct grub_efi_rng_protocol grub_efi_rng_protocol_t;
 
 #if (GRUB_TARGET_SIZEOF_VOID_P == 4) || defined (__ia64__) \
   || defined (__aarch64__) || defined (__MINGW64__) || defined (__CYGWIN__)
