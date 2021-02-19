@@ -84,6 +84,7 @@ This edition documents version @value{VERSION}.
 * Video Subsystem::
 * PFF2 Font File Format::
 * Graphical Menu Software Design::
+* Lockdown framework::
 * Copying This Manual::         Copying This Manual
 * Index::
 @end menu
@@ -1948,6 +1949,32 @@ graphics mode.  It's possible that making @code{grub_video_restore()} return to
 the graphics mode that was in use before @code{grub_video_setup()} was called
 might fix some of the problems.
 
+
+@node Lockdown framework
+@chapter Lockdown framework
+
+The GRUB can be locked down, which is a restricted mode where some operations
+are not allowed. For instance, some commands cannot be used when the GRUB is
+locked down.
+
+The function
+@code{grub_lockdown()} is used to lockdown GRUB and the function
+@code{grub_is_lockdown()} function can be used to check whether lockdown is
+enabled or not. When enabled, the function returns @samp{GRUB_LOCKDOWN_ENABLED}
+and @samp{GRUB_LOCKDOWN_DISABLED} when is not enabled.
+
+The following functions can be used to register the commands that can only be
+used when lockdown is disabled:
+
+@itemize
+
+@item @code{grub_cmd_lockdown()} registers command which should not run when the
+GRUB is in lockdown mode.
+
+@item @code{grub_cmd_lockdown()} registers extended command which should not run
+when the GRUB is in lockdown mode.
+
+@end itemize
 
 @node Copying This Manual
 @appendix Copying This Manual
