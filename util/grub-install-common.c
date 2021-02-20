@@ -333,6 +333,7 @@ handle_install_list (struct install_list *il, const char *val,
 static char **pubkeys;
 static size_t npubkeys;
 static char *sbat;
+static int disable_shim_lock;
 static grub_compression_t compression;
 
 int
@@ -368,6 +369,9 @@ grub_install_parse (int key, char *arg)
 	free (sbat);
 
       sbat = xstrdup (arg);
+      return 1;
+    case GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK:
+      disable_shim_lock = 1;
       return 1;
 
     case GRUB_INSTALL_OPTIONS_VERBOSITY:
@@ -531,10 +535,11 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 		  " --output '%s' "
 		  " --dtb '%s' "
 		  "--sbat '%s' "
-		  "--format '%s' --compression '%s' %s %s\n",
+		  "--format '%s' --compression '%s' %s %s %s\n",
 		  dir, prefix,
 		  outname, dtb ? : "", sbat ? : "", mkimage_target,
-		  compnames[compression], note ? "--note" : "", s);
+		  compnames[compression], note ? "--note" : "",
+		  disable_shim_lock ? "--disable-shim-lock" : "", s);
   free (s);
 
   tgt = grub_install_get_image_target (mkimage_target);
@@ -544,7 +549,8 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
   grub_install_generate_image (dir, prefix, fp, outname,
 			       modules.entries, memdisk_path,
 			       pubkeys, npubkeys, config_path, tgt,
-			       note, compression, dtb, sbat);
+			       note, compression, dtb, sbat,
+			       disable_shim_lock);
   while (dc--)
     grub_install_pop_module ();
 }

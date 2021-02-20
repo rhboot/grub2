@@ -21,9 +21,11 @@
 #include <grub/efi/efi.h>
 #include <grub/efi/pe32.h>
 #include <grub/efi/sb.h>
+#include <grub/env.h>
 #include <grub/err.h>
 #include <grub/file.h>
 #include <grub/i386/linux.h>
+#include <grub/kernel.h>
 #include <grub/mm.h>
 #include <grub/types.h>
 #include <grub/verify.h>
@@ -160,14 +162,27 @@ struct grub_file_verifier shim_lock_verifier =
 void
 grub_shim_lock_verifier_setup (void)
 {
+  struct grub_module_header *header;
   grub_efi_shim_lock_protocol_t *sl =
     grub_efi_locate_protocol (&shim_lock_guid, 0);
 
+  /* shim_lock is missing, check if GRUB image is built with --disable-shim-lock. */
   if (!sl)
-    return;
+    {
+      FOR_MODULES (header)
+	{
+	  if (header->type == OBJ_TYPE_DISABLE_SHIM_LOCK)
+	    return;
+	}
+    }
 
+  /* Secure Boot is off. Do not load shim_lock. */
   if (grub_efi_get_secureboot () != GRUB_EFI_SECUREBOOT_MODE_ENABLED)
     return;
 
+  /* Enforce shim_lock_verifier. */
   grub_verifier_register (&shim_lock_verifier);
+
+  grub_env_set ("shim_lock", "y");
+  grub_env_export ("shim_lock");
 }

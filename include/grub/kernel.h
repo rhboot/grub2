@@ -29,7 +29,8 @@ enum
   OBJ_TYPE_CONFIG,
   OBJ_TYPE_PREFIX,
   OBJ_TYPE_PUBKEY,
-  OBJ_TYPE_DTB
+  OBJ_TYPE_DTB,
+  OBJ_TYPE_DISABLE_SHIM_LOCK
 };
 
 /* The module header.  */

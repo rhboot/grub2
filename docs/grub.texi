@@ -5950,7 +5950,10 @@ secure boot chain.
 The GRUB, except the @command{chainloader} command, works with the UEFI secure
 boot and the shim. This functionality is provided by the shim_lock verifier. It
 is built into the @file{core.img} and is registered if the UEFI secure boot is
-enabled.
+enabled. The @samp{shim_lock} variable is set to @samp{y} when shim_lock verifier
+is registered. If it is desired to use UEFI secure boot without shim, one can
+disable shim_lock by disabling shim verification with MokSbState UEFI variable
+or by building grub image with @samp{--disable-shim-lock} option.
 
 All GRUB modules not stored in the @file{core.img}, OS kernels, ACPI tables,
 Device Trees, etc. have to be signed, e.g, using PGP. Additionally, the commands

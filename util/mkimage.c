@@ -870,7 +870,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     size_t npubkeys, char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     int note, grub_compression_t comp, const char *dtb_path,
-			     const char *sbat_path)
+			     const char *sbat_path, int disable_shim_lock)
 {
   char *kernel_img, *core_img;
   size_t total_module_size, core_size;
@@ -928,6 +928,9 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
   if (sbat_path != NULL && image_target->id != IMAGE_EFI)
     grub_util_error (_(".sbat section can be embedded into EFI images only"));
+
+  if (disable_shim_lock)
+    total_module_size += sizeof (struct grub_module_header);
 
   if (config_path)
     {
@@ -1063,6 +1066,16 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
       grub_util_load_image (dtb_path, kernel_img + offset);
       offset += dtb_size;
+    }
+
+  if (disable_shim_lock)
+    {
+      struct grub_module_header *header;
+
+      header = (struct grub_module_header *) (kernel_img + offset);
+      header->type = grub_host_to_target32 (OBJ_TYPE_DISABLE_SHIM_LOCK);
+      header->size = grub_host_to_target32 (sizeof (*header));
+      offset += sizeof (*header);
     }
 
   if (config_path)

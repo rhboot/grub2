@@ -82,6 +82,7 @@ static struct argp_option options[] = {
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
   {"compression",  'C', "(xz|none|auto)", 0, N_("choose the compression to use for core image"), 0},
   {"sbat", 's', N_("FILE"), 0, N_("SBAT metadata"), 0},
+  {"disable-shim-lock", GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK, 0, 0, N_("disable shim_lock verifier"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
@@ -126,6 +127,7 @@ struct arguments
   char *config;
   char *sbat;
   int note;
+  int disable_shim_lock;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
 };
@@ -233,6 +235,10 @@ argp_parser (int key, char *arg, struct argp_state *state)
       arguments->sbat = xstrdup (arg);
       break;
 
+    case GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK:
+      arguments->disable_shim_lock = 1;
+      break;
+
     case 'v':
       verbosity++;
       break;
@@ -319,7 +325,7 @@ main (int argc, char *argv[])
 			       arguments.npubkeys, arguments.config,
 			       arguments.image_target, arguments.note,
 			       arguments.comp, arguments.dtb,
-			       arguments.sbat);
+			       arguments.sbat, arguments.disable_shim_lock);
 
   if (grub_util_file_sync (fp) < 0)
     grub_util_error (_("cannot sync `%s': %s"), arguments.output ? : "stdout",
