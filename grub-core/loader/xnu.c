@@ -1489,20 +1489,23 @@ GRUB_MOD_INIT(xnu)
 				      N_("Load XNU image."));
   cmd_kernel64 = grub_register_command ("xnu_kernel64", grub_cmd_xnu_kernel64,
 					0, N_("Load 64-bit XNU image."));
-  cmd_mkext = grub_register_command ("xnu_mkext", grub_cmd_xnu_mkext, 0,
-				     N_("Load XNU extension package."));
-  cmd_kext = grub_register_command ("xnu_kext", grub_cmd_xnu_kext, 0,
-				    N_("Load XNU extension."));
-  cmd_kextdir = grub_register_command ("xnu_kextdir", grub_cmd_xnu_kextdir,
-				       /* TRANSLATORS: OSBundleRequired is a
-					  variable name in xnu extensions
-					  manifests. It behaves mostly like
-					  GNU/Linux runlevels.
-				       */
-				       N_("DIRECTORY [OSBundleRequired]"),
-				       /* TRANSLATORS: There are many extensions
-					  in extension directory.  */
-				       N_("Load XNU extension directory."));
+  cmd_mkext = grub_register_command_lockdown ("xnu_mkext", grub_cmd_xnu_mkext, 0,
+					      N_("Load XNU extension package."));
+  cmd_kext = grub_register_command_lockdown ("xnu_kext", grub_cmd_xnu_kext, 0,
+					     N_("Load XNU extension."));
+  cmd_kextdir = grub_register_command_lockdown ("xnu_kextdir", grub_cmd_xnu_kextdir,
+						/*
+						 * TRANSLATORS: OSBundleRequired is
+						 * a variable name in xnu extensions
+						 * manifests. It behaves mostly like
+						 * GNU/Linux runlevels.
+						 */
+						N_("DIRECTORY [OSBundleRequired]"),
+						/*
+						 * TRANSLATORS: There are many extensions
+						 * in extension directory.
+						 */
+						N_("Load XNU extension directory."));
   cmd_ramdisk = grub_register_command ("xnu_ramdisk", grub_cmd_xnu_ramdisk, 0,
    /* TRANSLATORS: ramdisk here isn't identifier. It can be translated.  */
 				       N_("Load XNU ramdisk. "
