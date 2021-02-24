@@ -436,9 +436,9 @@ static grub_extcmd_t cmd;
 
 GRUB_MOD_INIT(hdparm)
 {
-  cmd = grub_register_extcmd ("hdparm", grub_cmd_hdparm, 0,
-			      N_("[OPTIONS] DISK"),
-			      N_("Get/set ATA disk parameters."), options);
+  cmd = grub_register_extcmd_lockdown ("hdparm", grub_cmd_hdparm, 0,
+				       N_("[OPTIONS] DISK"),
+				       N_("Get/set ATA disk parameters."), options);
 }
 
 GRUB_MOD_FINI(hdparm)
