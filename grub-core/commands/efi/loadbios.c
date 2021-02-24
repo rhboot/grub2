@@ -205,14 +205,14 @@ static grub_command_t cmd_fakebios, cmd_loadbios;
 
 GRUB_MOD_INIT(loadbios)
 {
-  cmd_fakebios = grub_register_command ("fakebios", grub_cmd_fakebios,
-					0, N_("Create BIOS-like structures for"
-					      " backward compatibility with"
-					      " existing OS."));
+  cmd_fakebios = grub_register_command_lockdown ("fakebios", grub_cmd_fakebios,
+						 0, N_("Create BIOS-like structures for"
+						       " backward compatibility with"
+						       " existing OS."));
 
-  cmd_loadbios = grub_register_command ("loadbios", grub_cmd_loadbios,
-					N_("BIOS_DUMP [INT10_DUMP]"),
-					N_("Load BIOS dump."));
+  cmd_loadbios = grub_register_command_lockdown ("loadbios", grub_cmd_loadbios,
+						 N_("BIOS_DUMP [INT10_DUMP]"),
+						 N_("Load BIOS dump."));
 }
 
 GRUB_MOD_FINI(loadbios)
