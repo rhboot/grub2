@@ -167,8 +167,8 @@ static grub_command_t cmd_devicetree;
 GRUB_MOD_INIT (fdt)
 {
   cmd_devicetree =
-    grub_register_command ("devicetree", grub_cmd_devicetree, 0,
-			   N_("Load DTB file."));
+    grub_register_command_lockdown ("devicetree", grub_cmd_devicetree, 0,
+				    N_("Load DTB file."));
 }
 
 GRUB_MOD_FINI (fdt)
