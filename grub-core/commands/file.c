@@ -134,7 +134,8 @@ enum
   IS_IA_EFI,
   IS_ARM64_EFI,
   IS_ARM_EFI,
-  IS_RISCV_EFI,
+  IS_RISCV32_EFI,
+  IS_RISCV64_EFI,
   IS_HIBERNATED,
   IS_XNU64,
   IS_XNU32,
@@ -576,7 +577,8 @@ grub_cmd_file (grub_extcmd_context_t ctxt, int argc, char **args)
     case IS_IA_EFI:
     case IS_ARM64_EFI:
     case IS_ARM_EFI:
-    case IS_RISCV_EFI:
+    case IS_RISCV32_EFI:
+    case IS_RISCV64_EFI:
       {
 	char signature[4];
 	grub_uint32_t pe_offset;
@@ -622,13 +624,13 @@ grub_cmd_file (grub_extcmd_context_t ctxt, int argc, char **args)
 	    && coff_head.machine !=
 	    grub_cpu_to_le16_compile_time (GRUB_PE32_MACHINE_ARMTHUMB_MIXED))
 	  break;
-	if (type == IS_RISCV_EFI
+	if ((type == IS_RISCV32_EFI || type == IS_RISCV64_EFI)
 	    && coff_head.machine !=
 	    grub_cpu_to_le16_compile_time (GRUB_PE32_MACHINE_RISCV64))
           /* TODO: Determine bitness dynamically */
 	  break;
 	if (type == IS_IA_EFI || type == IS_64_EFI || type == IS_ARM64_EFI ||
-	    type == IS_RISCV_EFI)
+	    type == IS_RISCV32_EFI || type == IS_RISCV64_EFI)
 	  {
 	    struct grub_pe64_optional_header o64;
 	    if (grub_file_read (file, &o64, sizeof (o64)) != sizeof (o64))
