@@ -846,8 +846,15 @@ grub_gfxterm_putchar (struct grub_term_output *term,
       switch (c->base)
         {
         case '\b':
-          if (virtual_screen.cursor_x > 0)
-            virtual_screen.cursor_x--;
+	  if (virtual_screen.cursor_x > 0)
+	    {
+	      virtual_screen.cursor_x--;
+	    }
+	  else if (virtual_screen.cursor_y > 0)
+	    {
+	      virtual_screen.cursor_y--;
+	      virtual_screen.cursor_x = virtual_screen.columns-2;
+	    }
           break;
 
         case '\n':

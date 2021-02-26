@@ -931,6 +931,7 @@ grub_bidi_line_logical_to_visual (const grub_uint32_t *logical,
 	    pop_stack ();
 	    break;
 	  case GRUB_BIDI_TYPE_BN:
+	    visual_len++;
 	    break;
 	  case GRUB_BIDI_TYPE_R:
 	  case GRUB_BIDI_TYPE_AL:
