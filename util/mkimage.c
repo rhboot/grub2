@@ -1417,6 +1417,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	void *pe_img;
 	grub_uint8_t *header;
 	void *sections;
+	size_t scn_size;
 	size_t pe_size;
 	struct grub_pe32_coff_header *c;
 	struct grub_pe32_section_table *text_section, *data_section;
@@ -1519,7 +1520,10 @@ grub_install_generate_image (const char *dir, const char *prefix,
 						| GRUB_PE32_SCN_MEM_EXECUTE
 						| GRUB_PE32_SCN_MEM_READ);
 
-	PE_OHDR (o32, o64, data_size) = grub_host_to_target32 (reloc_addr - exec_size - header_size);
+	scn_size = ALIGN_UP (kernel_size - exec_size, GRUB_PE32_FILE_ALIGNMENT);
+	PE_OHDR (o32, o64, data_size) = grub_host_to_target32 (scn_size +
+							       ALIGN_UP (total_module_size,
+
 
 	data_section = text_section + 1;
 	strcpy (data_section->name, ".data");
