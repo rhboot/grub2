@@ -385,6 +385,36 @@ grub_ofdisk_open (const char *name, grub_disk_t disk)
 
   grub_dprintf ("disk", "Opening `%s'.\n", devpath);
 
+  struct ofdisk_hash_ent *op;
+  op = ofdisk_hash_find (devpath);
+  if (!op)
+    op = ofdisk_hash_add (devpath, NULL);
+  else
+    grub_free (devpath);
+  if (!op)
+    return grub_errno;
+
+  /* Check if the call to open is the same to the last disk already opened */
+  if (last_devpath && !grub_strcmp(op->open_path,last_devpath))
+  {
+      goto finish;
+  }
+
+ /* If not, we need to close the previous disk and open the new one */
+  else {
+    if (last_ihandle){
+        grub_ieee1275_close (last_ihandle);
+    }
+    last_ihandle = 0;
+    last_devpath = NULL;
+
+    grub_ieee1275_open (op->open_path, &last_ihandle);
+    if (! last_ihandle)
+      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
+    last_devpath = op->open_path;
+  }
+
+
   if (grub_ieee1275_finddevice (devpath, &dev))
     {
       grub_free (devpath);
@@ -405,30 +435,28 @@ grub_ofdisk_open (const char *name, grub_disk_t disk)
       return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "not a block device");
     }
 
-  grub_uint32_t block_size = 0;
-  if (grub_ofdisk_get_block_size (devpath, &block_size) == 0)
-    {
-      for (disk->log_sector_size = 0;
-           (1U << disk->log_sector_size) < block_size;
-           disk->log_sector_size++);
-    }
-
+  finish:
   /* XXX: There is no property to read the number of blocks.  There
      should be a property `#blocks', but it is not there.  Perhaps it
      is possible to use seek for this.  */
   disk->total_sectors = GRUB_DISK_SIZE_UNKNOWN;
 
   {
-    struct ofdisk_hash_ent *op;
-    op = ofdisk_hash_find (devpath);
-    if (!op)
-      op = ofdisk_hash_add (devpath, NULL);
-    else
-      grub_free (devpath);
-    if (!op)
-      return grub_errno;
     disk->id = (unsigned long) op;
     disk->data = op->open_path;
+
+    grub_uint32_t block_size = 0;
+    if (grub_ofdisk_get_block_size (devpath, &block_size) == 0)
+      {
+        for (disk->log_sector_size = 0;
+             (1U << disk->log_sector_size) < block_size;
+             disk->log_sector_size++);
+      }
+    else
+      {
+        grub_free (devpath);
+        return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "error getting block size");
+      }
   }
 
   return 0;
@@ -437,13 +465,6 @@ grub_ofdisk_open (const char *name, grub_disk_t disk)
 static void
 grub_ofdisk_close (grub_disk_t disk)
 {
-  if (disk->data == last_devpath)
-    {
-      if (last_ihandle)
-	grub_ieee1275_close (last_ihandle);
-      last_ihandle = 0;
-      last_devpath = NULL;
-    }
   disk->data = 0;
 }
 
@@ -602,15 +623,6 @@ grub_ofdisk_get_block_size (const char *device, grub_uint32_t *block_size)
       grub_ieee1275_cell_t size2;
     } args_ieee1275;
 
-  if (last_ihandle)
-    grub_ieee1275_close (last_ihandle);
-
-  last_ihandle = 0;
-  last_devpath = NULL;
-
-  grub_ieee1275_open (device, &last_ihandle);
-  if (! last_ihandle)
-    return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
 
   INIT_IEEE1275_COMMON (&args_ieee1275.common, "call-method", 2, 2);
   args_ieee1275.method = (grub_ieee1275_cell_t) "block-size";
