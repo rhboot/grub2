@@ -331,6 +331,12 @@ grub_pata_device_initialize (int port, int device, int addr)
   *devp = dev;
 
   err = check_device (dev);
+  if (err == GRUB_ERR_UNKNOWN_DEVICE)
+    {
+      grub_dprintf ("pata", "%s\n", grub_errmsg);
+      grub_error_pop ();
+    }
+
   if (err)
     grub_print_error ();
 
