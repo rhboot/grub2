@@ -490,7 +490,7 @@ grub_xfs_read_inode (struct grub_xfs_data *data, grub_uint64_t ino,
   grub_uint64_t block = grub_xfs_inode_block (data, ino);
   int offset = grub_xfs_inode_offset (data, ino);
 
-  grub_dprintf("xfs", "Reading inode (%"PRIuGRUB_UINT64_T") - %"PRIuGRUB_UINT64_T", %d\n",
+  grub_dprintf("xfs", "Reading inode (%" PRIuGRUB_UINT64_T ") - %" PRIuGRUB_UINT64_T ", %d\n",
 	       ino, block, offset);
   /* Read the inode.  */
   if (grub_disk_read (data->disk, block, offset, grub_xfs_inode_size(data),
@@ -934,7 +934,7 @@ grub_xfs_mount (grub_disk_t disk)
 
   data->disk = disk;
   data->pos = 0;
-  grub_dprintf("xfs", "Reading root ino %"PRIuGRUB_UINT64_T"\n",
+  grub_dprintf("xfs", "Reading root ino %" PRIuGRUB_UINT64_T "\n",
 	       grub_cpu_to_be64(data->sblock.rootino));
 
   grub_xfs_read_inode (data, data->diropen.ino, &data->diropen.inode);

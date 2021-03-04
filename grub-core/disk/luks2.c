@@ -272,7 +272,7 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
       grub_json_getuint64 (&k->idx, &keyslot, NULL) ||
       grub_json_getchild (&keyslot, &keyslot, 0) ||
       luks2_parse_keyslot (k, &keyslot))
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse keyslot index %"PRIuGRUB_SIZE, keyslot_json_idx);
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse keyslot index %" PRIuGRUB_SIZE, keyslot_json_idx);
 
   /* Get digest that matches the keyslot. */
   if (grub_json_getvalue (&digests, root, "digests") ||
@@ -284,13 +284,13 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
 	  grub_json_getuint64 (&d->idx, &digest, NULL) ||
 	  grub_json_getchild (&digest, &digest, 0) ||
 	  luks2_parse_digest (d, &digest))
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest index %"PRIuGRUB_SIZE, json_idx);
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse digest index %" PRIuGRUB_SIZE, json_idx);
 
       if ((d->keyslots & (1 << k->idx)))
 	break;
     }
   if (json_idx == size)
-      return grub_error (GRUB_ERR_FILE_NOT_FOUND, "No digest for keyslot \"%"PRIuGRUB_UINT64_T"\"", k->idx);
+      return grub_error (GRUB_ERR_FILE_NOT_FOUND, "No digest for keyslot \"%" PRIuGRUB_UINT64_T "\"", k->idx);
 
   /* Get segment that matches the digest. */
   if (grub_json_getvalue (&segments, root, "segments") ||
@@ -302,13 +302,13 @@ luks2_get_keyslot (grub_luks2_keyslot_t *k, grub_luks2_digest_t *d, grub_luks2_s
 	  grub_json_getuint64 (&s->idx, &segment, NULL) ||
 	  grub_json_getchild (&segment, &segment, 0) ||
 	  luks2_parse_segment (s, &segment))
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment index %"PRIuGRUB_SIZE, json_idx);
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Could not parse segment index %" PRIuGRUB_SIZE, json_idx);
 
       if ((d->segments & (1 << s->idx)))
 	break;
     }
   if (json_idx == size)
-    return grub_error (GRUB_ERR_FILE_NOT_FOUND, "No segment for digest \"%"PRIuGRUB_UINT64_T"\"", d->idx);
+    return grub_error (GRUB_ERR_FILE_NOT_FOUND, "No segment for digest \"%" PRIuGRUB_UINT64_T "\"", d->idx);
 
   return GRUB_ERR_NONE;
 }
@@ -623,18 +623,18 @@ luks2_recover_key (grub_disk_t source,
 
       if (keyslot.priority == 0)
 	{
-	  grub_dprintf ("luks2", "Ignoring keyslot \"%"PRIuGRUB_UINT64_T"\" due to priority\n", keyslot.idx);
+	  grub_dprintf ("luks2", "Ignoring keyslot \"%" PRIuGRUB_UINT64_T "\" due to priority\n", keyslot.idx);
 	  continue;
 	}
 
-      grub_dprintf ("luks2", "Trying keyslot \"%"PRIuGRUB_UINT64_T"\"\n", keyslot.idx);
+      grub_dprintf ("luks2", "Trying keyslot \"%" PRIuGRUB_UINT64_T "\"\n", keyslot.idx);
 
       /* Sector size should be one of 512, 1024, 2048, or 4096. */
       if (!(segment.sector_size == 512 || segment.sector_size == 1024 ||
 	    segment.sector_size == 2048 || segment.sector_size == 4096))
 	{
-	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" sector"
-				 " size %"PRIuGRUB_UINT64_T" is not one of"
+	  grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" sector"
+				 " size %" PRIuGRUB_UINT64_T " is not one of"
 				 " 512, 1024, 2048, or 4096\n",
 				 segment.idx, segment.sector_size);
 	  continue;
@@ -650,9 +650,9 @@ luks2_recover_key (grub_disk_t source,
 
       if (max_crypt_sectors < crypt->offset_sectors)
 	{
-	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has offset"
-				 " %"PRIuGRUB_UINT64_T" which is greater than"
-				 " source disk size %"PRIuGRUB_UINT64_T","
+	  grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" has offset"
+				 " %" PRIuGRUB_UINT64_T " which is greater than"
+				 " source disk size %" PRIuGRUB_UINT64_T ","
 				 " skipping\n", segment.idx, crypt->offset_sectors,
 				 max_crypt_sectors);
 	  continue;
@@ -675,7 +675,7 @@ luks2_recover_key (grub_disk_t source,
 	    }
 	  else if (grub_errno == GRUB_ERR_BAD_NUMBER)
 	    {
-	      grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" size"
+	      grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" size"
 				     " \"%s\" is not a parsable number,"
 				     " skipping keyslot\n",
 				     segment.idx, segment.size);
@@ -691,7 +691,7 @@ luks2_recover_key (grub_disk_t source,
 	       * its very unlikely one would be booting from such a large drive
 	       * anyway. Use another smaller LUKS2 boot device.
 	       */
-	      grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" size"
+	      grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" size"
 				     " %s overflowed 64-bit unsigned integer,"
 				     " skipping keyslot\n", segment.idx, segment.size);
 	      continue;
@@ -700,13 +700,13 @@ luks2_recover_key (grub_disk_t source,
 
       if (crypt->total_sectors == 0)
 	{
-	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has zero"
+	  grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" has zero"
 				 " sectors, skipping\n", segment.idx);
 	  continue;
 	}
       else if (max_crypt_sectors < (crypt->offset_sectors + crypt->total_sectors))
 	{
-	  grub_dprintf ("luks2", "Segment \"%"PRIuGRUB_UINT64_T"\" has last"
+	  grub_dprintf ("luks2", "Segment \"%" PRIuGRUB_UINT64_T "\" has last"
 				 " data position greater than source disk size,"
 				 " the end of the crypto device will be"
 				 " inaccessible\n", segment.idx);
@@ -719,7 +719,7 @@ luks2_recover_key (grub_disk_t source,
 			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));
       if (ret)
 	{
-	  grub_dprintf ("luks2", "Decryption with keyslot \"%"PRIuGRUB_UINT64_T"\" failed: %s\n",
+	  grub_dprintf ("luks2", "Decryption with keyslot \"%" PRIuGRUB_UINT64_T "\" failed: %s\n",
 			keyslot.idx, grub_errmsg);
 	  continue;
 	}
@@ -727,7 +727,7 @@ luks2_recover_key (grub_disk_t source,
       ret = luks2_verify_key (&digest, candidate_key, keyslot.key_size);
       if (ret)
 	{
-	  grub_dprintf ("luks2", "Could not open keyslot \"%"PRIuGRUB_UINT64_T"\": %s\n",
+	  grub_dprintf ("luks2", "Could not open keyslot \"%" PRIuGRUB_UINT64_T "\": %s\n",
 			keyslot.idx, grub_errmsg);
 	  continue;
 	}
@@ -736,7 +736,7 @@ luks2_recover_key (grub_disk_t source,
        * TRANSLATORS: It's a cryptographic key slot: one element of an array
        * where each element is either empty or holds a key.
        */
-      grub_printf_ (N_("Slot \"%"PRIuGRUB_UINT64_T"\" opened\n"), keyslot.idx);
+      grub_printf_ (N_("Slot \"%" PRIuGRUB_UINT64_T "\" opened\n"), keyslot.idx);
 
       candidate_key_len = keyslot.key_size;
       break;
