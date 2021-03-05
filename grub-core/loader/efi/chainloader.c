@@ -79,7 +79,7 @@ grub_start_image (grub_efi_handle_t handle)
 	      *grub_utf16_to_utf8 ((grub_uint8_t *) buf,
 				   exit_data, exit_data_size) = 0;
 
-	      grub_error (GRUB_ERR_BAD_OS, buf);
+	      grub_error (GRUB_ERR_BAD_OS, "%s", buf);
 	      grub_free (buf);
 	    }
 	}
