@@ -504,7 +504,7 @@ grub_efi_duplicate_device_path (const grub_efi_device_path_t *dp)
       if (len < 4)
 	{
 	  grub_error (GRUB_ERR_OUT_OF_RANGE,
-		      "malformed EFI Device Path node has length=%d", len);
+		      "malformed EFI Device Path node has length=%" PRIuGRUB_SIZE, len);
 	  return NULL;
 	}
 
