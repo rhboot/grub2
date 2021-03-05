@@ -122,7 +122,8 @@ grub_arch_efiemu_relocate_symbols64 (grub_efiemu_segment_t segs,
                     break;
 		  default:
 		    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-				       N_("relocation 0x%x is not implemented yet"),
+				       N_("relocation 0x%" PRIxGRUB_UINT64_T
+					  " is not implemented yet"),
 				       ELF_R_TYPE (rel->r_info));
 		  }
 	      }

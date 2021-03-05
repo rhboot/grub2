@@ -184,7 +184,8 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 
 	default:
 	  return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-			     N_("relocation 0x%x is not implemented yet"),
+			     N_("relocation 0x%" PRIxGRUB_UINT64_T
+				" is not implemented yet"),
 			     ELF_R_TYPE (rel->r_info));
 	}
     }
