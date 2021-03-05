@@ -249,11 +249,11 @@ grub_video_bochs_setup (unsigned int width, unsigned int height,
     }
 
   if (width > BOCHS_MAX_WIDTH)
-    return grub_error (GRUB_ERR_IO, "width must be at most",
+    return grub_error (GRUB_ERR_IO, "width must be at most %d",
 		       BOCHS_MAX_WIDTH);
 
   if (height > BOCHS_MAX_HEIGHT)
-    return grub_error (GRUB_ERR_IO, "height must be at most",
+    return grub_error (GRUB_ERR_IO, "height must be at most %d",
 		       BOCHS_MAX_HEIGHT);
 
   if (width & (BOCHS_WIDTH_ALIGN - 1))
