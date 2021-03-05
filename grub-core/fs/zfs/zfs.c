@@ -1869,8 +1869,8 @@ zio_read (blkptr_t *bp, grub_zfs_endian_t endian, void **buf,
     {
       if (BPE_GET_ETYPE(bp) != BP_EMBEDDED_TYPE_DATA)
 	return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-			   "unsupported embedded BP (type=%u)\n",
-			   BPE_GET_ETYPE(bp));
+			   "unsupported embedded BP (type=%llu)\n",
+			   (long long unsigned int) BPE_GET_ETYPE(bp));
       lsize = BPE_GET_LSIZE(bp);
       psize = BF64_GET_SB(grub_zfs_to_cpu64 ((bp)->blk_prop, endian), 25, 7, 0, 1);
     }
