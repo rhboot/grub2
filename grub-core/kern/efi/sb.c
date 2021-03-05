@@ -129,6 +129,7 @@ shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
     case GRUB_FILE_TYPE_BSD_KERNEL:
     case GRUB_FILE_TYPE_XNU_KERNEL:
     case GRUB_FILE_TYPE_PLAN9_KERNEL:
+    case GRUB_FILE_TYPE_EFI_CHAINLOADED_IMAGE:
       *flags = GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
 
       /* Fall through. */
