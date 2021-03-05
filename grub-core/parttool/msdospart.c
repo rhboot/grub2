@@ -127,8 +127,7 @@ static grub_err_t grub_pcpart_type (const grub_device_t dev,
     {
       dev->disk->partition = part;
       return grub_error (GRUB_ERR_BAD_ARGUMENT,
-			 N_("the partition type 0x%x isn't "
-			    "valid"));
+			 N_("the partition type 0x%x isn't valid"), type);
     }
 
   mbr.entries[index].type = type;
