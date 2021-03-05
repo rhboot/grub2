@@ -230,9 +230,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       && GRUB_LINUX_ZIMAGE_ADDR + grub_linux16_prot_size
       > grub_linux_real_target)
     {
-      grub_error (GRUB_ERR_BAD_OS, "too big zImage (0x%x > 0x%x), use bzImage instead",
-		  (char *) GRUB_LINUX_ZIMAGE_ADDR + grub_linux16_prot_size,
-		  (grub_size_t) grub_linux_real_target);
+      grub_error (GRUB_ERR_BAD_OS, "too big zImage (0x%" PRIxGRUB_SIZE
+		  " > 0x%" PRIxGRUB_ADDR "), use bzImage instead",
+		  GRUB_LINUX_ZIMAGE_ADDR + grub_linux16_prot_size,
+		  grub_linux_real_target);
       goto fail;
     }
 
