@@ -114,7 +114,7 @@ grub_buffer_peek_data_at (grub_buffer_t buf, grub_size_t off)
 {
   if (grub_add (buf->pos, off, &off))
     {
-      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected."));
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
       return NULL;
     }
 
