@@ -82,7 +82,7 @@ grub_usb_hub_add_dev (grub_usb_controller_t controller,
   if (i == GRUB_USBHUB_MAX_DEVICES)
     {
       grub_error (GRUB_ERR_IO, "can't assign address to USB device");
-      for (i = 0; i < 8; i++)
+      for (i = 0; i < GRUB_USB_MAX_CONF; i++)
         grub_free (dev->config[i].descconf);
       grub_free (dev);
       return NULL;
@@ -96,7 +96,7 @@ grub_usb_hub_add_dev (grub_usb_controller_t controller,
 			      i, 0, 0, NULL);
   if (err)
     {
-      for (i = 0; i < 8; i++)
+      for (i = 0; i < GRUB_USB_MAX_CONF; i++)
         grub_free (dev->config[i].descconf);
       grub_free (dev);
       return NULL;
