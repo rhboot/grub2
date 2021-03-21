@@ -3036,16 +3036,18 @@ snapshot name is omitted.
 
 A block list is used for specifying a file that doesn't appear in the
 filesystem, like a chainloader. The syntax is
-@code{[@var{offset}]+@var{length}[,[@var{offset}]+@var{length}]@dots{}}.
+@code{[@var{offset}]+[@var{length}][,[@var{offset}]+[@var{length}]]@dots{}}.
 Here is an example:
 
 @example
-@code{0+100,200+1,300+300}
+@code{0+100,200+1,300+300,800+}
 @end example
 
 This represents that GRUB should read blocks 0 through 99, block 200,
-and blocks 300 through 599. If you omit an offset, then GRUB assumes
-the offset is zero.
+blocks 300 through 599, and blocks 800 until the end of the device.
+If you omit an offset, then GRUB assumes the offset is zero. If the
+length is omitted, then GRUB assumes the block list extends until the
+end of the device.
 
 Like the file name syntax (@pxref{File name syntax}), if a blocklist
 does not contain a device name, then GRUB uses GRUB's @dfn{root

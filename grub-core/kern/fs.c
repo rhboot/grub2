@@ -173,7 +173,11 @@ grub_fs_blocklist_open (grub_file_t file, const char *name)
 	}
 
       p++;
-      blocks[i].length = grub_strtoul (p, &p, 0);
+      if (*p == '\0' || *p == ',')
+        blocks[i].length = max_sectors - blocks[i].offset;
+      else
+        blocks[i].length = grub_strtoul (p, &p, 0);
+
       if (grub_errno != GRUB_ERR_NONE
 	  || blocks[i].length == 0
 	  || (*p && *p != ',' && ! grub_isspace (*p)))
