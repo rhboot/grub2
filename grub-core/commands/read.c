@@ -23,13 +23,19 @@
 #include <grub/env.h>
 #include <grub/term.h>
 #include <grub/types.h>
-#include <grub/command.h>
+#include <grub/extcmd.h>
 #include <grub/i18n.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+static const struct grub_arg_option options[] =
+  {
+    {"silent", 's', 0, N_("Do not echo input"), 0, 0},
+    {0, 0, 0, 0, 0, 0}
+  };
+
 static char *
-grub_getline (void)
+grub_getline (int silent)
 {
   int i;
   char *line;
@@ -48,7 +54,7 @@ grub_getline (void)
 	break;
 
       line[i] = c;
-      if (grub_isprint (c))
+      if (!silent && grub_isprint (c))
 	grub_printf ("%c", c);
       i++;
       tmp = grub_realloc (line, 1 + i + sizeof('\0'));
@@ -65,9 +71,11 @@ grub_getline (void)
 }
 
 static grub_err_t
-grub_cmd_read (grub_command_t cmd __attribute__ ((unused)), int argc, char **args)
+grub_cmd_read (grub_extcmd_context_t ctxt, int argc, char **args)
 {
-  char *line = grub_getline ();
+  struct grub_arg_list *state = ctxt->state;
+  char *line = grub_getline (state[0].set);
+
   if (! line)
     return grub_errno;
   if (argc > 0)
@@ -77,16 +85,16 @@ grub_cmd_read (grub_command_t cmd __attribute__ ((unused)), int argc, char **arg
   return 0;
 }
 
-static grub_command_t cmd;
+static grub_extcmd_t cmd;
 
 GRUB_MOD_INIT(read)
 {
-  cmd = grub_register_command ("read", grub_cmd_read,
-			       N_("[ENVVAR]"),
-			       N_("Set variable with user input."));
+  cmd = grub_register_extcmd ("read", grub_cmd_read, 0,
+			       N_("[-s] [ENVVAR]"),
+			       N_("Set variable with user input."), options);
 }
 
 GRUB_MOD_FINI(read)
 {
-  grub_unregister_command (cmd);
+  grub_unregister_extcmd (cmd);
 }

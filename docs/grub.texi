@@ -5001,10 +5001,11 @@ and the system will reboot.
 @node read
 @subsection read
 
-@deffn Command read [var]
+@deffn Command read [-s] [var]
 Read a line of input from the user.  If an environment variable @var{var} is
 given, set that environment variable to the line of input that was read,
-with no terminating newline.
+with no terminating newline. If the parameter @option{-s} is used, enable
+silent mode where input is not printed to the terminal.
 @end deffn
 
 
