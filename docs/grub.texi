@@ -4307,6 +4307,9 @@ GRUB suports devices encrypted using LUKS, LUKS2 and geli. Note that necessary
 modules (@var{luks}, @var{luks2} and @var{geli}) have to be loaded manually
 before this command can be used. For LUKS2 only the PBKDF2 key derivation
 function is supported, as Argon2 is not yet supported.
+
+Also, note that, unlike filesystem UUIDs, UUIDs for encrypted devices must be
+specified without dash separators.
 @end deffn
 
 @node cutmem
