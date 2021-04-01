@@ -4125,7 +4125,6 @@ can be changed only when using @samp{gfxterm} for terminal output.
 
 @deffn Command badram addr,mask[,addr,mask...]
 Filter out bad RAM.
-@end deffn
 
 This command notifies the memory manager that specified regions of
 RAM ought to be filtered out (usually, because they're damaged).  This
@@ -4147,6 +4146,7 @@ The command is similar to @command{cutmem} command.
 Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
       This prevents removing EFI memory regions to potentially subvert the
       security mechanisms provided by the UEFI secure boot.
+@end deffn
 
 @node blocklist
 @subsection blocklist
@@ -4317,7 +4317,6 @@ specified without dash separators.
 
 @deffn Command cutmem from[K|M|G] to[K|M|G]
 Remove any memory regions in specified range.
-@end deffn
 
 This command notifies the memory manager that specified regions of RAM ought to
 be filtered out. This remains in effect after a payload kernel has been loaded
@@ -4330,6 +4329,7 @@ The command is similar to @command{badram} command.
 Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
       This prevents removing EFI memory regions to potentially subvert the
       security mechanisms provided by the UEFI secure boot.
+@end deffn
 
 @node date
 @subsection date
