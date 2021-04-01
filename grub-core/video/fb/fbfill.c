@@ -38,10 +38,9 @@
 static void
 grub_video_fbfill (struct grub_video_fbblit_info *dst,
 		   grub_video_color_t color, int x, int y,
-		   int width, int height)
+		   unsigned int width, unsigned int height)
 {
-  int i;
-  int j;
+  unsigned int i, j;
 
   for (j = 0; j < height; j++)
     for (i = 0; i < width; i++)
@@ -53,10 +52,9 @@ grub_video_fbfill (struct grub_video_fbblit_info *dst,
 static void
 grub_video_fbfill_direct32 (struct grub_video_fbblit_info *dst,
 			    grub_video_color_t color, int x, int y,
-			    int width, int height)
+			    unsigned int width, unsigned int height)
 {
-  int i;
-  int j;
+  unsigned int i, j;
   grub_uint32_t *dstptr;
   grub_size_t rowskip;
 
@@ -84,10 +82,9 @@ grub_video_fbfill_direct32 (struct grub_video_fbblit_info *dst,
 static void
 grub_video_fbfill_direct24 (struct grub_video_fbblit_info *dst,
 			    grub_video_color_t color, int x, int y,
-			    int width, int height)
+			    unsigned int width, unsigned int height)
 {
-  int i;
-  int j;
+  unsigned int i, j;
   grub_size_t rowskip;
   grub_uint8_t *dstptr;
 #ifndef GRUB_CPU_WORDS_BIGENDIAN
@@ -127,10 +124,9 @@ grub_video_fbfill_direct24 (struct grub_video_fbblit_info *dst,
 static void
 grub_video_fbfill_direct16 (struct grub_video_fbblit_info *dst,
 			    grub_video_color_t color, int x, int y,
-			    int width, int height)
+			    unsigned int width, unsigned int height)
 {
-  int i;
-  int j;
+  unsigned int i, j;
   grub_size_t rowskip;
   grub_uint16_t *dstptr;
 
@@ -158,10 +154,9 @@ grub_video_fbfill_direct16 (struct grub_video_fbblit_info *dst,
 static void
 grub_video_fbfill_direct8 (struct grub_video_fbblit_info *dst,
 			   grub_video_color_t color, int x, int y,
-			   int width, int height)
+			   unsigned int width, unsigned int height)
 {
-  int i;
-  int j;
+  unsigned int i, j;
   grub_size_t rowskip;
   grub_uint8_t *dstptr;
   grub_uint8_t fill = (grub_uint8_t)color & 0xFF;
