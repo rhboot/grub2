@@ -612,6 +612,7 @@ luks2_recover_key (grub_disk_t source,
   /* Try all keyslot */
   for (json_idx = 0; json_idx < size; json_idx++)
     {
+      char indexstr[21]; /* log10(2^64) ~ 20, plus NUL character. */
       typeof (source->total_sectors) max_crypt_sectors = 0;
 
       grub_errno = GRUB_ERR_NONE;
@@ -732,11 +733,12 @@ luks2_recover_key (grub_disk_t source,
 	  continue;
 	}
 
+      grub_snprintf (indexstr, sizeof (indexstr) - 1, "%" PRIuGRUB_UINT64_T, keyslot.idx);
       /*
        * TRANSLATORS: It's a cryptographic key slot: one element of an array
        * where each element is either empty or holds a key.
        */
-      grub_printf_ (N_("Slot \"%" PRIuGRUB_UINT64_T "\" opened\n"), keyslot.idx);
+      grub_printf_ (N_("Slot \"%s\" opened\n"), indexstr);
 
       candidate_key_len = keyslot.key_size;
       break;

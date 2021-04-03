@@ -330,10 +330,14 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 	case R_RISCV_RELAX:
 	  break;
 	default:
-	  return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-			     N_("relocation 0x%" PRIxGRUB_UINT64_T
-				" is not implemented yet"),
-			     (grub_uint64_t) ELF_R_TYPE (rel->r_info));
+	  {
+	    char rel_info[17]; /* log16(2^64) = 16, plus NUL. */
+
+	    grub_snprintf (rel_info, sizeof (rel_info) - 1, "%" PRIxGRUB_UINT64_T,
+			   (grub_uint64_t) ELF_R_TYPE (rel->r_info));
+	    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
+			       N_("relocation 0x%s is not implemented yet"), rel_info);
+	  }
 	}
     }
 
