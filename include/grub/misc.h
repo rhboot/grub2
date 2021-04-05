@@ -459,6 +459,16 @@ grub_error_load (const struct grub_error_saved *save)
   grub_errno = save->grub_errno;
 }
 
+static inline void
+grub_ip_uint_to_string(const char *buff, const grub_uint32_t ip)
+{
+  grub_snprintf (buff, 16, "%d.%d.%d.%d",
+		 ip >> (0 * 8) & 0xFF,
+		 ip >> (1 * 8) & 0xFF,
+		 ip >> (2 * 8) & 0xFF,
+		 ip >> (3 * 8) & 0xFF);
+}
+
 /*
  * grub_printf_fmt_checks() a fmt string for printf() against an expected
  * format. It is intended for cases where the fmt string could come from

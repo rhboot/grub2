@@ -373,11 +373,30 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 	if (!match)
 	  continue;
       }
+
     pxe = grub_efi_open_protocol (hnd, &pxe_io_guid,
 				  GRUB_EFI_OPEN_PROTOCOL_GET_PROTOCOL);
     if (! pxe)
       continue;
+
     pxe_mode = pxe->mode;
+
+    struct grub_net_bootp_packet * dhcp_ack    =  &pxe_mode->dhcp_ack;
+    struct grub_net_bootp_packet * proxy_offer =  &pxe_mode->proxy_offer;
+
+    const char server_ip_buff[16];
+
+    grub_ip_uint_to_string(server_ip_buff, dhcp_ack->server_ip);
+    if (grub_strncmp(server_ip_buff, "0.0.0.0", 16) == 0) {
+      // The server IP was 0.0.0.0 which is the same as unset.
+      // This can't be right, we must have gotten here from a proxy DHCP offer
+      // Copy the proxy DHCP offer details intop the bootp_packet we are sending
+      // forward as they are the deatils we need.
+      *dhcp_ack->server_name = *proxy_offer->server_name;
+      *dhcp_ack->boot_file   = *proxy_offer->boot_file;
+      dhcp_ack->server_ip    = proxy_offer->server_ip;
+    }
+
     grub_net_configure_by_dhcp_ack (card->name, card, 0,
 				    (struct grub_net_bootp_packet *)
 				    &pxe_mode->dhcp_ack,
@@ -397,8 +416,7 @@ GRUB_MOD_FINI(efinet)
 {
   struct grub_net_card *card, *next;
 
-  FOR_NET_CARDS_SAFE (card, next) 
+  FOR_NET_CARDS_SAFE (card, next)
     if (card->driver == &efidriver)
       grub_net_card_unregister (card);
 }
-
