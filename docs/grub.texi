@@ -3934,7 +3934,7 @@ names active.
 @node terminfo
 @subsection terminfo
 
-@deffn Command terminfo [-a|-u|-v] [term]
+@deffn Command terminfo [@option{-a}|@option{-u}|@option{-v}] [@option{-g WxH}] [term] [type]
 Define the capabilities of your terminal by giving the name of an entry in
 the terminfo database, which should correspond roughly to a @samp{TERM}
 environment variable in Unix.
@@ -3950,6 +3950,8 @@ specifies logically-ordered UTF-8; and @option{-v} specifies
 "visually-ordered UTF-8" (in other words, arranged such that a terminal
 emulator without bidirectional text support will display right-to-left text
 in the proper order; this is not really proper UTF-8, but a workaround).
+
+The @option{-g} (@option{--geometry}) can be used to specify terminal geometry.
 
 If no option or terminal type is specified, the current terminal type is
 printed.

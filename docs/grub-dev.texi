@@ -820,7 +820,7 @@ Of video is loongson (kern/mips/loongson/init.c). Note that terminfo has
 to be inited in 2 stages: one before (to get at least rudimentary console
 as early as possible) and another after the heap (to get full-featured console).
 For the input there are string of keys, terminfo and direct hardware. For string
-of keys look at i386-pc (same files), for termino ieee1275 (same files) and for
+of keys look at i386-pc (same files), for terminfo ieee1275 (same files) and for
 hardware loongson (kern/mips/loongson/init.c and term/at_keyboard.c).
 
 For the timer you'll need to call grub_install_get_time_ms (...) with as sole

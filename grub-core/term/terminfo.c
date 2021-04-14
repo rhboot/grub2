@@ -785,8 +785,8 @@ static grub_extcmd_t cmd;
 GRUB_MOD_INIT(terminfo)
 {
   cmd = grub_register_extcmd ("terminfo", grub_cmd_terminfo, 0,
-			      N_("[[-a|-u|-v] [-g WxH] TERM [TYPE]]"),
-			      N_("Set terminfo type of TERM  to TYPE.\n"),
+			      N_("[[-a|-u|-v] [-g WxH] [TERM] [TYPE]]"),
+			      N_("Set terminfo type of TERM to TYPE.\n"),
 			      options);
 }
 
