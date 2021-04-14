@@ -641,7 +641,7 @@ grub_affs_label (grub_device_t device, char **label)
 }
 
 static grub_err_t
-grub_affs_mtime (grub_device_t device, grub_int32_t *t)
+grub_affs_mtime (grub_device_t device, grub_int64_t *t)
 {
   struct grub_affs_data *data;
   grub_disk_t disk = device->disk;

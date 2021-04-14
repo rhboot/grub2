@@ -19,6 +19,7 @@
 
 #include <grub/datetime.h>
 #include <grub/i18n.h>
+#include <grub/misc.h>
 
 static const char *const grub_weekday_names[] =
 {
@@ -60,9 +61,10 @@ grub_get_weekday_name (struct grub_datetime *datetime)
 
 
 void
-grub_unixtime2datetime (grub_int32_t nix, struct grub_datetime *datetime)
+grub_unixtime2datetime (grub_int64_t nix, struct grub_datetime *datetime)
 {
   int i;
+  grub_uint64_t rem;
   grub_uint8_t months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   /* In the period of validity of unixtime all years divisible by 4
      are bissextile*/
@@ -75,9 +77,16 @@ grub_unixtime2datetime (grub_int32_t nix, struct grub_datetime *datetime)
   unsigned secs_in_day;
   /* Transform C divisions and modulos to mathematical ones */
   if (nix < 0)
-    days_epoch = -(((unsigned) (SECPERDAY-nix-1)) / SECPERDAY);
+    /*
+     * the division here shouldn't be larger than INT_MAX,
+     * so, it's safe to store the result back in an int
+     */
+    days_epoch = -(grub_divmod64(((grub_int64_t)(SECPERDAY) - nix - 1),
+			        SECPERDAY,
+				&rem));
   else
-    days_epoch = ((unsigned) nix) / SECPERDAY;
+    days_epoch = grub_divmod64(nix, SECPERDAY, &rem);
+
   secs_in_day = nix - days_epoch * SECPERDAY;
   days = days_epoch + 69 * DAYSPERYEAR + 17;
 

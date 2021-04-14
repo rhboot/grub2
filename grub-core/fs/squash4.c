@@ -1003,7 +1003,7 @@ grub_squash_close (grub_file_t file)
 }
 
 static grub_err_t
-grub_squash_mtime (grub_device_t dev, grub_int32_t *tm)
+grub_squash_mtime (grub_device_t dev, grub_int64_t *tm)
 {
   struct grub_squash_data *data = 0;
 

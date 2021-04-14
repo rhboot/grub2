@@ -48,11 +48,11 @@ grub_err_t grub_set_datetime (struct grub_datetime *datetime);
 int grub_get_weekday (struct grub_datetime *datetime);
 const char *grub_get_weekday_name (struct grub_datetime *datetime);
 
-void grub_unixtime2datetime (grub_int32_t nix,
+void grub_unixtime2datetime (grub_int64_t nix,
 			     struct grub_datetime *datetime);
 
 static inline int
-grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int32_t *nix)
+grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int64_t *nix)
 {
   grub_int32_t ret;
   int y4, ay;

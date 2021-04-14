@@ -837,7 +837,7 @@ grub_ufs_uuid (grub_device_t device, char **uuid)
 
 /* Get mtime.  */
 static grub_err_t
-grub_ufs_mtime (grub_device_t device, grub_int32_t *tm)
+grub_ufs_mtime (grub_device_t device, grub_int64_t *tm)
 {
   struct grub_ufs_data *data = 0;
 

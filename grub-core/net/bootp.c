@@ -610,7 +610,7 @@ send_dhcp_packet (struct grub_net_network_level_interface *iface)
   grub_err_t err;
   struct grub_net_bootp_packet *pack;
   struct grub_datetime date;
-  grub_int32_t t = 0;
+  grub_int64_t t = 0;
   struct grub_net_buff *nb;
   struct udphdr *udph;
   grub_net_network_level_address_t target;

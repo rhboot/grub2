@@ -136,7 +136,7 @@ grub_normal_print_device_info (const char *name)
 	    }
 	  if (fs->fs_mtime)
 	    {
-	      grub_int32_t tm;
+	      grub_int64_t tm;
 	      struct grub_datetime datetime;
 	      (fs->fs_mtime) (dev, &tm);
 	      if (grub_errno == GRUB_ERR_NONE)

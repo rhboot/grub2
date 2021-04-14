@@ -3771,7 +3771,7 @@ zfs_uuid (grub_device_t device, char **uuid)
 }
 
 static grub_err_t 
-zfs_mtime (grub_device_t device, grub_int32_t *mt)
+zfs_mtime (grub_device_t device, grub_int64_t *mt)
 {
   struct grub_zfs_data *data;
   grub_zfs_endian_t ub_endian = GRUB_ZFS_UNKNOWN_ENDIAN;

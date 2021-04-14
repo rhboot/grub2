@@ -39,7 +39,7 @@ struct grub_dirhook_info
   unsigned mtimeset:1;
   unsigned case_insensitive:1;
   unsigned inodeset:1;
-  grub_int32_t mtime;
+  grub_int64_t mtime;
   grub_uint64_t inode;
 };
 
@@ -81,7 +81,7 @@ struct grub_fs
   grub_err_t (*fs_uuid) (grub_device_t device, char **uuid);
 
   /* Get writing time of filesystem. */
-  grub_err_t (*fs_mtime) (grub_device_t device, grub_int32_t *timebuf);
+  grub_err_t (*fs_mtime) (grub_device_t device, grub_int64_t *timebuf);
 
 #ifdef GRUB_UTIL
   /* Determine sectors available for embedding.  */
