@@ -51,7 +51,7 @@
 #endif
 #include <grub/lockdown.h>
 
-/* The maximum heap size we're going to claim at boot. Not used by sparc. */
+/* The maximum heap size we're going to claim. Not used by sparc. */
 #ifdef __i386__
 #define HEAP_MAX_SIZE		(unsigned long) (64 * 1024 * 1024)
 #else /* __powerpc__ */
