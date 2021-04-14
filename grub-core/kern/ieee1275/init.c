@@ -46,22 +46,11 @@
 #endif
 #include <grub/lockdown.h>
 
-/* The minimal heap size we can live with. */
-#define HEAP_MIN_SIZE		(unsigned long) (2 * 1024 * 1024)
-
 /* The maximum heap size we're going to claim */
 #ifdef __i386__
 #define HEAP_MAX_SIZE		(unsigned long) (64 * 1024 * 1024)
 #else
 #define HEAP_MAX_SIZE		(unsigned long) (32 * 1024 * 1024)
-#endif
-
-/* If possible, we will avoid claiming heap above this address, because it
-   seems to cause relocation problems with OSes that link at 4 MiB */
-#ifdef __i386__
-#define HEAP_MAX_ADDR		(unsigned long) (64 * 1024 * 1024)
-#else
-#define HEAP_MAX_ADDR		(unsigned long) (32 * 1024 * 1024)
 #endif
 
 extern char _end[];
@@ -184,12 +173,6 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
   /* Never exceed HEAP_MAX_SIZE  */
   if (*total + len > HEAP_MAX_SIZE)
     len = HEAP_MAX_SIZE - *total;
-
-  /* Avoid claiming anything above HEAP_MAX_ADDR, if possible. */
-  if ((addr < HEAP_MAX_ADDR) &&				/* if it's too late, don't bother */
-      (addr + len > HEAP_MAX_ADDR) &&				/* if it wasn't available anyway, don't bother */
-      (*total + (HEAP_MAX_ADDR - addr) > HEAP_MIN_SIZE))	/* only limit ourselves when we can afford to */
-     len = HEAP_MAX_ADDR - addr;
 
   /* In theory, firmware should already prevent this from happening by not
      listing our own image in /memory/available.  The check below is intended
