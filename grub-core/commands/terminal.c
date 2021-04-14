@@ -87,7 +87,7 @@ handle_command (int argc, char **args, struct abstract_terminal **enabled,
     i++;
 
   if (i == argc)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_ ("no terminal specified"));
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("no terminal specified"));
 
   for (; i < argc; i++)
     {
@@ -241,8 +241,8 @@ grub_cmd_terminal_input (grub_command_t cmd __attribute__ ((unused)),
 			 (struct abstract_terminal **) (void *) &grub_term_inputs,
 			 (struct abstract_terminal **) (void *) &grub_term_inputs_disabled,
 			 grub_term_input_autoload,
-			 N_ ("Active input terminals:"),
-			 N_ ("Available input terminals:"));
+			 N_("Active input terminals:"),
+			 N_("Available input terminals:"));
 }
 
 static grub_err_t
@@ -258,8 +258,8 @@ grub_cmd_terminal_output (grub_command_t cmd __attribute__ ((unused)),
 			 (struct abstract_terminal **) (void *) &grub_term_outputs,
 			 (struct abstract_terminal **) (void *) &grub_term_outputs_disabled,
 			 grub_term_output_autoload,
-			 N_ ("Active output terminals:"),
-			 N_ ("Available output terminals:"));
+			 N_("Active output terminals:"),
+			 N_("Available output terminals:"));
 }
 
 static grub_command_t cmd_terminal_input, cmd_terminal_output;

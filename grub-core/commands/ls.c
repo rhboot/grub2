@@ -70,7 +70,7 @@ grub_ls_list_devices (int longlist)
     FOR_NET_APP_LEVEL (proto)
     {
       if (first)
-	grub_puts_ (N_ ("Network protocols:"));
+	grub_puts_ (N_("Network protocols:"));
       first = 0;
       grub_printf ("%s ", proto->name);
     }
