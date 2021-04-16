@@ -127,6 +127,9 @@ grub_ieee1275_find_options (void)
 	      break;
 	    }
 	}
+
+      if (grub_strncmp (tmp, "IBM,", 4) == 0)
+	grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY);
     }
 
   if (is_smartfirmware)
