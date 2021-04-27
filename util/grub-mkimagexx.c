@@ -2388,6 +2388,10 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
 	  layout->kernel_size += ALIGN_UP (layout->got_size, 16);
 	}
 #endif
+
+      if (image_target->id == IMAGE_EFI)
+        layout->kernel_size = ALIGN_UP (layout->kernel_size,
+                                        GRUB_PE32_FILE_ALIGNMENT);
     }
   else
     {
