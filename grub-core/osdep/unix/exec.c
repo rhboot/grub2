@@ -188,7 +188,7 @@ grub_util_exec_pipe (const char *const *argv, int *fd)
       close (pipe_fd[1]);
 
       execvp ((char *) argv[0], (char **) argv);
-      exit (127);
+      _exit (127);
     }
   else
     {
@@ -234,7 +234,7 @@ grub_util_exec_pipe_stderr (const char *const *argv, int *fd)
       close (pipe_fd[1]);
 
       execvp ((char *) argv[0], (char **) argv);
-      exit (127);
+      _exit (127);
     }
   else
     {
