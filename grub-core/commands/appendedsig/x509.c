@@ -48,6 +48,12 @@ const char *keyUsage_oid = "2.5.29.15";
 const char *basicConstraints_oid = "2.5.29.19";
 
 /*
+ * RFC 5280 4.2.1.12 Extended Key Usage
+ */
+const char *extendedKeyUsage_oid = "2.5.29.37";
+const char *codeSigningUsage_oid = "1.3.6.1.5.5.7.3.3";
+
+/*
  * RFC 3279 2.3.1
  *
  *  The RSA public key MUST be encoded using the ASN.1 type RSAPublicKey:
@@ -637,6 +643,77 @@ cleanup:
   return err;
 }
 
+/*
+ * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+ *
+ * KeyPurposeId ::= OBJECT IDENTIFIER
+ */
+static grub_err_t
+verify_extended_key_usage (grub_uint8_t * value, int value_size)
+{
+  asn1_node extendedasn;
+  int result, count;
+  grub_err_t err = GRUB_ERR_NONE;
+  char usage[MAX_OID_LEN];
+  int usage_size = sizeof (usage);
+
+  result =
+    asn1_create_element (_gnutls_pkix_asn, "PKIX1.ExtKeyUsageSyntax",
+			 &extendedasn);
+  if (result != ASN1_SUCCESS)
+    {
+      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+			 "Could not create ASN.1 structure for Extended Key Usage");
+    }
+
+  result = asn1_der_decoding2 (&extendedasn, value, &value_size,
+			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+  if (result != ASN1_SUCCESS)
+    {
+      err =
+	grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		    "Error parsing DER for Extended Key Usage: %s",
+		    asn1_error);
+      goto cleanup;
+    }
+
+  /*
+   * If EKUs are present, there must be exactly 1 and it must be a
+   * codeSigning usage.
+   */
+  result = asn1_number_of_elements(extendedasn, "", &count);
+  if (result != ASN1_SUCCESS)
+    {
+      err =
+	grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		    "Error counting number of Extended Key Usages: %s",
+		    asn1_strerror (result));
+      goto cleanup;
+    }
+
+  result = asn1_read_value (extendedasn, "?1", usage, &usage_size);
+  if (result != ASN1_SUCCESS)
+    {
+      err =
+	grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		    "Error reading Extended Key Usage: %s",
+		    asn1_strerror (result));
+      goto cleanup;
+    }
+
+  if (grub_strncmp (codeSigningUsage_oid, usage, usage_size) != 0)
+    {
+      err =
+	grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		    "Unexpected Extended Key Usage OID, got: %s",
+		    usage);
+      goto cleanup;
+    }
+
+cleanup:
+  asn1_delete_structure (&extendedasn);
+  return err;
+}
 
 /*
  * Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
@@ -660,7 +737,7 @@ verify_extensions (asn1_node cert)
 {
   int result;
   int ext, num_extensions = 0;
-  int usage_present = 0, constraints_present = 0;
+  int usage_present = 0, constraints_present = 0, extended_usage_present = 0;
   char *oid_path, *critical_path, *value_path;
   char extnID[MAX_OID_LEN];
   int extnID_size;
@@ -754,6 +831,15 @@ verify_extensions (asn1_node cert)
 	    }
 	  constraints_present++;
 	}
+      else if (grub_strncmp (extendedKeyUsage_oid, extnID, extnID_size) == 0)
+	{
+	  err = verify_extended_key_usage (value, value_size);
+	  if (err != GRUB_ERR_NONE)
+	    {
+	      goto cleanup_value;
+	    }
+	  extended_usage_present++;
+	}
       else if (grub_strncmp ("TRUE", critical, critical_size) == 0)
 	{
 	  /*
@@ -784,6 +870,12 @@ verify_extensions (asn1_node cert)
       return grub_error (GRUB_ERR_BAD_FILE_TYPE,
 			 "Unexpected number of basic constraints extensions - expected 1, got %d",
 			 constraints_present);
+    }
+  if (extended_usage_present > 1)
+    {
+      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			 "Unexpected number of Extended Key Usage extensions - expected 0 or 1, got %d",
+			 extended_usage_present);
     }
   return GRUB_ERR_NONE;
 
