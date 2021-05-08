@@ -111,6 +111,22 @@ static struct grub_procfs_entry certificate_printable_der_entry = {
   .get_contents = get_certificate_printable_der
 };
 
+static char *
+get_certificate_eku_der (grub_size_t * sz)
+{
+  char *ret;
+  *sz = certificate_eku_der_len;
+  ret = grub_malloc (*sz);
+  if (ret)
+    grub_memcpy (ret, certificate_eku_der, *sz);
+  return ret;
+}
+
+static struct grub_procfs_entry certificate_eku_der_entry = {
+  .name = "certificate_eku.der",
+  .get_contents = get_certificate_eku_der
+};
+
 
 static void
 do_verify (const char *f, int is_valid)
@@ -149,6 +165,7 @@ appended_signature_test (void)
   char *trust_args2[] = { (char *) "(proc)/certificate2.der", NULL };
   char *trust_args_printable[] = { (char *) "(proc)/certificate_printable.der",
 				   NULL };
+  char *trust_args_eku[] = { (char *) "(proc)/certificate_eku.der", NULL };
   char *distrust_args[] = { (char *) "1", NULL };
   char *distrust2_args[] = { (char *) "2", NULL };
   grub_err_t err;
@@ -157,6 +174,7 @@ appended_signature_test (void)
   grub_procfs_register ("certificate2.der", &certificate2_der_entry);
   grub_procfs_register ("certificate_printable.der",
 			&certificate_printable_der_entry);
+  grub_procfs_register ("certificate_eku.der", &certificate_eku_der_entry);
 
   cmd_trust = grub_command_find ("trust_certificate");
   if (!cmd_trust)
@@ -266,16 +284,23 @@ appended_signature_test (void)
 
   /*
    * Lastly, check a certificate that uses printableString rather than
-   * utf8String loads properly.
+   * utf8String loads properly, and that a certificate with an appropriate
+   * extended key usage loads.
    */
   err = (cmd_trust->func) (cmd_trust, 1, trust_args_printable);
   grub_test_assert (err == GRUB_ERR_NONE,
-		    "distrusting printable certificate failed: %d: %s",
+		    "trusting printable certificate failed: %d: %s",
+		    grub_errno, grub_errmsg);
+
+  err = (cmd_trust->func) (cmd_trust, 1, trust_args_eku);
+  grub_test_assert (err == GRUB_ERR_NONE,
+		    "trusting certificate with extended key usage failed: %d: %s",
 		    grub_errno, grub_errmsg);
 
   grub_procfs_unregister (&certificate_der_entry);
   grub_procfs_unregister (&certificate2_der_entry);
   grub_procfs_unregister (&certificate_printable_der_entry);
+  grub_procfs_unregister (&certificate_eku_der_entry);
 }
 
 GRUB_FUNCTIONAL_TEST (appended_signature_test, appended_signature_test);
