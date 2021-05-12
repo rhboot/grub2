@@ -8,6 +8,10 @@ Here is the list of current GRUB maintainers:
 
 The maintainers drive and overlook the GRUB development.
 
+If you found a security vulnerability in the GRUB please check the SECURITY
+file to get more information how to properly report this kind of bugs to
+the maintainers.
+
 The GRUB development happens on the grub-devel mailing list [1]. The latest
 GRUB source code is available at Savannah git repository [2].
 
