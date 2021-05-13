@@ -1365,11 +1365,13 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    sbat_size = ALIGN_UP (sbat_size, GRUB_PE32_FILE_ALIGNMENT);
 	  }
 
-	pe_size = ALIGN_UP (header_size + core_size, GRUB_PE32_FILE_ALIGNMENT) +
+	pe_size = ALIGN_UP (header_size + layout.exec_size, GRUB_PE32_FILE_ALIGNMENT) +
+          ALIGN_UP (layout.kernel_size - layout.exec_size, GRUB_PE32_FILE_ALIGNMENT) +
+          ALIGN_UP (core_size - layout.kernel_size, GRUB_PE32_FILE_ALIGNMENT) +
           ALIGN_UP (layout.reloc_size, GRUB_PE32_FILE_ALIGNMENT) + sbat_size;
 	header = pe_img = xcalloc (1, pe_size);
 
-	memcpy (pe_img + raw_data, core_img, core_size);
+	memcpy (pe_img + raw_data, core_img, layout.kernel_size);
 
 	/* The magic.  */
 	memcpy (header, stub, GRUB_PE32_MSDOS_STUB_SIZE);
@@ -1458,7 +1460,8 @@ grub_install_generate_image (const char *dir, const char *prefix,
 				   GRUB_PE32_SCN_MEM_READ |
 				   GRUB_PE32_SCN_MEM_WRITE);
 
-	scn_size = pe_size - layout.reloc_size - sbat_size - raw_data;
+	scn_size = core_size - layout.kernel_size;
+	memcpy (pe_img + raw_data, core_img + layout.kernel_size, scn_size);
 	section = init_pe_section (image_target, section, "mods",
 				   &vma, scn_size, image_target->section_align,
 				   &raw_data, scn_size,
