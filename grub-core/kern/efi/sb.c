@@ -42,7 +42,6 @@ grub_uint8_t
 grub_efi_get_secureboot (void)
 {
   static grub_efi_guid_t efi_variable_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
-  static grub_efi_guid_t efi_shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
   grub_efi_status_t status;
   grub_efi_uint32_t attr = 0;
   grub_size_t size = 0;
@@ -81,7 +80,7 @@ grub_efi_get_secureboot (void)
    * variable doesn't have the runtime attribute set, we might as well
    * honor that.
    */
-  status = grub_efi_get_variable_with_attributes ("MokSBState", &efi_shim_lock_guid,
+  status = grub_efi_get_variable_with_attributes ("MokSBState", &shim_lock_guid,
 						  &size, (void **) &moksbstate, &attr);
 
   /* If it fails, we don't care why. Default to secure. */
