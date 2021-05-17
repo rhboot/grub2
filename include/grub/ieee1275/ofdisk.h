@@ -25,4 +25,12 @@ extern void grub_ofdisk_fini (void);
 extern grub_err_t grub_ofdisk_get_block_size (const char *device,
                                               grub_uint32_t *block_size);
 
+#define MAX_RETRIES 20
+
+
+#define RETRY_IEEE1275_OFDISK_OPEN(device, last_ihandle) unsigned retry_i=0;for(retry_i=0; retry_i < MAX_RETRIES; retry_i++){ \
+						if(!grub_ieee1275_open(device, & last_ihandle)) \
+						break; \
+						grub_dprintf("ofdisk","Opening disk %s failed. Retrying...\n",device); }
+
 #endif /* ! GRUB_INIT_HEADER */

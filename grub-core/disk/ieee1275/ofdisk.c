@@ -220,7 +220,9 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
       char *buf, *bufptr;
       unsigned i;
 
-      if (grub_ieee1275_open (alias->path, &ihandle))
+
+      RETRY_IEEE1275_OFDISK_OPEN(alias->path, ihandle)
+      if (! ihandle)
 	return;
     
       INIT_IEEE1275_COMMON (&args.common, "call-method", 2, 3);
@@ -408,7 +410,8 @@ grub_ofdisk_open (const char *name, grub_disk_t disk)
     last_ihandle = 0;
     last_devpath = NULL;
 
-    grub_ieee1275_open (op->open_path, &last_ihandle);
+    RETRY_IEEE1275_OFDISK_OPEN(op->open_path, last_ihandle)
+
     if (! last_ihandle)
       return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
     last_devpath = op->open_path;
@@ -481,7 +484,7 @@ grub_ofdisk_prepare (grub_disk_t disk, grub_disk_addr_t sector)
       last_ihandle = 0;
       last_devpath = NULL;
 
-      grub_ieee1275_open (disk->data, &last_ihandle);
+      RETRY_IEEE1275_OFDISK_OPEN(disk->data, last_ihandle);
       if (! last_ihandle)
 	return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
       last_devpath = disk->data;      
@@ -508,11 +511,24 @@ grub_ofdisk_read (grub_disk_t disk, grub_disk_addr_t sector,
     return err;
   grub_ieee1275_read (last_ihandle, buf, size  << disk->log_sector_size,
 		      &actual);
-  if (actual != (grub_ssize_t) (size  << disk->log_sector_size))
-    return grub_error (GRUB_ERR_READ_ERROR, N_("failure reading sector 0x%llx "
-					       "from `%s'"),
-		       (unsigned long long) sector,
-		       disk->name);
+
+  int i = 0;
+  while(actual != (grub_ssize_t) (size  << disk->log_sector_size)){
+      if (i > MAX_RETRIES){
+       return grub_error (GRUB_ERR_READ_ERROR, N_("failure reading sector 0x%llx "
+                                               "from `%s'"),
+                       (unsigned long long) sector,
+                       disk->name);
+      }
+      grub_dprintf("ofdisk","Read failed. Retrying...\n");
+      last_devpath = NULL;
+      err = grub_ofdisk_prepare (disk, sector);
+      if (err)
+        return err;
+      grub_ieee1275_read (last_ihandle, buf, size  << disk->log_sector_size,
+                      &actual);
+      i++;
+   }
 
   return 0;
 }
