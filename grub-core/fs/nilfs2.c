@@ -1186,7 +1186,7 @@ grub_nilfs2_uuid (grub_device_t device, char **uuid)
 
 /* Get mtime.  */
 static grub_err_t
-grub_nilfs2_mtime (grub_device_t device, grub_int32_t * tm)
+grub_nilfs2_mtime (grub_device_t device, grub_int64_t * tm)
 {
   struct grub_nilfs2_data *data;
   grub_disk_t disk = device->disk;

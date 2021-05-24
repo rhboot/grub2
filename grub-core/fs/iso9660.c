@@ -178,7 +178,7 @@ static grub_dl_t my_mod;
 
 
 static grub_err_t
-iso9660_to_unixtime (const struct grub_iso9660_date *i, grub_int32_t *nix)
+iso9660_to_unixtime (const struct grub_iso9660_date *i, grub_int64_t *nix)
 {
   struct grub_datetime datetime;
   
@@ -206,7 +206,7 @@ iso9660_to_unixtime (const struct grub_iso9660_date *i, grub_int32_t *nix)
 }
 
 static int
-iso9660_to_unixtime2 (const struct grub_iso9660_date2 *i, grub_int32_t *nix)
+iso9660_to_unixtime2 (const struct grub_iso9660_date2 *i, grub_int64_t *nix)
 {
   struct grub_datetime datetime;
 
@@ -1107,7 +1107,7 @@ grub_iso9660_uuid (grub_device_t device, char **uuid)
 
 /* Get writing time of filesystem. */
 static grub_err_t 
-grub_iso9660_mtime (grub_device_t device, grub_int32_t *timebuf)
+grub_iso9660_mtime (grub_device_t device, grub_int64_t *timebuf)
 {
   struct grub_iso9660_data *data;
   grub_disk_t disk = device->disk;

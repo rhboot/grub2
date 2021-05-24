@@ -32,7 +32,7 @@ static void
 sleep_test (void)
 {
   struct grub_datetime st, en;
-  grub_int32_t stu = 0, enu = 0;
+  grub_int64_t stu = 0, enu = 0;
   int is_delayok;
   grub_test_assert (!grub_get_datetime (&st), "Couldn't retrieve start time");
   grub_millisleep (10000);
@@ -45,8 +45,7 @@ sleep_test (void)
   if (enu - stu >= 15 && enu - stu <= 17)
     is_delayok = 1;
 #endif
-  grub_test_assert (is_delayok, "Interval out of range: %d", enu-stu);
-
+  grub_test_assert (is_delayok, "Interval out of range: %" PRIdGRUB_INT64_T, enu - stu);
 }
 
 GRUB_FUNCTIONAL_TEST (sleep_test, sleep_test);

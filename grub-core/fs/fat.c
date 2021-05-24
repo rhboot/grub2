@@ -737,7 +737,7 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
  * https://docs.microsoft.com/en-us/windows/win32/fileio/exfat-specification
  */
 static int
-grub_exfat_timestamp (grub_uint32_t field, grub_uint8_t msec, grub_int32_t *nix) {
+grub_exfat_timestamp (grub_uint32_t field, grub_uint8_t msec, grub_int64_t *nix) {
   struct grub_datetime datetime = {
     .year   = (field >> 25) + 1980,
     .month  = (field & 0x01E00000) >> 21,
@@ -891,7 +891,7 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
  * https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-107.pdf
  */
 static int
-grub_fat_timestamp (grub_uint16_t time, grub_uint16_t date, grub_int32_t *nix) {
+grub_fat_timestamp (grub_uint16_t time, grub_uint16_t date, grub_int64_t *nix) {
   struct grub_datetime datetime = {
     .year   = (date >> 9) + 1980,
     .month  = (date & 0x01E0) >> 5,

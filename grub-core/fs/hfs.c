@@ -1374,7 +1374,7 @@ grub_hfs_label (grub_device_t device, char **label)
 }
 
 static grub_err_t
-grub_hfs_mtime (grub_device_t device, grub_int32_t *tm)
+grub_hfs_mtime (grub_device_t device, grub_int64_t *tm)
 {
   struct grub_hfs_data *data;
 
