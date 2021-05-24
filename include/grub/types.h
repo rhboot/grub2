@@ -86,10 +86,16 @@
 typedef signed char		grub_int8_t;
 typedef short			grub_int16_t;
 typedef int			grub_int32_t;
+# define PRIxGRUB_INT32_T	"x"
+# define PRIdGRUB_INT32_T	"d"
 #if GRUB_CPU_SIZEOF_LONG == 8
 typedef long			grub_int64_t;
+# define PRIxGRUB_INT64_T	"lx"
+# define PRIdGRUB_INT64_T	"ld"
 #else
 typedef long long		grub_int64_t;
+# define PRIxGRUB_INT64_T	"llx"
+# define PRIdGRUB_INT64_T	"lld"
 #endif
 
 typedef unsigned char		grub_uint8_t;
