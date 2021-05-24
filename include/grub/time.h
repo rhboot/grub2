@@ -30,6 +30,8 @@ grub_cpu_idle(void)
 }
 #endif
 
+#define NSEC_PER_SEC ((grub_int64_t) 1000000000)
+
 void EXPORT_FUNC(grub_millisleep) (grub_uint32_t ms);
 grub_uint64_t EXPORT_FUNC(grub_get_time_ms) (void);
 
