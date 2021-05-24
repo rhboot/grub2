@@ -85,6 +85,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define XFS_SB_FEAT_INCOMPAT_SPINODES   (1 << 1)        /* sparse inode chunks */
 #define XFS_SB_FEAT_INCOMPAT_META_UUID  (1 << 2)        /* metadata UUID */
 #define XFS_SB_FEAT_INCOMPAT_BIGTIME    (1 << 3)        /* large timestamps */
+#define XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR (1 << 4)       /* needs xfs_repair */
 
 /*
  * Directory entries with ftype are explicitly handled by GRUB code.
@@ -99,7 +100,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 	(XFS_SB_FEAT_INCOMPAT_FTYPE | \
 	 XFS_SB_FEAT_INCOMPAT_SPINODES | \
 	 XFS_SB_FEAT_INCOMPAT_META_UUID | \
-	 XFS_SB_FEAT_INCOMPAT_BIGTIME)
+	 XFS_SB_FEAT_INCOMPAT_BIGTIME | \
+	 XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR)
 
 struct grub_xfs_sblock
 {
@@ -311,6 +313,16 @@ static int grub_xfs_sb_valid(struct grub_xfs_data *data)
 
   grub_error (GRUB_ERR_BAD_FS, "unsupported XFS filesystem version");
   return 0;
+}
+
+static int
+grub_xfs_sb_needs_repair (struct grub_xfs_data *data)
+{
+  return ((data->sblock.version &
+           grub_cpu_to_be16_compile_time (XFS_SB_VERSION_NUMBITS)) ==
+          grub_cpu_to_be16_compile_time (XFS_SB_VERSION_5) &&
+          (data->sblock.sb_features_incompat &
+           grub_cpu_to_be32_compile_time (XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR)));
 }
 
 /* Filetype information as used in inodes.  */
@@ -974,6 +986,9 @@ grub_xfs_mount (grub_disk_t disk)
 
   if (!grub_xfs_sb_valid(data))
     goto fail;
+
+  if (grub_xfs_sb_needs_repair (data))
+    grub_dprintf ("xfs", "XFS filesystem needs repair, boot may fail\n");
 
   if (grub_add (grub_xfs_inode_size (data),
       sizeof (struct grub_xfs_data) - sizeof (struct grub_xfs_inode) + 1, &sz))
