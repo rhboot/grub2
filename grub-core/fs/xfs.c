@@ -23,6 +23,7 @@
 #include <grub/misc.h>
 #include <grub/disk.h>
 #include <grub/dl.h>
+#include <grub/time.h>
 #include <grub/types.h>
 #include <grub/fshelp.h>
 #include <grub/safemath.h>
@@ -75,10 +76,15 @@ GRUB_MOD_LICENSE ("GPLv3+");
 	 XFS_SB_VERSION2_PROJID32BIT | \
 	 XFS_SB_VERSION2_FTYPE)
 
+/* Inode flags2 flags */
+#define XFS_DIFLAG2_BIGTIME_BIT	3
+#define XFS_DIFLAG2_BIGTIME		(1 << XFS_DIFLAG2_BIGTIME_BIT)
+
 /* incompat feature flags */
 #define XFS_SB_FEAT_INCOMPAT_FTYPE      (1 << 0)        /* filetype in dirent */
 #define XFS_SB_FEAT_INCOMPAT_SPINODES   (1 << 1)        /* sparse inode chunks */
 #define XFS_SB_FEAT_INCOMPAT_META_UUID  (1 << 2)        /* metadata UUID */
+#define XFS_SB_FEAT_INCOMPAT_BIGTIME    (1 << 3)        /* large timestamps */
 
 /*
  * Directory entries with ftype are explicitly handled by GRUB code.
@@ -92,7 +98,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define XFS_SB_FEAT_INCOMPAT_SUPPORTED \
 	(XFS_SB_FEAT_INCOMPAT_FTYPE | \
 	 XFS_SB_FEAT_INCOMPAT_SPINODES | \
-	 XFS_SB_FEAT_INCOMPAT_META_UUID)
+	 XFS_SB_FEAT_INCOMPAT_META_UUID | \
+	 XFS_SB_FEAT_INCOMPAT_BIGTIME)
 
 struct grub_xfs_sblock
 {
@@ -177,7 +184,7 @@ struct grub_xfs_btree_root
   grub_uint64_t keys[1];
 } GRUB_PACKED;
 
-struct grub_xfs_time
+struct grub_xfs_time_legacy
 {
   grub_uint32_t sec;
   grub_uint32_t nanosec;
@@ -190,20 +197,23 @@ struct grub_xfs_inode
   grub_uint8_t version;
   grub_uint8_t format;
   grub_uint8_t unused2[26];
-  struct grub_xfs_time atime;
-  struct grub_xfs_time mtime;
-  struct grub_xfs_time ctime;
+  grub_uint64_t atime;
+  grub_uint64_t mtime;
+  grub_uint64_t ctime;
   grub_uint64_t size;
   grub_uint64_t nblocks;
   grub_uint32_t extsize;
   grub_uint32_t nextents;
   grub_uint16_t unused3;
   grub_uint8_t fork_offset;
-  grub_uint8_t unused4[17];
+  grub_uint8_t unused4[37];
+  grub_uint64_t flags2;
+  grub_uint8_t unused5[48];
 } GRUB_PACKED;
 
-#define XFS_V2_INODE_SIZE sizeof(struct grub_xfs_inode)
-#define XFS_V3_INODE_SIZE (XFS_V2_INODE_SIZE + 76)
+#define XFS_V3_INODE_SIZE	sizeof(struct grub_xfs_inode)
+/* Size of struct grub_xfs_inode until fork_offset (included). */
+#define XFS_V2_INODE_SIZE	(XFS_V3_INODE_SIZE - 92)
 
 struct grub_xfs_dirblock_tail
 {
@@ -1009,6 +1019,27 @@ struct grub_xfs_dir_ctx
   void *hook_data;
 };
 
+/* Bigtime inodes helpers. */
+#define XFS_BIGTIME_EPOCH_OFFSET	(-(grub_int64_t) GRUB_INT32_MIN)
+
+static int grub_xfs_inode_has_bigtime (const struct grub_xfs_inode *inode)
+{
+  return inode->version >= 3 &&
+	 (inode->flags2 & grub_cpu_to_be64_compile_time (XFS_DIFLAG2_BIGTIME));
+}
+
+static grub_int64_t
+grub_xfs_get_inode_time (struct grub_xfs_inode *inode)
+{
+  struct grub_xfs_time_legacy *lts;
+
+  if (grub_xfs_inode_has_bigtime (inode))
+    return grub_divmod64 (grub_be_to_cpu64 (inode->mtime), NSEC_PER_SEC, NULL) - XFS_BIGTIME_EPOCH_OFFSET;
+
+  lts = (struct grub_xfs_time_legacy *) &inode->mtime;
+  return grub_be_to_cpu32 (lts->sec);
+}
+
 /* Helper for grub_xfs_dir.  */
 static int
 grub_xfs_dir_iter (const char *filename, enum grub_fshelp_filetype filetype,
@@ -1021,7 +1052,7 @@ grub_xfs_dir_iter (const char *filename, enum grub_fshelp_filetype filetype,
   if (node->inode_read)
     {
       info.mtimeset = 1;
-      info.mtime = grub_be_to_cpu32 (node->inode.mtime.sec);
+      info.mtime = grub_xfs_get_inode_time (&node->inode);
     }
   info.dir = ((filetype & GRUB_FSHELP_TYPE_MASK) == GRUB_FSHELP_DIR);
   grub_free (node);
