@@ -63,7 +63,9 @@ VARIABLE(grub_relocator64_cr3)
 	movq	%rax, %cr3
 #endif
 
+#ifdef __x86_64__
 	.code64
+#endif
 
 	/* mov imm64, %rax */
 	.byte 	0x48
@@ -71,7 +73,14 @@ VARIABLE(grub_relocator64_cr3)
 VARIABLE(grub_relocator64_rsp)
 	.quad	0
 
+#ifdef __x86_64__
 	movq	%rax, %rsp
+#else
+	/* movq	%rax, %rsp */
+	.byte 	0x48
+	.byte	0x89
+	.byte	0xc4
+#endif
 
 #ifdef GRUB_MACHINE_EFI
 	jmp	LOCAL(skip_efi_stack_align)
@@ -85,7 +94,15 @@ VARIABLE(grub_relocator64_rsp)
 	 */
 VARIABLE(grub_relocator64_efi_start)
 	/* Align the stack as UEFI spec requires. */
+#ifdef __x86_64__
 	andq	$~15, %rsp
+#else
+	/* andq	$~15, %rsp */
+	.byte 0x48
+	.byte 0x83
+	.byte 0xe4
+	.byte 0xf0
+#endif
 
 LOCAL(skip_efi_stack_align):
 #endif
@@ -95,8 +112,15 @@ LOCAL(skip_efi_stack_align):
 VARIABLE(grub_relocator64_rsi)
 	.quad	0
 
+#ifdef	__x86_64__
 	movq	%rax, %rsi
-	
+#else
+	/* movq	%rax, %rsi */
+	.byte 	0x48
+	.byte	0x89
+	.byte 	0xc6
+#endif
+
 	/* mov imm64, %rax */
 	.byte 	0x48
 	.byte	0xb8
@@ -125,7 +149,7 @@ VARIABLE(grub_relocator64_rdx)
 	   payload and makes this implementation easier.  */
 	cld
 
-#ifdef __APPLE__
+#if defined (__APPLE__) || !defined (__x86_64__)
 	.byte 0xff, 0x25
 	.quad 0
 #else
