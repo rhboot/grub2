@@ -419,7 +419,7 @@ else
 fi
 
 # Check for functions and headers.
-AC_CHECK_FUNCS(posix_memalign memalign getextmntent)
+AC_CHECK_FUNCS(posix_memalign memalign getextmntent atexit)
 AC_CHECK_HEADERS(sys/param.h sys/mount.h sys/mnttab.h limits.h)
 
 # glibc 2.25 still includes sys/sysmacros.h in sys/types.h but emits deprecation

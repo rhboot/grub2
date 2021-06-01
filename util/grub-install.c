@@ -1719,10 +1719,14 @@ main (int argc, char *argv[])
 			
 	/*  Now perform the installation.  */
 	if (install_bootsector)
-	  grub_util_bios_setup (platdir, "boot.img", "core.img",
-				install_drive, force,
-				fs_probe, allow_floppy, add_rs_codes,
-				!grub_install_is_short_mbrgap_supported ());
+	  {
+	    grub_util_bios_setup (platdir, "boot.img", "core.img",
+				  install_drive, force,
+				  fs_probe, allow_floppy, add_rs_codes,
+				  !grub_install_is_short_mbrgap_supported ());
+
+	    grub_set_install_backup_ponr ();
+	  }
 	break;
       }
     case GRUB_INSTALL_PLATFORM_SPARC64_IEEE1275:
@@ -1746,10 +1750,14 @@ main (int argc, char *argv[])
 			
 	/*  Now perform the installation.  */
 	if (install_bootsector)
-	  grub_util_sparc_setup (platdir, "boot.img", "core.img",
-				 install_drive, force,
-				 fs_probe, allow_floppy,
-				 0 /* unused */, 0 /* unused */ );
+	  {
+	    grub_util_sparc_setup (platdir, "boot.img", "core.img",
+				   install_drive, force,
+				   fs_probe, allow_floppy,
+				   0 /* unused */, 0 /* unused */ );
+
+	    grub_set_install_backup_ponr ();
+	  }
 	break;
       }
 
@@ -1775,6 +1783,8 @@ main (int argc, char *argv[])
 
 	  grub_elf = grub_util_path_concat (2, core_services, "grub.elf");
 	  grub_install_copy_file (imgfile, grub_elf, 1);
+
+	  grub_set_install_backup_ponr ();
 
 	  f = grub_util_fopen (mach_kernel, "a+");
 	  if (!f)
@@ -1878,6 +1888,8 @@ main (int argc, char *argv[])
 	  boot_efi = grub_util_path_concat (2, core_services, "boot.efi");
 	  grub_install_copy_file (imgfile, boot_efi, 1);
 
+	  grub_set_install_backup_ponr ();
+
 	  f = grub_util_fopen (mach_kernel, "r+");
 	  if (!f)
 	    grub_util_error (_("Can't create file: %s"), strerror (errno));
@@ -1916,6 +1928,9 @@ main (int argc, char *argv[])
       {
 	char *dst = grub_util_path_concat (2, efidir, efi_file);
 	grub_install_copy_file (imgfile, dst, 1);
+
+	grub_set_install_backup_ponr ();
+
 	free (dst);
       }
       if (!removable && update_nvram)
@@ -1966,6 +1981,14 @@ main (int argc, char *argv[])
     case GRUB_INSTALL_PLATFORM_MAX:
       break;
     }
+
+  /*
+   * Either there are no platform specific code, or it didn't raise
+   * ponr. Raise it here, because usually this is already past point
+   * of no return. If we leave this flag false, at exit all the modules
+   * will be removed from the prefix which would be very confusing.
+   */
+  grub_set_install_backup_ponr ();
 
   fprintf (stderr, "%s\n", _("Installation finished. No error reported."));
 

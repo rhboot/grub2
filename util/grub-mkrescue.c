@@ -530,6 +530,9 @@ main (int argc, char *argv[])
 			       boot_grub, plat);
       source_dirs[plat] = xstrdup (grub_install_source_directory);
     }
+
+  grub_set_install_backup_ponr ();
+
   if (system_area == SYS_AREA_AUTO || grub_install_source_directory)
     {
       if (source_dirs[GRUB_INSTALL_PLATFORM_I386_PC]

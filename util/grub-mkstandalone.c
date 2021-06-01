@@ -318,6 +318,8 @@ main (int argc, char *argv[])
   grub_install_copy_files (grub_install_source_directory,
 			   boot_grub, plat);
 
+  grub_set_install_backup_ponr ();
+
   char *memdisk_img = grub_util_make_temporary_file ();
 
   memdisk = grub_util_fopen (memdisk_img, "wb");

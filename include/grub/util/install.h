@@ -275,4 +275,25 @@ extern char *grub_install_copy_buffer;
 int
 grub_install_is_short_mbrgap_supported (void);
 
+/*
+ * grub-install-common tries to make backups of modules & auxiliary files,
+ * and restore the backup upon failure to install core.img. There are
+ * platforms with additional actions after modules & core got installed
+ * in place. It is a point of no return, as core.img cannot be reverted
+ * from this point onwards, and new modules should be kept installed.
+ * Before performing these additional actions call grub_set_install_backup_ponr()
+ * to set the grub_install_backup_ponr flag. This way failure to perform
+ * subsequent actions will not result in reverting new modules to the
+ * old ones, e.g. in case efivars updates fails.
+ */
+#ifdef HAVE_ATEXIT
+extern void
+grub_set_install_backup_ponr (void);
+#else
+static inline void
+grub_set_install_backup_ponr (void)
+{
+}
+#endif
+
 #endif

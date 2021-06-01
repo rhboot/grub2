@@ -159,6 +159,9 @@ process_input_dir (const char *input_dir, enum grub_install_plat platform)
   grub_install_make_image_wrap (input_dir, prefix, output,
 				0, load_cfg,
 				targets[platform].mkimage_target, 0);
+
+  grub_set_install_backup_ponr ();
+
   grub_install_pop_module ();
 
   /* TRANSLATORS: First %s is replaced by platform name. Second one by filename.  */
