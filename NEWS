@@ -1,3 +1,17 @@
+New in 2.06:
+
+* GCC 10 support.
+* clang 10 support.
+* SBAT support.
+* LUKS2 support.
+* Drop small MBR gap support.
+* Xen Security Modules (XSM/FLASK) support.
+* The lockdown mechanism similar to the Linux kernel one.
+* Disable the os-prober by default.
+* Many backports of GRUB distros specific patches.
+* BootHole and BootHole2 fixes.
+* ...and tons of other fixes and cleanups...
+
 New in 2.04:
 
 * GCC 8 and 9 support.
