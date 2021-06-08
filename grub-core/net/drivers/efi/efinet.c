@@ -850,10 +850,31 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     else
       {
 	grub_dprintf ("efinet", "using ipv4 and dhcp\n");
+
+        struct grub_net_bootp_packet *dhcp_ack = &pxe_mode->dhcp_ack;
+
+        if (pxe_mode->proxy_offer_received)
+          {
+            grub_dprintf ("efinet", "proxy offer receive");
+            struct grub_net_bootp_packet *proxy_offer = &pxe_mode->proxy_offer;
+
+            if (proxy_offer && dhcp_ack->boot_file[0] == '\0')
+              {
+                grub_dprintf ("efinet", "setting values from proxy offer");
+                /* Here we got a proxy offer and the dhcp_ack has a nil boot_file
+                 * Copy the proxy DHCP offer details into the bootp_packet we are
+                 * sending forward as they are the deatils we need.
+                 */
+                *dhcp_ack->server_name = *proxy_offer->server_name;
+                *dhcp_ack->boot_file   = *proxy_offer->boot_file;
+                dhcp_ack->server_ip    = proxy_offer->server_ip;
+              }
+          }
+
 	grub_net_configure_by_dhcp_ack (card->name, card, 0,
 					(struct grub_net_bootp_packet *)
-					packet_buf,
-					packet_bufsz,
+					&pxe_mode->dhcp_ack,
+					sizeof (pxe_mode->dhcp_ack),
 					1, device, path);
 	grub_dprintf ("efinet", "device: `%s' path: `%s'\n", *device, *path);
       }
