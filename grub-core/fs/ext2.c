@@ -103,6 +103,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define EXT4_FEATURE_INCOMPAT_64BIT		0x0080
 #define EXT4_FEATURE_INCOMPAT_MMP		0x0100
 #define EXT4_FEATURE_INCOMPAT_FLEX_BG		0x0200
+#define EXT4_FEATURE_INCOMPAT_CSUM_SEED		0x2000
 #define EXT4_FEATURE_INCOMPAT_ENCRYPT          0x10000
 
 /* The set of back-incompatible features this driver DOES support. Add (OR)
@@ -123,9 +124,16 @@ GRUB_MOD_LICENSE ("GPLv3+");
  * mmp:            Not really back-incompatible - was added as such to
  *                 avoid multiple read-write mounts. Safe to ignore for this
  *                 RO driver.
+ * checksum seed:  Not really back-incompatible - was added to allow tools
+ *                 such as tune2fs to change the UUID on a mounted metadata
+ *                 checksummed filesystem. Safe to ignore for now since the
+ *                 driver doesn't support checksum verification. But it must
+ *                 be removed from this list if that support is added later.
+ *
  */
 #define EXT2_DRIVER_IGNORED_INCOMPAT ( EXT3_FEATURE_INCOMPAT_RECOVER \
-				     | EXT4_FEATURE_INCOMPAT_MMP)
+				     | EXT4_FEATURE_INCOMPAT_MMP \
+				     | EXT4_FEATURE_INCOMPAT_CSUM_SEED)
 
 
 #define EXT3_JOURNAL_MAGIC_NUMBER	0xc03b3998U
