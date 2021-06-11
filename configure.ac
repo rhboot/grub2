@@ -1947,24 +1947,15 @@ if test x"$rpm_sort_excuse" = x ; then
 fi
 
 if test x"$rpm_sort_excuse" = x ; then
-  # Check for rpm library.
-  AC_CHECK_LIB([rpm], [rpmvercmp], [],
-               [rpm_sort_excuse="rpmlib missing rpmvercmp"])
+  # Check for rpmio library.
+  AC_CHECK_LIB([rpmio], [rpmvercmp], [],
+               [rpm_sort_excuse="rpmio missing rpmvercmp"])
 fi
 
 if test x"$rpm_sort_excuse" = x ; then
-   LIBRPM="-lrpm";
-   AC_DEFINE([HAVE_RPM], [1],
-             [Define to 1 if you have the rpm library.])
-fi
-
-if test x"$LIBRPM" = x ; then
-  # Check for rpm library.
-  AC_CHECK_LIB([rpmio], [rpmvercmp], [],
-               [rpm_sort_excuse="rpmio missing rpmvercmp"])
    LIBRPM="-lrpmio";
    AC_DEFINE([HAVE_RPMIO], [1],
-             [Define to 1 if you have the rpm library.])
+             [Define to 1 if you have the rpmio library.])
 fi
 
 AC_SUBST([LIBRPM])
