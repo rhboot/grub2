@@ -140,9 +140,6 @@ GRUB_DEVICE_PARTUUID="`${grub_probe} --device ${GRUB_DEVICE} --target=partuuid 2
 GRUB_DEVICE_BOOT="`${grub_probe} --target=device /boot`"
 GRUB_DEVICE_BOOT_UUID="`${grub_probe} --device ${GRUB_DEVICE_BOOT} --target=fs_uuid 2> /dev/null`" || true
 
-# Disable os-prober by default due to security reasons.
-GRUB_DISABLE_OS_PROBER="true"
-
 # Filesystem for the device containing our userland.  Used for stuff like
 # choosing Hurd filesystem module.
 GRUB_FS="`${grub_probe} --device ${GRUB_DEVICE} --target=fs 2> /dev/null || echo unknown`"
@@ -204,7 +201,6 @@ export GRUB_DEVICE \
   GRUB_DEVICE_PARTUUID \
   GRUB_DEVICE_BOOT \
   GRUB_DEVICE_BOOT_UUID \
-  GRUB_DISABLE_OS_PROBER \
   GRUB_FS \
   GRUB_FONT \
   GRUB_PRELOAD_MODULES \
@@ -250,6 +246,7 @@ export GRUB_DEFAULT \
   GRUB_BACKGROUND \
   GRUB_THEME \
   GRUB_GFXPAYLOAD_LINUX \
+  GRUB_DISABLE_OS_PROBER \
   GRUB_INIT_TUNE \
   GRUB_SAVEDEFAULT \
   GRUB_ENABLE_CRYPTODISK \
