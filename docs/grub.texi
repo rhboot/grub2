@@ -1552,13 +1552,10 @@ boot sequence.  If you have problems, set this option to @samp{text} and
 GRUB will tell Linux to boot in normal text mode.
 
 @item GRUB_DISABLE_OS_PROBER
-The @command{grub-mkconfig} has a feature to use the external
-@command{os-prober} program to discover other operating systems installed on
-the same machine and generate appropriate menu entries for them. It is disabled
-by default since automatic and silent execution of @command{os-prober}, and
-creating boot entries based on that data, is a potential attack vector. Set
-this option to @samp{false} to enable this feature in the
-@command{grub-mkconfig} command.
+Normally, @command{grub-mkconfig} will try to use the external
+@command{os-prober} program, if installed, to discover other operating
+systems installed on the same system and generate appropriate menu entries
+for them.  Set this option to @samp{true} to disable this.
 
 @item GRUB_OS_PROBER_SKIP_LIST
 List of space-separated FS UUIDs of filesystems to be ignored from os-prober
@@ -1889,9 +1886,10 @@ than zero; otherwise 0.
 @section Multi-boot manual config
 
 Currently autogenerating config files for multi-boot environments depends on
-os-prober and has several shortcomings. Due to that it is disabled by default.
-It is advised to use the power of GRUB syntax and do it yourself. A possible
-configuration is detailed here, feel free to adjust to your needs.
+os-prober and has several shortcomings. While fixing it is scheduled for the
+next release, meanwhile you can make use of the power of GRUB syntax and do it
+yourself. A possible configuration is detailed here, feel free to adjust to your
+needs.
 
 First create a separate GRUB partition, big enough to hold GRUB. Some of the
 following entries show how to load OS installer images from this same partition,
