@@ -1936,6 +1936,8 @@ AC_ARG_ENABLE([rpm-sort],
                               [enable native rpm sorting of kernels in grub (default=guessed)])])
 if test x"$enable_rpm_sort" = xno ; then
   rpm_sort_excuse="explicitly disabled"
+else
+  enable_rpm_sort=yes
 fi
 
 if test x"$rpm_sort_excuse" = x ; then
@@ -2200,6 +2202,7 @@ AM_CONDITIONAL([COND_GRUB_EMU_SDL], [test x$enable_grub_emu_sdl = xyes])
 AM_CONDITIONAL([COND_GRUB_EMU_PCI], [test x$enable_grub_emu_pci = xyes])
 AM_CONDITIONAL([COND_GRUB_MKFONT], [test x$enable_grub_mkfont = xyes])
 AM_CONDITIONAL([COND_GRUB_MOUNT], [test x$enable_grub_mount = xyes])
+AM_CONDITIONAL([COND_GRUB_RPM_SORT], [test x$enable_rpm_sort = xyes])
 AM_CONDITIONAL([COND_HAVE_FONT_SOURCE], [test x$FONT_SOURCE != x])
 if test x$FONT_SOURCE != x ; then
    HAVE_FONT_SOURCE=1
@@ -2327,6 +2330,11 @@ if [ x"$grub_mount_excuse" = x ]; then
 echo grub-mount: Yes
 else
 echo grub-mount: No "($grub_mount_excuse)"
+fi
+if [ x"$rpm_sort_excuse" = x ]; then
+echo grub-rpm-sort: Yes
+else
+echo grub-rpm-sort: No "($rpm_sort_excuse)"
 fi
 if [ x"$starfield_excuse" = x ]; then
 echo starfield theme: Yes
