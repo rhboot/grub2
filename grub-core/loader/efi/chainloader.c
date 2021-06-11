@@ -24,6 +24,7 @@
 #include <grub/err.h>
 #include <grub/device.h>
 #include <grub/disk.h>
+#include <grub/loopback.h>
 #include <grub/misc.h>
 #include <grub/charset.h>
 #include <grub/mm.h>
@@ -901,6 +902,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_efi_status_t status;
   grub_efi_boot_services_t *b;
   grub_device_t dev = 0;
+  grub_device_t orig_dev = 0;
   grub_efi_device_path_t *dp = 0;
   char *filename;
   void *boot_image = 0;
@@ -957,6 +959,15 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     grub_free (devname);
   if (! dev)
     goto fail;
+
+  /* if device is loopback, use underlying dev */
+  if (dev->disk->dev->id == GRUB_DISK_DEVICE_LOOPBACK_ID)
+    {
+      struct grub_loopback *d;
+      orig_dev = dev;
+      d = dev->disk->data;
+      dev = d->file->device;
+    }
 
   if (dev->disk)
     dev_handle = grub_efidisk_get_device_handle (dev->disk);
@@ -1065,6 +1076,12 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
+  if (orig_dev)
+    {
+      dev = orig_dev;
+      orig_dev = 0;
+    }
+
   rc = grub_linuxefi_secure_validate((void *)(unsigned long)address, fsize);
   grub_dprintf ("chain", "linuxefi_secure_validate: %d\n", rc);
   if (rc > 0)
@@ -1087,6 +1104,12 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   // -1 fall-through to fail
 
 fail:
+  if (orig_dev)
+    {
+      dev = orig_dev;
+      orig_dev = 0;
+    }
+
   if (dev)
     grub_device_close (dev);
 
