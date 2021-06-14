@@ -89,7 +89,8 @@ enum
     OPTION_PRODUCT_NAME,
     OPTION_PRODUCT_VERSION,
     OPTION_SPARC_BOOT,
-    OPTION_ARCS_BOOT
+    OPTION_ARCS_BOOT,
+    OPTION_DISABLE_HFSPLUS
   };
 
 static struct argp_option options[] = {
@@ -110,6 +111,7 @@ static struct argp_option options[] = {
   {"product-version", OPTION_PRODUCT_VERSION, N_("STRING"), 0, N_("use STRING as product version"), 2},
   {"sparc-boot", OPTION_SPARC_BOOT, 0, 0, N_("enable sparc boot. Disables HFS+, APM, ARCS and boot as disk image for i386-pc"), 2},
   {"arcs-boot", OPTION_ARCS_BOOT, 0, 0, N_("enable ARCS (big-endian mips machines, mostly SGI) boot. Disables HFS+, APM, sparc64 and boot as disk image for i386-pc"), 2},
+  {"disable-hfsplus", OPTION_DISABLE_HFSPLUS, 0, 0, N_("disable HFS+ and use ISO 9660. (Only usable with x86_64-efi, i386-efi and i386-pc)"), 2},
   {0, 0, 0, 0, 0, 0}
 };
 
@@ -210,6 +212,8 @@ argp_parser (int key, char *arg, struct argp_state *state)
     case OPTION_XORRISO:
       free (xorriso);
       xorriso = xstrdup (arg);
+      return 0;
+    case OPTION_DISABLE_HFSPLUS:
       return 0;
 
     default:
@@ -677,9 +681,10 @@ main (int argc, char *argv[])
 
   char *core_services = NULL;
 
-  if (source_dirs[GRUB_INSTALL_PLATFORM_I386_EFI]
+  if ((source_dirs[GRUB_INSTALL_PLATFORM_I386_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_X86_64_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_POWERPC_IEEE1275])
+      && ! OPTION_DISABLE_HFSPLUS)
     {
       char *mach_ker, *sv, *label, *label_text;
       FILE *f;
