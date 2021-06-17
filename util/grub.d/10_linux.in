@@ -256,7 +256,9 @@ if [ -z "\${kernelopts}" ]; then
 fi
 EOF
 
-  update_bls_cmdline
+  if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
+      update_bls_cmdline
+  fi
 
   if [ "x${BLS_POPULATE_MENU}" = "xtrue" ]; then
       populate_menu
