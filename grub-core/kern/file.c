@@ -81,6 +81,7 @@ grub_file_open (const char *name, enum grub_file_type type)
 
   device = grub_device_open (device_name);
   grub_free (device_name);
+  device_name = NULL;
   if (! device)
     goto fail;
 
@@ -135,6 +136,7 @@ grub_file_open (const char *name, enum grub_file_type type)
   return file;
 
  fail:
+  grub_free (device_name);
   if (device)
     grub_device_close (device);
 
