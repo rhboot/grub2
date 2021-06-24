@@ -80,6 +80,7 @@ grub_file_open (const char *name)
 
   device = grub_device_open (device_name);
   grub_free (device_name);
+  device_name = NULL;
   if (! device)
     goto fail;
 
@@ -130,6 +131,7 @@ grub_file_open (const char *name)
   return file;
 
  fail:
+  grub_free (device_name);
   if (device)
     grub_device_close (device);
 
