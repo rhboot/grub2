@@ -677,6 +677,9 @@ grub_jpeg_decode_sos (struct grub_jpeg_data *data)
   if (data->file->offset != data_offset)
     return grub_error (GRUB_ERR_BAD_FILE_TYPE, "jpeg: extra byte in sos");
 
+  if (*data->bitmap)
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "jpeg: too many start of scan blocks");
+
   if (grub_video_bitmap_create (data->bitmap, data->image_width,
 				data->image_height,
 				GRUB_VIDEO_BLIT_FORMAT_RGB_888))
@@ -699,8 +702,8 @@ grub_jpeg_decode_data (struct grub_jpeg_data *data)
   nc1 = (data->image_width + hb - 1)  >> (3 + data->log_hs);
 
   if (data->bitmap_ptr == NULL)
-    return grub_error(GRUB_ERR_BAD_FILE_TYPE,
-		      "jpeg: attempted to decode data before start of stream");
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		       "jpeg: attempted to decode data before start of stream");
 
   for (; data->r1 < nr1 && (!data->dri || rst);
        data->r1++, data->bitmap_ptr += (vb * data->image_width - hb * nc1) * 3)
