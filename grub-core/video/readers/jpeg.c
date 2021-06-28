@@ -245,6 +245,9 @@ grub_jpeg_decode_huff_table (struct grub_jpeg_data *data)
 	n += count[i];
 
       id += ac * 2;
+      if (data->huff_value[id] != NULL)
+	return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			   "jpeg: attempt to reallocate huffman table");
       data->huff_value[id] = grub_malloc (n);
       if (grub_errno)
 	return grub_errno;
