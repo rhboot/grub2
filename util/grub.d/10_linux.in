@@ -96,7 +96,7 @@ cat <<EOF
 #
 # The $bls_parser parses the BootLoaderSpec files stored in /boot/loader/entries and
 # populates the boot menu. Please refer to the Boot Loader Specification documentation
-# for the files format: https://www.freedesktop.org/wiki/Specifications/BootLoaderSpec/.
+# for the files format: https://systemd.io/BOOT_LOADER_SPECIFICATION/.
 
 EOF
 }
