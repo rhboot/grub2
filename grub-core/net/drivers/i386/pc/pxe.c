@@ -359,11 +359,26 @@ static void
 grub_pc_net_config_real (char **device, char **path)
 {
   struct grub_net_bootp_packet *bp;
+  struct grub_net_bootp_packet *proxy_offer;
 
   bp = grub_pxe_get_cached (GRUB_PXENV_PACKET_TYPE_DHCP_ACK);
+  proxy_offer = grub_pxe_get_cached (GRUB_PXENV_PACKET_TYPE_CACHED_REPLY);
 
   if (!bp)
     return;
+
+  /* check if Proxy DHCP offer was received */
+  if (proxy_offer != 0 && proxy_offer->your_ip == 0) {
+    /* overwrite sname that it points to proxy DHCP server for later TFTP, e.g. grub.cfg */
+    *bp->server_name= *proxy_offer->server_name;
+
+    /* overwrite sip (does not cover DHCP overload via option 66) */
+    bp->server_ip= proxy_offer->server_ip;
+
+    /* overwrite bfn (does not cover DHCP overload via option 67) */
+    *bp->boot_file= *proxy_offer->boot_file;
+  }
+
   grub_net_configure_by_dhcp_ack ("pxe", &grub_pxe_card, 0,
 				  bp, GRUB_PXE_BOOTP_SIZE,
 				  1, device, path);
