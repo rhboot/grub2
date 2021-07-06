@@ -438,6 +438,13 @@ grub_png_insert_huff_item (struct huff_table *ht, int code, int len)
   for (i = len; i < ht->max_length; i++)
     n += ht->maxval[i];
 
+  if (n > ht->num_values)
+    {
+      grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		  "png: out of range inserting huffman table item");
+      return;
+    }
+
   for (i = 0; i < n; i++)
     ht->values[ht->num_values - i] = ht->values[ht->num_values - i - 1];
 
