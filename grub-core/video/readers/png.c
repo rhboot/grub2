@@ -100,7 +100,7 @@ struct grub_png_data
 
   unsigned image_width, image_height;
   int bpp, is_16bit;
-  int raw_bytes, is_gray, is_alpha, is_palette;
+  int raw_bytes, is_alpha, is_palette;
   int row_bytes, color_bits;
   grub_uint8_t *image_data;
 
@@ -296,13 +296,13 @@ grub_png_decode_image_header (struct grub_png_data *data)
     data->bpp = 3;
   else
     {
-      data->is_gray = 1;
-      data->bpp = 1;
+      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			 "png: color type not supported");
     }
 
   if ((color_bits != 8) && (color_bits != 16)
       && (color_bits != 4
-	  || !(data->is_gray || data->is_palette)))
+	  || !data->is_palette))
     return grub_error (GRUB_ERR_BAD_FILE_TYPE,
                        "png: bit depth must be 8 or 16");
 
@@ -331,7 +331,7 @@ grub_png_decode_image_header (struct grub_png_data *data)
     }
 
 #ifndef GRUB_CPU_WORDS_BIGENDIAN
-  if (data->is_16bit || data->is_gray || data->is_palette)
+  if (data->is_16bit || data->is_palette)
 #endif
     {
       data->image_data = grub_calloc (data->image_height, data->row_bytes);
@@ -899,27 +899,8 @@ grub_png_convert_image (struct grub_png_data *data)
       int shift;
       int mask = (1 << data->color_bits) - 1;
       unsigned j;
-      if (data->is_gray)
-	{
-	  /* Generic formula is
-	     (0xff * i) / ((1U << data->color_bits) - 1)
-	     but for allowed bit depth of 1, 2 and for it's
-	     equivalent to
-	     (0xff / ((1U << data->color_bits) - 1)) * i
-	     Precompute the multipliers to avoid division.
-	  */
 
-	  const grub_uint8_t multipliers[5] = { 0xff, 0xff, 0x55, 0x24, 0x11 };
-	  for (i = 0; i < (1U << data->color_bits); i++)
-	    {
-	      grub_uint8_t col = multipliers[data->color_bits] * i;
-	      palette[i][0] = col;
-	      palette[i][1] = col;
-	      palette[i][2] = col;
-	    }
-	}
-      else
-	grub_memcpy (palette, data->palette, 3 << data->color_bits);
+      grub_memcpy (palette, data->palette, 3 << data->color_bits);
       d1c = d1;
       d2c = d2;
       for (j = 0; j < data->image_height; j++, d1c += data->image_width * 3,
@@ -953,60 +934,6 @@ grub_png_convert_image (struct grub_png_data *data)
 	  d1[R3] = data->palette[d2[0]][2];
 	  d1[G3] = data->palette[d2[0]][1];
 	  d1[B3] = data->palette[d2[0]][0];
-	}
-      return;
-    }
-  
-  if (data->is_gray)
-    {
-      switch (data->bpp)
-	{
-	case 4:
-	  /* 16-bit gray with alpha.  */
-	  for (i = 0; i < (data->image_width * data->image_height);
-	       i++, d1 += 4, d2 += 4)
-	    {
-	      d1[R4] = d2[3];
-	      d1[G4] = d2[3];
-	      d1[B4] = d2[3];
-	      d1[A4] = d2[1];
-	    }
-	  break;
-	case 2:
-	  if (data->is_16bit)
-	    /* 16-bit gray without alpha.  */
-	    {
-	      for (i = 0; i < (data->image_width * data->image_height);
-		   i++, d1 += 4, d2 += 2)
-		{
-		  d1[R3] = d2[1];
-		  d1[G3] = d2[1];
-		  d1[B3] = d2[1];
-		}
-	    }
-	  else
-	    /* 8-bit gray with alpha.  */
-	    {
-	      for (i = 0; i < (data->image_width * data->image_height);
-		   i++, d1 += 4, d2 += 2)
-		{
-		  d1[R4] = d2[1];
-		  d1[G4] = d2[1];
-		  d1[B4] = d2[1];
-		  d1[A4] = d2[0];
-		}
-	    }
-	  break;
-	  /* 8-bit gray without alpha.  */
-	case 1:
-	  for (i = 0; i < (data->image_width * data->image_height);
-	       i++, d1 += 3, d2++)
-	    {
-	      d1[R3] = d2[0];
-	      d1[G3] = d2[0];
-	      d1[B3] = d2[0];
-	    }
-	  break;
 	}
       return;
     }
