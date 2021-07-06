@@ -258,6 +258,9 @@ grub_png_decode_image_header (struct grub_png_data *data)
   int color_bits;
   enum grub_video_blit_format blt;
 
+  if (data->image_width || data->image_height)
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "png: two image headers found");
+
   data->image_width = grub_png_get_dword (data);
   data->image_height = grub_png_get_dword (data);
 
