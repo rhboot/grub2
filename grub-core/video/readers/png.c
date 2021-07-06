@@ -753,6 +753,9 @@ grub_png_read_dynamic_block (struct grub_png_data *data)
 	  int len, dist, pos;
 
 	  n -= 257;
+	  if (((unsigned int) n) >= ARRAY_SIZE (cplens))
+	    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			       "png: invalid huff code");
 	  len = cplens[n];
 	  if (cplext[n])
 	    len += grub_png_get_bits (data, cplext[n]);
@@ -760,6 +763,9 @@ grub_png_read_dynamic_block (struct grub_png_data *data)
 	    return grub_errno;
 
 	  n = grub_png_get_huff_code (data, &data->dist_table);
+	  if (((unsigned int) n) >= ARRAY_SIZE (cpdist))
+	    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			       "png: invalid huff code");
 	  dist = cpdist[n];
 	  if (cpdext[n])
 	    dist += grub_png_get_bits (data, cpdext[n]);
