@@ -23,6 +23,7 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/bufio.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -699,6 +700,7 @@ static grub_err_t
 grub_jpeg_decode_data (struct grub_jpeg_data *data)
 {
   unsigned c1, vb, hb, nr1, nc1;
+  unsigned stride_a, stride_b, stride;
   int rst = data->dri;
   grub_err_t err = GRUB_ERR_NONE;
 
@@ -711,8 +713,14 @@ grub_jpeg_decode_data (struct grub_jpeg_data *data)
     return grub_error (GRUB_ERR_BAD_FILE_TYPE,
 		       "jpeg: attempted to decode data before start of stream");
 
+  if (grub_mul(vb, data->image_width, &stride_a) ||
+      grub_mul(hb, nc1, &stride_b) ||
+      grub_sub(stride_a, stride_b, &stride))
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		       "jpeg: cannot decode image with these dimensions");
+
   for (; data->r1 < nr1 && (!data->dri || rst);
-       data->r1++, data->bitmap_ptr += (vb * data->image_width - hb * nc1) * 3)
+       data->r1++, data->bitmap_ptr += stride * 3)
     for (c1 = 0;  c1 < nc1 && (!data->dri || rst);
 	c1++, rst--, data->bitmap_ptr += hb * 3)
       {
