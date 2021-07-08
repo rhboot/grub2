@@ -333,15 +333,10 @@ grub_enter_normal_mode (const char *config)
 }
 
 static grub_err_t
-grub_try_normal (const char *variable)
+grub_try_normal_prefix (const char *prefix)
 {
     char *config;
-    const char *prefix;
     grub_err_t err = GRUB_ERR_FILE_NOT_FOUND;
-
-    prefix = grub_env_get (variable);
-    if (!prefix)
-      return GRUB_ERR_FILE_NOT_FOUND;
 
     if (grub_strncmp (prefix + 1, "tftp", sizeof ("tftp") - 1) == 0)
       {
@@ -351,7 +346,7 @@ grub_try_normal (const char *variable)
 	config = grub_malloc (config_len);
 
 	if (! config)
-	  return GRUB_ERR_FILE_NOT_FOUND;
+	  return err;
 
 	grub_snprintf (config, config_len, "%s/grub.cfg", prefix);
 	err = grub_net_search_configfile (config);
@@ -380,6 +375,53 @@ grub_try_normal (const char *variable)
     return err;
 }
 
+static int
+grub_try_normal_dev (const char *name, void *data)
+{
+  grub_err_t err;
+  const char *prefix = grub_xasprintf ("(%s)%s", name, (char *)data);
+
+  if (!prefix)
+    return 0;
+
+  err = grub_try_normal_prefix (prefix);
+  if (err == GRUB_ERR_NONE)
+    return 1;
+
+  return 0;
+}
+
+static grub_err_t
+grub_try_normal_discover (void)
+{
+  char *prefix = grub_env_get ("prefix");
+  grub_err_t err = GRUB_ERR_FILE_NOT_FOUND;
+
+  if (!prefix)
+    return err;
+
+  if (grub_device_iterate (grub_try_normal_dev, (void *)prefix))
+    return GRUB_ERR_NONE;
+
+  return err;
+}
+
+static grub_err_t
+grub_try_normal (const char *variable)
+{
+  grub_err_t err = GRUB_ERR_FILE_NOT_FOUND;
+  const char *prefix;
+
+  if (!variable)
+    return err;
+
+  prefix = grub_env_get (variable);
+  if (!prefix)
+    return err;
+
+  return grub_try_normal_prefix (prefix);
+}
+
 /* Enter normal mode from rescue mode.  */
 static grub_err_t
 grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
@@ -394,6 +436,8 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
       err = grub_try_normal ("fw_path");
       if (err == GRUB_ERR_FILE_NOT_FOUND)
         err = grub_try_normal ("prefix");
+      if (err == GRUB_ERR_FILE_NOT_FOUND)
+        err = grub_try_normal_discover ();
       if (err == GRUB_ERR_FILE_NOT_FOUND)
         grub_enter_normal_mode (0);
     }
