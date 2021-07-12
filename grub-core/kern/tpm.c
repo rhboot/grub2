@@ -4,6 +4,7 @@
 #include <grub/mm.h>
 #include <grub/tpm.h>
 #include <grub/term.h>
+#include <grub/tdx.h>
 
 grub_err_t
 grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
@@ -13,6 +14,9 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   char *desc = grub_xasprintf("%s %s", kind, description);
   if (!desc)
     return GRUB_ERR_OUT_OF_MEMORY;
+
+  grub_tdx_log_event(buf, size, pcr, desc);
+
   ret = grub_tpm_log_event(buf, size, pcr, desc);
   grub_free(desc);
   return ret;
