@@ -395,6 +395,8 @@ grub_unicode_estimate_width (const struct grub_unicode_glyph *c)
 {
   if (grub_unicode_get_comb_type (c->base))
     return 0;
+  if (((unsigned long) (c->base >> 3)) >= ARRAY_SIZE (widthspec))
+    return 1;
   if (widthspec[c->base >> 3] & (1 << (c->base & 7)))
     return 2;
   else
