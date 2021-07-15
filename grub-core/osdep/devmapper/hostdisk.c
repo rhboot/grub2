@@ -11,6 +11,7 @@
 #include <grub/misc.h>
 #include <grub/i18n.h>
 #include <grub/list.h>
+#include <grub/osdep/major.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,12 +24,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
-
-#if defined(MAJOR_IN_MKDEV)
-#include <sys/mkdev.h>
-#elif defined(MAJOR_IN_SYSMACROS)
-#include <sys/sysmacros.h>
-#endif
 
 #ifdef HAVE_DEVICE_MAPPER
 # include <libdevmapper.h>

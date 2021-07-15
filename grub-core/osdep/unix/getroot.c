@@ -51,12 +51,7 @@
 #endif /* ! FLOPPY_MAJOR */
 #endif
 
-#include <sys/types.h>
-#if defined(MAJOR_IN_MKDEV)
-#include <sys/mkdev.h>
-#elif defined(MAJOR_IN_SYSMACROS)
-#include <sys/sysmacros.h>
-#endif
+#include <grub/osdep/major.h>
 
 #if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
 # include <grub/util/libzfs.h>

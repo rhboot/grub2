@@ -35,12 +35,7 @@
 #include <limits.h>
 #endif
 
-#if defined(MAJOR_IN_MKDEV)
-#include <sys/mkdev.h>
-#elif defined(MAJOR_IN_SYSMACROS)
-#include <sys/sysmacros.h>
-#endif
-
+#include <grub/osdep/major.h>
 #include <grub/types.h>
 #include <sys/ioctl.h>         /* ioctl */
 #include <sys/mount.h>
