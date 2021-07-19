@@ -216,13 +216,52 @@ grub_set_prefix_and_root (void)
   if (device)
     {
       char *prefix_set;
-    
-      prefix_set = grub_xasprintf ("(%s)%s", device, path ? : "");
-      if (prefix_set)
+
+#ifdef __powerpc__
+      /* We have to be careful here on powerpc-ieee1275 + signed grub. We
+	 will have signed something with a prefix that doesn't have a device
+	 because we cannot know in advance what partition we're on.
+
+	 We will have had !device earlier, so we will have set device=fwdevice
+	 However, we want to make sure we do not end up setting prefix to be
+	 ($fwdevice)/path, because we will then end up trying to boot or search
+	 based on a prefix of (ieee1275/disk)/path, which will not work because
+	 it's missing a partition.
+
+	 Also:
+	  - You can end up with a device with an FS directly on it, without
+	    a partition, e.g. ieee1275/cdrom.
+
+	  - powerpc-ieee1275 + grub-install sets e.g. prefix=(,gpt2)/path,
+	    which will have now been extended to device=$fwdisk,partition
+	    and path=/path
+
+	  - PowerVM will give us device names like
+	    ieee1275//vdevice/v-scsi@3000006c/disk@8100000000000000
+	    and we don't want to try to encode some sort of truth table about
+	    what sorts of paths represent disks with partition tables and those
+	    without partition tables.
+
+	 So we act unless there is a comma in the device, which would indicate
+	 a partition has already been specified.
+
+	 (If we only have a path, the code in normal to discover config files
+	 will try both without partitions and then with any partitions so we
+	 will cover both CDs and HDs.)
+       */
+      if (grub_strchr (device, ',') == NULL)
+        grub_env_set ("prefix", path);
+      else
+#endif
 	{
-	  grub_env_set ("prefix", prefix_set);
-	  grub_free (prefix_set);
+	  prefix_set = grub_xasprintf ("(%s)%s", device, path ? : "");
+	  if (prefix_set)
+	  {
+	    grub_env_set ("prefix", prefix_set);
+	    grub_free (prefix_set);
+	  }
 	}
+
       grub_env_set ("root", device);
     }
 
