@@ -44,6 +44,7 @@ struct grub_arm_linux_pe_header
 
 #if defined(__arm__)
 # define GRUB_LINUX_ARMXX_MAGIC_SIGNATURE GRUB_LINUX_ARM_MAGIC_SIGNATURE
+# define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE32_MAGIC
 # define linux_arch_kernel_header linux_arm_kernel_header
 # define grub_armxx_linux_pe_header grub_arm_linux_pe_header
 #endif
