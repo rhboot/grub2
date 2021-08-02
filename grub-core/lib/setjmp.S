@@ -1,3 +1,7 @@
+/* An executable stack is not required for these functions. */
+#if defined (__linux__) && defined (__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
 #if defined(__i386__)
 #include "./i386/setjmp.S"
 #elif defined(__x86_64__)

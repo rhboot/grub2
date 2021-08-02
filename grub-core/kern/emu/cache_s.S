@@ -2,6 +2,11 @@
 #error "This source is only meant for grub-emu platform"
 #endif
 
+/* An executable stack is not required for these functions. */
+#if defined (__linux__) && defined (__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
+
 #if defined(__i386__) || defined(__x86_64__)
 /* Nothing is necessary.  */
 #elif defined(__sparc__)
