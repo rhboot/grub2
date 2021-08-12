@@ -311,7 +311,6 @@ grub_cmd_setpci (grub_extcmd_context_t ctxt, int argc, char **argv)
 	  write_mask = grub_strtoul (ptr, &ptr, 16);
 	  if (grub_errno)
 	    return grub_errno;
-	  write_mask = 0xffffffff;
 	}
       regwrite &= write_mask;
     }
