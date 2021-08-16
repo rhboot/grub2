@@ -235,9 +235,20 @@ grub_set_prefix_and_root (void)
 	    which will have now been extended to device=$fwdisk,partition
 	    and path=/path
 
-	 So we only need to act if device = ieee1275/disk exactly.
+	  - PowerVM will give us device names like
+	    ieee1275//vdevice/v-scsi@3000006c/disk@8100000000000000
+	    and we don't want to try to encode some sort of truth table about
+	    what sorts of paths represent disks with partition tables and those
+	    without partition tables.
+
+	 So we act unless there is a comma in the device, which would indicate
+	 a partition has already been specified.
+
+	 (If we only have a path, the code in normal to discover config files
+	 will try both without partitions and then with any partitions so we
+	 will cover both CDs and HDs.)
        */
-      if (grub_strncmp (device, "ieee1275/disk", 14) == 0)
+      if (grub_strchr (device, ',') == NULL)
         grub_env_set ("prefix", path);
       else
 #endif
