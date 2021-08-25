@@ -192,6 +192,11 @@ struct grub_xfs_time_legacy
   grub_uint32_t nanosec;
 } GRUB_PACKED;
 
+/*
+ * The struct grub_xfs_inode layout was taken from the
+ * struct xfs_dinode_core which is described here:
+ * https://mirrors.edge.kernel.org/pub/linux/utils/fs/xfs/docs/xfs_filesystem_structure.pdf
+ */
 struct grub_xfs_inode
 {
   grub_uint8_t magic[2];
@@ -208,14 +213,15 @@ struct grub_xfs_inode
   grub_uint32_t nextents;
   grub_uint16_t unused3;
   grub_uint8_t fork_offset;
-  grub_uint8_t unused4[37];
+  grub_uint8_t unused4[17]; /* Last member of inode v2. */
+  grub_uint8_t unused5[20]; /* First member of inode v3. */
   grub_uint64_t flags2;
-  grub_uint8_t unused5[48];
+  grub_uint8_t unused6[48]; /* Last member of inode v3. */
 } GRUB_PACKED;
 
 #define XFS_V3_INODE_SIZE	sizeof(struct grub_xfs_inode)
-/* Size of struct grub_xfs_inode until fork_offset (included). */
-#define XFS_V2_INODE_SIZE	(XFS_V3_INODE_SIZE - 92)
+/* Size of struct grub_xfs_inode v2, up to unused4 member included. */
+#define XFS_V2_INODE_SIZE	(XFS_V3_INODE_SIZE - 76)
 
 struct grub_xfs_dirblock_tail
 {
