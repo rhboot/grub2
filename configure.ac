@@ -798,6 +798,8 @@ fi
 
 # Force no alignment to save space on i386.
 if test "x$target_cpu" = xi386; then
+  TARGET_CFLAGS="$TARGET_CFLAGS -falign-functions=1"
+
   AC_CACHE_CHECK([whether -falign-loops works], [grub_cv_cc_falign_loop], [
     CFLAGS="$TARGET_CFLAGS -falign-loops=1 -Werror"
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
@@ -806,7 +808,18 @@ if test "x$target_cpu" = xi386; then
   ])
 
   if test "x$grub_cv_cc_falign_loop" = xyes; then
-    TARGET_CFLAGS="$TARGET_CFLAGS -falign-jumps=1 -falign-loops=1 -falign-functions=1"
+    TARGET_CFLAGS="$TARGET_CFLAGS -falign-loops=1"
+  fi
+
+  AC_CACHE_CHECK([whether -falign-jumps works], [grub_cv_cc_falign_jumps], [
+    CFLAGS="$TARGET_CFLAGS -falign-jumps=1 -Werror"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+        [grub_cv_cc_falign_jumps=yes],
+        [grub_cv_cc_falign_jumps=no])
+  ])
+
+  if test "x$grub_cv_cc_falign_jumps" = xyes; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -falign-jumps=1"
   fi
 fi
 
