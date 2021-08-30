@@ -7,8 +7,21 @@ if [ ! -e grub-core/lib/gnulib/stdlib.in.h ]; then
   exit 1
 fi
 
-# Set ${PYTHON} to plain 'python' if not set already
-: ${PYTHON:=python}
+# Detect python
+if [ -z "$PYTHON" ]; then
+  for i in python3 python; do
+    if command -v "$i" > /dev/null 2>&1; then
+      PYTHON="$i"
+      echo "Using $PYTHON..."
+      break
+    fi
+  done
+
+  if [ -z "$PYTHON" ]; then
+    echo "python not found." >&2
+    exit 1
+  fi
+fi
 
 export LC_COLLATE=C
 unset LC_ALL
