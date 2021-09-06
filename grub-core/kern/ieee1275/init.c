@@ -207,11 +207,7 @@ grub_claim_heap (void)
 {
   unsigned long total = 0;
 
-  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_FORCE_CLAIM))
-    heap_init (GRUB_IEEE1275_STATIC_HEAP_START, GRUB_IEEE1275_STATIC_HEAP_LEN,
-	       1, &total);
-  else
-    grub_machine_mmap_iterate (heap_init, &total);
+  grub_machine_mmap_iterate (heap_init, &total);
 }
 #endif
 
