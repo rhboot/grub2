@@ -85,14 +85,6 @@ extern grub_ieee1275_ihandle_t EXPORT_VAR(grub_ieee1275_mmu);
 
 extern int (* EXPORT_VAR(grub_ieee1275_entry_fn)) (void *) GRUB_IEEE1275_ENTRY_FN_ATTRIBUTE;
 
-/* Static heap, used only if FORCE_CLAIM is set,
-   happens on Open Hack'Ware. Should be in platform-specific
-   header but is used only on PPC anyway.
-*/
-#define GRUB_IEEE1275_STATIC_HEAP_START 0x1000000
-#define GRUB_IEEE1275_STATIC_HEAP_LEN   0x1000000
-
-
 enum grub_ieee1275_flag
 {
   /* Old World Macintosh firmware fails seek when "dev:0" is opened.  */
@@ -118,9 +110,6 @@ enum grub_ieee1275_flag
 
   /* Open Hack'Ware stops when grub_ieee1275_interpret is used.  */
   GRUB_IEEE1275_FLAG_CANNOT_INTERPRET,
-
-  /* Open Hack'Ware has no memory map, just claim what we need.  */
-  GRUB_IEEE1275_FLAG_FORCE_CLAIM,
 
   /* Open Hack'Ware don't support the ANSI sequence.  */
   GRUB_IEEE1275_FLAG_NO_ANSI,
