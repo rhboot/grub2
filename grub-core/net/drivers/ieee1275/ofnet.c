@@ -321,12 +321,6 @@ grub_ieee1275_alloc_mem (grub_size_t len)
   }
   args;
 
-  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_CANNOT_INTERPRET))
-    {
-      grub_error (GRUB_ERR_UNKNOWN_COMMAND, N_("interpret is not supported"));
-      return NULL;
-    }
-
   INIT_IEEE1275_COMMON (&args.common, "interpret", 2, 2);
   args.len = len;
   args.method = (grub_ieee1275_cell_t) "alloc-mem";
@@ -353,12 +347,6 @@ grub_ieee1275_free_mem (void *addr, grub_size_t len)
     grub_ieee1275_cell_t catch;
   }
   args;
-
-  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_CANNOT_INTERPRET))
-    {
-      grub_error (GRUB_ERR_UNKNOWN_COMMAND, N_("interpret is not supported"));
-      return grub_errno;
-    }
 
   INIT_IEEE1275_COMMON (&args.common, "interpret", 3, 1);
   args.addr = (grub_ieee1275_cell_t)addr;

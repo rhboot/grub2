@@ -105,9 +105,6 @@ enum grub_ieee1275_flag
   /* OLPC / XO firmware hangs when accessing USB devices.  */
   GRUB_IEEE1275_FLAG_OFDISK_SDCARD_ONLY,
 
-  /* Open Hack'Ware stops when grub_ieee1275_interpret is used.  */
-  GRUB_IEEE1275_FLAG_CANNOT_INTERPRET,
-
   /* Open Hack'Ware don't support the ANSI sequence.  */
   GRUB_IEEE1275_FLAG_NO_ANSI,
 
