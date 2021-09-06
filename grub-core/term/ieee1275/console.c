@@ -171,6 +171,7 @@ static grub_err_t
 grub_console_init_output (struct grub_term_output *term)
 {
   grub_ssize_t actual;
+  unsigned int col;
 
   /* The latest PowerMacs don't actually initialize the screen for us, so we
    * use this trick to re-open the output device (but we avoid doing this on
@@ -184,16 +185,12 @@ grub_console_init_output (struct grub_term_output *term)
     return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "cannot find stdout");
 
   /* Initialize colors.  */
-  if (! grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_CANNOT_SET_COLORS))
-    {
-      unsigned col;
-      for (col = 0; col < ARRAY_SIZE (colors); col++)
-	grub_ieee1275_set_color (stdout_ihandle, col, colors[col].red,
-				 colors[col].green, colors[col].blue);
+  for (col = 0; col < ARRAY_SIZE (colors); col++)
+    grub_ieee1275_set_color (stdout_ihandle, col, colors[col].red,
+			     colors[col].green, colors[col].blue);
 
-      /* Set the right fg and bg colors.  */
-      grub_terminfo_setcolorstate (term, GRUB_TERM_COLOR_NORMAL);
-    }
+  /* Set the right fg and bg colors. */
+  grub_terminfo_setcolorstate (term, GRUB_TERM_COLOR_NORMAL);
 
   grub_console_dimensions ();
 
