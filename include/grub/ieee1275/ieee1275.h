@@ -105,9 +105,6 @@ enum grub_ieee1275_flag
   /* OLPC / XO firmware hangs when accessing USB devices.  */
   GRUB_IEEE1275_FLAG_OFDISK_SDCARD_ONLY,
 
-  /* Open Hack'Ware don't support the ANSI sequence.  */
-  GRUB_IEEE1275_FLAG_NO_ANSI,
-
   /* OpenFirmware hangs on qemu if one requests any memory below 1.5 MiB.  */
   GRUB_IEEE1275_FLAG_NO_PRE1_5M_CLAIM,
 
