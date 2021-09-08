@@ -318,7 +318,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    FSLABEL="grub_;/testéтi u😁莽茝кириrewfceniuewruevrewnuuireurevueurnievrewfne";;
  	            # FS LIMITATION: afs and iso9660 label is at most 32 UTF-8 characters
 		x"afs" | xiso9660 | xrockridge | xrockridge_joliet\
-                     | xiso9660_1999 | xrockridge_1999 | xrockridge_joliet_1999)
+		     | xiso9660_1999 | xrockridge_1999\
+		     | xrockridge_joliet_1999 | xziso9660)
 		     FSLABEL="gr_;/é莭莽😁кирит u";;
  	            # FS LIMITATION: bfs label is at most 32 UTF-8 characters
  	            # OS LIMITATION: bfs label can't contain ; or /
@@ -1024,7 +1025,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    (cd "$MASTER"; find . | cpio -o -H "$(echo ${fs} | sed 's@^cpio_@@')" > "${FSIMAGEP}0.img" ) ;;
 		x"ziso9660")
 		    FSUUID=$(date -u +%Y-%m-%d-%H-%M-%S-00);
-		    xorriso -compliance rec_mtime -set_filter_r --zisofs -- -zisofs default -as mkisofs $XORRISOFS_CHARSET -iso-level 3 -graft-points -R -J -joliet-long -V "$FSLABEL" --modification-date=$(echo ${FSUUID} | sed 's/-//g;') -o "${FSIMAGEP}0.img"  -- -set_filter_r --zisofs -- -zisofs default -add /="$MASTER" ;;
+		    xorriso -compliance rec_mtime -as mkisofs $XORRISOFS_CHARSET -iso-level 3 -graft-points -R -V "$FSLABEL" --modification-date=$(echo ${FSUUID} | sed 's/-//g;') -o "${FSIMAGEP}0.img" -- -add /="$MASTER" -- -zisofs default -set_filter_r --zisofs / -- ;;
 		x"iso9660")
 		    FSUUID=$(date -u +%Y-%m-%d-%H-%M-%S-00);
 		    xorriso --rockridge off -compliance rec_mtime -as mkisofs $XORRISOFS_CHARSET -iso-level 3 -graft-points -V "$FSLABEL" --modification-date=$(echo ${FSUUID} | sed 's/-//g;') -o "${FSIMAGEP}0.img" /="$MASTER"  ;;
