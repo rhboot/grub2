@@ -322,7 +322,7 @@ parse_pe_header (void *kernel, grub_uint64_t *total_size,
 
   pe = (void *)((unsigned long)kernel + lh->hdr_offset);
 
-  if (pe->opt.magic != GRUB_PE32_PE64_MAGIC)
+  if (pe->opt.magic != GRUB_PE32_PEXX_MAGIC)
     return grub_error(GRUB_ERR_BAD_OS, "Invalid PE optional header magic");
 
   *total_size   = pe->opt.image_size;
