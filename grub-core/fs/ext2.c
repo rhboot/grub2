@@ -413,13 +413,15 @@ grub_ext2_blockgroup (struct grub_ext2_data *data, grub_uint64_t group,
 			 sizeof (struct grub_ext2_block_group), blkgrp);
 }
 
-static struct grub_ext4_extent_header *
+static grub_err_t
 grub_ext4_find_leaf (struct grub_ext2_data *data,
                      struct grub_ext4_extent_header *ext_block,
-                     grub_uint32_t fileblock)
+                     grub_uint32_t fileblock,
+                     struct grub_ext4_extent_header **leaf)
 {
   struct grub_ext4_extent_idx *index;
   void *buf = NULL;
+  *leaf = NULL;
 
   while (1)
     {
@@ -432,7 +434,10 @@ grub_ext4_find_leaf (struct grub_ext2_data *data,
 	goto fail;
 
       if (ext_block->depth == 0)
-        return ext_block;
+        {
+          *leaf = ext_block;
+          return GRUB_ERR_NONE;
+        }
 
       for (i = 0; i < grub_le_to_cpu16 (ext_block->entries); i++)
         {
@@ -441,7 +446,10 @@ grub_ext4_find_leaf (struct grub_ext2_data *data,
         }
 
       if (--i < 0)
-	goto fail;
+        {
+          grub_free (buf);
+          return GRUB_ERR_NONE;
+        }
 
       block = grub_le_to_cpu16 (index[i].leaf_hi);
       block = (block << 32) | grub_le_to_cpu32 (index[i].leaf);
@@ -458,7 +466,7 @@ grub_ext4_find_leaf (struct grub_ext2_data *data,
     }
  fail:
   grub_free (buf);
-  return 0;
+  return GRUB_ERR_BAD_FS;
 }
 
 static grub_disk_addr_t
@@ -480,12 +488,16 @@ grub_ext2_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       int i;
       grub_disk_addr_t ret;
 
-      leaf = grub_ext4_find_leaf (data, (struct grub_ext4_extent_header *) inode->blocks.dir_blocks, fileblock);
-      if (! leaf)
+      if (grub_ext4_find_leaf (data, (struct grub_ext4_extent_header *) inode->blocks.dir_blocks,
+			       fileblock, &leaf) != GRUB_ERR_NONE)
         {
           grub_error (GRUB_ERR_BAD_FS, "invalid extent");
           return -1;
         }
+
+      if (leaf == NULL)
+        /* Leaf for the given block is absent (i.e. sparse) */
+        return 0;
 
       ext = (struct grub_ext4_extent *) (leaf + 1);
       for (i = 0; i < grub_le_to_cpu16 (leaf->entries); i++)
