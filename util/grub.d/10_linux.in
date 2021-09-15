@@ -43,6 +43,10 @@ case ${GRUB_DEVICE} in
   ;;
 esac
 
+if [ "x${GRUB_CMDLINE_LINUX_RECOVERY}" = "x" ] ; then
+  GRUB_CMDLINE_LINUX_RECOVERY=single
+fi
+
 # Default to disabling partition uuid support to maintian compatibility with
 # older kernels.
 GRUB_DISABLE_LINUX_PARTUUID=${GRUB_DISABLE_LINUX_PARTUUID-true}
@@ -287,7 +291,7 @@ while [ "x$list" != "x" ] ; do
               "${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
   if [ "x${GRUB_DISABLE_RECOVERY}" != "xtrue" ]; then
     linux_entry "${OS}" "${version}" recovery \
-                "single ${GRUB_CMDLINE_LINUX}"
+                "${GRUB_CMDLINE_LINUX_RECOVERY} ${GRUB_CMDLINE_LINUX}"
   fi
 
   list=`echo $list | tr ' ' '\n' | fgrep -vx "$linux" | tr '\n' ' '`

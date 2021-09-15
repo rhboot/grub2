@@ -1411,6 +1411,13 @@ entry for recovery mode.  This option lists command-line arguments to add
 only to the default menu entry, after those listed in
 @samp{GRUB_CMDLINE_LINUX}.
 
+@item GRUB_CMDLINE_LINUX_RECOVERY
+Unless @samp{GRUB_DISABLE_RECOVERY} is set to @samp{true}, two menu
+entries will be generated for each Linux kernel: one default entry and one
+entry for recovery mode. This option lists command-line arguments to add
+only to the recovery menu entry, before those listed in @samp{GRUB_CMDLINE_LINUX}.
+The default is @samp{single}.
+
 @item GRUB_CMDLINE_NETBSD
 @itemx GRUB_CMDLINE_NETBSD_DEFAULT
 As @samp{GRUB_CMDLINE_LINUX} and @samp{GRUB_CMDLINE_LINUX_DEFAULT}, but for
