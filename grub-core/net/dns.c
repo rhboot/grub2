@@ -667,9 +667,11 @@ grub_cmd_nslookup (struct grub_command *cmd __attribute__ ((unused)),
       grub_net_addr_to_str (&addresses[i], buf);
       grub_printf ("%s\n", buf);
     }
-  grub_free (addresses);
   if (naddresses)
-    return GRUB_ERR_NONE;
+    {
+      grub_free (addresses);
+      return GRUB_ERR_NONE;
+    }
   return grub_error (GRUB_ERR_NET_NO_DOMAIN, N_("no DNS record found"));
 }
 
