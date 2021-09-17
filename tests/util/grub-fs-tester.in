@@ -126,8 +126,10 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    MAXBLKSIZE=4096
 	    ;;
 	xreiserfs*)
-	    MINBLKSIZE=512
-		# OS LIMITATION: 8192 isn't supported.
+	    # OS LIMITATION: mkreiserfs says block sizes smaller than 4 KiB are
+	    # not supported and bails. Its been this way since at least 2014.
+	    MINBLKSIZE=4096
+	    # OS LIMITATION: 8192 isn't supported.
 	    MAXBLKSIZE=4096
 	    ;;
 	x"mdraid"*)
