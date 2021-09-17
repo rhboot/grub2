@@ -1022,7 +1022,7 @@ grub_udf_iterate_dir (grub_fshelp_node_t dir,
 static char *
 grub_udf_read_symlink (grub_fshelp_node_t node)
 {
-  grub_size_t sz = U64 (node->block.fe.file_size);
+  grub_size_t s, sz = U64 (node->block.fe.file_size);
   grub_uint8_t *raw;
   const grub_uint8_t *ptr;
   char *out = NULL, *optr;
@@ -1035,11 +1035,19 @@ grub_udf_read_symlink (grub_fshelp_node_t node)
   if (grub_udf_read_file (node, NULL, NULL, 0, sz, (char *) raw) < 0)
     goto fail_1;
 
-  if (grub_mul (sz, 2, &sz) ||
-      grub_add (sz, 1, &sz))
+  /*
+   * Local sz is the size of the symlink file data, which contains a sequence
+   * of path components (ECMA-167 14.16.1) representing the link destination.
+   * This size is an upper-bound on the number of bytes of a contained and
+   * potentially compressed UTF-16 character string. Allocate 2*sz for the
+   * output buffer containing the string converted to UTF-8 because the
+   * resulting string can not be more than double the size (2-byte unicode
+   * code points will be converted to a maximum of 3 bytes in UTF-8).
+   */
+  if (grub_mul (sz, 2, &s))
     goto fail_0;
 
-  out = grub_malloc (sz);
+  out = grub_malloc (s);
   if (!out)
     {
  fail_0:
@@ -1051,7 +1059,6 @@ grub_udf_read_symlink (grub_fshelp_node_t node)
 
   for (ptr = raw; ptr < raw + sz; )
     {
-      grub_size_t s;
       if ((grub_size_t) (ptr - raw + 4) > sz)
 	goto fail_1;
       if (!(ptr[2] == 0 && ptr[3] == 0))
