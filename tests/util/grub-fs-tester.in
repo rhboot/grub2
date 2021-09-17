@@ -59,7 +59,7 @@ case x"$fs" in
 	MINLOGSECSIZE=8
 	MAXLOGSECSIZE=12;;
     xbtrfs*)
-	MINLOGSECSIZE=8
+	MINLOGSECSIZE=12
 	    #  OS LIMITATION: It could go up to 32768 but Linux rejects sector sizes > 4096
 	MAXLOGSECSIZE=12;;
     xxfs)
