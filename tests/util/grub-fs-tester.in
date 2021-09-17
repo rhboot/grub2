@@ -1170,8 +1170,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    fi
 
 	    if [ x$NOFILETIME != xy ]; then
-		filtime=$(TZ=UTC ls --time-style=+%Y%m%d%H%M%S -l -d "$MNTPOINTRO/$OSDIR/$BASEFILE"|awk '{print $6; }')
-		if echo "$LSROUT" | grep -F "$filtime $BASEFILE" > /dev/null; then
+		filetime=$(TZ=UTC ls --time-style=+%Y%m%d%H%M%S -l -d "$MNTPOINTRO/$OSDIR/$BASEFILE"|awk '{print $6; }')
+		if echo "$LSROUT" | grep -F "$filetime $BASEFILE" > /dev/null; then
 		    :
 		else
 		    echo TIME FAIL
@@ -1180,8 +1180,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    exit 1
 		fi
 
-		filtime=$(TZ=UTC ls --time-style=+%Y%m%d%H%M%S -l -d "$MNTPOINTRO/$OSDIR/$LONGNAME"|awk '{print $6; }')
-		if echo "$LSROUT" | grep -F "$filtime $LONGNAME" > /dev/null; then
+		filetime=$(TZ=UTC ls --time-style=+%Y%m%d%H%M%S -l -d "$MNTPOINTRO/$OSDIR/$LONGNAME"|awk '{print $6; }')
+		if echo "$LSROUT" | grep -F "$filetime $LONGNAME" > /dev/null; then
 		    :
 		else
 		    echo LONG TIME FAIL
