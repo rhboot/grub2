@@ -201,7 +201,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		# OS LIMITATION: Linux rejects non-power-of-two blocks.
 		# OS LIMITATION: Linux rejects > 4096.
 	    MINBLKSIZE=1024
-	    MAXBLKSIZE=4096;;
+	    MAXBLKSIZE=1024;;
     esac
     if test "$BLKSTEP" -eq 0; then
 	blksizes="$(powrange "$MINBLKSIZE" "$MAXBLKSIZE")"
@@ -697,7 +697,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    "mkfs.minix" -v "${MOUNTDEVICE}"
 		    MOUNTFS="minix";;
 		x"minix3")
-		    "mkfs.minix" -B $BLKSIZE -3 "${MOUNTDEVICE}"
+		    "mkfs.minix" -3 "${MOUNTDEVICE}"
 		    MOUNTFS="minix";;
 		x"ntfs"*)
 		    "mkfs.ntfs" -s "$SECSIZE" -c "$BLKSIZE" -L "$FSLABEL" -Q -q "${MOUNTDEVICE}"
