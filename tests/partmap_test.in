@@ -43,7 +43,7 @@ check_output () {
     for dsk in $@; do
 	if ! grep "($dsk)" "${outfile}" >/dev/null
 	then
-	    echo "($dsk): disk/partiton not found"
+	    echo "($dsk): disk/partiton not found in: $(cat "${outfile}")"
 	    exit 1
 	fi
     done
