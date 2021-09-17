@@ -932,9 +932,6 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 				sleep 1
 			    done
 			done
-			for i in $(range 0 $((NDEVICES-1)) 1); do
-			    rm "$FSIMAGEP${i}.img"
-			done
 			exit 99;
 		    fi
 		    ;;
