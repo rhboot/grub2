@@ -343,9 +343,10 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    # FS LIMITATION: XFS label is at most 12 UTF-8 characters
 		x"xfs"|x"xfs_crc")
 		    FSLABEL="géт 😁к";;
-            # FS LIMITATION: FAT labels limited to 11 characters, no  international characters or lowercase
+            # FS LIMITATION: FAT labels limited to 11 characters, no international characters or lowercase
+	    # and excluding the restricted characters in "*?.,;:/\|+=<>[]"
 		x"vfat"* | xmsdos*)
-		    FSLABEL="GRUBTEST ;_";;
+		    FSLABEL="G~!@#\$%^&(_";;
 	    # FS LIMITATION: AFFS is latin1. At most 29 characters
 		x"affs" | xaffs_intl)
 		    FSLABEL="grub_tt? #*w;/e£@¡¤½¾{[]}<>.,";;
