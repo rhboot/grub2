@@ -16,5 +16,6 @@ if ! which mkfs.reiserfs >/dev/null 2>&1; then
 fi
 
 "@builddir@/grub-fs-tester" reiserfs
-"@builddir@/grub-fs-tester" reiserfs_old
 
+# Kernels since at least 4.15 can not mount ReiserFS filesystems of the old format.
+#"@builddir@/grub-fs-tester" reiserfs_old
