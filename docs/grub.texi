@@ -5006,16 +5006,25 @@ Search devices by file (@option{-f}, @option{--file}), filesystem label
 (@option{-l}, @option{--label}), or filesystem UUID (@option{-u},
 @option{--fs-uuid}).
 
-If the @option{--set} option is used, the first device found is set as the
-value of environment variable @var{var}.  The default variable is
+If the (@option{-s}, @option{--set}) option is used, the first device found is
+set as the value of environment variable @var{var}. The default variable is
 @samp{root}.
 
-The @option{--no-floppy} option prevents searching floppy devices, which can
-be slow.
+The (@option{-n}, @option{--no-floppy}) option prevents searching floppy
+devices, which can be slow.
 
 The @samp{search.file}, @samp{search.fs_label}, and @samp{search.fs_uuid}
 commands are aliases for @samp{search --file}, @samp{search --label}, and
 @samp{search --fs-uuid} respectively.
+
+Also hints as to which device may be the most likely to contain the item
+searched for may be given via the (@option{-h}, @option{--hint}) option with
+a device name as an argument. If the argument ends with a comma, then partitions
+on the device are also searched. Furthermore, platform specific hints may be
+given via the options @option{--hint-ieee1275}, @option{--hint-bios},
+@option{--hint-baremetal}, @option{--hint-efi}, and @option{--hint-arc}. When
+specified, these options take an argument and operate like @option{--hint}, but
+only on the specified platform.
 @end deffn
 
 
