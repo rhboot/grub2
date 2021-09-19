@@ -1625,7 +1625,8 @@ grub_net_fs_close (grub_file_t file)
       grub_netbuff_free (file->device->net->packs.first->nb);
       grub_net_remove_packet (file->device->net->packs.first);
     }
-  file->device->net->protocol->close (file);
+  if (!file->device->net->broken)
+    file->device->net->protocol->close (file);
   grub_free (file->device->net->name);
   return GRUB_ERR_NONE;
 }
@@ -1847,7 +1848,10 @@ grub_net_seek_real (struct grub_file *file, grub_off_t offset)
     file->device->net->stall = 0;
     err = file->device->net->protocol->open (file, file->device->net->name);
     if (err)
-      return err;
+      {
+	file->device->net->broken = 1;
+	return err;
+      }
     grub_net_fs_read_real (file, NULL, offset);
     return grub_errno;
   }
@@ -1856,6 +1860,9 @@ grub_net_seek_real (struct grub_file *file, grub_off_t offset)
 static grub_ssize_t
 grub_net_fs_read (grub_file_t file, char *buf, grub_size_t len)
 {
+  if (file->device->net->broken)
+    return -1;
+
   if (file->offset != file->device->net->offset)
     {
       grub_err_t err;
