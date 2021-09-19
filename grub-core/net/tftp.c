@@ -408,6 +408,7 @@ tftp_open (struct grub_file *file, const char *filename)
     {
       grub_net_udp_close (data->sock);
       grub_free (data);
+      file->data = NULL;
       return grub_errno;
     }
 
