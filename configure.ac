@@ -840,6 +840,20 @@ if ( test "x$target_cpu" = xi386 || test "x$target_cpu" = xx86_64 ) && test "x$p
   TARGET_CFLAGS="$TARGET_CFLAGS -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow"
 fi
 
+if ( test "x$target_cpu" = xi386 || test "x$target_cpu" = xx86_64 ); then
+  AC_CACHE_CHECK([whether -Wa,-mx86-used-note works], [grub_cv_cc_mx86_used_note], [
+    CFLAGS="$TARGET_CFLAGS -Wa,-mx86-used-note=no -Werror"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+	[grub_cv_cc_mx86_used_note=yes],
+	[grub_cv_cc_mx86_used_note=no])
+  ])
+
+  if test "x$grub_cv_cc_mx86_used_note" = xyes; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -Wa,-mx86-used-note=no"
+    TARGET_CCASFLAGS="$TARGET_CCASFLAGS -Wa,-mx86-used-note=no"
+  fi
+fi
+
 # GRUB doesn't use float or doubles at all. Yet some toolchains may decide
 # that floats are a good fit to run instead of what's written in the code.
 # Given that floating point unit is disabled (if present to begin with)
