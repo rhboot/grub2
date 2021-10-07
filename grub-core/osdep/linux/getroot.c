@@ -130,10 +130,20 @@ struct mountinfo_entry
   char fstype[ESCAPED_PATH_MAX + 1], device[ESCAPED_PATH_MAX + 1];
 };
 
+/*
+ * GET_DISK_INFO nr_disks (total count) does not map to disk.number,
+ * which is an internal kernel index. Instead, do what mdadm does
+ * and keep scanning until we find enough valid disks. The limit is
+ * copied from there, which notes that it is sufficiently high given
+ * that the on-disk metadata for v1.x can only support 1920.
+ */
+#define MD_MAX_DISKS       4096
+
 static char **
 grub_util_raid_getmembers (const char *name, int bootable)
 {
   int fd, ret, i, j;
+  int remaining;
   char **devicelist;
   mdu_version_t version;
   mdu_array_info_t info;
@@ -165,22 +175,22 @@ grub_util_raid_getmembers (const char *name, int bootable)
 
   devicelist = xcalloc (info.nr_disks + 1, sizeof (char *));
 
-  for (i = 0, j = 0; j < info.nr_disks; i++)
+  remaining = info.nr_disks;
+  for (i = 0, j = 0; i < MD_MAX_DISKS && remaining > 0; i++)
     {
       disk.number = i;
       ret = ioctl (fd, GET_DISK_INFO, &disk);
       if (ret != 0)
 	grub_util_error (_("ioctl GET_DISK_INFO error: %s"), strerror (errno));
-      
+
+      /* Skip: MD_DISK_REMOVED slots don't contribute to "remaining" count. */
       if (disk.state & (1 << MD_DISK_REMOVED))
 	continue;
+      remaining--;
 
+      /* Only record disks that are actively participating in the array. */
       if (disk.state & (1 << MD_DISK_ACTIVE))
-	devicelist[j] = grub_find_device (NULL,
-					  makedev (disk.major, disk.minor));
-      else
-	devicelist[j] = NULL;
-      j++;
+        devicelist[j++] = grub_find_device (NULL, makedev (disk.major, disk.minor));
     }
 
   devicelist[j] = NULL;
