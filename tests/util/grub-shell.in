@@ -84,6 +84,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	serial_null="-serial null"
 	netbootext=elf
 	trim=1
+	qemuopts="-M mac99,via=pmu $qemuopts"
 	;;
 
     sparc64-ieee1275)
@@ -231,7 +232,7 @@ for option in "$@"; do
 	qemu=qemu-system-ppc64
 	serial_port=ieee1275/hvterm
 	serial_null=
-	qemuopts="$qemuopts -M pseries -no-reboot"
+	qemuopts="$(echo $qemuopts | sed -E 's/-M [^ ]+//') -M pseries -no-reboot"
 	trim=1
 	pseries=y
 	    ;;
