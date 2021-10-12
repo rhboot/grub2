@@ -4,6 +4,9 @@ This is the GRUB.  Welcome.
 
 This file contains instructions for compiling and installing the GRUB.
 
+Where this document refers to packages names, they are named according to the
+Debian 11 package repositories.
+
 The Requirements
 ================
 
@@ -46,10 +49,45 @@ need the following.
 * Autoconf 2.63 or later
 * Automake 1.11 or later
 
+Your distro may package cross-compiling toolchains such as the following
+incomplete list on Debian: gcc-aarch64-linux-gnu, gcc-arm-linux-gnueabihf,
+gcc-mipsel-linux-gnu, and mingw-w64.
+
+More cross compiling toolchains can be found at the following trusted sites:
+
+* https://mirrors.kernel.org/pub/tools/crosstool/
+* https://toolchains.bootlin.com/
+
 Prerequisites for make-check:
 
-* qemu, specifically the binary 'qemu-system-i386'
+* qemu, specifically the binary "qemu-system-ARCH" where ARCH is the
+  architecture GRUB has been built for; the "qemu-system" package on Debian
+  will install all needed qemu architectures
+* OVMF, for EFI platforms (packages ovmf, ovmf-ia32, qemu-efi-arm, and
+  qemu-efi-aarch64)
+* OpenBIOS, for ieee1275 platforms (packages openbios-ppc and openbios-sparc)
 * xorriso 1.2.9 or later, for grub-mkrescue and grub-shell
+* wamerican, for grub-fs-tester
+* mtools, FAT tools for EFI platforms
+
+* If running a Linux kernel the following modules must be loaded:
+  - fuse, loop
+  - btrfs, ext4, f2fs, fat, hfs, hfsplus, jfs, mac-roman, minix, nilfs2,
+    reiserfs, udf, xfs
+  - On newer kernels, the exfat kernel modules may be used instead of the
+    exfat FUSE filesystem
+* The following are Debian named packages required mostly for the full
+  suite of filesystem testing (but some are needed by other tests as well):
+  - btrfs-progs, dosfstools, e2fsprogs, exfatprogs, f2fs-tools, genromfs,
+    hfsprogs, jfsutils, nilfs-tools, ntfs-3g, reiserfsprogs, squashfs-tools,
+    reiserfsprogs, udftools, xfsprogs, zfs-fuse
+  - exfat-fuse, if not using the exfat kernel module
+  - gzip, lzop, xz-utils
+  - attr, cpio, g++, gawk, parted, recode, tar, util-linux
+
+Note that `make check' will run and many tests may complete successfully
+with only a subset of these prerequisites. However, some tests may be
+skipped or fail due to missing prerequisites.
 
 Configuring the GRUB
 ====================
@@ -101,7 +139,8 @@ The simplest way to compile this package is:
   6. Type `make' to compile the package.
 
   7. Optionally, type `make check' to run any self-tests that come with
-     the package.
+     the package. Note that many of the tests require root privileges in
+     order to run.
 
   8. Type `make install' to install the programs and any data files and
      documentation.
