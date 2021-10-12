@@ -528,14 +528,16 @@ grub_dl_find_section_index (Elf_Ehdr *e, const char *name)
    Be sure to understand your license obligations.
 */
 static grub_err_t
-grub_dl_check_license (Elf_Ehdr *e)
+grub_dl_check_license (grub_dl_t mod, Elf_Ehdr *e)
 {
   Elf_Shdr *s = grub_dl_find_section (e, ".module_license");
   if (s && (grub_strcmp ((char *) e + s->sh_offset, "LICENSE=GPLv3") == 0
 	    || grub_strcmp ((char *) e + s->sh_offset, "LICENSE=GPLv3+") == 0
 	    || grub_strcmp ((char *) e + s->sh_offset, "LICENSE=GPLv2+") == 0))
     return GRUB_ERR_NONE;
-  return grub_error (GRUB_ERR_BAD_MODULE, "incompatible license");
+  return grub_error (GRUB_ERR_BAD_MODULE,
+		     "incompatible license in module %s: %s", mod->name,
+		     (char *) e + s->sh_offset);
 }
 
 static grub_err_t
@@ -743,8 +745,8 @@ grub_dl_load_core_noinit (void *addr, grub_size_t size)
      constitutes linking) and GRUB core being licensed under GPLv3+.
      Be sure to understand your license obligations.
   */
-  if (grub_dl_check_license (e)
-      || grub_dl_resolve_name (mod, e)
+  if (grub_dl_resolve_name (mod, e)
+      || grub_dl_check_license (mod, e)
       || grub_dl_resolve_dependencies (mod, e)
       || grub_dl_load_segments (mod, e)
       || grub_dl_resolve_symbols (mod, e)
