@@ -20,7 +20,7 @@ grubshell=@builddir@/grub-shell
 . "@builddir@/grub-core/modinfo.sh"
 
 if [ "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" != powerpc-ieee1275 ]; then
-   exit 0
+   exit 77
 fi
 
 if [ "$(echo hello | "${grubshell}" --pseries --timeout=180 --boot=cd)" != "Hello World" ]; then

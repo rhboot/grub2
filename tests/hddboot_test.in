@@ -22,13 +22,13 @@ grubshell=@builddir@/grub-shell
 case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     # PLATFORM: emu is different
     *-emu)
-	exit 0;;
+	exit 77;;
     # PLATFORM: Flash targets
     i386-qemu | i386-coreboot | mips-qemu_mips | mipsel-qemu_mips)
-	exit 0;;
+	exit 77;;
     # FIXME: currently grub-shell uses only -kernel for loongson
     mipsel-loongson)
-	exit 0;;
+	exit 77;;
 esac
 
 v=$(echo hello | "${grubshell}" --boot=hd)
