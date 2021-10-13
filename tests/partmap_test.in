@@ -89,7 +89,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	disk=arc/scsi0/disk0/rdisk0
 	;;
     arm*-efi)
-	disk=hd3
+	disk=hd2
 	;;
     *)
 	disk=hd0
