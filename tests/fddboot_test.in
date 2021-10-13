@@ -46,6 +46,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	exit 0;;
 esac
 
-if [ "$(echo hello | "${grubshell}" --boot=fd --mkrescue-arg="--compress=xz --fonts= --locales= --themes= -no-pad")" != "Hello World" ]; then
+v=$(echo hello | "${grubshell}" --boot=fd --mkrescue-arg="--compress=xz --fonts= --locales= --themes= -no-pad")
+if [ "$v" != "Hello World" ]; then
    exit 1
 fi

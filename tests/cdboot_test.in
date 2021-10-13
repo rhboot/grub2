@@ -34,6 +34,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	exit 0;;
 esac
 
-if [ "$(echo hello | "${grubshell}" --boot=cd)" != "Hello World" ]; then
+v=$(echo hello | "${grubshell}" --boot=cd)
+if [ "$v" != "Hello World" ]; then
    exit 1
 fi

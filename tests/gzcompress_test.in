@@ -24,6 +24,7 @@ if ! which gzip >/dev/null 2>&1; then
    exit 77
 fi
 
-if [ "$(echo hello | "${grubshell}" --mkrescue-arg=--compress=gz)" != "Hello World" ]; then
+v=$(echo hello | "${grubshell}" --mkrescue-arg=--compress=gz)
+if [ "$v" != "Hello World" ]; then
    exit 1
 fi
