@@ -6,7 +6,8 @@ fs="$1"
 
 GRUBFSTEST="@builddir@/grub-fstest"
 
-tempdir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+tempdir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` ||
+{ echo "Failed to make temporary directory"; exit 99; }
 
 # xorriso -as mkisofs options to ignore locale when processing file names and
 # FSLABEL. This is especially needed for the conversion to Joliet UCS-2.
@@ -277,7 +278,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    done
 	    if test "$CFILESRC" = "" ; then
 		echo "Couldn't find compressible file" >&2
-		exit 1
+		exit 99
 	    fi
 	    case x"$fs" in
 		    # FS LIMITATION: 8.3 names
@@ -621,7 +622,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    mkdir -p "$MNTPOINTRO"
 		    for i in $(range 0 $((NDEVICES-1)) 1); do
 			dd if=/dev/zero of="$FSIMAGEP${i}.img" count=1 bs=1 seek=$((DISKSIZE-1)) &> /dev/null
-			LODEVICE=$(losetup --find --show "$FSIMAGEP${i}.img")
+			LODEVICE=$(losetup --find --show "$FSIMAGEP${i}.img") || exit 99
 			LODEVICES="$LODEVICES $LODEVICE"
 			if test "$i" = 0; then
 			    MOUNTDEVICE="$LODEVICE"
@@ -825,7 +826,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    "mkfs.xfs" -m crc=1 -b size=$BLKSIZE -s size=$SECSIZE -L "$FSLABEL" -q "${MOUNTDEVICE}" ;;
 		*)
 		    echo "Add appropriate mkfs command here"
-		    exit 1
+		    exit 99
 		    ;;
 	    esac
 	    BASEFILE="1.img"
@@ -931,7 +932,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			for i in $(range 0 $((NDEVICES-1)) 1); do
 			    rm "$FSIMAGEP${i}.img"
 			done
-			exit 1;
+			exit 99;
 		    fi
 		    ;;
 	    esac
