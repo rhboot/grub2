@@ -2,7 +2,7 @@
 set -e
 
 # create a randome file
-file="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
+file="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
 cat >$file <<EOF
 hello world!
 EOF
@@ -16,12 +16,12 @@ else
 fi
 
 
-outfile1="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
+outfile1="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
 @builddir@/grub-shell --files=/boot/grub/file=$file >$outfile1 <<EOF
 sha512sum $grub_file
 EOF
 
-outfile2="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
+outfile2="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
 sha512sum $file >$outfile2
 
 SHA1=`cat $outfile1 | tr -d '\n' | cut -f1 -d\ `

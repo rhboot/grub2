@@ -2,8 +2,8 @@
 set -e
 
 # create a randome file
-empty="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
-non_empty="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
+empty="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
+non_empty="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
 cat >$non_empty <<EOF
 hello world!
 EOF
@@ -21,7 +21,7 @@ else
 fi
 
 
-outfile="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 1
+outfile="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99
 @builddir@/grub-shell --files=$grub_empty=$empty  --files=$grub_non_empty=$non_empty>$outfile <<EOF
 if ! test -f $grub_empty; then
   echo FAIL1

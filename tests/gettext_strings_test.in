@@ -2,7 +2,7 @@
 
 cd '@srcdir@'
 
-tdir="$(mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX")"
+tdir="$(mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX")" || exit 99
 
 xgettext -f po/POTFILES.in -L C -o "$tdir/"skip.pot -x po/grub.pot --keyword=grub_util_info --keyword=grub_dprintf:1,2 --keyword=grub_register_command --keyword=grub_register_extcmd --keyword=grub_efiemu_resolve_symbol --keyword=grub_efiemu_register_symbol --keyword=grub_dl_load --keyword=grub_crypto_lookup_md_by_name --keyword=grub_crypto_lookup_cipher_by_name --keyword=grub_efiemu_resolve_symbol --keyword=alias --keyword=grub_ieee1275_get_property:2 --keyword=grub_ieee1275_find_device --keyword=grub_ieee1275_get_integer_property:2 --keyword=INIT_IEEE1275_COMMON:2  --keyword=grub_boot_time --keyword=grub_env_get --keyword=grub_env_set --keyword=grub_register_variable_hook --keyword=grub_fatal --keyword=__asm__ --keyword=volatile --keyword=__volatile__  --keyword=grub_error:2 --from-code=iso-8859-1
 xgettext -f po/POTFILES.in -L C -o "$tdir/"skip2.pot -x po/grub.pot --keyword=volatile:2 --keyword=__volatile__:2 --keyword=grub_dprintf:2 --from-code=iso-8859-1
