@@ -44,8 +44,8 @@ tar cf "$imgfile" "$outfile"
 v=$(echo "nativedisk; source '(ahci0)/$outfile';" |
     "${grubshell}" --qemu-opts="-drive id=disk,file=$imgfile,if=none
 				-device ahci,id=ahci
-				-device ide-hd,drive=disk,bus=ahci.0" |
-    tail -n 1)
+				-device ide-hd,drive=disk,bus=ahci.0")
+v=$(echo "$v" | tail -n 1)
 if [ "$v" != "Hello World" ]; then
    rm "$imgfile"
    rm "$outfile"

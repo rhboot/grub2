@@ -58,8 +58,8 @@ list_parts () {
     shift
 
     echo ls | "${grubshell}" --disk="${imgfile}" \
-	--modules=$mod | tr -d "\n\r" > "${outfile}"
-    cat "${outfile}"
+	--modules=$mod > "${outfile}"
+    cat "${outfile}" | tr -d "\n\r"
     echo
 }
 

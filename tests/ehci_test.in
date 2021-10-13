@@ -44,8 +44,8 @@ tar cf "$imgfile" "$outfile"
 v=$(echo "nativedisk; source '(usb0)/$outfile';" |
     "${grubshell}" --qemu-opts="-device ich9-usb-ehci1
 				-drive id=my_usb_disk,file=$imgfile,if=none
-				-device usb-storage,drive=my_usb_disk" |
-    tail -n 1)
+				-device usb-storage,drive=my_usb_disk")
+v=$(echo "$v" | tail -n 1)
 if [ "$v" != "Hello World" ]; then
    rm "$imgfile"
    rm "$outfile"
