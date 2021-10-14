@@ -21,7 +21,7 @@ grubshell=@builddir@/grub-shell
 
 if ! which lzop >/dev/null 2>&1; then
    echo "lzop not installed; cannot test lzo compression."
-   exit 77
+   exit 99
 fi
 
 v=$(echo hello | "${grubshell}" --mkrescue-arg=--compress=lzo)

@@ -7,12 +7,12 @@ if [ "x$EUID" = "x" ] ; then
 fi
 
 if [ "$EUID" != 0 ] ; then
-   exit 77
+   exit 99
 fi
 
 if ! which mkfs.vfat >/dev/null 2>&1; then
    echo "mkfs.vfat not installed; cannot test FAT."
-   exit 77
+   exit 99
 fi
 
 "@builddir@/grub-fs-tester" vfat16a

@@ -7,17 +7,17 @@ if [ "x$EUID" = "x" ] ; then
 fi
 
 if [ "$EUID" != 0 ] ; then
-   exit 77
+   exit 99
 fi
 
 if ! which mkfs.hfs >/dev/null 2>&1; then
    echo "mkfs.hfs not installed; cannot test HFS."
-   exit 77
+   exit 99
 fi
 
 if ! grep -q mac_roman /proc/modules && ! modprobe mac_roman; then
    echo "no mac-roman support; cannot test HFS."
-   exit 77
+   exit 99
 fi
 
 "@builddir@/grub-fs-tester" hfs

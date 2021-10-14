@@ -7,12 +7,12 @@ if [ "x$EUID" = "x" ] ; then
 fi
 
 if [ "$EUID" != 0 ] ; then
-   exit 77
+   exit 99
 fi
 
 if ! which mkfs.xfs >/dev/null 2>&1; then
    echo "mkfs.xfs not installed; cannot test xfs."
-   exit 77
+   exit 99
 fi
 
 

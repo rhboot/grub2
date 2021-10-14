@@ -4,7 +4,7 @@ set -e
 
 if ! which cpio >/dev/null 2>&1; then
    echo "cpio not installed; cannot test cpio."
-   exit 77
+   exit 99
 fi
 
 "@builddir@/grub-fs-tester" cpio_bin
