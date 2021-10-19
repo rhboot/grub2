@@ -182,7 +182,7 @@ grub_real_dprintf (const char *file, const int line, const char *condition,
 
   if (grub_debug_enabled (condition))
     {
-      grub_printf ("%s:%d: ", file, line);
+      grub_printf ("%s:%d:%s: ", file, line, condition);
       va_start (args, fmt);
       grub_vprintf (fmt, args);
       va_end (args);
