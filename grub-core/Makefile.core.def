@@ -89,7 +89,7 @@ kernel = {
   i386_xen_pvh_ldflags     = '$(TARGET_IMG_BASE_LDOPT),0x100000';
 
   mips_loongson_ldflags    = '-Wl,-Ttext,0x80200000';
-  powerpc_ieee1275_ldflags = '-Wl,-Ttext,0x200000';
+  powerpc_ieee1275_ldflags = '-Wl,-Ttext,0x400000';
   sparc64_ieee1275_ldflags = '-Wl,-Ttext,0x4400';
   mips_arc_ldflags    = '-Wl,-Ttext,$(TARGET_LINK_ADDR)';
   mips_qemu_mips_ldflags    = '-Wl,-Ttext,0x80200000';
