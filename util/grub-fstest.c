@@ -300,9 +300,15 @@ cmd_cmp (char *src, char *dest)
 	  strcpy (ptr, entry->d_name);
 
 	  if (grub_util_is_special_file (destnew))
-	    continue;
+	    {
+	      free (srcnew);
+	      free (destnew);
+	      continue;
+	    }
 
 	  cmd_cmp (srcnew, destnew);
+	  free (srcnew);
+	  free (destnew);
 	}
       grub_util_fd_closedir (dir);
       return;
