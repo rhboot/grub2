@@ -928,6 +928,7 @@ write_font_pf2 (struct grub_font_info *font_info, char *output_file)
 			     file, output_file);
     }
 
+  free (font_name);
   fclose (file);
 }
 
