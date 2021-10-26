@@ -447,7 +447,7 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
   int l;			/* bits per table (returned in m) */
   register unsigned *p;		/* pointer into c[], b[], or v[] */
   register struct huft *q;	/* points to current table */
-  struct huft r;		/* table entry for structure assignment */
+  struct huft r = {0};		/* table entry for structure assignment */
   struct huft *u[BMAX];		/* table stack */
   unsigned v[N_MAX];		/* values in order of bit length */
   register int w;		/* bits before this table == (l * h) */
