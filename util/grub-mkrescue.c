@@ -229,6 +229,7 @@ write_part (FILE *f, const char *srcdir)
   char *inname = grub_util_path_concat (2, srcdir, "partmap.lst");
   char buf[260];
   in = grub_util_fopen (inname, "rb");
+  free (inname);
   if (!in)
     return;
   while (fgets (buf, 256, in))
