@@ -754,7 +754,10 @@ copy_all (const char *srcd,
       srcf = grub_util_path_concat (2, srcd, de->d_name);
       if (grub_util_is_special_file (srcf)
 	  || grub_util_is_directory (srcf))
-	continue;
+	{
+	  free (srcf);
+	  continue;
+	}
       dstf = grub_util_path_concat (2, dstd, de->d_name);
       grub_install_compress_file (srcf, dstf, 1);
       free (srcf);
