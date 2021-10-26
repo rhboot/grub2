@@ -2229,7 +2229,7 @@ zap_leaf_array_get (zap_leaf_phys_t * l, grub_zfs_endian_t endian, int blksft,
 
   while (bseen < array_len)
     {
-      struct zap_leaf_array *la = &ZAP_LEAF_CHUNK (l, blksft, chunk)->l_array;
+      struct zap_leaf_array *la;
       grub_size_t toread = array_len - bseen;
 
       if (toread > ZAP_LEAF_ARRAY_BYTES)
@@ -2239,6 +2239,7 @@ zap_leaf_array_get (zap_leaf_phys_t * l, grub_zfs_endian_t endian, int blksft,
 	/* Don't use grub_error because this error is to be ignored.  */
 	return GRUB_ERR_BAD_FS;
 
+      la = &ZAP_LEAF_CHUNK (l, blksft, chunk)->l_array;
       grub_memcpy (buf + bseen,la->la_array,  toread);
       chunk = grub_zfs_to_cpu16 (la->la_next, endian);
       bseen += toread;
