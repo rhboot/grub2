@@ -66,4 +66,8 @@
 
 #  define _GNU_SOURCE 1
 
+#  ifndef _GL_INLINE_HEADER_BEGIN
+#    define _GL_ATTRIBUTE_CONST __attribute__ ((const))
+#  endif /* !_GL_INLINE_HEADER_BEGIN */
+
 #endif
