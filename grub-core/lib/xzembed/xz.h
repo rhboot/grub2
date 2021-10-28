@@ -29,10 +29,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <grub/misc.h>
-
-#ifndef GRUB_POSIX_BOOL_DEFINED
-typedef enum { false = 0, true = 1 } bool;
-#endif
+#include <stdbool.h>
 
 /**
  * enum xz_ret - Return codes
