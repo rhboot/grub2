@@ -30,7 +30,6 @@ EXTRA_DIST += grub-core/gensymlist.sh
 EXTRA_DIST += grub-core/genemuinit.sh
 EXTRA_DIST += grub-core/genemuinitheader.sh
 
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-base64.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-deref.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-state-deref.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regcomp-uninit-token.patch
