@@ -1443,6 +1443,8 @@ grub_btrfs_extent_read (struct grub_btrfs_data *data,
       grub_size_t csize;
       grub_err_t err;
       grub_off_t extoff;
+      struct grub_btrfs_leaf_descriptor desc;
+
       if (!data->extent || data->extstart > pos || data->extino != ino
 	  || data->exttree != tree || data->extend <= pos)
 	{
@@ -1455,7 +1457,7 @@ grub_btrfs_extent_read (struct grub_btrfs_data *data,
 	  key_in.type = GRUB_BTRFS_ITEM_TYPE_EXTENT_ITEM;
 	  key_in.offset = grub_cpu_to_le64 (pos);
 	  err = lower_bound (data, &key_in, &key_out, tree,
-			     &elemaddr, &elemsize, NULL, 0);
+			     &elemaddr, &elemsize, &desc, 0);
 	  if (err)
 	    return -1;
 	  if (key_out.object_id != ino
@@ -1494,10 +1496,38 @@ grub_btrfs_extent_read (struct grub_btrfs_data *data,
 			PRIxGRUB_UINT64_T "\n",
 			grub_le_to_cpu64 (key_out.offset),
 			grub_le_to_cpu64 (data->extent->size));
+	  /*
+	   * The way of extent item iteration is pretty bad, it completely
+	   * requires all extents are contiguous, which is not ensured.
+	   *
+	   * Features like NO_HOLE and mixed inline/regular extents can cause
+	   * gaps between file extent items.
+	   *
+	   * The correct way is to follow Linux kernel/U-boot to iterate item
+	   * by item, without any assumption on the file offset continuity.
+	   *
+	   * Here we just manually skip to next item and re-do the verification.
+	   *
+	   * TODO: Rework the whole extent item iteration code, if not the
+	   * whole btrfs implementation.
+	   */
 	  if (data->extend <= pos)
 	    {
-	      grub_error (GRUB_ERR_BAD_FS, "extent not found");
-	      return -1;
+	      err = next (data, &desc, &elemaddr, &elemsize, &key_out);
+	      if (err < 0)
+		return -1;
+	      /* No next item for the inode, we hit the end. */
+	      if (err == 0 || key_out.object_id != ino ||
+		  key_out.type != GRUB_BTRFS_ITEM_TYPE_EXTENT_ITEM)
+		      return pos - pos0;
+
+	      csize = grub_le_to_cpu64 (key_out.offset) - pos;
+	      if (csize > len)
+		      csize = len;
+	      buf += csize;
+	      pos += csize;
+	      len -= csize;
+	      continue;
 	    }
 	}
       csize = data->extend - pos;
