@@ -96,8 +96,8 @@ This edition documents version @value{VERSION}.
 @node Getting the source code
 @chapter Getting the source code
 
-GRUB is maintained using the @uref{GIT revision
-control system}.  To fetch:
+GRUB is maintained using the @uref{https://git-scm.com/book/en/v2,
+GIT revision control system}.  To fetch:
 
 @example
 git clone git://git.sv.gnu.org/grub.git
@@ -346,8 +346,8 @@ manual and try GRUB 2 out to see what you think is missing from there.
 
 Here are additional pointers:
 @itemize
-@item @url{https://savannah.gnu.org/task/?group=grub GRUB's Task Tracker}
-@item @url{https://savannah.gnu.org/bugs/?group=grub GRUB's Bug Tracker}
+@item @uref{https://savannah.gnu.org/task/?group=grub, GRUB's Task Tracker}
+@item @uref{https://savannah.gnu.org/bugs/?group=grub, GRUB's Bug Tracker}
 @end itemize
 
 If you intended to make changes to GRUB Legacy (<=0.97) those are not accepted
@@ -461,7 +461,7 @@ and the FSF clerks have dealt with your copyright assignment.
 @section When you are approved for write access to project's files
 
 As you might know, GRUB is hosted on
-@url{https://savannah.gnu.org/projects/grub Savannah}, thus the membership
+@uref{https://savannah.gnu.org/projects/grub, Savannah}, thus the membership
 is managed by Savannah. This means that, if you want to be a member of this
 project:
 
