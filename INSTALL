@@ -5,7 +5,8 @@ This is the GRUB.  Welcome.
 This file contains instructions for compiling and installing the GRUB.
 
 Where this document refers to packages names, they are named according to the
-Debian 11 package repositories.
+Debian 11 package repositories. These packages can be found by searching
+https://packages.debian.org/.
 
 The Requirements
 ================
