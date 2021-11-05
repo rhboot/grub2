@@ -90,6 +90,10 @@ Note that `make check' will run and many tests may complete successfully
 with only a subset of these prerequisites. However, some tests may be
 skipped or fail due to missing prerequisites.
 
+To build the documentation you'll need:
+* texinfo, for the info and html documentation
+* texlive, for building the dvi and pdf documentation (optional)
+
 Configuring the GRUB
 ====================
 
@@ -146,7 +150,10 @@ The simplest way to compile this package is:
   8. Type `make install' to install the programs and any data files and
      documentation.
 
-  9. You can remove the program binaries and object files from the
+  9. Type `make html' or `make pdf' to generate the html or pdf
+     documentation.  Note, these are not built by default.
+
+ 10. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
      files that `configure' created (so you can compile the package for
      a different kind of computer), type `make distclean'.  There is
