@@ -487,6 +487,7 @@ make_vg (grub_disk_t disk,
 	  ptr = vblk[i].dynamic;
 	  if (ptr + *ptr + 1 >= vblk[i].dynamic + sizeof (vblk[i].dynamic))
 	    {
+	      grub_free (comp);
 	      goto fail2;
 	    }
 	  comp->internal_id = grub_malloc ((grub_size_t) ptr[0] + 2);
