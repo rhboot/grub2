@@ -446,54 +446,73 @@ grub_free (void *ptr)
     }
   else
     {
-      grub_mm_header_t q, s;
+      grub_mm_header_t cur, prev;
 
 #if 0
-      q = r->first;
+      cur = r->first;
       do
 	{
 	  grub_printf ("%s:%d: q=%p, q->size=0x%x, q->magic=0x%x\n",
-		       GRUB_FILE, __LINE__, q, q->size, q->magic);
-	  q = q->next;
+		       GRUB_FILE, __LINE__, cur, cur->size, cur->magic);
+	  cur = cur->next;
 	}
-      while (q != r->first);
+      while (cur != r->first);
 #endif
-
-      for (s = r->first, q = s->next; q <= p || q->next >= p; s = q, q = s->next)
+      /* Iterate over all blocks in the free ring.
+       *
+       * The free ring is arranged from high addresses to low
+       * addresses, modulo wraparound.
+       *
+       * We are looking for a block with a higher address than p or
+       * whose next address is lower than p.
+       */
+      for (prev = r->first, cur = prev->next; cur <= p || cur->next >= p;
+	   prev = cur, cur = prev->next)
 	{
-	  if (q->magic != GRUB_MM_FREE_MAGIC)
-	    grub_fatal ("free magic is broken at %p: 0x%x", q, q->magic);
+	  if (cur->magic != GRUB_MM_FREE_MAGIC)
+	    grub_fatal ("free magic is broken at %p: 0x%x", cur, cur->magic);
 
-	  if (q <= q->next && (q > p || q->next < p))
+	  /* Deal with wrap-around */
+	  if (cur <= cur->next && (cur > p || cur->next < p))
 	    break;
 	}
 
+      /* mark p as free and insert it between cur and cur->next */
       p->magic = GRUB_MM_FREE_MAGIC;
-      p->next = q->next;
-      q->next = p;
+      p->next = cur->next;
+      cur->next = p;
 
+      /*
+       * If the block we are freeing can be merged with the next
+       * free block, do that.
+       */
       if (p->next + p->next->size == p)
 	{
 	  p->magic = 0;
 
 	  p->next->size += p->size;
-	  q->next = p->next;
+	  cur->next = p->next;
 	  p = p->next;
 	}
 
-      r->first = q;
+      r->first = cur;
 
-      if (q == p + p->size)
+      /* Likewise if can be merged with the preceeding free block */
+      if (cur == p + p->size)
 	{
-	  q->magic = 0;
-	  p->size += q->size;
-	  if (q == s)
-	    s = p;
-	  s->next = p;
-	  q = s;
+	  cur->magic = 0;
+	  p->size += cur->size;
+	  if (cur == prev)
+	    prev = p;
+	  prev->next = p;
+	  cur = prev;
 	}
 
-      r->first = q;
+      /*
+       * Set r->first such that the just free()d block is tried first.
+       * (An allocation is tried from *first->next, and cur->next == p.)
+       */
+      r->first = cur;
     }
 }
 
