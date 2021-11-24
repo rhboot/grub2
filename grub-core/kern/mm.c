@@ -306,7 +306,7 @@ grub_real_malloc (grub_mm_header_t *first, grub_size_t n, grub_size_t align)
 	  /* Mark find as a start marker for next allocation to fasten it.
 	     This will have side effect of fragmenting memory as small
 	     pieces before this will be un-used.  */
-	  /* So do it only for chunks under 64K.  */
+	  /* So do it only for chunks under 32K.  */
 	  if (n < (0x8000 >> GRUB_MM_ALIGN_LOG2)
 	      || *first == cur)
 	    *first = prev;
