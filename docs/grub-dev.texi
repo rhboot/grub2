@@ -587,12 +587,12 @@ To upgrade to a new version of the miniLZO library, download the release
 tarball and copy the files into the target directory:
 
 @example
-curl -L -O http://www.oberhumer.com/opensource/lzo/download/minilzo-2.08.tar.gz
-tar -zxf minilzo-2.08.tar.gz
-rm minilzo-2.08/testmini.c
+curl -L -O https://www.oberhumer.com/opensource/lzo/download/minilzo-2.10.tar.gz
+tar -zxf minilzo-2.10.tar.gz
+rm minilzo-2.10/testmini.c
 rm -r grub-core/lib/minilzo/*
-cp minilzo-2.08/*.[hc] grub-core/lib/minilzo
-rm -r minilzo-2.08*
+cp minilzo-2.10/*.[hc] grub-core/lib/minilzo
+rm -r minilzo-2.10*
 @end example
 
 @node Porting
