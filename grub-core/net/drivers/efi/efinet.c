@@ -156,9 +156,7 @@ open_card (struct grub_net_card *dev)
 
   if (dev->efi_net != NULL)
     {
-      efi_call_4 (grub_efi_system_table->boot_services->close_protocol,
-		  dev->efi_handle, &net_io_guid,
-		  grub_efi_image_handle, NULL);
+      grub_efi_close_protocol (dev->efi_handle, &net_io_guid);
       dev->efi_net = NULL;
     }
   /*
@@ -220,9 +218,7 @@ close_card (struct grub_net_card *dev)
 {
   efi_call_1 (dev->efi_net->shutdown, dev->efi_net);
   efi_call_1 (dev->efi_net->stop, dev->efi_net);
-  efi_call_4 (grub_efi_system_table->boot_services->close_protocol,
-	      dev->efi_handle, &net_io_guid,
-	      grub_efi_image_handle, 0);
+  grub_efi_close_protocol (dev->efi_handle, &net_io_guid);
 }
 
 static struct grub_net_card_driver efidriver =
