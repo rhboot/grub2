@@ -39,6 +39,9 @@ send_card_buffer (struct grub_net_card *dev,
   grub_uint64_t limit_time = grub_get_time_ms () + 4000;
   void *txbuf;
 
+  if (net == NULL)
+    return grub_error (GRUB_ERR_IO,
+		       N_("network protocol not available, can't send packet"));
   if (dev->txbusy)
     while (1)
       {
@@ -101,6 +104,9 @@ get_card_packet (struct grub_net_card *dev)
   struct grub_net_buff *nb;
   int i;
 
+  if (net == NULL)
+    return NULL;
+
   for (i = 0; i < 2; i++)
     {
       if (!dev->rcvbuf)
@@ -148,12 +154,20 @@ open_card (struct grub_net_card *dev)
 {
   grub_efi_simple_network_t *net;
 
-  /* Try to reopen SNP exlusively to close any active MNP protocol instance
-     that may compete for packet polling
+  if (dev->efi_net != NULL)
+    {
+      efi_call_4 (grub_efi_system_table->boot_services->close_protocol,
+		  dev->efi_handle, &net_io_guid,
+		  grub_efi_image_handle, NULL);
+      dev->efi_net = NULL;
+    }
+  /*
+   * Try to reopen SNP exlusively to close any active MNP protocol instance
+   * that may compete for packet polling.
    */
   net = grub_efi_open_protocol (dev->efi_handle, &net_io_guid,
 				GRUB_EFI_OPEN_PROTOCOL_BY_EXCLUSIVE);
-  if (net)
+  if (net != NULL)
     {
       if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
 	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
@@ -192,13 +206,12 @@ open_card (struct grub_net_card *dev)
 	  efi_call_6 (net->receive_filters, net, filters, 0, 0, 0, NULL);
 	}
 
-      efi_call_4 (grub_efi_system_table->boot_services->close_protocol,
-		  dev->efi_net, &net_io_guid,
-		  grub_efi_image_handle, dev->efi_handle);
       dev->efi_net = net;
+    } else {
+      return grub_error (GRUB_ERR_NET_NO_CARD, "%s: can't open protocol",
+			 dev->name);
     }
 
-  /* If it failed we just try to run as best as we can */
   return GRUB_ERR_NONE;
 }
 
@@ -208,8 +221,8 @@ close_card (struct grub_net_card *dev)
   efi_call_1 (dev->efi_net->shutdown, dev->efi_net);
   efi_call_1 (dev->efi_net->stop, dev->efi_net);
   efi_call_4 (grub_efi_system_table->boot_services->close_protocol,
-	      dev->efi_net, &net_io_guid,
-	      grub_efi_image_handle, dev->efi_handle);
+	      dev->efi_handle, &net_io_guid,
+	      grub_efi_image_handle, 0);
 }
 
 static struct grub_net_card_driver efidriver =
