@@ -24,6 +24,7 @@
 
 enum grub_verify_flags
   {
+    GRUB_VERIFY_FLAGS_NONE		= 0,
     GRUB_VERIFY_FLAGS_SKIP_VERIFICATION	= 1,
     GRUB_VERIFY_FLAGS_SINGLE_CHUNK	= 2,
     /* Defer verification to another authority. */
