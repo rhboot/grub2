@@ -1649,7 +1649,7 @@ CC="$BUILD_CC"
 CPP="$BUILD_CPP"
 CFLAGS="$BUILD_CFLAGS"
 CPPFLAGS="$BUILD_CPPFLAGS"
-LDFLAGS="$BUILD_LDFAGS"
+LDFLAGS="$BUILD_LDFLAGS"
 
 unset ac_cv_c_bigendian
 unset ac_cv_header_ft2build_h
