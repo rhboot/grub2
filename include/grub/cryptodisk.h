@@ -69,7 +69,13 @@ typedef gcry_err_code_t
 
 struct grub_cryptomount_args
 {
+  /* scan: Flag to indicate that only bootable volumes should be decrypted */
+  grub_uint32_t check_boot : 1;
+  /* scan: Only volumes matching this UUID should be decrpyted */
+  char *search_uuid;
+  /* recover_key: Key data used to decrypt voume */
   grub_uint8_t *key_data;
+  /* recover_key: Length of key_data */
   grub_size_t key_len;
 };
 typedef struct grub_cryptomount_args *grub_cryptomount_args_t;
@@ -125,8 +131,7 @@ struct grub_cryptodisk_dev
   struct grub_cryptodisk_dev *next;
   struct grub_cryptodisk_dev **prev;
 
-  grub_cryptodisk_t (*scan) (grub_disk_t disk, const char *check_uuid,
-			     int boot_only);
+  grub_cryptodisk_t (*scan) (grub_disk_t disk, grub_cryptomount_args_t cargs);
   grub_err_t (*recover_key) (grub_disk_t disk, grub_cryptodisk_t dev, grub_cryptomount_args_t cargs);
 };
 typedef struct grub_cryptodisk_dev *grub_cryptodisk_dev_t;

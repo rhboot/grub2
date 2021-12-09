@@ -63,8 +63,7 @@ gcry_err_code_t AF_merge (const gcry_md_spec_t * hash, grub_uint8_t * src,
 			  grub_size_t blocknumbers);
 
 static grub_cryptodisk_t
-configure_ciphers (grub_disk_t disk, const char *check_uuid,
-		   int check_boot)
+configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t newdev;
   const char *iptr;
@@ -76,7 +75,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
   char hashspec[sizeof (header.hashSpec) + 1];
   grub_err_t err;
 
-  if (check_boot)
+  if (cargs->check_boot)
     return NULL;
 
   /* Read the LUKS header.  */
@@ -103,9 +102,9 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
     }
   *optr = 0;
 
-  if (check_uuid && grub_strcasecmp (check_uuid, uuid) != 0)
+  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
     {
-      grub_dprintf ("luks", "%s != %s\n", uuid, check_uuid);
+      grub_dprintf ("luks", "%s != %s\n", uuid, cargs->search_uuid);
       return NULL;
     }
 

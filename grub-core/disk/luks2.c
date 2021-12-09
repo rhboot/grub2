@@ -346,14 +346,14 @@ luks2_read_header (grub_disk_t disk, grub_luks2_header_t *outhdr)
 }
 
 static grub_cryptodisk_t
-luks2_scan (grub_disk_t disk, const char *check_uuid, int check_boot)
+luks2_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t cryptodisk;
   grub_luks2_header_t header;
   char uuid[sizeof (header.uuid) + 1];
   grub_size_t i, j;
 
-  if (check_boot)
+  if (cargs->check_boot)
     return NULL;
 
   if (luks2_read_header (disk, &header))
@@ -367,9 +367,9 @@ luks2_scan (grub_disk_t disk, const char *check_uuid, int check_boot)
       uuid[j++] = header.uuid[i];
   uuid[j] = '\0';
 
-  if (check_uuid && grub_strcasecmp (check_uuid, uuid) != 0)
+  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
     {
-      grub_dprintf ("luks2", "%s != %s\n", uuid, check_uuid);
+      grub_dprintf ("luks2", "%s != %s\n", uuid, cargs->search_uuid);
       return NULL;
     }
 

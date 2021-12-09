@@ -240,8 +240,7 @@ grub_util_get_geli_uuid (const char *dev)
 #endif
 
 static grub_cryptodisk_t
-configure_ciphers (grub_disk_t disk, const char *check_uuid,
-		   int boot_only)
+configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t newdev;
   struct grub_geli_phdr header;
@@ -289,7 +288,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
       return NULL;
     }
 
-  if (boot_only && !(grub_le_to_cpu32 (header.flags) & GRUB_GELI_FLAGS_BOOT))
+  if (cargs->check_boot && !(grub_le_to_cpu32 (header.flags) & GRUB_GELI_FLAGS_BOOT))
     {
       grub_dprintf ("geli", "not a boot volume\n");
       return NULL;
@@ -302,9 +301,9 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
       return NULL;
     }
 
-  if (check_uuid && grub_strcasecmp (check_uuid, uuid) != 0)
+  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
     {
-      grub_dprintf ("geli", "%s != %s\n", uuid, check_uuid);
+      grub_dprintf ("geli", "%s != %s\n", uuid, cargs->search_uuid);
       return NULL;
     }
 

@@ -984,9 +984,6 @@ grub_util_cryptodisk_get_uuid (grub_disk_t disk)
 
 #endif
 
-static int check_boot;
-static char *search_uuid;
-
 static void
 cryptodisk_close (grub_cryptodisk_t dev)
 {
@@ -1014,7 +1011,7 @@ grub_cryptodisk_scan_device_real (const char *name,
 
   FOR_CRYPTODISK_DEVS (cr)
   {
-    dev = cr->scan (source, search_uuid, check_boot);
+    dev = cr->scan (source, cargs);
     if (grub_errno)
       return NULL;
     if (!dev)
@@ -1077,6 +1074,7 @@ grub_cryptodisk_cheat_mount (const char *sourcedev, const char *cheat)
   grub_cryptodisk_t dev;
   grub_cryptodisk_dev_t cr;
   grub_disk_t source;
+  struct grub_cryptomount_args cargs = {0};
 
   /* Try to open disk.  */
   source = grub_disk_open (sourcedev);
@@ -1093,7 +1091,7 @@ grub_cryptodisk_cheat_mount (const char *sourcedev, const char *cheat)
 
   FOR_CRYPTODISK_DEVS (cr)
   {
-    dev = cr->scan (source, search_uuid, check_boot);
+    dev = cr->scan (source, &cargs);
     if (grub_errno)
       return grub_errno;
     if (!dev)
@@ -1136,7 +1134,7 @@ grub_cryptodisk_scan_device (const char *name,
   dev = grub_cryptodisk_scan_device_real (name, source, cargs);
   if (dev)
     {
-      ret = (search_uuid != NULL && grub_strcasecmp (search_uuid, dev->uuid) == 0);
+      ret = (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, dev->uuid) == 0);
       goto cleanup;
     }
 
@@ -1147,7 +1145,7 @@ grub_cryptodisk_scan_device (const char *name,
   if (grub_errno == GRUB_ERR_BAD_MODULE)
     grub_error_pop ();
 
-  if (search_uuid != NULL)
+  if (cargs->search_uuid != NULL)
     /* Push error onto stack to save for cryptomount. */
     grub_error_push ();
   else
@@ -1189,10 +1187,9 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	  return GRUB_ERR_NONE;
 	}
 
-      check_boot = state[2].set;
-      search_uuid = args[0];
+      cargs.check_boot = state[2].set;
+      cargs.search_uuid = args[0];
       found_uuid = grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
-      search_uuid = NULL;
 
       if (found_uuid)
 	return GRUB_ERR_NONE;
@@ -1210,10 +1207,8 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
     }
   else if (state[1].set || (argc == 0 && state[2].set)) /* -a|-b */
     {
-      search_uuid = NULL;
-      check_boot = state[2].set;
+      cargs.check_boot = state[2].set;
       grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
-      search_uuid = NULL;
       return GRUB_ERR_NONE;
     }
   else
@@ -1224,8 +1219,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       char *disklast = NULL;
       grub_size_t len;
 
-      search_uuid = NULL;
-      check_boot = state[2].set;
+      cargs.check_boot = state[2].set;
       diskname = args[0];
       len = grub_strlen (diskname);
       if (len && diskname[0] == '(' && diskname[len - 1] == ')')
