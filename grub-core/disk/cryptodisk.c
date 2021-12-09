@@ -1021,11 +1021,10 @@ grub_cryptodisk_scan_device_real (const char *name,
       {
 	/* Get the passphrase from the user, if no key data. */
 	askpass = 1;
-	if (source->partition != NULL)
-	  part = grub_partition_get_name (source->partition);
+	part = grub_partition_get_name (source->partition);
 	grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
 		     source->partition != NULL ? "," : "",
-		     part != NULL ? part : "",
+		     part != NULL ? part : N_("UNKNOWN"),
 		     dev->uuid);
 	grub_free (part);
 
