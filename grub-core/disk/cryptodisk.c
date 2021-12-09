@@ -1109,7 +1109,10 @@ grub_cryptodisk_scan_device (const char *name,
   if (grub_errno == GRUB_ERR_BAD_MODULE)
     grub_error_pop ();
 
-  if (grub_errno != GRUB_ERR_NONE)
+  if (search_uuid != NULL)
+    /* Push error onto stack to save for cryptomount. */
+    grub_error_push ();
+  else
     grub_print_error ();
 
  cleanup:
@@ -1146,9 +1149,19 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       found_uuid = grub_device_iterate (&grub_cryptodisk_scan_device, NULL);
       search_uuid = NULL;
 
-      if (!found_uuid)
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "no such cryptodisk found");
-      return GRUB_ERR_NONE;
+      if (found_uuid)
+	return GRUB_ERR_NONE;
+      else if (grub_errno == GRUB_ERR_NONE)
+	{
+	  /*
+	   * Try to pop the next error on the stack. If there is not one, then
+	   * no device matched the given UUID.
+	   */
+	  grub_error_pop ();
+	  if (grub_errno == GRUB_ERR_NONE)
+	    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no such cryptodisk found");
+	}
+      return grub_errno;
     }
   else if (state[1].set || (argc == 0 && state[2].set))
     {
