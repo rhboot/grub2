@@ -1125,6 +1125,9 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
   if (argc < 1 && !state[1].set && !state[2].set)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "device name required");
 
+  if (grub_cryptodisk_list == NULL)
+    return grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk modules loaded");
+
   if (state[0].set)
     {
       int found_uuid;
