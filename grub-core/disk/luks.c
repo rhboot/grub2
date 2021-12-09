@@ -29,8 +29,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-#define MAX_PASSPHRASE 256
-
 #define LUKS_KEY_ENABLED  0x00AC71F3
 
 /* On disk LUKS header */
@@ -158,17 +156,14 @@ luks_recover_key (grub_disk_t source,
   struct grub_luks_phdr header;
   grub_size_t keysize;
   grub_uint8_t *split_key = NULL;
-  char passphrase[MAX_PASSPHRASE] = "";
   grub_uint8_t candidate_digest[sizeof (header.mkDigest)];
   unsigned i;
   grub_size_t length;
   grub_err_t err;
   grub_size_t max_stripes = 1;
-  char *tmp;
 
-  /* Keyfiles are not implemented yet */
-  if (cargs->key_data != NULL || cargs->key_len)
-     return GRUB_ERR_NOT_IMPLEMENTED_YET;
+  if (cargs->key_data == NULL || cargs->key_len == 0)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no key data");
 
   err = grub_disk_read (source, 0, 0, sizeof (header), &header);
   if (err)
@@ -188,20 +183,6 @@ luks_recover_key (grub_disk_t source,
   if (!split_key)
     return grub_errno;
 
-  /* Get the passphrase from the user.  */
-  tmp = NULL;
-  if (source->partition)
-    tmp = grub_partition_get_name (source->partition);
-  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
-	       source->partition ? "," : "", tmp ? : "",
-	       dev->uuid);
-  grub_free (tmp);
-  if (!grub_password_get (passphrase, MAX_PASSPHRASE))
-    {
-      grub_free (split_key);
-      return grub_error (GRUB_ERR_BAD_ARGUMENT, "Passphrase not supplied");
-    }
-
   /* Try to recover master key from each active keyslot.  */
   for (i = 0; i < ARRAY_SIZE (header.keyblock); i++)
     {
@@ -216,8 +197,8 @@ luks_recover_key (grub_disk_t source,
       grub_dprintf ("luks", "Trying keyslot %d\n", i);
 
       /* Calculate the PBKDF2 of the user supplied passphrase.  */
-      gcry_err = grub_crypto_pbkdf2 (dev->hash, (grub_uint8_t *) passphrase,
-				     grub_strlen (passphrase),
+      gcry_err = grub_crypto_pbkdf2 (dev->hash, cargs->key_data,
+				     cargs->key_len,
 				     header.keyblock[i].passwordSalt,
 				     sizeof (header.keyblock[i].passwordSalt),
 				     grub_be_to_cpu32 (header.keyblock[i].

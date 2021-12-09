@@ -1001,9 +1001,11 @@ grub_cryptodisk_scan_device_real (const char *name,
 				  grub_disk_t source,
 				  grub_cryptomount_args_t cargs)
 {
-  grub_err_t err;
+  grub_err_t ret = GRUB_ERR_NONE;
   grub_cryptodisk_t dev;
   grub_cryptodisk_dev_t cr;
+  int askpass = 0;
+  char *part = NULL;
 
   dev = grub_cryptodisk_get_by_source_disk (source);
 
@@ -1017,21 +1019,53 @@ grub_cryptodisk_scan_device_real (const char *name,
       return NULL;
     if (!dev)
       continue;
-    
-    err = cr->recover_key (source, dev, cargs);
-    if (err)
-    {
-      cryptodisk_close (dev);
-      return NULL;
-    }
+
+    if (!cargs->key_len)
+      {
+	/* Get the passphrase from the user, if no key data. */
+	askpass = 1;
+	if (source->partition != NULL)
+	  part = grub_partition_get_name (source->partition);
+	grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+		     source->partition != NULL ? "," : "",
+		     part != NULL ? part : "",
+		     dev->uuid);
+	grub_free (part);
+
+	cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
+	if (cargs->key_data == NULL)
+	  return NULL;
+
+	if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
+	  {
+	    grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
+	    goto error;
+	  }
+	cargs->key_len = grub_strlen ((char *) cargs->key_data);
+      }
+
+    ret = cr->recover_key (source, dev, cargs);
+    if (ret != GRUB_ERR_NONE)
+      goto error;
 
     grub_cryptodisk_insert (dev, name, source);
 
-    return dev;
+    goto cleanup;
   }
-
   grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk module can handle this device");
-  return NULL;
+  goto cleanup;
+
+ error:
+  cryptodisk_close (dev);
+  dev = NULL;
+
+ cleanup:
+  if (askpass)
+    {
+      cargs->key_len = 0;
+      grub_free (cargs->key_data);
+    }
+  return dev;
 }
 
 #ifdef GRUB_UTIL
