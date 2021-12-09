@@ -152,7 +152,8 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
 
 static grub_err_t
 luks_recover_key (grub_disk_t source,
-		  grub_cryptodisk_t dev)
+		  grub_cryptodisk_t dev,
+		  grub_cryptomount_args_t cargs)
 {
   struct grub_luks_phdr header;
   grub_size_t keysize;
@@ -164,6 +165,10 @@ luks_recover_key (grub_disk_t source,
   grub_err_t err;
   grub_size_t max_stripes = 1;
   char *tmp;
+
+  /* Keyfiles are not implemented yet */
+  if (cargs->key_data != NULL || cargs->key_len)
+     return GRUB_ERR_NOT_IMPLEMENTED_YET;
 
   err = grub_disk_read (source, 0, 0, sizeof (header), &header);
   if (err)

@@ -66,6 +66,13 @@ typedef gcry_err_code_t
 (*grub_cryptodisk_rekey_func_t) (struct grub_cryptodisk *dev,
 				 grub_uint64_t zoneno);
 
+struct grub_cryptomount_args
+{
+  grub_uint8_t *key_data;
+  grub_size_t key_len;
+};
+typedef struct grub_cryptomount_args *grub_cryptomount_args_t;
+
 struct grub_cryptodisk
 {
   struct grub_cryptodisk *next;
@@ -119,7 +126,7 @@ struct grub_cryptodisk_dev
 
   grub_cryptodisk_t (*scan) (grub_disk_t disk, const char *check_uuid,
 			     int boot_only);
-  grub_err_t (*recover_key) (grub_disk_t disk, grub_cryptodisk_t dev);
+  grub_err_t (*recover_key) (grub_disk_t disk, grub_cryptodisk_t dev, grub_cryptomount_args_t cargs);
 };
 typedef struct grub_cryptodisk_dev *grub_cryptodisk_dev_t;
 
