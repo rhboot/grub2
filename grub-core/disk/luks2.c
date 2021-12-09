@@ -542,7 +542,8 @@ luks2_decrypt_key (grub_uint8_t *out_key,
 
 static grub_err_t
 luks2_recover_key (grub_disk_t source,
-		   grub_cryptodisk_t crypt)
+		   grub_cryptodisk_t crypt,
+		   grub_cryptomount_args_t cargs)
 {
   grub_uint8_t candidate_key[GRUB_CRYPTODISK_MAX_KEYLEN];
   char passphrase[MAX_PASSPHRASE], cipher[32];
@@ -555,6 +556,10 @@ luks2_recover_key (grub_disk_t source,
   gcry_err_code_t gcry_ret;
   grub_json_t *json = NULL, keyslots;
   grub_err_t ret;
+
+  /* Keyfiles are not implemented yet */
+  if (cargs->key_data != NULL || cargs->key_len)
+     return GRUB_ERR_NOT_IMPLEMENTED_YET;
 
   ret = luks2_read_header (source, &header);
   if (ret)

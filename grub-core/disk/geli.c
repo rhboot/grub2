@@ -398,7 +398,7 @@ configure_ciphers (grub_disk_t disk, const char *check_uuid,
 }
 
 static grub_err_t
-recover_key (grub_disk_t source, grub_cryptodisk_t dev)
+recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t cargs)
 {
   grub_size_t keysize;
   grub_uint8_t digest[GRUB_CRYPTO_MAX_MDLEN];
@@ -413,6 +413,10 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev)
   char *tmp;
   grub_disk_addr_t sector;
   grub_err_t err;
+
+  /* Keyfiles are not implemented yet */
+  if (cargs->key_data != NULL || cargs->key_len)
+     return GRUB_ERR_NOT_IMPLEMENTED_YET;
 
   if (dev->cipher->cipher->blocksize > GRUB_CRYPTO_MAX_CIPHER_BLOCKSIZE)
     return grub_error (GRUB_ERR_BUG, "cipher block is too long");
