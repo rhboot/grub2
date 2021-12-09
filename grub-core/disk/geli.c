@@ -135,8 +135,6 @@ const char *algorithms[] = {
   [0x16] = "aes"
 };
 
-#define MAX_PASSPHRASE 256
-
 static gcry_err_code_t
 geli_rekey (struct grub_cryptodisk *dev, grub_uint64_t zoneno)
 {
@@ -406,17 +404,14 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t 
   grub_uint8_t verify_key[GRUB_CRYPTO_MAX_MDLEN];
   grub_uint8_t zero[GRUB_CRYPTO_MAX_CIPHER_BLOCKSIZE];
   grub_uint8_t geli_cipher_key[64];
-  char passphrase[MAX_PASSPHRASE] = "";
   unsigned i;
   gcry_err_code_t gcry_err;
   struct grub_geli_phdr header;
-  char *tmp;
   grub_disk_addr_t sector;
   grub_err_t err;
 
-  /* Keyfiles are not implemented yet */
-  if (cargs->key_data != NULL || cargs->key_len)
-     return GRUB_ERR_NOT_IMPLEMENTED_YET;
+  if (cargs->key_data == NULL || cargs->key_len == 0)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no key data");
 
   if (dev->cipher->cipher->blocksize > GRUB_CRYPTO_MAX_CIPHER_BLOCKSIZE)
     return grub_error (GRUB_ERR_BUG, "cipher block is too long");
@@ -438,23 +433,12 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t 
 
   grub_puts_ (N_("Attempting to decrypt master key..."));
 
-  /* Get the passphrase from the user.  */
-  tmp = NULL;
-  if (source->partition)
-    tmp = grub_partition_get_name (source->partition);
-  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
-		source->partition ? "," : "", tmp ? : "",
-		dev->uuid);
-  grub_free (tmp);
-  if (!grub_password_get (passphrase, MAX_PASSPHRASE))
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, "Passphrase not supplied");
-
   /* Calculate the PBKDF2 of the user supplied passphrase.  */
   if (grub_le_to_cpu32 (header.niter) != 0)
     {
       grub_uint8_t pbkdf_key[64];
-      gcry_err = grub_crypto_pbkdf2 (dev->hash, (grub_uint8_t *) passphrase,
-				     grub_strlen (passphrase),
+      gcry_err = grub_crypto_pbkdf2 (dev->hash, cargs->key_data,
+				     cargs->key_len,
 				     header.salt,
 				     sizeof (header.salt),
 				     grub_le_to_cpu32 (header.niter),
@@ -477,7 +461,7 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t 
 	return grub_crypto_gcry_error (GPG_ERR_OUT_OF_MEMORY);
 
       grub_crypto_hmac_write (hnd, header.salt, sizeof (header.salt));
-      grub_crypto_hmac_write (hnd, passphrase, grub_strlen (passphrase));
+      grub_crypto_hmac_write (hnd, cargs->key_data, cargs->key_len);
 
       gcry_err = grub_crypto_hmac_fini (hnd, geomkey);
       if (gcry_err)

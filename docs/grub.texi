@@ -4329,9 +4329,11 @@ Alias for @code{hashsum --hash crc32 arg @dots{}}. See command @command{hashsum}
 @node cryptomount
 @subsection cryptomount
 
-@deffn Command cryptomount device|@option{-u} uuid|@option{-a}|@option{-b}
-Setup access to encrypted device. If necessary, passphrase
-is requested interactively. Option @var{device} configures specific grub device
+@deffn Command cryptomount [@option{-p} password] device|@option{-u} uuid|@option{-a}|@option{-b}
+Setup access to encrypted device. If @option{-p} is not given, a passphrase
+is requested interactively. Otherwise, the given @var{password} will be used and
+no passphrase will be requested interactively.
+Option @var{device} configures specific grub device
 (@pxref{Naming convention}); option @option{-u} @var{uuid} configures device
 with specified @var{uuid}; option @option{-a} configures all detected encrypted
 devices; option @option{-b} configures all geli containers that have boot flag set.

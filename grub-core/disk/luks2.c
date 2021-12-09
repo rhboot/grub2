@@ -35,8 +35,6 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define LUKS_MAGIC_1ST "LUKS\xBA\xBE"
 #define LUKS_MAGIC_2ND "SKUL\xBA\xBE"
 
-#define MAX_PASSPHRASE 256
-
 enum grub_luks2_kdf_type
 {
   LUKS2_KDF_TYPE_ARGON2I,
@@ -546,8 +544,7 @@ luks2_recover_key (grub_disk_t source,
 		   grub_cryptomount_args_t cargs)
 {
   grub_uint8_t candidate_key[GRUB_CRYPTODISK_MAX_KEYLEN];
-  char passphrase[MAX_PASSPHRASE], cipher[32];
-  char *json_header = NULL, *part = NULL, *ptr;
+  char cipher[32], *json_header = NULL, *ptr;
   grub_size_t candidate_key_len = 0, json_idx, size;
   grub_luks2_header_t header;
   grub_luks2_keyslot_t keyslot;
@@ -557,9 +554,8 @@ luks2_recover_key (grub_disk_t source,
   grub_json_t *json = NULL, keyslots;
   grub_err_t ret;
 
-  /* Keyfiles are not implemented yet */
-  if (cargs->key_data != NULL || cargs->key_len)
-     return GRUB_ERR_NOT_IMPLEMENTED_YET;
+  if (cargs->key_data == NULL || cargs->key_len == 0)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no key data");
 
   ret = luks2_read_header (source, &header);
   if (ret)
@@ -583,18 +579,6 @@ luks2_recover_key (grub_disk_t source,
   if (ret)
     {
       ret = grub_error (GRUB_ERR_BAD_ARGUMENT, "Invalid LUKS2 JSON header");
-      goto err;
-    }
-
-  /* Get the passphrase from the user. */
-  if (source->partition)
-    part = grub_partition_get_name (source->partition);
-  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
-		source->partition ? "," : "", part ? : "",
-		crypt->uuid);
-  if (!grub_password_get (passphrase, MAX_PASSPHRASE))
-    {
-      ret = grub_error (GRUB_ERR_BAD_ARGUMENT, "Passphrase not supplied");
       goto err;
     }
 
@@ -722,7 +706,7 @@ luks2_recover_key (grub_disk_t source,
 	}
 
       ret = luks2_decrypt_key (candidate_key, source, crypt, &keyslot,
-			       (const grub_uint8_t *) passphrase, grub_strlen (passphrase));
+			       cargs->key_data, cargs->key_len);
       if (ret)
 	{
 	  grub_dprintf ("luks2", "Decryption with keyslot \"%" PRIuGRUB_UINT64_T "\" failed: %s\n",
@@ -774,7 +758,6 @@ luks2_recover_key (grub_disk_t source,
     }
 
  err:
-  grub_free (part);
   grub_free (json_header);
   grub_json_free (json);
   return ret;
