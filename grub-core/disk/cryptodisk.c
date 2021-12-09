@@ -1159,7 +1159,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	   */
 	  grub_error_pop ();
 	  if (grub_errno == GRUB_ERR_NONE)
-	    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no such cryptodisk found");
+	    return grub_error (GRUB_ERR_BAD_ARGUMENT, "no such cryptodisk found, perhaps a needed disk or cryptodisk module is not loaded");
 	}
       return grub_errno;
     }
