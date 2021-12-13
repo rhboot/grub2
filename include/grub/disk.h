@@ -182,6 +182,8 @@ typedef struct grub_disk_memberlist *grub_disk_memberlist_t;
 /* Return value of grub_disk_native_sectors() in case disk size is unknown. */
 #define GRUB_DISK_SIZE_UNKNOWN	 0xffffffffffffffffULL
 
+#define GRUB_DISK_KiB_TO_SECTORS(x) ((x) << (10 - GRUB_DISK_SECTOR_BITS))
+
 /* Convert sector number from one sector size to another. */
 static inline grub_disk_addr_t
 grub_convert_sector (grub_disk_addr_t sector,
