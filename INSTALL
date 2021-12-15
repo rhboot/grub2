@@ -42,7 +42,7 @@ If you use a development snapshot or want to hack on GRUB you may
 need the following.
 
 * Python 2.6 or later
-* Autoconf 2.63 or later
+* Autoconf 2.64 or later
 * Automake 1.11 or later
 
 Prerequisites for make-check:

@@ -25,7 +25,11 @@
 #define USHRT_MAX GRUB_USHRT_MAX
 #define UINT_MAX GRUB_UINT_MAX
 #define ULONG_MAX GRUB_ULONG_MAX
-#define SIZE_MAX GRUB_SIZE_MAX
+
+/* gnulib also defines this type */
+#ifndef SIZE_MAX
+#  define SIZE_MAX GRUB_SIZE_MAX
+#endif
 
 #define SCHAR_MIN GRUB_SCHAR_MIN
 #define SCHAR_MAX GRUB_SCHAR_MAX

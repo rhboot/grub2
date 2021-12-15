@@ -67,10 +67,78 @@
 #  define _GNU_SOURCE 1
 
 #  ifndef _GL_INLINE_HEADER_BEGIN
+/* gnulib gets configured against the host, not the target, and the rest of
+ * our buildsystem works around that.  This is difficult to avoid as gnulib's
+ * detection requires a more capable system than our target.  Instead, we
+ * reach in and set values appropriately - intentionally setting more than the
+ * bare minimum.  If, when updating gnulib, something breaks, there's probably
+ * a change needed here or in grub-core/Makefile.core.def. */
+#    define SIZE_MAX ((size_t) -1)
+#    define _GL_ATTRIBUTE_ALLOC_SIZE(args) \
+    __attribute__ ((__alloc_size__ args))
+#    define _GL_ATTRIBUTE_ALWAYS_INLINE __attribute__ ((__always_inline__))
+#    define _GL_ATTRIBUTE_ARTIFICIAL __attribute__ ((__artificial__))
+#    define _GL_ATTRIBUTE_COLD __attribute__ ((cold))
 #    define _GL_ATTRIBUTE_CONST __attribute__ ((const))
+#    define _GL_ATTRIBUTE_DEALLOC(f, i) __attribute ((__malloc__ (f, i)))
+#    define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (free, 1)
+#    define _GL_ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
+#    define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__error__ (msg)))
+#    define _GL_ATTRIBUTE_EXTERNALLY_VISIBLE \
+    __attribute__ ((externally_visible))
+#    define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#    define _GL_ATTRIBUTE_LEAF __attribute__ ((__leaf__))
+#    define _GL_ATTRIBUTE_MALLOC __attribute__ ((malloc))
+#    define _GL_ATTRIBUTE_MAYBE_UNUSED _GL_ATTRIBUTE_UNUSED
+#    define _GL_ATTRIBUTE_MAY_ALIAS __attribute__ ((__may_alias__))
+#    define _GL_ATTRIBUTE_NODISCARD __attribute__ ((__warn_unused_result__))
+#    define _GL_ATTRIBUTE_NOINLINE __attribute__ ((__noinline__))
+#    define _GL_ATTRIBUTE_NONNULL(args) __attribute__ ((__nonnull__ args))
+#    define _GL_ATTRIBUTE_NONSTRING __attribute__ ((__nonstring__))
+#    define _GL_ATTRIBUTE_PACKED __attribute__ ((__packed__))
+#    define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
+#    define _GL_ATTRIBUTE_RETURNS_NONNULL \
+    __attribute__ ((__returns_nonnull__))
+#    define _GL_ATTRIBUTE_SENTINEL(pos) __attribute__ ((__sentinel__ pos))
+#    define _GL_ATTRIBUTE_UNUSED __attribute__ ((__unused__))
+#    define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__warning__ (msg)))
+#    define _GL_CMP(n1, n2) (((n1) > (n2)) - ((n1) < (n2)))
+#    define _GL_GNUC_PREREQ GNUC_PREREQ
+#    define _GL_INLINE inline
+#    define _GL_UNUSED_LABEL _GL_ATTRIBUTE_UNUSED
+
+/* We can't use __has_attribute for these because gcc-5.1 is too old for
+ * that.  Everything above is present in that version, though. */
+#    if __GNUC__ >= 7
+#      define _GL_ATTRIBUTE_FALLTHROUGH __attribute__ ((fallthrough))
+#    else
+#      define _GL_ATTRIBUTE_FALLTHROUGH /* empty */
+#    endif
+
+#    ifndef ASM_FILE
+typedef __INT_FAST32_TYPE__ int_fast32_t;
+typedef __UINT_FAST32_TYPE__ uint_fast32_t;
+#    endif
+
+/* Ensure ialloc nests static/non-static inline properly. */
+#    define IALLOC_INLINE static inline
+
+/* gnulib uses these for blocking out warnings they can't/won't fix.  gnulib
+ * also makes the decision about whether to provide a declaration for
+ * reallocarray() at compile-time, so this is a convenient place to override -
+ * it's used by the ialloc module, which is used by base64. */
+#    define _GL_INLINE_HEADER_BEGIN _Pragma ("GCC diagnostic push")	\
+    void *								\
+    reallocarray (void *ptr, unsigned int nmemb, unsigned int size);
+#    define _GL_INLINE_HEADER_END   _Pragma ("GCC diagnostic pop")
 
 /* We don't have an abort() for gnulib to call in regexp. */
 #    define abort __builtin_unreachable
 #  endif /* !_GL_INLINE_HEADER_BEGIN */
+
+/* gnulib doesn't build cleanly with older compilers. */
+#  if __GNUC__ < 11
+_Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+#  endif
 
 #endif
