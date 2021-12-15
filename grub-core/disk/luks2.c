@@ -389,7 +389,7 @@ luks2_verify_key (grub_luks2_digest_t *d, grub_uint8_t *candidate_key,
 {
   grub_uint8_t candidate_digest[GRUB_CRYPTODISK_MAX_KEYLEN];
   grub_uint8_t digest[GRUB_CRYPTODISK_MAX_KEYLEN], salt[GRUB_CRYPTODISK_MAX_KEYLEN];
-  grub_size_t saltlen = sizeof (salt), digestlen = sizeof (digest);
+  idx_t saltlen = sizeof (salt), digestlen = sizeof (digest);
   const gcry_md_spec_t *hash;
   gcry_err_code_t gcry_ret;
 
@@ -428,7 +428,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   grub_uint8_t area_key[GRUB_CRYPTODISK_MAX_KEYLEN];
   grub_uint8_t salt[GRUB_CRYPTODISK_MAX_KEYLEN];
   grub_uint8_t *split_key = NULL;
-  grub_size_t saltlen = sizeof (salt);
+  idx_t saltlen = sizeof (salt);
   char cipher[32], *p;
   const gcry_md_spec_t *hash;
   gcry_err_code_t gcry_ret;
