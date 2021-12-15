@@ -40,7 +40,7 @@ void EXPORT_FUNC(grub_list_remove) (grub_list_t item);
 
 static inline void *
 grub_bad_type_cast_real (int line, const char *file)
-     ATTRIBUTE_ERROR ("bad type cast between incompatible grub types");
+     GRUB_ATTRIBUTE_ERROR ("bad type cast between incompatible grub types");
 
 static inline void *
 grub_bad_type_cast_real (int line, const char *file)
