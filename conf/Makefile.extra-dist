@@ -30,12 +30,6 @@ EXTRA_DIST += grub-core/gensymlist.sh
 EXTRA_DIST += grub-core/genemuinit.sh
 EXTRA_DIST += grub-core/genemuinitheader.sh
 
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-deref.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-state-deref.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regcomp-uninit-token.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regexec-null-deref.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-uninit-structure.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
 
 EXTRA_DIST += grub-core/lib/libgcrypt
