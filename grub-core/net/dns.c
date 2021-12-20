@@ -146,11 +146,18 @@ check_name_real (const grub_uint8_t *name_at, const grub_uint8_t *head,
 		 int *length, char *set)
 {
   const char *readable_ptr = check_with;
+  int readable_len;
   const grub_uint8_t *ptr;
   char *optr = set;
   int bytes_processed = 0;
   if (length)
     *length = 0;
+
+  if (readable_ptr != NULL)
+    readable_len = grub_strlen (readable_ptr);
+  else
+    readable_len = 0;
+
   for (ptr = name_at; ptr < tail && bytes_processed < tail - head + 2; )
     {
       /* End marker.  */
@@ -172,13 +179,16 @@ check_name_real (const grub_uint8_t *name_at, const grub_uint8_t *head,
 	  ptr = head + (((ptr[0] & 0x3f) << 8) | ptr[1]);
 	  continue;
 	}
-      if (readable_ptr && grub_memcmp (ptr + 1, readable_ptr, *ptr) != 0)
+      if (readable_ptr != NULL && (*ptr > readable_len || grub_memcmp (ptr + 1, readable_ptr, *ptr) != 0))
 	return 0;
       if (grub_memchr (ptr + 1, 0, *ptr) 
 	  || grub_memchr (ptr + 1, '.', *ptr))
 	return 0;
       if (readable_ptr)
-	readable_ptr += *ptr;
+	{
+	  readable_ptr += *ptr;
+	  readable_len -= *ptr;
+	}
       if (readable_ptr && *readable_ptr != '.' && *readable_ptr != 0)
 	return 0;
       bytes_processed += *ptr + 1;
@@ -192,7 +202,10 @@ check_name_real (const grub_uint8_t *name_at, const grub_uint8_t *head,
       if (optr)
 	*optr++ = '.';
       if (readable_ptr && *readable_ptr)
-	readable_ptr++;
+	{
+	  readable_ptr++;
+	  readable_len--;
+	}
       ptr += *ptr + 1;
     }
   return 0;
