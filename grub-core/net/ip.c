@@ -25,6 +25,7 @@
 #include <grub/net/netbuff.h>
 #include <grub/mm.h>
 #include <grub/priority_queue.h>
+#include <grub/safemath.h>
 #include <grub/time.h>
 
 struct iphdr {
@@ -552,7 +553,14 @@ grub_net_recv_ip4_packets (struct grub_net_buff *nb,
     {
       rsm->total_len = (8 * (grub_be_to_cpu16 (iph->frags) & OFFSET_MASK)
 			+ (nb->tail - nb->data));
-      rsm->total_len -= ((iph->verhdrlen & 0xf) * sizeof (grub_uint32_t));
+
+      if (grub_sub (rsm->total_len, (iph->verhdrlen & 0xf) * sizeof (grub_uint32_t),
+		    &rsm->total_len))
+	{
+	  grub_dprintf ("net", "IP reassembly size underflow\n");
+	  return GRUB_ERR_NONE;
+	}
+
       rsm->asm_netbuff = grub_netbuff_alloc (rsm->total_len);
       if (!rsm->asm_netbuff)
 	{
