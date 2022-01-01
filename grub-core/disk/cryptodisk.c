@@ -889,10 +889,7 @@ grub_cryptodisk_insert (grub_cryptodisk_t newdev, const char *name,
 {
   newdev->source = grub_strdup (name);
   if (!newdev->source)
-    {
-      grub_free (newdev);
-      return grub_errno;
-    }
+    return grub_errno;
 
   newdev->id = last_cryptodisk_id++;
   newdev->source_id = source->id;
@@ -1044,7 +1041,9 @@ grub_cryptodisk_scan_device_real (const char *name,
     if (ret != GRUB_ERR_NONE)
       goto error;
 
-    grub_cryptodisk_insert (dev, name, source);
+    ret = grub_cryptodisk_insert (dev, name, source);
+    if (ret != GRUB_ERR_NONE)
+      goto error;
 
     goto cleanup;
   }
