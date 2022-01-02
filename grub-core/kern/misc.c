@@ -162,16 +162,49 @@ __attribute__ ((alias("grub_printf")));
 int
 grub_debug_enabled (const char * condition)
 {
-  const char *debug;
+  const char *debug, *found;
+  grub_size_t clen;
+  int ret = 0;
 
   debug = grub_env_get ("debug");
   if (!debug)
     return 0;
 
-  if (grub_strword (debug, "all") || grub_strword (debug, condition))
-    return 1;
+  if (grub_strword (debug, "all"))
+    {
+      if (debug[3] == '\0')
+	return 1;
+      ret = 1;
+    }
 
-  return 0;
+  clen = grub_strlen (condition);
+  found = debug-1;
+  while(1)
+    {
+      found = grub_strstr (found+1, condition);
+
+      if (found == NULL)
+	break;
+
+      /* Found condition is not a whole word, so ignore it. */
+      if (*(found + clen) != '\0' && *(found + clen) != ','
+	 && !grub_isspace (*(found + clen)))
+	continue;
+
+      /*
+       * If found condition is at the start of debug or the start is on a word
+       * boundary, then enable debug. Else if found condition is prefixed with
+       * '-' and the start is on a word boundary, then disable debug. If none
+       * of these cases, ignore.
+       */
+      if (found == debug || *(found - 1) == ',' || grub_isspace (*(found - 1)))
+	ret = 1;
+      else if (*(found - 1) == '-' && ((found == debug + 1) || (*(found - 2) == ','
+			       || grub_isspace (*(found - 2)))))
+	ret = 0;
+    }
+
+  return ret;
 }
 
 void

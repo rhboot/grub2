@@ -3388,9 +3388,16 @@ processed by commands @command{configfile} (@pxref{configfile}) or @command{norm
 @subsection debug
 
 This variable may be set to enable debugging output from various components
-of GRUB.  The value is a list of debug facility names separated by
-whitespace or @samp{,}, or @samp{all} to enable all available debugging
-output. The facility names are the first argument to grub_dprintf. Consult
+of GRUB. The value is an ordered list of debug facility names separated by
+whitespace or @samp{,}. If the special facility named @samp{all} is present
+then debugging output of all facility names is enabled at the start of
+processing the value of this variable. A facility's debug output can then be
+disabled by prefixing its name with a @samp{-}. The last occurence facility
+name with or without a leading @samp{-} takes precendent over any previous
+occurence. This allows the easy enabling or disabling of facilities by
+appending a @samp{,} and then the facility name with or without the leading
+@samp{-}, which will preserve the state of the rest of the facilities.
+The facility names are the first argument to grub_dprintf. Consult the
 source for more details.
 
 
