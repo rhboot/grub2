@@ -68,6 +68,9 @@
 
 #  ifndef _GL_INLINE_HEADER_BEGIN
 #    define _GL_ATTRIBUTE_CONST __attribute__ ((const))
+
+/* We don't have an abort() for gnulib to call in regexp. */
+#    define abort __builtin_unreachable
 #  endif /* !_GL_INLINE_HEADER_BEGIN */
 
 #endif
