@@ -37,7 +37,6 @@ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regexec-null-deref.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-uninit-structure.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
-EXTRA_DIST += grub-core/lib/gnulib-patches/no-abort.patch
 
 EXTRA_DIST += grub-core/lib/libgcrypt
 EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
