@@ -102,7 +102,7 @@ read_dep_list (FILE *fp)
       dep_list = dep;
 
       /* Add dependencies.  */
-      while (*p)
+      while (p < (buf + sizeof (buf)) && *p)
 	{
 	  struct mod_list *mod;
 	  char *name;
