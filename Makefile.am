@@ -43,7 +43,7 @@ libgrub.pp: config-util.h grub_script.tab.h grub_script.yy.h $(libgrubmods_a_SOU
 CLEANFILES += libgrub.pp
 
 libgrub_a_init.lst: libgrub.pp
-	cat $< | grep '@MARKER@' | sed 's/@MARKER@\(.*\)@/\1/g' | sort -u > $@ || (rm -f $@; exit 1)
+	cat $< | grep '^@MARKER@' | sed 's/@MARKER@\(.*\)@/\1/g' | sort -u > $@ || (rm -f $@; exit 1)
 CLEANFILES += libgrub_a_init.lst
 
 libgrub_a_init.c: libgrub_a_init.lst $(top_srcdir)/geninit.sh
@@ -57,7 +57,7 @@ grub_fstest.pp: $(grub_fstest_SOURCES)
 CLEANFILES += grub_fstest.pp
 
 grub_fstest_init.lst: libgrub.pp grub_fstest.pp
-	cat $^ | grep '@MARKER@' | sed 's/@MARKER@\(.*\)@/\1/g' | sort -u > $@ || (rm -f $@; exit 1)
+	cat $^ | grep '^@MARKER@' | sed 's/@MARKER@\(.*\)@/\1/g' | sort -u > $@ || (rm -f $@; exit 1)
 CLEANFILES += grub_fstest_init.lst
 
 grub_fstest_init.c: grub_fstest_init.lst $(top_srcdir)/geninit.sh
