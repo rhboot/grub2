@@ -3011,6 +3011,39 @@ environment variable @samp{net_default_server} is used.
 Before using the network drive, you must initialize the network.
 @xref{Network}, for more information.
 
+For the @samp{http} network protocol, @code{@var{server}} may specify a
+port number other than the default value of @samp{80}. The server name
+and port number are separated by either @samp{,} or @samp{:}.
+For IPv6 addresses, the server name and port number may only be separated
+by @samp{,}.
+
+@itemize @bullet
+@item
+@code{(http,@var{server},@var{port})}
+
+@item
+@code{(http,@var{server}:@var{port})}
+@end itemize
+
+These examples all reference an @samp{http} server at address
+@samp{192.0.2.1} listening on the non-standard port of @samp{3000}.
+In these examples, the DNS name @samp{grub.example.com} is resolved
+to @samp{192.0.2.1}.
+
+@example
+(http,grub.example.com,3000)
+(http,grub.example.com:3000)
+(http,192.0.2.1,3000)
+(http,192.0.2.1:3000)
+@end example
+
+Referencing an @samp{http} server over IPv6 on the non-standard
+port of @samp{3000} would look like this:
+
+@example
+(http,2001:db8::1,3000)
+@end example
+
 If you boot GRUB from a CD-ROM, @samp{(cd)} is available. @xref{Making
 a GRUB bootable CD-ROM}, for details.
 
