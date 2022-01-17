@@ -309,11 +309,13 @@ program = {
   common = grub-core/disk/host.c;
   common = grub-core/osdep/init.c;
 
+  cflags = '$(FUSE_CFLAGS)';
+
   ldadd = libgrubmods.a;
   ldadd = libgrubgcry.a;
   ldadd = libgrubkern.a;
   ldadd = grub-core/lib/gnulib/libgnu.a;
-  ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM) -lfuse';
+  ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM) $(FUSE_LIBS)';
   condition = COND_GRUB_MOUNT;
 };
 

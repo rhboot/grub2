@@ -16,7 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
-#define FUSE_USE_VERSION 26
 #include <config.h>
 #include <grub/types.h>
 #include <grub/emu/misc.h>
@@ -34,7 +33,7 @@
 #include <grub/command.h>
 #include <grub/zfs/zfs.h>
 #include <grub/i18n.h>
-#include <fuse/fuse.h>
+#include <fuse.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -146,8 +145,14 @@ fuse_getattr_find_file (const char *cur_filename,
   return 0;
 }
 
+#if FUSE_USE_VERSION < 30
 static int
 fuse_getattr (const char *path, struct stat *st)
+#else
+static int
+fuse_getattr (const char *path, struct stat *st,
+              struct fuse_file_info *fi __attribute__ ((unused)))
+#endif
 {
   struct fuse_getattr_ctx ctx;
   char *pathname, *path2;
@@ -241,8 +246,11 @@ static grub_file_t files[65536];
 static int first_fd = 1;
 
 static int
-fuse_open (const char *path, struct fuse_file_info *fi __attribute__ ((unused)))
+fuse_open (const char *path, struct fuse_file_info *fi)
 {
+  if ((fi->flags & O_ACCMODE) != O_RDONLY)
+    return -EROFS;
+
   grub_file_t file;
   file = grub_file_open (path, GRUB_FILE_TYPE_MOUNT);
   if (! file)
@@ -330,13 +338,24 @@ fuse_readdir_call_fill (const char *filename,
   st.st_blocks = (st.st_size + 511) >> 9;
   st.st_atime = st.st_mtime = st.st_ctime
     = info->mtimeset ? info->mtime : 0;
+#if FUSE_USE_VERSION < 30
   ctx->fill (ctx->buf, filename, &st, 0);
+#else
+  ctx->fill (ctx->buf, filename, &st, 0, 0);
+#endif
   return 0;
 }
 
+#if FUSE_USE_VERSION < 30
 static int
 fuse_readdir (const char *path, void *buf,
 	      fuse_fill_dir_t fill, off_t off, struct fuse_file_info *fi)
+#else
+static int
+fuse_readdir (const char *path, void *buf,
+	      fuse_fill_dir_t fill, off_t off, struct fuse_file_info *fi,
+	      enum fuse_readdir_flags flags __attribute__ ((unused)))
+#endif
 {
   struct fuse_readdir_ctx ctx = {
     .path = path,
