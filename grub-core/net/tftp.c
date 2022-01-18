@@ -252,9 +252,9 @@ tftp_receive (grub_net_udp_socket_t sock __attribute__ ((unused)),
       return GRUB_ERR_NONE;
     case TFTP_ERROR:
       data->have_oack = 1;
-      grub_netbuff_free (nb);
       grub_error (GRUB_ERR_IO, "%s", tftph->u.err.errmsg);
       grub_error_save (&data->save_err);
+      grub_netbuff_free (nb);
       return GRUB_ERR_NONE;
     default:
       grub_netbuff_free (nb);
