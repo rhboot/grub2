@@ -1196,7 +1196,7 @@ struct grub_efi_boot_services
   (*exit) (grub_efi_handle_t image_handle,
 	   grub_efi_status_t exit_status,
 	   grub_efi_uintn_t exit_data_size,
-	   grub_efi_char16_t *exit_data) __attribute__((noreturn));
+	   grub_efi_char16_t *exit_data);
 
   grub_efi_status_t
   (*unload_image) (grub_efi_handle_t image_handle);
