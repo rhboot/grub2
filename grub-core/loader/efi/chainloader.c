@@ -251,7 +251,11 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
 
   if (dev->disk)
-    dev_handle = grub_efidisk_get_device_handle (dev->disk);
+    {
+      dev_handle = grub_efidisk_get_device_handle (dev->disk);
+      if (! dev_handle)
+	grub_dprintf ("chain", "grub_efidisk_get_device_handle(%s) failed\n", filename);
+    }
   else if (dev->net && dev->net->server)
     {
       grub_net_network_level_address_t addr;
@@ -268,6 +272,8 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
 	goto fail;
 
       dev_handle = grub_efinet_get_device_handle (inf->card);
+      if (! dev_handle)
+	grub_dprintf ("chain", "grub_efidisk_get_device_handle(%s) failed\n", filename);
     }
 
   if (dev_handle)
@@ -275,7 +281,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
 
   if (! dp)
     {
-      grub_error (GRUB_ERR_BAD_DEVICE, "not a valid root device");
+      grub_error (GRUB_ERR_BAD_DEVICE, "%s: not a valid root device", filename);
       goto fail;
     }
 
