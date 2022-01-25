@@ -65,6 +65,12 @@ make_devices (void)
       struct grub_efidisk_data *d;
       grub_efi_block_io_t *bio;
 
+      grub_efi_status_t status;
+
+      status = grub_efi_connect_controller(*handle, NULL, NULL, 1);
+      grub_dprintf ("efidisk", "connect_controller(%p) returned %d\n",
+		    *handle, (int)status);
+
       dp = grub_efi_get_device_path (*handle);
       if (! dp)
 	continue;
