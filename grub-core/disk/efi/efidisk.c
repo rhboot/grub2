@@ -669,11 +669,27 @@ grub_efidisk_get_device_handle (grub_disk_t disk)
   struct grub_efidisk_data *d;
   char type;
 
-  if (disk->dev->id != GRUB_DISK_DEVICE_EFIDISK_ID)
+  if (disk->dev->id != GRUB_DISK_DEVICE_EFIDISK_ID) {
+    grub_dprintf ("efidisk", "device %s is not a efidisk (id=%d)\n",
+		  disk->name, disk->dev->id);
     return 0;
+  }
 
   d = disk->data;
   type = disk->name[0];
+
+  grub_dprintf ("efidisk", "grub_efidisk_get_device_handle(%s):\n",
+		disk->name);
+  grub_dprintf ("efidisk", "total_sectors=%" PRIuGRUB_UINT64_T "\n",
+		disk->total_sectors);
+  grub_dprintf ("efidisk", "log_sector_size=%" PRIuGRUB_UINT32_T "\n",
+		disk->log_sector_size);
+  grub_dprintf ("efidisk", "partition (%d): start=%" PRIuGRUB_UINT64_T
+		"(%" PRIuGRUB_UINT64_T "), len=%" PRIuGRUB_UINT64_T
+		"(%" PRIuGRUB_UINT64_T ")\n",
+		disk->partition->number, disk->partition->start,
+		grub_partition_get_start (disk->partition), disk->partition->len,
+		grub_partition_get_len (disk->partition));
 
   switch (type)
     {
@@ -697,11 +713,26 @@ grub_efidisk_get_device_handle (grub_disk_t disk)
 	struct grub_efidisk_data *c;
 
 	devices = make_devices ();
+
+	grub_dprintf ("efidisk", "searching for partition %s in devices:\n",
+		      disk->name);
+
 	FOR_CHILDREN (c, devices)
 	  {
 	    grub_efi_hard_drive_device_path_t *hd;
 
 	    hd = (grub_efi_hard_drive_device_path_t *) c->last_device_path;
+
+	    grub_dprintf ("efidisk", "%" PRIuGRUB_UINT32_T ": start=%" PRIuGRUB_UINT64_T
+			  " (%" PRIuGRUB_UINT64_T "s), "
+			  "len=%" PRIuGRUB_UINT64_T " (%" PRIuGRUB_UINT64_T "s), "
+			  "type=%u, subtype=%u\n",
+			  hd->partition_number, hd->partition_start,
+			  (hd->partition_start << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS)),
+			  hd->partition_size,
+			  (hd->partition_size << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS)),
+			  (unsigned) GRUB_EFI_DEVICE_PATH_TYPE (c->last_device_path),
+			  (unsigned) GRUB_EFI_DEVICE_PATH_SUBTYPE (c->last_device_path));
 
 	    if ((GRUB_EFI_DEVICE_PATH_TYPE (c->last_device_path)
 		 == GRUB_EFI_MEDIA_DEVICE_PATH_TYPE)
@@ -715,6 +746,7 @@ grub_efidisk_get_device_handle (grub_disk_t disk)
 					       - GRUB_DISK_SECTOR_BITS))))
 	      {
 		handle = c->handle;
+		grub_dprintf ("efidisk", "found the partition (handle=%p)\n", handle);
 		break;
 	      }
 	  }
@@ -729,6 +761,8 @@ grub_efidisk_get_device_handle (grub_disk_t disk)
     default:
       break;
     }
+
+  grub_dprintf ("efidisk", "didn't find device %s\n", disk->name);
 
   return 0;
 }
