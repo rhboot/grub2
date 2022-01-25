@@ -95,7 +95,7 @@ grub_get_datetime (struct grub_datetime *datetime)
 
   datetime->year = args.year;
   datetime->month = args.month;
-  datetime->day = args.day + 1;
+  datetime->day = args.day;
   datetime->hour = args.hour;
   datetime->minute = args.minute;
   datetime->second = args.second;
@@ -140,7 +140,7 @@ grub_set_datetime (struct grub_datetime *datetime)
 
   args.year = datetime->year;
   args.month = datetime->month;
-  args.day = datetime->day - 1;
+  args.day = datetime->day;
   args.hour = datetime->hour;
   args.minute = datetime->minute;
   args.second = datetime->second;
