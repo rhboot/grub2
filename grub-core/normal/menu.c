@@ -606,12 +606,14 @@ print_countdown (struct grub_term_coordinate *pos, int n)
    entry to be executed is a result of an automatic default selection because
    of the timeout.  */
 static int
-run_menu (grub_menu_t menu, int nested, int *auto_boot)
+run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 {
   grub_uint64_t saved_time;
   int default_entry, current_entry;
   int timeout;
   enum timeout_style timeout_style;
+
+  *notify_boot = 1;
 
   default_entry = get_entry_number (menu, "default");
 
@@ -687,6 +689,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
   if (timeout == 0)
     {
       *auto_boot = 1;
+      *notify_boot = timeout_style != TIMEOUT_STYLE_HIDDEN;
       return default_entry;
     }
 
@@ -840,12 +843,16 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
 
 /* Callback invoked immediately before a menu entry is executed.  */
 static void
-notify_booting (grub_menu_entry_t entry,
-		void *userdata __attribute__((unused)))
+notify_booting (grub_menu_entry_t entry, void *userdata)
 {
-  grub_printf ("  ");
-  grub_printf_ (N_("Booting `%s'"), entry->title);
-  grub_printf ("\n\n");
+  int *notify_boot = userdata;
+
+  if (*notify_boot)
+    {
+      grub_printf ("  ");
+      grub_printf_ (N_("Booting `%s'"), entry->title);
+      grub_printf ("\n\n");
+    }
 }
 
 /* Callback invoked when a default menu entry executed because of a timeout
@@ -893,8 +900,9 @@ show_menu (grub_menu_t menu, int nested, int autobooted)
       int boot_entry;
       grub_menu_entry_t e;
       int auto_boot;
+      int notify_boot;
 
-      boot_entry = run_menu (menu, nested, &auto_boot);
+      boot_entry = run_menu (menu, nested, &auto_boot, &notify_boot);
       if (boot_entry < 0)
 	break;
 
@@ -906,7 +914,7 @@ show_menu (grub_menu_t menu, int nested, int autobooted)
 
       if (auto_boot)
 	grub_menu_execute_with_fallback (menu, e, autobooted,
-					 &execution_callback, 0);
+					 &execution_callback, &notify_boot);
       else
 	grub_menu_execute_entry (e, 0);
       if (autobooted)
