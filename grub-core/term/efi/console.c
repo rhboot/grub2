@@ -31,7 +31,15 @@ typedef enum {
 }
 grub_text_mode;
 
+typedef enum {
+    GRUB_CURSOR_MODE_UNDEFINED = -1,
+    GRUB_CURSOR_MODE_OFF = 0,
+    GRUB_CURSUR_MODE_ON
+}
+grub_cursor_mode;
+
 static grub_text_mode text_mode = GRUB_TEXT_MODE_UNDEFINED;
+static grub_cursor_mode cursor_mode = GRUB_CURSOR_MODE_UNDEFINED;
 static grub_term_color_state text_colorstate = GRUB_TERM_COLOR_UNDEFINED;
 
 static grub_uint32_t
@@ -119,8 +127,12 @@ grub_console_setcursor (struct grub_term_output *term __attribute__ ((unused)),
 {
   grub_efi_simple_text_output_interface_t *o;
 
-  if (grub_efi_is_finished)
-    return;
+  if (grub_efi_is_finished || text_mode != GRUB_TEXT_MODE_AVAILABLE)
+    {
+      /* Cache cursor changes before the first text-output */
+      cursor_mode = on;
+      return;
+    }
 
   o = grub_efi_system_table->con_out;
   efi_call_2 (o->enable_cursor, o, on);
@@ -143,7 +155,8 @@ grub_prepare_for_text_output (struct grub_term_output *term)
       return GRUB_ERR_BAD_DEVICE;
     }
 
-  grub_console_setcursor (term, 1);
+  if (cursor_mode != GRUB_CURSOR_MODE_UNDEFINED)
+    grub_console_setcursor (term, cursor_mode);
   if (text_colorstate != GRUB_TERM_COLOR_UNDEFINED)
     grub_console_setcolorstate (term, text_colorstate);
   text_mode = GRUB_TEXT_MODE_AVAILABLE;
