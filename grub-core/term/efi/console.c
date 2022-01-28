@@ -82,6 +82,16 @@ grub_console_setcolorstate (struct grub_term_output *term
 {
   grub_efi_simple_text_output_interface_t *o;
 
+  if (grub_efi_is_finished || text_mode != GRUB_TEXT_MODE_AVAILABLE)
+    {
+      /*
+       * Cache colorstate changes before the first text-output, this avoids
+       * "color_normal" environment writes causing a switch to textmode.
+       */
+      text_colorstate = state;
+      return;
+    }
+
   if (grub_efi_is_finished)
     return;
 
