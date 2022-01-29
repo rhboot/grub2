@@ -870,11 +870,19 @@ if test x"$platform" != xemu ; then
        CFLAGS="$TARGET_CFLAGS -march=rv32imac -mabi=ilp32 -Werror"
        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
 		         [grub_cv_target_cc_soft_float="-march=rv32imac -mabi=ilp32"], [])
+       # ISA spec version 20191213 factored out extensions Zicsr and Zifencei
+       CFLAGS="$TARGET_CFLAGS -march=rv32imac_zicsr_zifencei -mabi=ilp32 -Werror"
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+		         [grub_cv_target_cc_soft_float="-march=rv32imac_zicsr_zifencei -mabi=ilp32"], [])
     fi
     if test "x$target_cpu" = xriscv64; then
        CFLAGS="$TARGET_CFLAGS -march=rv64imac -mabi=lp64 -Werror"
        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
 		         [grub_cv_target_cc_soft_float="-march=rv64imac -mabi=lp64"], [])
+       # ISA spec version 20191213 factored out extensions Zicsr and Zifencei
+       CFLAGS="$TARGET_CFLAGS -march=rv64imac_zicsr_zifencei -mabi=lp64 -Werror"
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+		         [grub_cv_target_cc_soft_float="-march=rv64imac_zicsr_zifencei -mabi=lp64"], [])
     fi
     if test "x$target_cpu" = xia64; then
        CFLAGS="$TARGET_CFLAGS -mno-inline-float-divide -mno-inline-sqrt -Werror"
