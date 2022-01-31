@@ -834,6 +834,12 @@ module = {
 };
 
 module = {
+  name = eficonnect;
+  efi = commands/efi/eficonnect.c;
+  enable = efi;
+};
+
+module = {
   name = blocklist;
   common = commands/blocklist.c;
 };

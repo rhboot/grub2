@@ -396,6 +396,19 @@ enumerate_disks (void)
   free_devices (devices);
 }
 
+void
+grub_efidisk_reenumerate_disks (void)
+{
+  free_devices (fd_devices);
+  free_devices (hd_devices);
+  free_devices (cd_devices);
+  fd_devices = 0;
+  hd_devices = 0;
+  cd_devices = 0;
+
+  enumerate_disks ();
+}
+
 static int
 grub_efidisk_iterate (grub_disk_dev_iterate_hook_t hook, void *hook_data,
 		      grub_disk_pull_t pull)
