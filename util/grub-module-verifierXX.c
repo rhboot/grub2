@@ -131,6 +131,12 @@ grub_target_to_host_real (const struct grub_module_verifier_arch *arch, grub_uin
     return grub_target_to_host32_real (arch, in);
 }
 
+static Elf_Shdr *
+get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word index)
+{
+  return (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) +
+		       index * grub_target_to_host16 (e->e_shentsize));
+}
 
 static Elf_Shdr *
 find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const char *name)
@@ -139,12 +145,12 @@ find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const c
   const char *str;
   unsigned i;
 
-  s = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) + grub_target_to_host16 (e->e_shstrndx) * grub_target_to_host16 (e->e_shentsize));
+  s = get_shdr (arch, e, grub_target_to_host16 (e->e_shstrndx));
   str = (char *) e + grub_target_to_host (s->sh_offset);
 
-  for (i = 0, s = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff));
+  for (i = 0, s = get_shdr (arch, e, 0);
        i < grub_target_to_host16 (e->e_shnum);
-       i++, s = (Elf_Shdr *) ((char *) s + grub_target_to_host16 (e->e_shentsize)))
+       i++, s = get_shdr (arch, e, i))
     if (strcmp (str + grub_target_to_host32 (s->sh_name), name) == 0)
       return s;
   return NULL;
@@ -166,13 +172,12 @@ static Elf_Sym *
 get_symtab (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word *size, Elf_Word *entsize)
 {
   unsigned i;
-  Elf_Shdr *s, *sections;
+  Elf_Shdr *s;
   Elf_Sym *sym;
 
-  sections = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff));
-  for (i = 0, s = sections;
+  for (i = 0, s = get_shdr (arch, e, 0);
        i < grub_target_to_host16 (e->e_shnum);
-       i++, s = (Elf_Shdr *) ((char *) s + grub_target_to_host16 (e->e_shentsize)))
+       i++, s = get_shdr (arch, e, i))
     if (grub_target_to_host32 (s->sh_type) == SHT_SYMTAB)
       break;
 
@@ -364,9 +369,9 @@ check_relocations (const char * const modname,
   Elf_Shdr *s;
   unsigned i;
 
-  for (i = 0, s = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff));
+  for (i = 0, s = get_shdr (arch, e, 0);
        i < grub_target_to_host16 (e->e_shnum);
-       i++, s = (Elf_Shdr *) ((char *) s + grub_target_to_host16 (e->e_shentsize)))
+       i++, s = get_shdr (arch, e, i))
     if (grub_target_to_host32 (s->sh_type) == SHT_REL || grub_target_to_host32 (s->sh_type) == SHT_RELA)
       {
 	Elf_Shdr *ts;
@@ -379,7 +384,7 @@ check_relocations (const char * const modname,
 	/* Find the target segment.  */
 	if (grub_target_to_host32 (s->sh_info) >= grub_target_to_host16 (e->e_shnum))
 	  grub_util_error ("%s: orphaned reloc section", modname);
-	ts = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) + grub_target_to_host32 (s->sh_info) * grub_target_to_host16 (e->e_shentsize));
+	ts = get_shdr (arch, e, grub_target_to_host32 (s->sh_info));
 
 	section_check_relocations (modname, arch, e, s, grub_target_to_host (ts->sh_size));
       }
