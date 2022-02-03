@@ -370,17 +370,26 @@ grub_affs_create_node (grub_fshelp_node_t dir,
 				  GRUB_DISK_SECTOR_SIZE - GRUB_AFFS_FILE_LOCATION,
 				  sizeof ((*node)->di), (char *) &(*node)->di);
 	    if (err)
-	      return 1;
+	      {
+		grub_free (*node);
+		return 1;
+	      }
 	    continue;
 	  }
 	default:
-	  return 0;
+	  {
+	    grub_free (*node);
+	    return 0;
+	  }
 	}
       break;
     }
 
   if (nest == 8)
-    return 0;
+    {
+      grub_free (*node);
+      return 0;
+    }
 
   type |= GRUB_FSHELP_CASE_INSENSITIVE;
 
