@@ -138,6 +138,29 @@ get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word in
 		       index * grub_target_to_host16 (e->e_shentsize));
 }
 
+static Elf_Word
+get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
+{
+  Elf_Shdr *s;
+  Elf_Word shnum;
+
+  shnum = grub_target_to_host16 (e->e_shnum);
+  if (shnum == SHN_UNDEF)
+    {
+      s = get_shdr (arch, e, 0);
+      shnum = grub_target_to_host (s->sh_size);
+      if (shnum < SHN_LORESERVE)
+	grub_util_error ("Invalid number of section header table entries in sh_size: %d", shnum);
+    }
+  else
+    {
+      if (shnum >= SHN_LORESERVE)
+	grub_util_error ("Invalid number of section header table entries in e_shnum: %d", shnum);
+    }
+
+  return shnum;
+}
+
 static Elf_Shdr *
 find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const char *name)
 {
@@ -149,7 +172,7 @@ find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const c
   str = (char *) e + grub_target_to_host (s->sh_offset);
 
   for (i = 0, s = get_shdr (arch, e, 0);
-       i < grub_target_to_host16 (e->e_shnum);
+       i < get_shnum (arch, e);
        i++, s = get_shdr (arch, e, i))
     if (strcmp (str + grub_target_to_host32 (s->sh_name), name) == 0)
       return s;
@@ -176,12 +199,12 @@ get_symtab (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word 
   Elf_Sym *sym;
 
   for (i = 0, s = get_shdr (arch, e, 0);
-       i < grub_target_to_host16 (e->e_shnum);
+       i < get_shnum (arch, e);
        i++, s = get_shdr (arch, e, i))
     if (grub_target_to_host32 (s->sh_type) == SHT_SYMTAB)
       break;
 
-  if (i == grub_target_to_host16 (e->e_shnum))
+  if (i == get_shnum (arch, e))
     return NULL;
 
   sym = (Elf_Sym *) ((char *) e + grub_target_to_host (s->sh_offset));
@@ -370,7 +393,7 @@ check_relocations (const char * const modname,
   unsigned i;
 
   for (i = 0, s = get_shdr (arch, e, 0);
-       i < grub_target_to_host16 (e->e_shnum);
+       i < get_shnum (arch, e);
        i++, s = get_shdr (arch, e, i))
     if (grub_target_to_host32 (s->sh_type) == SHT_REL || grub_target_to_host32 (s->sh_type) == SHT_RELA)
       {
@@ -382,7 +405,7 @@ check_relocations (const char * const modname,
 	  grub_util_error ("%s: unsupported SHT_RELA", modname);
 
 	/* Find the target segment.  */
-	if (grub_target_to_host32 (s->sh_info) >= grub_target_to_host16 (e->e_shnum))
+	if (grub_target_to_host32 (s->sh_info) >= get_shnum (arch, e))
 	  grub_util_error ("%s: orphaned reloc section", modname);
 	ts = get_shdr (arch, e, grub_target_to_host32 (s->sh_info));
 
@@ -423,7 +446,7 @@ SUFFIX(grub_module_verify) (const char * const filename,
 
   /* Make sure that every section is within the core.  */
   if (size < grub_target_to_host (e->e_shoff)
-      + (grub_uint32_t) grub_target_to_host16 (e->e_shentsize) * grub_target_to_host16(e->e_shnum))
+      + (grub_uint32_t) grub_target_to_host16 (e->e_shentsize) * get_shnum (arch, e))
     {
       grub_util_error ("%s: ELF sections outside core", filename);
     }
