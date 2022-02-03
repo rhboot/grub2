@@ -161,6 +161,29 @@ get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
   return shnum;
 }
 
+static Elf_Word
+get_shstrndx (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
+{
+  Elf_Shdr *s;
+  Elf_Word shstrndx;
+
+  shstrndx = grub_target_to_host16 (e->e_shstrndx);
+  if (shstrndx == SHN_XINDEX)
+    {
+      s = get_shdr (arch, e, 0);
+      shstrndx = grub_target_to_host (s->sh_link);
+      if (shstrndx < SHN_LORESERVE)
+	grub_util_error ("Invalid section header table index in sh_link: %d", shstrndx);
+    }
+  else
+    {
+      if (shstrndx >= SHN_LORESERVE)
+	grub_util_error ("Invalid section header table index in e_shstrndx: %d", shstrndx);
+    }
+
+  return shstrndx;
+}
+
 static Elf_Shdr *
 find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const char *name)
 {
@@ -168,7 +191,7 @@ find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const c
   const char *str;
   unsigned i;
 
-  s = get_shdr (arch, e, grub_target_to_host16 (e->e_shstrndx));
+  s = get_shdr (arch, e, get_shstrndx (arch, e));
   str = (char *) e + grub_target_to_host (s->sh_offset);
 
   for (i = 0, s = get_shdr (arch, e, 0);
