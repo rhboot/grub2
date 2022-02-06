@@ -29,6 +29,9 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     # PLATFORM: no ATA on ARC platforms (they use SCSI)
     *-arc)
 	exit 77;;
+    # QEMU: no ATA on Q35 machine type (they use AHCI)
+    i386-efi)
+	exit 77;;
     # FIXME: No native drivers are available for those
     powerpc-ieee1275 | sparc64-ieee1275 | arm*-efi)
 	exit 77;;
