@@ -459,7 +459,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    # FIXME: not so sure about AFFS
 		    # OS LIMITATION: minix2/minix3 could be formatted in a way to permit more.
 		x"minix3" | x"minix2" | x"hfs"| x"affs" | xaffs_intl | xreiserfs_old | xext2_old)
-		    BIGBLOCKCNT=$((16#7fffffff));;
+		    BIGBLOCKCNT=$((0x7fffffff));;
 
 		    # FS LIMITATION: redundant storage
 		    # We have only limited space. Mirroring multiplies it very effectively.
@@ -669,18 +669,18 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	# mkfs.hfs and mkfs.hfsplus don't fill UUID.
 		x"hfsplus")
 		    "mkfs.hfsplus" -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
-		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((16#468)) conv=notrunc count=8 ;;
+		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8 ;;
 		x"hfsplus_wrap")
 		    "mkfs.hfsplus" -w -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
-		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((16#468)) conv=notrunc count=8
+		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8
 		    MOUNTFS="hfsplus";;
 		x"hfsplus_casesens")
 		    "mkfs.hfsplus" -s -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
-		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((16#468)) conv=notrunc count=8
+		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8
 		    MOUNTFS="hfsplus";;
 		x"hfs")
 		    "mkfs.hfs" -b $BLKSIZE -v "`echo $FSLABEL |recode utf8..macroman`" -h "${MOUNTDEVICE}"
-		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((16#474)) conv=notrunc count=8
+		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x474)) conv=notrunc count=8
 		    MOUNTOPTS="iocharset=utf8,codepage=macroman,"
 		    ;;
 		x"vfat"*|xmsdos*)
