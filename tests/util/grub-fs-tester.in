@@ -15,10 +15,27 @@ tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX
 XORRISOFS_CHARSET="-input-charset UTF-8 -output-charset UTF-8"
 
 MOUNTS=
+LODEVICES=
 cleanup() {
+    if [ -n "$fs" -a -z "${fs##*zfs*}" -a -n "$FSLABEL" ]; then
+	zpool list "$FSLABEL" 2>/dev/null &&
+	while ! zpool export "$FSLABEL" ; do
+	    sleep 1;
+	done
+    fi
+
     for i in $MOUNTS; do
 	umount "$i" || :
     done
+
+    for lodev in $LODEVICES; do
+	local i=600
+	while losetup -l -O NAME | grep -q "^$lodev\$"; do
+	    losetup -d "$lodev" || sleep 1
+	    [ "$((i--))" = "0" ] && break
+	done
+    done
+    return 0
 }
 trap cleanup EXIT INT
 # This is for bash, dash and ash do not recognize ERR
