@@ -47,7 +47,6 @@ tar cf "$imgfile" "$outfile"
 
 v=$(echo "nativedisk; source '($indisk)/$outfile';" | "${grubshell}" --qemu-opts="-$disk $imgfile")
 if [ "$v" != "Hello World" ]; then
-   rm "$imgfile"
    rm "$outfile"
    exit 1
 fi
