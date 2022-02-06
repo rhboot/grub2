@@ -14,6 +14,16 @@ tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX
 # FSLABEL. This is especially needed for the conversion to Joliet UCS-2.
 XORRISOFS_CHARSET="-input-charset UTF-8 -output-charset UTF-8"
 
+MOUNTS=
+cleanup() {
+    for i in $MOUNTS; do
+	umount "$i" || :
+    done
+}
+trap cleanup EXIT INT
+# This is for bash, dash and ash do not recognize ERR
+trap cleanup ERR || :
+
 # This wrapper is to ease insertion of valgrind or time statistics
 run_it () {
     LC_ALL=C "$GRUBFSTEST" "$@"
@@ -935,6 +945,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			done
 			exit 99;
 		    fi
+		    MOUNTS="$MOUNTS $MNTPOINTRW"
 		    ;;
 	    esac
 	    case x"$fs" in
@@ -1059,11 +1070,13 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"bfs")
 		    sleep 1
 		    fusermount -u "$MNTPOINTRW"
+		    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRW||g;")"
 		    ;;
 		xlvm*)
 		    sleep 1
 		    for try in $(range 0 20 1); do
 			if umount "$MNTPOINTRW" ; then
+			    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRW||g;")"
 			    break;
 			fi
 			sleep 1;
@@ -1076,6 +1089,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    for try in $(range 0 20 1); do
 			if umount "$MNTPOINTRW" ; then
+			    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRW||g;")"
 			    break;
 			fi
 			sleep 1;
@@ -1088,6 +1102,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    for try in $(range 0 20 1); do
 			if umount "$MNTPOINTRW" ; then
+			    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRW||g;")"
 			    break;
 			fi
 			sleep 1;
@@ -1117,13 +1132,19 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		xlvm*)
 		    vgchange -a y grub_test
 		    sleep 1
-		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro ;;
+		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro
+		    MOUNTS="$MOUNTS $MNTPOINTRO"
+		    ;;
 		xmdraid*)
 		    mdadm --assemble /dev/md/"${fs}_$NDEVICES" $LODEVICES
 		    sleep 1
-		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro ;;
+		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro
+		    MOUNTS="$MOUNTS $MNTPOINTRO"
+		    ;;
 		*)
-		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro ;;
+		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro
+		    MOUNTS="$MOUNTS $MNTPOINTRO"
+		    ;;
 	    esac
 
 	    run_grubfstest ls -- -la
@@ -1548,6 +1569,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    umount "$MNTPOINTRO"  || true
 		    umount "$MNTPOINTRW" || true
+		    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRO||g;")"
+		    MOUNTS="$(echo ${MOUNTS} | sed "s|$MNTPOINTRW||g;")"
 	    esac
 	    sleep 1
 	    case x"$fs" in
