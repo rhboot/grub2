@@ -104,8 +104,10 @@ KERNEL_HEADER_FILES =
 
 bin_SCRIPTS =
 bin_PROGRAMS =
-check_SCRIPTS =
-check_PROGRAMS =
+check_SCRIPTS_native =
+check_SCRIPTS_nonnative =
+check_PROGRAMS_native =
+check_PROGRAMS_nonnative =
 dist_grubconf_DATA =
 dist_noinst_DATA =
 grubconf_SCRIPTS =
@@ -121,7 +123,6 @@ platform_PROGRAMS =
 sbin_SCRIPTS =
 sbin_PROGRAMS =
 
-TESTS =
 EXTRA_DIST =
 CLEANFILES =
 BUILT_SOURCES =

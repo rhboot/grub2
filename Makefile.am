@@ -24,6 +24,15 @@ CCASFLAGS_PROGRAM += $(CCASFLAGS_GNULIB)
 
 include $(srcdir)/Makefile.util.am
 
+check_SCRIPTS = $(check_SCRIPTS_native) $(check_SCRIPTS_nonnative)
+check_PROGRAMS = $(check_PROGRAMS_native) $(check_PROGRAMS_nonnative)
+TESTS = $(check_SCRIPTS) $(check_PROGRAMS)
+
+check-native:
+	$(MAKE) TESTS="$(check_PROGRAMS_native) $(check_SCRIPTS_native)" check
+check-nonnative:
+	$(MAKE) TESTS="$(check_PROGRAMS_nonnative) $(check_SCRIPTS_nonnative)" check
+
 # XXX Use Automake's LEX & YACC support
 grub_script.tab.h: $(top_srcdir)/grub-core/script/parser.y
 	$(YACC) -d -p grub_script_yy -b grub_script $(top_srcdir)/grub-core/script/parser.y

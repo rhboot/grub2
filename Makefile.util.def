@@ -749,470 +749,470 @@ script = {
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = ext234_test;
   common = tests/ext234_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = squashfs_test;
   common = tests/squashfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = iso9660_test;
   common = tests/iso9660_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = hfsplus_test;
   common = tests/hfsplus_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = ntfs_test;
   common = tests/ntfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = reiserfs_test;
   common = tests/reiserfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = fat_test;
   common = tests/fat_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = minixfs_test;
   common = tests/minixfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = xfs_test;
   common = tests/xfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = f2fs_test;
   common = tests/f2fs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = nilfs2_test;
   common = tests/nilfs2_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = romfs_test;
   common = tests/romfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = exfat_test;
   common = tests/exfat_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = tar_test;
   common = tests/tar_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = udf_test;
   common = tests/udf_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = hfs_test;
   common = tests/hfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = jfs_test;
   common = tests/jfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = btrfs_test;
   common = tests/btrfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = zfs_test;
   common = tests/zfs_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = cpio_test;
   common = tests/cpio_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = example_scripted_test;
   common = tests/example_scripted_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = gettext_strings_test;
   common = tests/gettext_strings_test.in;
   extra_dist = po/exclude.pot;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = pata_test;
   common = tests/pata_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = ahci_test;
   common = tests/ahci_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = uhci_test;
   common = tests/uhci_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = ohci_test;
   common = tests/ohci_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = ehci_test;
   common = tests/ehci_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = example_grub_script_test;
   common = tests/example_grub_script_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_eval;
   common = tests/grub_script_eval.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_test;
   common = tests/grub_script_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_echo1;
   common = tests/grub_script_echo1.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_leading_whitespace;
   common = tests/grub_script_leading_whitespace.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_echo_keywords;
   common = tests/grub_script_echo_keywords.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_vars1;
   common = tests/grub_script_vars1.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_for1;
   common = tests/grub_script_for1.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_while1;
   common = tests/grub_script_while1.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_if;
   common = tests/grub_script_if.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = grub_script_blanklines;
   common = tests/grub_script_blanklines.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = grub_script_final_semicolon;
   common = tests/grub_script_final_semicolon.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = grub_script_dollar;
   common = tests/grub_script_dollar.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_comments;
   common = tests/grub_script_comments.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_functions;
   common = tests/grub_script_functions.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_break;
   common = tests/grub_script_break.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_continue;
   common = tests/grub_script_continue.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_shift;
   common = tests/grub_script_shift.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_blockarg;
   common = tests/grub_script_blockarg.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_setparams;
   common = tests/grub_script_setparams.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_return;
   common = tests/grub_script_return.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_regexp;
   common = tests/grub_cmd_regexp.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_date;
   common = tests/grub_cmd_date.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_set_date;
   common = tests/grub_cmd_set_date.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_sleep;
   common = tests/grub_cmd_sleep.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_expansion;
   common = tests/grub_script_expansion.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_not;
   common = tests/grub_script_not.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = grub_script_no_commands;
   common = tests/grub_script_no_commands.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = partmap_test;
   common = tests/partmap_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = hddboot_test;
   common = tests/hddboot_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = fddboot_test;
   common = tests/fddboot_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = cdboot_test;
   common = tests/cdboot_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = netboot_test;
   common = tests/netboot_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = pseries_test;
   common = tests/pseries_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = core_compress_test;
   common = tests/core_compress_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = xzcompress_test;
   common = tests/xzcompress_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = gzcompress_test;
   common = tests/gzcompress_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = lzocompress_test;
   common = tests/lzocompress_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_echo;
   common = tests/grub_cmd_echo.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = help_test;
   common = tests/help_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_gettext;
   common = tests/grub_script_gettext.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_escape_comma;
   common = tests/grub_script_escape_comma.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_script_strcmp;
   common = tests/grub_script_strcmp.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = test_sha512sum;
   common = tests/test_sha512sum.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = test_unset;
   common = tests/test_unset.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_func_test;
   common = tests/grub_func_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_tr;
   common = tests/grub_cmd_tr.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = file_filter_test;
   common = tests/file_filter_test.in;
 };
 
 script = {
-  testcase;
+  testcase = nonnative;
   name = grub_cmd_test;
   common = tests/grub_cmd_test.in;
 };
 
 script = {
-  testcase;
+  testcase = native;
   name = syslinux_test;
   common = tests/syslinux_test.in;
 };
 
 program = {
-  testcase;
+  testcase = native;
   name = example_unit_test;
   common = tests/example_unit_test.c;
   common = tests/lib/unit_test.c;
@@ -1227,7 +1227,7 @@ program = {
 };
 
 program = {
-  testcase;
+  testcase = native;
   name = printf_test;
   common = tests/printf_unit_test.c;
   common = tests/lib/unit_test.c;
@@ -1242,7 +1242,7 @@ program = {
 };
 
 program = {
-  testcase;
+  testcase = native;
   name = date_test;
   common = tests/date_unit_test.c;
   common = tests/lib/unit_test.c;
@@ -1257,7 +1257,7 @@ program = {
 };
 
 program = {
-  testcase;
+  testcase = native;
   name = priority_queue_unit_test;
   common = tests/priority_queue_unit_test.cc;
   common = tests/lib/unit_test.c;
@@ -1274,7 +1274,7 @@ program = {
 };
 
 program = {
-  testcase;
+  testcase = native;
   name = cmp_test;
   common = tests/cmp_unit_test.c;
   common = tests/lib/unit_test.c;

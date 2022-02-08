@@ -817,8 +817,7 @@ def program(defn, platform, test=False):
     set_canonical_name_suffix("")
 
     if 'testcase' in defn:
-        gvar_add("check_PROGRAMS", name)
-        gvar_add("TESTS", name)
+        gvar_add("check_PROGRAMS_" + defn['testcase'], name)
     else:
         var_add(installdir(defn) + "_PROGRAMS", name)
         if 'mansection' in defn:
@@ -859,8 +858,7 @@ def script(defn, platform):
     name = defn['name']
 
     if 'testcase' in defn:
-        gvar_add("check_SCRIPTS", name)
-        gvar_add ("TESTS", name)
+        gvar_add("check_SCRIPTS_" + defn['testcase'], name)
     else:
         var_add(installdir(defn) + "_SCRIPTS", name)
         if 'mansection' in defn:
