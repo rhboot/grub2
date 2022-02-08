@@ -19,11 +19,20 @@
 #ifndef GRUB_SEARCH_HEADER
 #define GRUB_SEARCH_HEADER 1
 
-void grub_search_fs_file (const char *key, const char *var, int no_floppy,
+enum search_flags
+  {
+    SEARCH_FLAGS_NO_FLOPPY	= 1,
+    SEARCH_FLAGS_EFIDISK_ONLY	= 2
+  };
+
+void grub_search_fs_file (const char *key, const char *var,
+			  enum search_flags flags,
 			  char **hints, unsigned nhints);
-void grub_search_fs_uuid (const char *key, const char *var, int no_floppy,
+void grub_search_fs_uuid (const char *key, const char *var,
+			  enum search_flags flags,
 			  char **hints, unsigned nhints);
-void grub_search_label (const char *key, const char *var, int no_floppy,
+void grub_search_label (const char *key, const char *var,
+			enum search_flags flags,
 			char **hints, unsigned nhints);
 
 #endif
