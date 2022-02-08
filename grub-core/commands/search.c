@@ -47,7 +47,7 @@ struct search_ctx
 {
   const char *key;
   const char *var;
-  int no_floppy;
+  enum search_flags flags;
   char **hints;
   unsigned nhints;
   int count;
@@ -62,9 +62,28 @@ iterate_device (const char *name, void *data)
   int found = 0;
 
   /* Skip floppy drives when requested.  */
-  if (ctx->no_floppy &&
+  if (ctx->flags & SEARCH_FLAGS_NO_FLOPPY &&
       name[0] == 'f' && name[1] == 'd' && name[2] >= '0' && name[2] <= '9')
     return 0;
+
+  /* Limit to EFI disks when requested.  */
+  if (ctx->flags & SEARCH_FLAGS_EFIDISK_ONLY)
+    {
+      grub_device_t dev;
+      dev = grub_device_open (name);
+      if (! dev)
+	{
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      if (! dev->disk || dev->disk->dev->id != GRUB_DISK_DEVICE_EFIDISK_ID)
+	{
+	  grub_device_close (dev);
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      grub_device_close (dev);
+    }
 
 #ifdef DO_SEARCH_FS_UUID
 #define compare_fn grub_strcasecmp
@@ -261,13 +280,13 @@ try (struct search_ctx *ctx)
 }
 
 void
-FUNC_NAME (const char *key, const char *var, int no_floppy,
+FUNC_NAME (const char *key, const char *var, enum search_flags flags,
 	   char **hints, unsigned nhints)
 {
   struct search_ctx ctx = {
     .key = key,
     .var = var,
-    .no_floppy = no_floppy,
+    .flags = flags,
     .hints = hints,
     .nhints = nhints,
     .count = 0,
