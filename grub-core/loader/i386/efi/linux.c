@@ -80,7 +80,9 @@ kernel_free(void *addr, grub_efi_uintn_t size)
 }
 
 static void *
-kernel_alloc(grub_efi_uintn_t size, const char * const errmsg)
+kernel_alloc(grub_efi_uintn_t size,
+	     grub_efi_memory_type_t memtype,
+	     const char * const errmsg)
 {
   void *addr = 0;
   unsigned int i;
@@ -106,7 +108,7 @@ kernel_alloc(grub_efi_uintn_t size, const char * const errmsg)
       prev_max = max;
       addr = grub_efi_allocate_pages_real (max, pages,
 					   max_addresses[i].alloc_type,
-					   GRUB_EFI_LOADER_DATA);
+					   memtype);
       if (addr)
 	grub_dprintf ("linux", "Allocated at %p\n", addr);
     }
@@ -225,7 +227,8 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 	}
     }
 
-  initrd_mem = kernel_alloc(size, N_("can't allocate initrd"));
+  initrd_mem = kernel_alloc(size, GRUB_EFI_RUNTIME_SERVICES_DATA,
+			    N_("can't allocate initrd"));
   if (initrd_mem == NULL)
     goto fail;
   grub_dprintf ("linux", "initrd_mem = %p\n", initrd_mem);
@@ -368,7 +371,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
-  params = kernel_alloc (sizeof(*params), "cannot allocate kernel parameters");
+  params = kernel_alloc (sizeof(*params), GRUB_EFI_RUNTIME_SERVICES_DATA,
+			 "cannot allocate kernel parameters");
   if (!params)
     goto fail;
   grub_dprintf ("linux", "params = %p\n", params);
@@ -390,7 +394,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_dprintf ("linux", "new lh is at %p\n", lh);
 
   grub_dprintf ("linux", "setting up cmdline\n");
-  linux_cmdline = kernel_alloc (lh->cmdline_size + 1, N_("can't allocate cmdline"));
+  linux_cmdline = kernel_alloc (lh->cmdline_size + 1,
+				GRUB_EFI_RUNTIME_SERVICES_DATA,
+				N_("can't allocate cmdline"));
   if (!linux_cmdline)
     goto fail;
   grub_dprintf ("linux", "linux_cmdline = %p\n", linux_cmdline);
@@ -435,7 +441,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     }
   max_addresses[1].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
   max_addresses[2].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
-  kernel_mem = kernel_alloc (lh->init_size, N_("can't allocate kernel"));
+  kernel_mem = kernel_alloc (lh->init_size, GRUB_EFI_RUNTIME_SERVICES_CODE,
+			     N_("can't allocate kernel"));
   restore_addresses();
   if (!kernel_mem)
     goto fail;
