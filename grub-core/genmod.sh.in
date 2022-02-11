@@ -83,9 +83,9 @@ else
     for dep in $deps; do echo "char moddep_$dep[] __attribute__ ((section(\"_moddeps, _moddeps\"))) = \"$dep\";" >>$t2; done
 
     if test -n "$deps"; then
-	@TARGET_CC@ @TARGET_LDFLAGS@ -ffreestanding -nostdlib -o $tmpfile2 $t1 $t2 $tmpfile -Wl,-r,-d
+	@TARGET_CC@ @TARGET_LDFLAGS@ -ffreestanding -nostdlib -o $tmpfile2 $t1 $t2 $tmpfile -Wl,-r
     else
-	@TARGET_CC@ @TARGET_LDFLAGS@ -ffreestanding -nostdlib -o $tmpfile2 $t1 $tmpfile -Wl,-r,-d
+	@TARGET_CC@ @TARGET_LDFLAGS@ -ffreestanding -nostdlib -o $tmpfile2 $t1 $tmpfile -Wl,-r
     fi
     rm -f $t1 $t2 $tmpfile
     mv $tmpfile2 $tmpfile

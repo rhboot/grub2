@@ -49,26 +49,26 @@ kernel = {
 
   nostrip = emu;
 
-  emu_ldflags              = '-Wl,-r,-d';
-  i386_efi_ldflags         = '-Wl,-r,-d';
+  emu_ldflags              = '-Wl,-r';
+  i386_efi_ldflags         = '-Wl,-r';
   i386_efi_stripflags      = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
-  x86_64_efi_ldflags       = '-Wl,-r,-d';
+  x86_64_efi_ldflags       = '-Wl,-r';
   x86_64_efi_stripflags    = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
   ia64_efi_cflags = '-fno-builtin -fpic -minline-int-divide-max-throughput';
-  ia64_efi_ldflags = '-Wl,-r,-d';
+  ia64_efi_ldflags = '-Wl,-r';
   ia64_efi_stripflags = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
-  arm_efi_ldflags          = '-Wl,-r,-d';
+  arm_efi_ldflags          = '-Wl,-r';
   arm_efi_stripflags       = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
-  arm64_efi_ldflags          = '-Wl,-r,-d';
+  arm64_efi_ldflags          = '-Wl,-r';
   arm64_efi_stripflags       = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
-  riscv32_efi_ldflags      = '-Wl,-r,-d';
+  riscv32_efi_ldflags      = '-Wl,-r';
   riscv32_efi_stripflags   = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
-  riscv64_efi_ldflags      = '-Wl,-r,-d';
+  riscv64_efi_ldflags      = '-Wl,-r';
   riscv64_efi_stripflags   = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
   i386_pc_ldflags          = '$(TARGET_IMG_LDFLAGS)';
@@ -98,9 +98,9 @@ kernel = {
   i386_qemu_cppflags     = '-DGRUB_BOOT_MACHINE_LINK_ADDR=$(GRUB_BOOT_MACHINE_LINK_ADDR)';
   emu_cflags = '$(CFLAGS_GNULIB)';
   emu_cppflags = '$(CPPFLAGS_GNULIB)';
-  arm_uboot_ldflags       = '-Wl,-r,-d';
+  arm_uboot_ldflags       = '-Wl,-r';
   arm_uboot_stripflags    = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
-  arm_coreboot_ldflags       = '-Wl,-r,-d';
+  arm_coreboot_ldflags       = '-Wl,-r';
   arm_coreboot_stripflags    = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
   i386_pc_startup = kern/i386/pc/startup.S;

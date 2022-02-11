@@ -430,7 +430,7 @@ link_nopie_needed=no]
 AC_MSG_CHECKING([whether linker needs disabling of PIE to work])
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[]])])
 
-[if eval "$ac_compile -Wl,-r,-d -nostdlib -Werror -o conftest.o" 2> /dev/null; then]
+[if eval "$ac_compile -Wl,-r -nostdlib -Werror -o conftest.o" 2> /dev/null; then]
   AC_MSG_RESULT([no])
   [# Should we clear up other files as well, having called `AC_LANG_CONFTEST'?
   rm -f conftest.o
