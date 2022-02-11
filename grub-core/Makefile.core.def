@@ -298,6 +298,7 @@ kernel = {
   powerpc_ieee1275 = kern/powerpc/cache.S;
   powerpc_ieee1275 = kern/powerpc/dl.c;
   powerpc_ieee1275 = kern/powerpc/compiler-rt.S;
+  powerpc_ieee1275 = commands/ieee1275/ibmvtpm.c;
 
   sparc64_ieee1275 = kern/sparc64/cache.S;
   sparc64_ieee1275 = kern/sparc64/dl.c;
@@ -1101,13 +1102,6 @@ module = {
 module = {
   name = escc;
   ieee1275 = term/ieee1275/escc.c;
-  enable = powerpc_ieee1275;
-};
-
-module = {
-  name = tpm;
-  common = commands/tpm.c;
-  ieee1275 = commands/ieee1275/ibmvtpm.c;
   enable = powerpc_ieee1275;
 };
 
