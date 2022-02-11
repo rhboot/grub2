@@ -115,7 +115,8 @@ tpm2_log_event (unsigned char *buf,
 		grub_size_t size, grub_uint8_t pcr,
 		const char *description)
 {
-  static int error_displayed = 0;
+  /* Do not print error since vTPM support is built-in */
+  static int error_displayed = 1;
   int err;
 
   err = ibmvtpm_2hash_ext_log (pcr, EV_IPL,
@@ -132,8 +133,8 @@ tpm2_log_event (unsigned char *buf,
   return GRUB_ERR_NONE;
 }
 
-grub_err_t
-grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
+static grub_err_t
+_grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 		  const char *description)
 {
   grub_err_t err = tpm_init();
@@ -149,4 +150,10 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
     return tpm2_log_event (buf, size, pcr, description);
 
   return GRUB_ERR_NONE;
+}
+
+grub_err_t grub_tpm_log_event(unsigned char *buf, grub_size_t size,
+			      grub_uint8_t pcr, const char *description)
+{
+   return _grub_tpm_measure(buf, size, pcr, description);
 }
