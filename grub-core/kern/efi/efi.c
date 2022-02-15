@@ -95,6 +95,19 @@ grub_efi_locate_handle (grub_efi_locate_search_type_t search_type,
   return buffer;
 }
 
+grub_efi_status_t
+grub_efi_connect_controller (grub_efi_handle_t controller_handle,
+			     grub_efi_handle_t *driver_image_handle,
+			     grub_efi_device_path_protocol_t *remaining_device_path,
+			     grub_efi_boolean_t recursive)
+{
+  grub_efi_boot_services_t *b;
+
+  b = grub_efi_system_table->boot_services;
+  return efi_call_4 (b->connect_controller, controller_handle,
+		     driver_image_handle, remaining_device_path, recursive);
+}
+
 void *
 grub_efi_open_protocol (grub_efi_handle_t handle,
 			grub_efi_guid_t *protocol,

@@ -780,6 +780,12 @@ module = {
 };
 
 module = {
+  name = connectefi;
+  common = commands/efi/connectefi.c;
+  enable = efi;
+};
+
+module = {
   name = blocklist;
   common = commands/blocklist.c;
 };
