@@ -98,7 +98,7 @@ New in 2.02:
   * Prefer pmtimer for TSC calibration.
 
 * New/improved platform support:
-  * New `efifwsetup' and `lsefi' commands on EFI platforms.
+  * New `efifwsetup', `lsefi' and `connectefi` commands on EFI platforms.
   * New `cmosdump' and `cmosset' commands on platforms with CMOS support.
   * New command `pcidump' for PCI platforms.
   * Improve opcode parsing in ACPI halt implementation.
