@@ -41,6 +41,11 @@ EXPORT_FUNC(grub_efi_locate_handle) (grub_efi_locate_search_type_t search_type,
 				     grub_efi_guid_t *protocol,
 				     void *search_key,
 				     grub_efi_uintn_t *num_handles);
+grub_efi_status_t
+EXPORT_FUNC(grub_efi_connect_controller) (grub_efi_handle_t controller_handle,
+					  grub_efi_handle_t *driver_image_handle,
+					  grub_efi_device_path_protocol_t *remaining_device_path,
+					  grub_efi_boolean_t recursive);
 void *EXPORT_FUNC(grub_efi_open_protocol) (grub_efi_handle_t handle,
 					   grub_efi_guid_t *protocol,
 					   grub_efi_uint32_t attributes);
