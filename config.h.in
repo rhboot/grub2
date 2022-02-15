@@ -9,6 +9,10 @@
 #define GCRYPT_NO_DEPRECATED 1
 #define HAVE_MEMMOVE 1
 
+#if @MM_DEBUG@
+#define MM_DEBUG @MM_DEBUG@
+#endif
+
 /* Define to 1 to enable disk cache statistics.  */
 #define DISK_CACHE_STATS @DISK_CACHE_STATS@
 #define BOOT_TIME_STATS @BOOT_TIME_STATS@
