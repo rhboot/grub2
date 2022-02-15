@@ -113,9 +113,29 @@ grub_printf (const char *fmt, ...)
   va_list ap;
   int ret;
 
+#if defined(MM_DEBUG) && !defined(GRUB_UTIL) && !defined (GRUB_MACHINE_EMU)
+  /*
+   * To prevent infinite recursion when grub_mm_debug is on, disable it
+   * when calling grub_vprintf(). One such call loop is:
+   *   grub_vprintf() -> parse_printf_args() -> parse_printf_arg_fmt() ->
+   *     grub_debug_calloc() -> grub_printf() -> grub_vprintf().
+   */
+  int grub_mm_debug_save = 0;
+
+  if (grub_mm_debug)
+    {
+      grub_mm_debug_save = grub_mm_debug;
+      grub_mm_debug = 0;
+    }
+#endif
+
   va_start (ap, fmt);
   ret = grub_vprintf (fmt, ap);
   va_end (ap);
+
+#if defined(MM_DEBUG) && !defined(GRUB_UTIL) && !defined (GRUB_MACHINE_EMU)
+  grub_mm_debug = grub_mm_debug_save;
+#endif
 
   return ret;
 }
