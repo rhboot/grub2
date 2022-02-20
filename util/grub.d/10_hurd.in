@@ -68,6 +68,18 @@ for i in /hurd/${hurd_fs}.static /hurd/exec ; do
   fi
 done
 
+if test -e '/hurd/pci-arbiter.static' ; then
+  pci_arbiter=true
+else
+  pci_arbiter=false
+fi
+
+if test -e '/hurd/rumpdisk.static' ; then
+  rumpdisk=true
+else
+  rumpdisk=false
+fi
+
 if ${at_least_one} ; then : ; else
   # no hurd here, aborting silently
   exit 0
@@ -132,14 +144,46 @@ EOF
       opts="--readonly"
   fi
 
+  host_ports="--host-priv-port='\${host-port}' --device-master-port='\${device-port}'"
+  resume_task="'\$(task-resume)'"
+
   sed "s/^/$submenu_indentation/" << EOF
 	echo		'$(echo "$message" | grub_quote)'
+EOF
+
+  if [ "$pci_arbiter" = true ] ; then
+    if [ "$rumpdisk" = true ] ; then
+      next_task='${disk-task}'
+    else
+      next_task='${fs-task}'
+    fi
+    sed "s/^/$submenu_indentation/" << EOF
+	module          /hurd/pci-arbiter.static pci-arbiter \\
+			$host_ports \\
+			--next-task='$next_task' \\
+			'\$(pci-task=task-create)' $resume_task
+EOF
+    host_ports=""
+    resume_task=""
+  fi
+
+  if [ "$rumpdisk" = true ] ; then
+    sed "s/^/$submenu_indentation/" << EOF
+	module          /hurd/rumpdisk.static rumpdisk \\
+			$host_ports \\
+			--next-task='\${fs-task}' \\
+			'\$(disk-task=task-create)' $resume_task
+EOF
+    host_ports=""
+    resume_task=""
+  fi
+
+  sed "s/^/$submenu_indentation/" << EOF
 	module		/hurd/${hurd_fs}.static ${hurd_fs} $opts \\
 			--multiboot-command-line='\${kernel-command-line}' \\
-			--host-priv-port='\${host-port}' \\
-			--device-master-port='\${device-port}' \\
+			$host_ports \\
 			--exec-server-task='\${exec-task}' -T typed '\${root}' \\
-			'\$(task-create)' '\$(task-resume)'
+			'\$(fs-task=task-create)' $resume_task
 	module		/lib/ld.so.1 exec /hurd/exec '\$(exec-task=task-create)'
 }
 EOF
