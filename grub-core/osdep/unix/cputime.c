@@ -1,5 +1,5 @@
-#include <config.h>
 #include <config-util.h>
+#include <config.h>
 
 #include <sys/times.h>
 #include <unistd.h>

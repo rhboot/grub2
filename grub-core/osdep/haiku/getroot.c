@@ -1,5 +1,5 @@
-#include <config.h>
 #include <config-util.h>
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>

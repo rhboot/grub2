@@ -1,5 +1,5 @@
-#include <config.h>
 #include <config-util.h>
+#include <config.h>
 
 #include <grub/emu/misc.h>
 #include <windows.h>
