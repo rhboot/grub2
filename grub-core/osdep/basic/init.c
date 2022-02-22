@@ -16,8 +16,8 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
 #include <config-util.h>
+#include <config.h>
 
 #include <grub/util/misc.h>
 #include <grub/i18n.h>
