@@ -210,7 +210,7 @@ EOF
         LBOOT="`echo ${LINUX} | cut -d ':' -f 2`"
         LLABEL="`echo ${LINUX} | cut -d ':' -f 3 | tr '^' ' '`"
         LKERNEL="`echo ${LINUX} | cut -d ':' -f 4`"
-        LINITRD="`echo ${LINUX} | cut -d ':' -f 5`"
+        LINITRD="`echo ${LINUX} | cut -d ':' -f 5 | tr '^' ' '`"
         LPARAMS="`echo ${LINUX} | cut -d ':' -f 6- | tr '^' ' '`"
 
         if [ -z "${LLABEL}" ] ; then
