@@ -121,7 +121,7 @@ grub_mod_fini (void)
 #define ATTRIBUTE_USED __unused__
 #endif
 #define GRUB_MOD_LICENSE(license)	\
-  static char grub_module_license[] __attribute__ ((section (GRUB_MOD_SECTION (module_license)), ATTRIBUTE_USED)) = "LICENSE=" license;
+  static const char grub_module_license[] __attribute__ ((section (GRUB_MOD_SECTION (module_license)), ATTRIBUTE_USED)) = "LICENSE=" license;
 #define GRUB_MOD_DEP(name)	\
 static const char grub_module_depend_##name[] \
  __attribute__((section(GRUB_MOD_SECTION(moddeps)), ATTRIBUTE_USED)) = #name
