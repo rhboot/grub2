@@ -57,8 +57,11 @@ if test x@TARGET_APPLE_LINKER@ != x1; then
 	    @TARGET_STRIP@ --strip-unneeded \
 		-K grub_mod_init -K grub_mod_fini \
 		-K _grub_mod_init -K _grub_mod_fini \
-		-R .note.gnu.gold-version -R .note.GNU-stack \
+		-R .note.GNU-stack \
+		-R .note.gnu.gold-version \
+		-R .note.gnu.property \
 		-R .gnu.build.attributes \
+		-R '.llvm*' \
 		-R .rel.gnu.build.attributes \
 		-R .rela.gnu.build.attributes \
 		-R .eh_frame -R .rela.eh_frame -R .rel.eh_frame \
