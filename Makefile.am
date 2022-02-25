@@ -482,8 +482,6 @@ ChangeLog: FORCE
 		touch $@; \
 	fi
 
-EXTRA_DIST += ChangeLog ChangeLog-2015
-
 syslinux_test: $(top_builddir)/config.status tests/syslinux/ubuntu10.04_grub.cfg
 
 # Mimic simplify_filename from grub-core/lib/syslinux_parse.c, so that we
