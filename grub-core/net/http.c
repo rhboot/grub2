@@ -427,7 +427,7 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
       return err;
     }
 
-  for (i = 0; !data->headers_recv && i < 100; i++)
+  for (i = 0; data->sock && !data->headers_recv && i < 100; i++)
     {
       grub_net_tcp_retransmit ();
       grub_net_poll_cards (300, &data->headers_recv);
@@ -435,7 +435,8 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
 
   if (!data->headers_recv)
     {
-      grub_net_tcp_close (data->sock, GRUB_NET_TCP_ABORT);
+      if (data->sock)
+        grub_net_tcp_close (data->sock, GRUB_NET_TCP_ABORT);
       if (data->err)
 	{
 	  char *str = data->errmsg;
