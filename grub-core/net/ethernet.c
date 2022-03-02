@@ -58,7 +58,7 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
   struct etherhdr *eth;
   grub_err_t err;
   grub_uint8_t etherhdr_size;
-  grub_uint16_t vlantag_id = VLANTAG_IDENTIFIER;
+  grub_uint16_t vlantag_id = grub_cpu_to_be16_compile_time (VLANTAG_IDENTIFIER);
 
   etherhdr_size = sizeof (*eth);
   COMPILE_TIME_ASSERT (sizeof (*eth) + 4 < GRUB_NET_MAX_LINK_HEADER_SIZE);
@@ -93,8 +93,9 @@ send_ethernet_packet (struct grub_net_network_level_interface *inf,
                    (char *) nb->data + etherhdr_size - 6, 2);
 
       /* Add the tag in the middle */
+      grub_uint16_t vlan = grub_cpu_to_be16 (inf->vlantag);
       grub_memcpy ((char *) nb->data + etherhdr_size - 6, &vlantag_id, 2);
-      grub_memcpy ((char *) nb->data + etherhdr_size - 4, (char *) &(inf->vlantag), 2);
+      grub_memcpy ((char *) nb->data + etherhdr_size - 4, &vlan, 2);
     }
 
   return inf->card->driver->send (inf->card, nb);
@@ -118,9 +119,9 @@ grub_net_recv_ethernet_packet (struct grub_net_buff *nb,
   /* Check if a vlan-tag is present. If so, the ethernet header is 4 bytes */
   /* longer than the original one. The vlantag id is extracted and the header */
   /* is reseted to the original size. */
-  if (grub_get_unaligned16 (nb->data + etherhdr_size - 2) == VLANTAG_IDENTIFIER)
+  if (grub_get_unaligned16 (nb->data + etherhdr_size - 2) == grub_cpu_to_be16_compile_time (VLANTAG_IDENTIFIER))
     {
-      vlantag = grub_get_unaligned16 (nb->data + etherhdr_size);
+      vlantag = grub_be_to_cpu16 (grub_get_unaligned16 (nb->data + etherhdr_size));
       etherhdr_size += 4;
       /* Move eth type to the original position */
       grub_memcpy((char *) nb->data + etherhdr_size - 6,
