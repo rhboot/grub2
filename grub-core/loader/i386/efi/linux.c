@@ -30,7 +30,6 @@
 #include <grub/cpu/efi/memory.h>
 #include <grub/tpm.h>
 #include <grub/safemath.h>
-#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -278,7 +277,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_ssize_t start, filelen;
   void *kernel = NULL;
   int setup_header_end_offset;
-  int rc;
 
   grub_dl_ref (my_mod);
 
@@ -306,17 +304,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
 		  argv[0]);
       goto fail;
-    }
-
-  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
-    {
-      rc = grub_linuxefi_secure_validate (kernel, filelen);
-      if (rc <= 0)
-	{
-	  grub_error (GRUB_ERR_INVALID_COMMAND,
-		      N_("%s has invalid signature"), argv[0]);
-	  goto fail;
-	}
     }
 
   lh = (struct linux_i386_kernel_header *)kernel;
