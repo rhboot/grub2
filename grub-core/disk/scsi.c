@@ -90,7 +90,7 @@ grub_scsi_test_unit_ready (grub_scsi_t scsi)
   struct grub_scsi_test_unit_ready tur;
   grub_err_t err;
   grub_err_t err_sense;
-  
+
   tur.opcode = grub_scsi_cmd_test_unit_ready;
   tur.lun = scsi->lun << GRUB_SCSI_LUN_SHIFT;
   tur.reserved1 = 0;
@@ -108,7 +108,7 @@ grub_scsi_test_unit_ready (grub_scsi_t scsi)
   if (err_sense != GRUB_ERR_NONE)
   	grub_errno = err;
   /* err_sense is ignored for now and Request Sense Data also... */
-  
+
   if (err)
     return err;
 
@@ -169,7 +169,7 @@ grub_scsi_read_capacity10 (grub_scsi_t scsi)
   rc.PMI = 0;
   rc.control = 0;
   rc.pad = 0;
-	
+
   err = scsi->dev->read (scsi, sizeof (rc), (char *) &rc,
 			 sizeof (rcd), (char *) &rcd);
 
@@ -204,7 +204,7 @@ grub_scsi_read_capacity16 (grub_scsi_t scsi)
   rc.alloc_len = grub_cpu_to_be32_compile_time (sizeof (rcd));
   rc.PMI = 0;
   rc.control = 0;
-	
+
   err = scsi->dev->read (scsi, sizeof (rc), (char *) &rc,
 			 sizeof (rcd), (char *) &rcd);
 

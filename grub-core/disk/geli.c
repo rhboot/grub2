@@ -157,7 +157,7 @@ geli_rekey (struct grub_cryptodisk *dev, grub_uint64_t zoneno)
     return gcry_err;
 
   return grub_cryptodisk_setkey (dev, (grub_uint8_t *) key,
-				 dev->rekey_derived_size); 
+				 dev->rekey_derived_size);
 }
 
 static inline gcry_err_code_t
@@ -200,7 +200,7 @@ grub_util_get_geli_uuid (const char *dev)
   unsigned log_secsize;
   grub_uint8_t hdr[512];
   struct grub_geli_phdr *header;
-  char *uuid; 
+  char *uuid;
   gcry_err_code_t err;
 
   fd = grub_util_fd_open (dev, GRUB_UTIL_FD_O_RDONLY);
@@ -218,7 +218,7 @@ grub_util_get_geli_uuid (const char *dev)
     grub_util_error ("%s", _("couldn't read ELI metadata"));
 
   grub_util_fd_close (fd);
-	  
+
   COMPILE_TIME_ASSERT (sizeof (header) <= 512);
   header = (void *) &hdr;
 
@@ -292,7 +292,7 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
     {
       grub_dprintf ("geli", "not a boot volume\n");
       return NULL;
-    }    
+    }
 
   gcry_err = make_uuid (&header, uuid);
   if (gcry_err)
@@ -536,7 +536,7 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t 
 	  if (grub_le_to_cpu16 (header.alg) == 0x16)
 	    real_keysize *= 2;
 	  gcry_err = grub_cryptodisk_setkey (dev, candidate_key.cipher_key,
-					     real_keysize); 
+					     real_keysize);
 	  if (gcry_err)
 	    return grub_crypto_gcry_error (gcry_err);
 	}

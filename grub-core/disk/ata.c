@@ -236,7 +236,7 @@ grub_ata_setaddress (struct grub_ata *dev,
 			     "sector %" PRIxGRUB_UINT64_T " cannot be "
 			     "addressed using CHS addressing",
 			     sector);
-	
+
 	parms->taskfile.disk = 0xE0 | head;
 	parms->taskfile.sectnum = sect;
 	parms->taskfile.cyllsb = cylinder & 0xFF;
@@ -345,7 +345,7 @@ grub_ata_readwrite (grub_disk_t disk, grub_disk_addr_t sector,
       parms.write = rw;
       if (ata->dma)
 	parms.dma = 1;
-  
+
       err = ata->dev->readwrite (ata, &parms, 0);
       if (err)
 	return err;
@@ -430,7 +430,7 @@ grub_ata_iterate_iter (int id, int bus, void *data)
       grub_ata_real_close (ata);
       return 0;
     }
-  grub_snprintf (devname, sizeof (devname), 
+  grub_snprintf (devname, sizeof (devname),
 		 "%s%d", grub_scsi_names[id], bus);
   ret = ctx->hook (devname, ctx->hook_data);
   grub_ata_real_close (ata);
@@ -443,7 +443,7 @@ grub_ata_iterate (grub_disk_dev_iterate_hook_t hook, void *hook_data,
 {
   struct grub_ata_iterate_ctx ctx = { hook, hook_data };
   grub_ata_dev_t p;
-  
+
   for (p = grub_ata_dev_list; p; p = p->next)
     if (p->iterate && p->iterate (grub_ata_iterate_iter, &ctx, pull))
       return 1;
@@ -546,7 +546,7 @@ grub_atapi_read (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
 
   parms.size = size;
   parms.buffer = buf;
-  
+
   err = dev->dev->readwrite (dev, &parms, 0);
   if (err)
     return err;
@@ -575,7 +575,7 @@ grub_atapi_open (int id, int bus, struct grub_scsi *scsi)
   ata = grub_ata_real_open (id, bus);
   if (!ata)
     return grub_errno;
-    
+
   if (! ata->atapi)
     return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "no such ATAPI device");
 
@@ -623,7 +623,7 @@ grub_atapi_iterate (grub_scsi_dev_iterate_hook_t hook, void *hook_data,
 {
   struct grub_atapi_iterate_ctx ctx = { hook, hook_data };
   grub_ata_dev_t p;
-  
+
   for (p = grub_ata_dev_list; p; p = p->next)
     if (p->iterate && p->iterate (grub_atapi_iterate_iter, &ctx, pull))
       return 1;

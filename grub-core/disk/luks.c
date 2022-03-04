@@ -212,7 +212,7 @@ luks_recover_key (grub_disk_t source,
 
       grub_dprintf ("luks", "PBKDF2 done\n");
 
-      gcry_err = grub_cryptodisk_setkey (dev, digest, keysize); 
+      gcry_err = grub_cryptodisk_setkey (dev, digest, keysize);
       if (gcry_err)
 	{
 	  grub_free (split_key);
@@ -280,7 +280,7 @@ luks_recover_key (grub_disk_t source,
       grub_printf_ (N_("Slot %d opened\n"), i);
 
       /* Set the master key.  */
-      gcry_err = grub_cryptodisk_setkey (dev, candidate_key, keysize); 
+      gcry_err = grub_cryptodisk_setkey (dev, candidate_key, keysize);
       if (gcry_err)
 	{
 	  grub_free (split_key);

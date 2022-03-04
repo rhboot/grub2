@@ -104,7 +104,7 @@ grub_usbms_cbi_reset (grub_usb_device_t dev, int interface)
                 { 0xff, 0xff, 0xff, 0xff, 0xff,
                   0xff, 0xff, 0xff, 0xff, 0xff }
               };
-  
+
   return grub_usbms_cbi_cmd (dev, interface, (grub_uint8_t *)&cbicb);
 }
 
@@ -161,7 +161,7 @@ grub_usbms_attach (grub_usb_device_t usbdev, int configno, int interfno)
        /* Experimental support of RBC, MMC-2, UFI, SFF-8070i devices */
        && interf->subclass != GRUB_USBMS_SUBCLASS_RBC
        && interf->subclass != GRUB_USBMS_SUBCLASS_MMC2
-       && interf->subclass != GRUB_USBMS_SUBCLASS_UFI 
+       && interf->subclass != GRUB_USBMS_SUBCLASS_UFI
        && interf->subclass != GRUB_USBMS_SUBCLASS_SFF8070 )
       || (interf->protocol != GRUB_USBMS_PROTOCOL_BULK
           && interf->protocol != GRUB_USBMS_PROTOCOL_CBI
@@ -215,7 +215,7 @@ grub_usbms_attach (grub_usb_device_t usbdev, int configno, int interfno)
   if (grub_usbms_devices[curnum]->protocol == GRUB_USBMS_PROTOCOL_BULK)
     { /* Only Bulk only devices support Get Max LUN command */
       err = grub_usb_control_msg (usbdev, 0xA1, 254, 0, interfno, 1, (char *) &luns);
-  		
+
       if (err)
         {
           /* In case of a stall, clear the stall.  */
@@ -231,7 +231,7 @@ grub_usbms_attach (grub_usb_device_t usbdev, int configno, int interfno)
       else
         /* luns = 0 means one LUN with ID 0 present ! */
         /* We get from device not number of LUNs but highest
-         * LUN number. LUNs are numbered from 0, 
+         * LUN number. LUNs are numbered from 0,
          * i.e. number of LUNs is luns+1 ! */
         grub_usbms_devices[curnum]->luns = luns + 1;
     }
@@ -239,7 +239,7 @@ grub_usbms_attach (grub_usb_device_t usbdev, int configno, int interfno)
     /* XXX: Does CBI devices support multiple LUNs ?
      * I.e., should we detect number of device's LUNs ? (How?) */
     grub_usbms_devices[curnum]->luns = 1;
-    
+
   grub_dprintf ("usbms", "alive\n");
 
   usbdev->config[configno].interf[interfno].detach_hook = grub_usbms_detach;
@@ -297,7 +297,7 @@ grub_usbms_transfer_bo (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
   grub_usb_err_t err = GRUB_USB_ERR_NONE;
   grub_usb_err_t errCSW = GRUB_USB_ERR_NONE;
   int retrycnt = 3 + 1;
-  
+
   tag++;
 
  retry:
@@ -314,7 +314,7 @@ grub_usbms_transfer_bo (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
   cbw.lun = scsi->lun; /* In USB MS CBW are LUN bits on another place than in SCSI CDB, both should be set correctly. */
   cbw.length = cmdsize;
   grub_memcpy (cbw.cbwcb, cmd, cmdsize);
-  
+
   /* Debug print of CBW content. */
   grub_dprintf ("usb", "CBW: sign=0x%08x tag=0x%08x len=0x%08x\n",
   	cbw.signature, cbw.tag, cbw.transfer_length);
@@ -344,7 +344,7 @@ grub_usbms_transfer_bo (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
   if (size && (read_write == 0))
     {
       err = grub_usb_bulk_read (dev->dev, dev->in, size, buf);
-      grub_dprintf ("usb", "read: %d %d\n", err, GRUB_USB_ERR_STALL); 
+      grub_dprintf ("usb", "read: %d %d\n", err, GRUB_USB_ERR_STALL);
       if (err)
         {
           if (err == GRUB_USB_ERR_STALL)
@@ -411,7 +411,7 @@ CheckCSW:
   grub_dprintf ("usb", "CSW: sign=0x%08x tag=0x%08x resid=0x%08x\n",
   	status.signature, status.tag, status.residue);
   grub_dprintf ("usb", "CSW: status=0x%02x\n", status.status);
-  
+
   /* If phase error or not valid signature, do bulk-only reset device. */
   if ((status.status == 2) ||
       (status.signature != grub_cpu_to_le32_compile_time(0x53425355)))
@@ -444,7 +444,7 @@ grub_usbms_transfer_cbi (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
   grub_usb_err_t err = GRUB_USB_ERR_NONE;
   grub_uint8_t cbicb[GRUB_USBMS_CBI_CMD_SIZE];
   grub_uint16_t status;
-  
+
  retry:
   retrycnt--;
   if (retrycnt == 0)
@@ -456,7 +456,7 @@ grub_usbms_transfer_cbi (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
                cmdsize >= GRUB_USBMS_CBI_CMD_SIZE
                  ? GRUB_USBMS_CBI_CMD_SIZE
                  : cmdsize);
-  
+
   /* Debug print of CBIcb content. */
   grub_dprintf ("usb", "cbicb:\n %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
   	cbicb[ 0], cbicb[ 1], cbicb[ 2], cbicb[ 3],
@@ -490,7 +490,7 @@ grub_usbms_transfer_cbi (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
   if (size && (read_write == 0))
     {
       err = grub_usb_bulk_read (dev->dev, dev->in, size, buf);
-      grub_dprintf ("usb", "read: %d\n", err); 
+      grub_dprintf ("usb", "read: %d\n", err);
       if (err)
         {
           if (err == GRUB_USB_ERR_STALL)
@@ -572,7 +572,7 @@ grub_usbms_transfer_cbi (struct grub_scsi *scsi, grub_size_t cmdsize, char *cmd,
 
   if (err)
     return grub_error (GRUB_ERR_IO, "USB error %d", err);
-    
+
   return GRUB_ERR_NONE;
 }
 

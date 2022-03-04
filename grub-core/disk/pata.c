@@ -123,7 +123,7 @@ grub_pata_wait (void)
 
 static void
 grub_pata_pio_read (struct grub_pata_device *dev, char *buf, grub_size_t size)
-{ 
+{
   unsigned int i;
 
   /* Read in the data, word by word.  */

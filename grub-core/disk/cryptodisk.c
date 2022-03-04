@@ -351,18 +351,18 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 					   dev->cipher->cipher->blocksize);
 	    if (err)
 	      return err;
-	    
+
 	    for (j = 0; j < (1U << log_sector_size);
 		 j += dev->cipher->cipher->blocksize)
 	      {
 		grub_crypto_xor (data + i + j, data + i + j, iv,
 				 dev->cipher->cipher->blocksize);
 		if (do_encrypt)
-		  err = grub_crypto_ecb_encrypt (dev->cipher, data + i + j, 
+		  err = grub_crypto_ecb_encrypt (dev->cipher, data + i + j,
 						 data + i + j,
 						 dev->cipher->cipher->blocksize);
 		else
-		  err = grub_crypto_ecb_decrypt (dev->cipher, data + i + j, 
+		  err = grub_crypto_ecb_decrypt (dev->cipher, data + i + j,
 						 data + i + j,
 						 dev->cipher->cipher->blocksize);
 		if (err)
@@ -381,11 +381,11 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	    lrw_xor (&sec, dev, data + i);
 
 	    if (do_encrypt)
-	      err = grub_crypto_ecb_encrypt (dev->cipher, data + i, 
+	      err = grub_crypto_ecb_encrypt (dev->cipher, data + i,
 					     data + i,
 					     (1U << log_sector_size));
 	    else
-	      err = grub_crypto_ecb_decrypt (dev->cipher, data + i, 
+	      err = grub_crypto_ecb_decrypt (dev->cipher, data + i,
 					     data + i,
 					     (1U << log_sector_size));
 	    if (err)
@@ -595,7 +595,7 @@ grub_cryptodisk_setkey (grub_cryptodisk_t dev, grub_uint8_t *key, grub_size_t ke
     real_keysize /= 2;
   if (dev->mode == GRUB_CRYPTODISK_MODE_LRW)
     real_keysize -= dev->cipher->cipher->blocksize;
-	
+
   /* Set the PBKDF2 output as the cipher key.  */
   err = grub_crypto_cipher_set_key (dev->cipher, key, real_keysize);
   if (err)
@@ -1083,7 +1083,7 @@ grub_cryptodisk_cheat_mount (const char *sourcedev, const char *cheat)
 
   if (dev)
     {
-      grub_disk_close (source);	
+      grub_disk_close (source);
       return GRUB_ERR_NONE;
     }
 
@@ -1321,7 +1321,7 @@ luks_script_get (grub_size_t *sz)
 	switch (i->mode)
 	  {
 	  case GRUB_CRYPTODISK_MODE_ECB:
-	    ptr = grub_stpcpy (ptr, "-ecb"); 
+	    ptr = grub_stpcpy (ptr, "-ecb");
 	    break;
 	  case GRUB_CRYPTODISK_MODE_CBC:
 	    ptr = grub_stpcpy (ptr, "-cbc");
@@ -1340,19 +1340,19 @@ luks_script_get (grub_size_t *sz)
 	switch (i->mode_iv)
 	  {
 	  case GRUB_CRYPTODISK_MODE_IV_NULL:
-	    ptr = grub_stpcpy (ptr, "-null"); 
+	    ptr = grub_stpcpy (ptr, "-null");
 	    break;
 	  case GRUB_CRYPTODISK_MODE_IV_PLAIN:
-	    ptr = grub_stpcpy (ptr, "-plain"); 
+	    ptr = grub_stpcpy (ptr, "-plain");
 	    break;
 	  case GRUB_CRYPTODISK_MODE_IV_PLAIN64:
-	    ptr = grub_stpcpy (ptr, "-plain64"); 
+	    ptr = grub_stpcpy (ptr, "-plain64");
 	    break;
 	  case GRUB_CRYPTODISK_MODE_IV_BENBI:
-	    ptr = grub_stpcpy (ptr, "-benbi"); 
+	    ptr = grub_stpcpy (ptr, "-benbi");
 	    break;
 	  case GRUB_CRYPTODISK_MODE_IV_ESSIV:
-	    ptr = grub_stpcpy (ptr, "-essiv:"); 
+	    ptr = grub_stpcpy (ptr, "-essiv:");
 	    ptr = grub_stpcpy (ptr, i->essiv_hash->name);
 	    break;
 	  case GRUB_CRYPTODISK_MODE_IV_BYTECOUNT64:

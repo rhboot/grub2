@@ -140,7 +140,7 @@ scan_disk_partition_iter (grub_disk_t disk, grub_partition_t p, void *data)
 #endif
 
   disk->partition = p;
-  
+
   for (arr = array_list; arr != NULL; arr = arr->next)
     {
       struct grub_diskfilter_pv *m;
@@ -155,7 +155,7 @@ scan_disk_partition_iter (grub_disk_t disk, grub_partition_t p, void *data)
   for (diskfilter = grub_diskfilter_list; diskfilter; diskfilter = diskfilter->next)
     {
 #ifdef GRUB_UTIL
-      grub_util_info ("Scanning for %s devices on disk %s", 
+      grub_util_info ("Scanning for %s devices on disk %s",
 		      diskfilter->name, name);
 #endif
       id.uuid = 0;
@@ -620,7 +620,7 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	grub_disk_addr_t read_sector, far_ofs;
 	grub_uint64_t disknr, b, near, far, ofs;
 	unsigned int i, j;
-	    
+
 	read_sector = grub_divmod64 (sector, seg->stripe_size, &b);
 	far = ofs = near = 1;
 	far_ofs = 0;
@@ -639,17 +639,17 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	    else
 	      far_ofs = grub_divmod64 (seg->raid_member_size,
 				       far * seg->stripe_size, 0);
-		
+
 	    far_ofs *= seg->stripe_size;
 	  }
 
-	read_sector = grub_divmod64 (read_sector * near, 
+	read_sector = grub_divmod64 (read_sector * near,
 				     seg->node_count,
 				     &disknr);
 
 	ofs *= seg->stripe_size;
 	read_sector *= ofs;
-	
+
 	while (1)
 	  {
 	    grub_size_t read_size;
@@ -704,7 +704,7 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	    size -= read_size;
 	    if (! size)
 	      return GRUB_ERR_NONE;
-	    
+
 	    b = 0;
 	    disknr += (near - i);
 	    while (disknr >= seg->node_count)
@@ -765,7 +765,7 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	  {
 	    grub_size_t read_size;
 	    int next_level;
-	    
+
 	    read_size = seg->stripe_size - b;
 	    if (read_size > size)
 	      read_size = size;
@@ -870,7 +870,7 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 		  disknr = 0;
 	      }
 	  }
-      }   
+      }
       return GRUB_ERR_NONE;
     default:
       return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
@@ -894,7 +894,7 @@ read_lv (struct grub_diskfilter_lv *lv, grub_disk_addr_t sector,
       grub_uint64_t to_read;
 
       extent = grub_divmod64 (sector, vg->extent_size, NULL);
-      
+
       /* Find the right segment.  */
       {
 	unsigned int i;
@@ -1230,8 +1230,8 @@ insert_array (grub_disk_t disk, const struct grub_diskfilter_pv_id *id,
 
   for (pv = array->pvs; pv; pv = pv->next)
     if (id->uuidlen == pv->id.uuidlen
-	&& id->uuidlen 
-	? (grub_memcmp (pv->id.uuid, id->uuid, id->uuidlen) == 0) 
+	&& id->uuidlen
+	? (grub_memcmp (pv->id.uuid, id->uuid, id->uuidlen) == 0)
 	: (pv->id.id == id->id))
       {
 	struct grub_diskfilter_lv *lv;

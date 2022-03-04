@@ -259,7 +259,7 @@ make_vg (grub_disk_t disk,
 	    }
 	  grub_memcpy (pv->internal_id, ptr, (grub_size_t) ptr[0] + 1);
 	  pv->internal_id[(grub_size_t) ptr[0] + 1] = 0;
-	  
+
 	  ptr += *ptr + 1;
 	  if (ptr + *ptr + 1 >= vblk[i].dynamic
 	      + sizeof (vblk[i].dynamic))
@@ -836,7 +836,7 @@ make_vg (grub_disk_t disk,
   return NULL;
 }
 
-static struct grub_diskfilter_vg * 
+static struct grub_diskfilter_vg *
 grub_ldm_detect (grub_disk_t disk,
 		 struct grub_diskfilter_pv_id *id,
 		 grub_disk_addr_t *start_sector)

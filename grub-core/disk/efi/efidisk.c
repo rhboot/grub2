@@ -335,7 +335,7 @@ name_devices (struct grub_efidisk_data *devices)
 	{
 	  grub_efi_acpi_device_path_t *acpi
 	    = (grub_efi_acpi_device_path_t *) dp;
-	  /* Floppy EISA ID.  */ 
+	  /* Floppy EISA ID.  */
 	  if (acpi->hid == 0x60441d0 || acpi->hid == 0x70041d0
 	      || acpi->hid == 0x70141d1)
 	    is_floppy = 1;
@@ -707,7 +707,7 @@ grub_efidisk_get_device_handle (grub_disk_t disk)
 		 == GRUB_EFI_MEDIA_DEVICE_PATH_TYPE)
 		&& (GRUB_EFI_DEVICE_PATH_SUBTYPE (c->last_device_path)
 		    == GRUB_EFI_HARD_DRIVE_DEVICE_PATH_SUBTYPE)
-		&& (grub_partition_get_start (disk->partition) 
+		&& (grub_partition_get_start (disk->partition)
 		    == (hd->partition_start << (disk->log_sector_size
 						- GRUB_DISK_SECTOR_BITS)))
 		&& (grub_partition_get_len (disk->partition)

@@ -129,10 +129,10 @@ grub_mdraid_detect (grub_disk_t disk,
       grub_uint32_t level;
       struct grub_diskfilter_vg *array;
       char *uuid;
-	
+
       if (size == GRUB_DISK_SIZE_UNKNOWN && minor_version == 0)
 	continue;
-	
+
       switch (minor_version)
 	{
 	case 0:
@@ -177,7 +177,7 @@ grub_mdraid_detect (grub_disk_t disk,
 	/* Spares aren't implemented.  */
 	return NULL;
 
-      if (grub_disk_read (disk, sector, 
+      if (grub_disk_read (disk, sector,
 			  (char *) (sb.dev_roles + grub_le_to_cpu32 (sb.dev_number))
 			  - (char *) &sb,
 			  sizeof (role), &role))
@@ -203,7 +203,7 @@ grub_mdraid_detect (grub_disk_t disk,
 					 grub_le_to_cpu32 (sb.raid_disks),
 					 sb.set_name,
 					 (sb.size)
-					 ? grub_le_to_cpu64 (sb.size) 
+					 ? grub_le_to_cpu64 (sb.size)
 					 : grub_le_to_cpu64 (sb.data_size),
 					 grub_le_to_cpu32 (sb.chunksize),
 					 grub_le_to_cpu32 (sb.layout),

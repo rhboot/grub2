@@ -380,7 +380,7 @@ grub_ofdisk_iterate (grub_disk_dev_iterate_hook_t hook, void *hook_data,
     return 0;
 
   scan ();
-  
+
   for (i = 0; i < ARRAY_SIZE (ofdisk_hash); i++)
     {
       static struct ofdisk_hash_ent *ent;
@@ -420,7 +420,7 @@ grub_ofdisk_iterate (grub_disk_dev_iterate_hook_t hook, void *hook_data,
 	  if (hook (ent->grub_shortest, hook_data))
 	    return 1;
 	}
-    }	  
+    }
   return 0;
 }
 
@@ -558,7 +558,7 @@ grub_ofdisk_prepare (grub_disk_t disk, grub_disk_addr_t sector)
       grub_ieee1275_open (disk->data, &last_ihandle);
       if (! last_ihandle)
 	return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
-      last_devpath = disk->data;      
+      last_devpath = disk->data;
     }
 
   pos = sector << disk->log_sector_size;

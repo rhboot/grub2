@@ -150,7 +150,7 @@ struct grub_ahci_device
   int atapi;
 };
 
-static grub_err_t 
+static grub_err_t
 grub_ahci_readwrite_real (struct grub_ahci_device *dev,
 			  struct grub_disk_ata_pass_through_parms *parms,
 			  int spinup, int reset);
@@ -457,7 +457,7 @@ grub_ahci_pciinit (grub_pci_device_t dev,
 	grub_dprintf ("ahci", "port: %d, err: %x\n", adevs[i]->port,
 		      adevs[i]->hba->ports[adevs[i]->port].sata_error);
 
-	adevs[i]->rfis = grub_memalign_dma32 (4096, 
+	adevs[i]->rfis = grub_memalign_dma32 (4096,
 					     sizeof (struct grub_ahci_received_fis));
 	grub_memset ((char *) grub_dma_get_virt (adevs[i]->rfis), 0,
 		     sizeof (struct grub_ahci_received_fis));
@@ -543,7 +543,7 @@ grub_ahci_pciinit (grub_pci_device_t dev,
 		      adevs[i]->hba->ports[adevs[i]->port].sata_error);
 
 	grub_dprintf ("ahci", "port %d, offset: %x, tfd:%x, CMD: %x\n", adevs[i]->port,
-		      (int) ((char *) &adevs[i]->hba->ports[adevs[i]->port].task_file_data - 
+		      (int) ((char *) &adevs[i]->hba->ports[adevs[i]->port].task_file_data -
 			     (char *) adevs[i]->hba),
 		      adevs[i]->hba->ports[adevs[i]->port].task_file_data,
 		      adevs[i]->hba->ports[adevs[i]->port].command);
@@ -557,7 +557,7 @@ grub_ahci_pciinit (grub_pci_device_t dev,
     if (adevs[i])
       {
 	grub_dprintf ("ahci", "port %d, offset: %x, tfd:%x, CMD: %x\n", adevs[i]->port,
-		      (int) ((char *) &adevs[i]->hba->ports[adevs[i]->port].task_file_data - 
+		      (int) ((char *) &adevs[i]->hba->ports[adevs[i]->port].task_file_data -
 			     (char *) adevs[i]->hba),
 		      adevs[i]->hba->ports[adevs[i]->port].task_file_data,
 		      adevs[i]->hba->ports[adevs[i]->port].command);
@@ -702,7 +702,7 @@ grub_ahci_fini_hw (int noreturn __attribute__ ((unused)))
   return GRUB_ERR_NONE;
 }
 
-static int 
+static int
 reinit_port (struct grub_ahci_device *dev)
 {
   struct grub_pci_dma_chunk *command_list;
@@ -743,7 +743,7 @@ reinit_port (struct grub_ahci_device *dev)
 
   dev->hba->ports[dev->port].fbs = 2;
 
-  dev->rfis = grub_memalign_dma32 (4096, 
+  dev->rfis = grub_memalign_dma32 (4096,
 				   sizeof (struct grub_ahci_received_fis));
   grub_memset ((char *) grub_dma_get_virt (dev->rfis), 0,
 	       sizeof (struct grub_ahci_received_fis));
@@ -861,13 +861,13 @@ static const int register_map[11] = { 3 /* Features */,
 				      13 /* Sectors 48  */,
 				      8 /* LBA48 low */,
 				      9 /* LBA48 mid */,
-				      10 /* LBA48 high */ }; 
+				      10 /* LBA48 high */ };
 
 static grub_err_t
 grub_ahci_reset_port (struct grub_ahci_device *dev, int force)
 {
   grub_uint64_t endtime;
-  
+
   dev->hba->ports[dev->port].sata_error = dev->hba->ports[dev->port].sata_error;
 
   if (force || (dev->hba->ports[dev->port].command_issue & 1)
@@ -913,7 +913,7 @@ grub_ahci_reset_port (struct grub_ahci_device *dev, int force)
   return GRUB_ERR_NONE;
 }
 
-static grub_err_t 
+static grub_err_t
 grub_ahci_readwrite_real (struct grub_ahci_device *dev,
 			  struct grub_disk_ata_pass_through_parms *parms,
 			  int spinup, int reset)
@@ -928,7 +928,7 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
 
   if (!reset)
     grub_ahci_reset_port (dev, 0);
- 
+
   grub_dprintf ("ahci", "AHCI tfd = %x\n",
 		dev->hba->ports[dev->port].task_file_data);
   dev->hba->ports[dev->port].task_file_data = 0;
@@ -990,7 +990,7 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
   dev->command_table[0].cfis[0] = GRUB_AHCI_FIS_REG_H2D;
   dev->command_table[0].cfis[1] = 0x80;
   for (i = 0; i < sizeof (parms->taskfile.raw); i++)
-    dev->command_table[0].cfis[register_map[i]] = parms->taskfile.raw[i]; 
+    dev->command_table[0].cfis[register_map[i]] = parms->taskfile.raw[i];
 
   grub_dprintf ("ahci", "cfis: %02x %02x %02x %02x %02x %02x %02x %02x\n",
 		dev->command_table[0].cfis[0], dev->command_table[0].cfis[1],
@@ -1094,7 +1094,7 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
   return err;
 }
 
-static grub_err_t 
+static grub_err_t
 grub_ahci_readwrite (grub_ata_t disk,
 		     struct grub_disk_ata_pass_through_parms *parms,
 		     int spinup)

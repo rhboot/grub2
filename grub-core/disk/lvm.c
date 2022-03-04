@@ -132,7 +132,7 @@ grub_lvm_free_cache_lvs (struct cache_lv *cache_lvs)
     }
 }
 
-static struct grub_diskfilter_vg * 
+static struct grub_diskfilter_vg *
 grub_lvm_detect (grub_disk_t disk,
 		 struct grub_diskfilter_pv_id *id,
 		 grub_disk_addr_t *start_sector)
@@ -989,7 +989,7 @@ grub_lvm_detect (grub_disk_t disk,
 			lv1->segments[i].nodes[j].lv = lv2;
 		    }
 	      }
-	
+
       }
 
       {
