@@ -452,7 +452,7 @@ load_dtb (grub_file_t dtb, int size)
 
   grub_fdt_set_totalsize (new_fdt, size);
   current_fdt = new_fdt;
-  /* 
+  /*
    * We've successfully loaded an FDT, so any machine type passed
    * from firmware is now obsolete.
    */

@@ -206,7 +206,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
     return grub_error (GRUB_ERR_BAD_OS, "entry point isn't in a segment");
 
 #if defined (__i386__) || defined (__x86_64__)
-  
+
 #elif defined (__mips)
   GRUB_MULTIBOOT (payload_eip) |= 0x80000000;
 #else
@@ -220,7 +220,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
       shdr = grub_calloc (ehdr->e_shnum, ehdr->e_shentsize);
       if (!shdr)
 	return grub_errno;
-      
+
       if (grub_file_seek (mld->file, ehdr->e_shoff) == (grub_off_t) -1)
 	{
 	  grub_free (shdr);
@@ -235,7 +235,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 			mld->filename);
 	  return grub_errno;
 	}
-      
+
       for (shdrptr = shdr, i = 0; i < ehdr->e_shnum;
 	   shdrptr += ehdr->e_shentsize, i++)
 	{
@@ -250,7 +250,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	     so we don't care.  */
 	  if (sh->sh_addr != 0)
 	    continue;
-		      
+
 	  /* This section is empty, so we don't care.  */
 	  if (sh->sh_size == 0)
 	    continue;

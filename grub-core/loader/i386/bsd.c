@@ -135,7 +135,7 @@ static const struct grub_arg_option openbsd_opts[] =
     {"single", 's', 0, N_("Boot into single mode."), 0, 0},
     {"kdb", 'd', 0, N_("Enter in KDB on boot."), 0, 0},
     {"root", 'r', 0, N_("Set root device."), "wdXY", ARG_TYPE_STRING},
-    {"serial", 'h', GRUB_ARG_OPTION_OPTIONAL, 
+    {"serial", 'h', GRUB_ARG_OPTION_OPTIONAL,
      N_("Use serial console."),
      /* TRANSLATORS: "com" is static and not to be translated. It refers to
 	serial ports e.g. com1.
@@ -168,7 +168,7 @@ static const struct grub_arg_option netbsd_opts[] =
     {"debug", 'x', 0, N_("Boot with debug messages."), 0, 0},
     {"silent", 'z', 0, N_("Suppress normal output (warnings remain)."), 0, 0},
     {"root", 'r', 0, N_("Set root device."), N_("DEVICE"), ARG_TYPE_STRING},
-    {"serial", 'h', GRUB_ARG_OPTION_OPTIONAL, 
+    {"serial", 'h', GRUB_ARG_OPTION_OPTIONAL,
      N_("Use serial console."),
      /* TRANSLATORS: "com" is static and not to be translated. It refers to
 	serial ports e.g. com1.
@@ -231,7 +231,7 @@ grub_bsd_add_meta_ptr (grub_uint32_t type, void **ptr, grub_uint32_t len)
   newtag->next = NULL;
   *ptr = newtag->data;
 
-  if (kernel_type == KERNEL_TYPE_FREEBSD 
+  if (kernel_type == KERNEL_TYPE_FREEBSD
       && type == (FREEBSD_MODINFO_METADATA | FREEBSD_MODINFOMD_SMAP))
     {
       struct bsd_tag *p;
@@ -435,7 +435,7 @@ grub_freebsd_add_meta_module (const char *filename, const char *type,
     {
       grub_uint64_t addr64 = addr, size64 = size;
       if (grub_bsd_add_meta (FREEBSD_MODINFO_TYPE, type, grub_strlen (type) + 1)
-	  || grub_bsd_add_meta (FREEBSD_MODINFO_ADDR, &addr64, sizeof (addr64)) 
+	  || grub_bsd_add_meta (FREEBSD_MODINFO_ADDR, &addr64, sizeof (addr64))
 	  || grub_bsd_add_meta (FREEBSD_MODINFO_SIZE, &size64, sizeof (size64)))
 	return grub_errno;
     }
@@ -633,7 +633,7 @@ grub_freebsd_boot (void)
       err = grub_bsd_add_meta (FREEBSD_MODINFO_END, 0, 0);
       if (err)
 	return err;
-      
+
       tag_buf_len = 0;
       for (tag = tags; tag; tag = tag->next)
 	tag_buf_len = ALIGN_VAR (tag_buf_len
@@ -678,7 +678,7 @@ grub_freebsd_boot (void)
     {
       grub_uint8_t *p_tag = p;
       struct bsd_tag *tag;
-      
+
       for (tag = tags; tag; tag = tag->next)
 	{
 	  struct freebsd_tag_header *head
@@ -842,7 +842,7 @@ grub_openbsd_boot (void)
     if (regs.edx == 0x20494350)
       {
 	struct grub_openbsd_bootarg_pcibios pcibios;
-	
+
 	pcibios.characteristics = regs.eax & 0xff;
 	pcibios.revision = regs.ebx & 0xffff;
 	pcibios.pm_entry = regs.edi;
@@ -1500,7 +1500,7 @@ grub_bsd_load (int argc, char *argv[])
 fail:
 
   if (grub_errno != GRUB_ERR_NONE)
-    grub_dl_unref (my_mod);	
+    grub_dl_unref (my_mod);
 
   return grub_errno;
 }
@@ -1658,7 +1658,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
 			       "only com0-com3 are supported");
 	  if (*ptr == ',')
 	    {
-	      ptr++; 
+	      ptr++;
 	      speed = grub_strtoul (ptr, &ptr, 0);
 	      if (grub_errno)
 		return grub_errno;
@@ -1668,7 +1668,7 @@ grub_cmd_openbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
       serial.device = (GRUB_OPENBSD_COM_MAJOR << 8) | port;
       serial.speed = speed;
       serial.addr = grub_ns8250_hw_get_port (port);
-	  
+
       grub_bsd_add_meta (OPENBSD_BOOTARG_CONSOLE, &serial, sizeof (serial));
       bootflags |= OPENBSD_RB_SERCONS;
     }
@@ -1755,7 +1755,7 @@ grub_cmd_netbsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
 	      if (grub_memcmp (ptr, "com", sizeof ("com") - 1) == 0)
 		{
 		  ptr += sizeof ("com") - 1;
-		  serial.addr 
+		  serial.addr
 		    = grub_ns8250_hw_get_port (grub_strtoul (ptr, &ptr, 0));
 		}
 	      else
@@ -1925,7 +1925,7 @@ grub_cmd_freebsd_module (grub_command_t cmd __attribute__ ((unused)),
 
   {
     grub_relocator_chunk_t ch;
-    err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_end, 
+    err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_end,
 					   file->size);
     if (err)
       goto fail;
@@ -1976,7 +1976,7 @@ grub_netbsd_module_load (char *filename, grub_uint32_t type)
 
   {
     grub_relocator_chunk_t ch;
-    err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_end, 
+    err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_end,
 					   file->size);
     if (err)
       goto fail;

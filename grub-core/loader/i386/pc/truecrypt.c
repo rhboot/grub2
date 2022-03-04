@@ -48,7 +48,7 @@ static grub_err_t
 grub_truecrypt_boot (void)
 {
   grub_uint16_t segment = destaddr >> 4;
-  struct grub_relocator16_state state = { 
+  struct grub_relocator16_state state = {
     .cs = segment,
     .ds = segment,
     .es = segment,
@@ -194,7 +194,7 @@ grub_cmd_truecrypt (grub_command_t cmd __attribute__ ((unused)),
   grub_memset ((char *) truecrypt + truecryptsize + 0x100,
 	       0, truecryptmemsize - truecryptsize - 0x100);
   sp = truecryptmemsize - 4;
- 
+
   grub_loader_set (grub_truecrypt_boot, grub_truecrypt_unload, 1);
 
   grub_free (uncompressed);

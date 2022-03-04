@@ -196,7 +196,7 @@ grub_multiboot2_load (grub_file_t file, const char *filename)
 	      }
 	  break;
 	}
-	       
+
       case MULTIBOOT_HEADER_TAG_ADDRESS:
 	addr_tag = (struct multiboot_header_tag_address *) tag;
 	break;
@@ -274,7 +274,7 @@ grub_multiboot2_load (grub_file_t file, const char *filename)
       return grub_error (GRUB_ERR_UNKNOWN_OS,
 			 "load address tag without entry address tag");
     }
- 
+
   if (addr_tag)
     {
       grub_uint64_t load_addr = (addr_tag->load_addr + 1)
@@ -492,7 +492,7 @@ grub_fill_multiboot_mmap (struct multiboot_tag_mmap *tag)
 
   tag->type = MULTIBOOT_TAG_TYPE_MMAP;
   tag->size = sizeof (struct multiboot_tag_mmap)
-    + sizeof (struct multiboot_mmap_entry) * grub_multiboot2_get_mmap_count (); 
+    + sizeof (struct multiboot_mmap_entry) * grub_multiboot2_get_mmap_count ();
   tag->entry_size = sizeof (struct multiboot_mmap_entry);
   tag->entry_version = 0;
 
@@ -508,14 +508,14 @@ fill_vbe_tag (struct multiboot_tag_vbe *tag)
 
   tag->type = MULTIBOOT_TAG_TYPE_VBE;
   tag->size = 0;
-    
+
   status = grub_vbe_bios_get_controller_info (scratch);
   if (status != GRUB_VBE_STATUS_OK)
     return;
-  
+
   grub_memcpy (&tag->vbe_control_info, scratch,
 	       sizeof (struct grub_vbe_info_block));
-  
+
   status = grub_vbe_bios_get_mode (scratch);
   tag->vbe_mode = *(grub_uint32_t *) scratch;
   if (status != GRUB_VBE_STATUS_OK)
@@ -538,7 +538,7 @@ fill_vbe_tag (struct multiboot_tag_vbe *tag)
 	return;
       grub_memcpy (&tag->vbe_mode_info, scratch,
 		   sizeof (struct grub_vbe_mode_info_block));
-    }      
+    }
   grub_vbe_bios_get_pm_interface (&tag->vbe_interface_seg,
 				  &tag->vbe_interface_off,
 				  &tag->vbe_interface_len);
@@ -616,13 +616,13 @@ retrieve_video_parameters (grub_properly_aligned_t **ptrorig)
 	  tag->common.size = 0;
 
 	  tag->common.framebuffer_addr = 0xb8000;
-	  
-	  tag->common.framebuffer_pitch = 2 * vbe_mode_info.x_resolution;	
+
+	  tag->common.framebuffer_pitch = 2 * vbe_mode_info.x_resolution;
 	  tag->common.framebuffer_width = vbe_mode_info.x_resolution;
 	  tag->common.framebuffer_height = vbe_mode_info.y_resolution;
 
 	  tag->common.framebuffer_bpp = 16;
-	  
+
 	  tag->common.framebuffer_type = MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT;
 	  tag->common.size = sizeof (tag->common);
 	  tag->common.reserved = 0;
@@ -664,7 +664,7 @@ retrieve_video_parameters (grub_properly_aligned_t **ptrorig)
   tag->common.framebuffer_bpp = mode_info.bpp;
 
   tag->common.reserved = 0;
-      
+
   if (mode_info.mode_type & GRUB_VIDEO_MODE_TYPE_INDEX_COLOR)
     {
       unsigned i;
@@ -748,7 +748,7 @@ grub_multiboot2_make_mbi (grub_uint32_t *target)
   {
     struct multiboot_tag_string *tag = (struct multiboot_tag_string *) ptrorig;
     tag->type = MULTIBOOT_TAG_TYPE_CMDLINE;
-    tag->size = sizeof (struct multiboot_tag_string) + cmdline_size; 
+    tag->size = sizeof (struct multiboot_tag_string) + cmdline_size;
     grub_memcpy (tag->string, cmdline, cmdline_size);
     ptrorig += ALIGN_UP (tag->size, MULTIBOOT_TAG_ALIGN)
        / sizeof (grub_properly_aligned_t);
@@ -757,7 +757,7 @@ grub_multiboot2_make_mbi (grub_uint32_t *target)
   {
     struct multiboot_tag_string *tag = (struct multiboot_tag_string *) ptrorig;
     tag->type = MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME;
-    tag->size = sizeof (struct multiboot_tag_string) + sizeof (PACKAGE_STRING); 
+    tag->size = sizeof (struct multiboot_tag_string) + sizeof (PACKAGE_STRING);
     grub_memcpy (tag->string, PACKAGE_STRING, sizeof (PACKAGE_STRING));
     ptrorig += ALIGN_UP (tag->size, MULTIBOOT_TAG_ALIGN)
       / sizeof (grub_properly_aligned_t);
@@ -771,7 +771,7 @@ grub_multiboot2_make_mbi (grub_uint32_t *target)
 	struct multiboot_tag_apm *tag = (struct multiboot_tag_apm *) ptrorig;
 
 	tag->type = MULTIBOOT_TAG_TYPE_APM;
-	tag->size = sizeof (struct multiboot_tag_apm); 
+	tag->size = sizeof (struct multiboot_tag_apm);
 
 	tag->cseg = info.cseg;
 	tag->offset = info.offset;
@@ -864,7 +864,7 @@ grub_multiboot2_make_mbi (grub_uint32_t *target)
       struct multiboot_tag_bootdev *tag
 	= (struct multiboot_tag_bootdev *) ptrorig;
       tag->type = MULTIBOOT_TAG_TYPE_BOOTDEV;
-      tag->size = sizeof (struct multiboot_tag_bootdev); 
+      tag->size = sizeof (struct multiboot_tag_bootdev);
 
       tag->biosdev = biosdev;
       tag->slice = slice;

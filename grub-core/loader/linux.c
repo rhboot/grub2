@@ -239,7 +239,7 @@ grub_initrd_init (int argc, char *argv[],
       free_dir (root);
       root = 0;
     }
-  
+
   return GRUB_ERR_NONE;
 
  overflow:

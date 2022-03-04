@@ -286,7 +286,7 @@ grub_linux_setup_video (struct linux_kernel_params *params)
 	  params->lfb_size >>= 16;
 	  params->have_vga = GRUB_VIDEO_LINUX_TYPE_VESA;
 	  break;
-	
+
 	case GRUB_VIDEO_DRIVER_EFI_UGA:
 	case GRUB_VIDEO_DRIVER_EFI_GOP:
 	  params->have_vga = GRUB_VIDEO_LINUX_TYPE_EFIFB;
@@ -591,9 +591,9 @@ grub_linux_boot (void)
 					 &efi_desc_size, &efi_desc_version);
     if (err)
       return err;
-    
+
     /* Note that no boot services are available from here.  */
-    efi_mmap_target = ctx.real_mode_target 
+    efi_mmap_target = ctx.real_mode_target
       + ((grub_uint8_t *) efi_mmap_buf - (grub_uint8_t *) real_mode_mem);
     /* Pass EFI parameters.  */
     if (grub_le_to_cpu16 (ctx.params->version) >= 0x0208)
@@ -743,7 +743,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       align = 0;
       relocatable = 0;
     }
-    
+
   if (grub_le_to_cpu16 (lh.version) >= 0x020a)
     {
       min_align = lh.min_alignment;

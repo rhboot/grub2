@@ -461,7 +461,7 @@ grub_cmd_chain (grub_command_t cmd __attribute__ ((unused)),
 			   "payload is too short");
       return grub_errno;
     }
-      
+
   switch (head)
     {
     case ELFMAG0 | (ELFMAG1 << 8) | (ELFMAG2 << 16) | (ELFMAG3 << 24):

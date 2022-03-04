@@ -57,7 +57,7 @@ typedef enum
 static grub_err_t
 grub_chainloader_boot (void)
 {
-  struct grub_relocator16_state state = { 
+  struct grub_relocator16_state state = {
     .edx = boot_drive,
     .esi = boot_part_addr,
     .ds = 0,
@@ -118,7 +118,7 @@ grub_chainloader_patch_bpb (void *bs, grub_device_t dev, grub_uint8_t dl)
 	  || (grub_le_to_cpu16 (bpb->bytes_per_sector)
 	      & (grub_le_to_cpu16 (bpb->bytes_per_sector) - 1)))
 	break;
-	  
+
       if (bpb->sectors_per_cluster == 0
 	  || (bpb->sectors_per_cluster & (bpb->sectors_per_cluster - 1)))
 	break;
@@ -243,7 +243,7 @@ grub_chainloader_cmd (const char *filename, grub_chainloader_flags_t flags)
 
   if (dev)
     grub_device_close (dev);
- 
+
   /* Ignore errors. Perhaps it's not fatal.  */
   grub_errno = GRUB_ERR_NONE;
 

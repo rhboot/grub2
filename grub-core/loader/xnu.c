@@ -64,7 +64,7 @@ grub_xnu_heap_malloc (int size, void **src, grub_addr_t *target)
 
   if (grub_add (grub_xnu_heap_target_start, grub_xnu_heap_size, &tgt))
     return GRUB_ERR_OUT_OF_RANGE;
-  
+
   err = grub_relocator_alloc_chunk_addr (grub_xnu_relocator, &ch, tgt, size);
   if (err)
     return err;
@@ -1399,10 +1399,10 @@ grub_xnu_fill_devicetree (void)
     nextdot = curdot + grub_strlen (curdot) + 1;
 
     name = grub_realloc (name, nextdot - curdot + 1);
-   
+
     if (!name)
       return grub_errno;
-   
+
     unescape (name, curdot, nextdot, &len);
     name[len] = 0;
 
@@ -1410,11 +1410,11 @@ grub_xnu_fill_devicetree (void)
     grub_free (name);
     if (!curvalue)
       return grub_errno;
-   
+
     data = grub_malloc (grub_strlen (var->value) + 1);
     if (!data)
       return grub_errno;
-   
+
     unescape (data, var->value, var->value + grub_strlen (var->value),
 	      &len);
     curvalue->datasize = len;

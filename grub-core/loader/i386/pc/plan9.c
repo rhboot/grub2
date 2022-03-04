@@ -56,7 +56,7 @@ static const struct grub_arg_option options[] =
 	means that the GRUBDEVICE and PLAN9DEVICE are
 	actually the same device, just named differently
 	in OS and GRUB.  */
-     N_("Override guessed mapping of Plan9 devices."), 
+     N_("Override guessed mapping of Plan9 devices."),
      N_("GRUBDEVICE=PLAN9DEVICE"),
      ARG_TYPE_STRING},
     {0, 0, 0, 0, 0, 0}
@@ -78,7 +78,7 @@ struct grub_plan9_header
 static grub_err_t
 grub_plan9_boot (void)
 {
-  struct grub_relocator32_state state = { 
+  struct grub_relocator32_state state = {
     .eax = 0,
     .eip = eip,
     .ebx = 0,
@@ -122,7 +122,7 @@ static const char prefixes[5][10] = {
 
 #include <grub/err.h>
 
-static inline grub_err_t 
+static inline grub_err_t
 grub_extend_alloc (grub_size_t sz, grub_size_t *allocated, char **ptr)
 {
   void *n;
@@ -302,7 +302,7 @@ fill_disk (const char *name, void *data)
 	    grub_device_close (dev);
 	    return 0;
 	  }
-	
+
 	/* if it's the disk the kernel is loaded from we need to name
 	   it nevertheless.  */
 	plan9name = grub_strdup ("sdZ0");
@@ -331,7 +331,7 @@ fill_disk (const char *name, void *data)
 	    plan9name = grub_xasprintf ("sd%c%d", 'C' + unit / 2, unit % 2);
 	    break;
 	  }
-	
+
 	/* FIXME: how does Plan9 number controllers?
 	   We probably need save the SCSI devices and sort them  */
 	plan9name

@@ -45,7 +45,7 @@ static grub_uint32_t edx = 0xffffffff;
 static grub_err_t
 grub_ntldr_boot (void)
 {
-  struct grub_relocator16_state state = { 
+  struct grub_relocator16_state state = {
     .cs = GRUB_NTLDR_SEGMENT,
     .ip = 0,
     .ds = 0,
@@ -133,7 +133,7 @@ grub_cmd_ntldr (grub_command_t cmd __attribute__ ((unused)),
   if (grub_file_read (file, ntldr, ntldrsize)
       != (grub_ssize_t) ntldrsize)
     goto fail;
- 
+
   grub_loader_set (grub_ntldr_boot, grub_ntldr_unload, 1);
   return GRUB_ERR_NONE;
 

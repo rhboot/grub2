@@ -67,7 +67,7 @@ grub_linux16_boot (void)
   grub_video_set_mode ("text", 0, 0);
 
   grub_stop_floppy ();
-  
+
   return grub_relocator16_boot (relocator, state);
 }
 

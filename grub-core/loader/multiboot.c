@@ -238,7 +238,7 @@ GRUB_MULTIBOOT (set_console) (int console_type, int accepted_consoles,
 			      int console_req)
 {
   console_required = console_req;
-  if (!(accepted_consoles 
+  if (!(accepted_consoles
 	& (GRUB_MULTIBOOT_CONSOLE_FRAMEBUFFER
 	   | (GRUB_MACHINE_HAS_VGA_TEXT ? GRUB_MULTIBOOT_CONSOLE_EGA_TEXT : 0))))
     {

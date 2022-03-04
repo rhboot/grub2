@@ -46,7 +46,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 static grub_err_t
 grub_pxechain_boot (void)
 {
-  struct grub_relocator16_state state = { 
+  struct grub_relocator16_state state = {
     .cs = 0,
     .ip = 0x7c00,
     .ds = 0,
@@ -138,7 +138,7 @@ grub_cmd_pxechain (grub_command_t cmd __attribute__ ((unused)),
 
   if (grub_file_read (file, image, imagesize) != (grub_ssize_t) imagesize)
     goto fail;
- 
+
   grub_loader_set (grub_pxechain_boot, grub_pxechain_unload,
 		   GRUB_LOADER_FLAG_NORETURN | GRUB_LOADER_FLAG_PXE_NOT_UNLOAD);
   return GRUB_ERR_NONE;

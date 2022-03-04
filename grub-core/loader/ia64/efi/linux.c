@@ -106,7 +106,7 @@ query_fpswa (void)
   grub_efi_boot_services_t *bs;
   grub_efi_status_t status;
   grub_efi_uintn_t size;
-  static const grub_efi_guid_t fpswa_protocol = 
+  static const grub_efi_guid_t fpswa_protocol =
     { 0xc41b6531, 0x97b9, 0x11d3,
       {0x9a, 0x29, 0x0, 0x90, 0x27, 0x3f, 0xc1, 0x4d} };
 
@@ -114,7 +114,7 @@ query_fpswa (void)
     return;
 
   size = sizeof(grub_efi_handle_t);
-  
+
   bs = grub_efi_system_table->boot_services;
   status = bs->locate_handle (GRUB_EFI_BY_PROTOCOL,
 			      (void *) &fpswa_protocol,
@@ -131,7 +131,7 @@ query_fpswa (void)
       grub_printf ("%s\n",
 		   _("FPSWA protocol wasn't able to find the interface"));
       return;
-    } 
+    }
 }
 
 static void
@@ -188,7 +188,7 @@ allocate_pages (grub_uint64_t align, grub_uint64_t size_pages,
     }
 
   mmap_end = NEXT_MEMORY_DESCRIPTOR (mmap, tmp_mmap_size);
-  
+
   /* First, find free pages for the real mode code
      and the memory map buffer.  */
   for (desc = mmap;
@@ -240,7 +240,7 @@ set_boot_param_console (void)
 {
   grub_efi_simple_text_output_interface_t *conout;
   grub_efi_uintn_t cols, rows;
-  
+
   conout = grub_efi_system_table->con_out;
   if (conout->query_mode (conout, conout->mode->mode, &cols, &rows)
       != GRUB_EFI_SUCCESS)
@@ -250,7 +250,7 @@ set_boot_param_console (void)
 		"Console info: cols=%lu rows=%lu x=%u y=%u\n",
 		cols, rows,
 		conout->mode->cursor_column, conout->mode->cursor_row);
-  
+
   boot_param->console_info.num_cols = cols;
   boot_param->console_info.num_rows = rows;
   boot_param->console_info.orig_x = conout->mode->cursor_column;
@@ -300,7 +300,7 @@ grub_linux_boot (void)
 
   /* See you next boot.  */
   asm volatile ("mov r28=%1; br.sptk.few %0" :: "b"(entry),"r"(boot_param));
-  
+
   /* Never reach here.  */
   return GRUB_ERR_NONE;
 }
@@ -411,7 +411,7 @@ grub_load_elf64 (grub_file_t file, void *buffer, const char *filename)
 			"off=%lx flags=%x]\n",
 			phdr->p_paddr, phdr->p_paddr + reloc_offset,
 			phdr->p_memsz, phdr->p_offset, phdr->p_flags);
-	  
+
 	  if (grub_file_seek (file, phdr->p_offset) == (grub_off_t)-1)
 	    return grub_errno;
 
@@ -424,7 +424,7 @@ grub_load_elf64 (grub_file_t file, void *buffer, const char *filename)
 			    filename);
 	      return grub_errno;
 	    }
-	  
+
           if (phdr->p_filesz < phdr->p_memsz)
 	    grub_memset
 	      ((char *)(phdr->p_paddr + reloc_offset + phdr->p_filesz),
@@ -453,7 +453,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_dl_ref (my_mod);
 
   grub_loader_unset ();
-    
+
   if (argc == 0)
     {
       grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -507,7 +507,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   if (grub_verify_string (cmdline, GRUB_VERIFY_KERNEL_CMDLINE))
     goto fail;
-  
+
   boot_param->command_line = (grub_uint64_t) cmdline;
   boot_param->efi_systab = (grub_uint64_t) grub_efi_system_table;
 
@@ -539,7 +539,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
       goto fail;
     }
-  
+
   if (! loaded)
     {
       grub_error (GRUB_ERR_BAD_ARGUMENT, N_("you need to load the kernel first"));
@@ -559,7 +559,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_OUT_OF_MEMORY, "cannot allocate pages");
       goto fail;
     }
-  
+
   grub_dprintf ("linux", "[addr=0x%lx, size=0x%lx]\n",
 		(grub_uint64_t) initrd_mem, initrd_size);
 
@@ -589,7 +589,7 @@ GRUB_MOD_INIT(linux)
 {
   cmd_linux = grub_register_command ("linux", grub_cmd_linux,
 				     N_("FILE [ARGS...]"), N_("Load Linux."));
-  
+
   cmd_initrd = grub_register_command ("initrd", grub_cmd_initrd,
 				      N_("FILE"), N_("Load initrd."));
 

@@ -100,7 +100,7 @@ grub_linux_boot (void)
     str = (char *) (magic + 1);
     grub_strcpy (str, params);
   }
-#endif  
+#endif
 
 #ifndef GRUB_MACHINE_MIPS_QEMU_MIPS
   state.gpr[4] = linux_argc;
@@ -261,11 +261,11 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   linux_argc++;
 #endif
   /* Main arguments.  */
-  size = (linux_argc) * sizeof (grub_uint32_t); 
+  size = (linux_argc) * sizeof (grub_uint32_t);
   /* Initrd address and size.  */
-  size += 2 * sizeof (grub_uint32_t); 
+  size += 2 * sizeof (grub_uint32_t);
   /* NULL terminator.  */
-  size += sizeof (grub_uint32_t); 
+  size += sizeof (grub_uint32_t);
 
   /* First argument is always "a0".  */
   size += ALIGN_UP (sizeof ("a0"), 4);

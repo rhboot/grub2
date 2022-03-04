@@ -126,7 +126,7 @@ static struct piwg_full_device_path devpath_6 = MAKE_PIWG_PATH (0xffcc4000,
 static struct piwg_full_device_path devpath_7 = MAKE_PIWG_PATH (0xff981000,
 								0xffc8ffff);
 
-/* mid-2012 MBP retina (MacBookPro10,1) */ 
+/* mid-2012 MBP retina (MacBookPro10,1) */
 static struct piwg_full_device_path devpath_8 = MAKE_PIWG_PATH (0xff990000,
 								0xffb2ffff);
 

@@ -31,7 +31,7 @@ grub_decompress_lzss (grub_uint8_t *dst, grub_uint8_t *dstend,
 	unsigned int  flags;
 	static unsigned char text_buf[N + F - 1];
 	grub_uint8_t *dst0 = dst;
-	
+
 	for (i = 0; i < N - F; i++) text_buf[i] = ' ';
 	r = N - F;  flags = 0;
 	for ( ; ; ) {

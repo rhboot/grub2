@@ -151,7 +151,7 @@ SUFFIX (grub_freebsd_load_elfmodule_obj) (struct grub_relocator *relocator,
 				      argc - 1, argv + 1, module,
 				      curload - module);
   if (! err)
-    err = grub_bsd_add_meta (FREEBSD_MODINFO_METADATA 
+    err = grub_bsd_add_meta (FREEBSD_MODINFO_METADATA
 			     | FREEBSD_MODINFOMD_ELFHDR,
 			     &e, sizeof (e));
   if (! err)
@@ -479,7 +479,7 @@ SUFFIX (grub_netbsd_load_elf_meta) (struct grub_relocator *relocator,
   symtab.esyms = symtarget + chunk_size;
 
   curload = sym_chunk;
-  
+
   e2 = (Elf_Ehdr *) curload;
   grub_memcpy (curload, &e, sizeof (e));
   e2->e_phoff = 0;
@@ -539,7 +539,7 @@ SUFFIX (grub_netbsd_load_elf_meta) (struct grub_relocator *relocator,
       goto out;
     }
 
-  err = grub_bsd_add_meta (NETBSD_BTINFO_SYMTAB, 
+  err = grub_bsd_add_meta (NETBSD_BTINFO_SYMTAB,
 			   &symtab,
 			   sizeof (symtab));
 out:
@@ -566,7 +566,7 @@ SUFFIX(grub_openbsd_find_ramdisk) (grub_file_t file,
     Elf_Ehdr e;
     Elf_Shdr *s;
     char *shdr = NULL;
-    
+
     err = read_headers (file, filename, &e, &shdr);
     if (err)
       {
@@ -588,7 +588,7 @@ SUFFIX(grub_openbsd_find_ramdisk) (grub_file_t file,
     symsize = s->sh_size;
     symentsize = s->sh_entsize;
     symoff = s->sh_offset;
-    
+
     s = (Elf_Shdr *) (shdr + e.e_shentsize * s->sh_link);
     stroff = s->sh_offset;
     strsize = s->sh_size;

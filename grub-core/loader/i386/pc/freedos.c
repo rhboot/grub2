@@ -62,7 +62,7 @@ static grub_uint32_t ebx = 0xffffffff;
 static grub_err_t
 grub_freedos_boot (void)
 {
-  struct grub_relocator16_state state = { 
+  struct grub_relocator16_state state = {
     .cs = GRUB_FREEDOS_SEGMENT,
     .ip = 0,
 
@@ -161,7 +161,7 @@ grub_cmd_freedos (grub_command_t cmd __attribute__ ((unused)),
   if (grub_file_read (file, kernelsys, kernelsyssize)
       != (grub_ssize_t) kernelsyssize)
     goto fail;
- 
+
   grub_loader_set (grub_freedos_boot, grub_freedos_unload, 1);
   return GRUB_ERR_NONE;
 

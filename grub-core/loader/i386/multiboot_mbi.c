@@ -103,7 +103,7 @@ load_kernel (grub_file_t file, const char *filename,
       else
 	code_size = load_size;
 
-      err = grub_relocator_alloc_chunk_addr (grub_multiboot_relocator, 
+      err = grub_relocator_alloc_chunk_addr (grub_multiboot_relocator,
 					     &ch, header->load_addr,
 					     code_size);
       if (err)
@@ -200,7 +200,7 @@ grub_multiboot_load (grub_file_t file, const char *filename)
       switch (header->mode_type)
 	{
 	case 1:
-	  err = grub_multiboot_set_console (GRUB_MULTIBOOT_CONSOLE_EGA_TEXT, 
+	  err = grub_multiboot_set_console (GRUB_MULTIBOOT_CONSOLE_EGA_TEXT,
 					    GRUB_MULTIBOOT_CONSOLE_EGA_TEXT
 					    | GRUB_MULTIBOOT_CONSOLE_FRAMEBUFFER,
 					    0, 0, 0, 0);
@@ -213,14 +213,14 @@ grub_multiboot_load (grub_file_t file, const char *filename)
 					    header->depth, 0);
 	  break;
 	default:
-	  err = grub_error (GRUB_ERR_BAD_OS, 
+	  err = grub_error (GRUB_ERR_BAD_OS,
 			    "unsupported graphical mode type %d",
 			    header->mode_type);
 	  break;
 	}
     }
   else
-    err = grub_multiboot_set_console (GRUB_MULTIBOOT_CONSOLE_EGA_TEXT, 
+    err = grub_multiboot_set_console (GRUB_MULTIBOOT_CONSOLE_EGA_TEXT,
 				      GRUB_MULTIBOOT_CONSOLE_EGA_TEXT,
 				      0, 0, 0, 0);
   return err;
@@ -238,7 +238,7 @@ grub_multiboot_get_mbi_size (void)
 
   ret = sizeof (struct multiboot_info) + ALIGN_UP (cmdline_size, 4)
     + modcnt * sizeof (struct multiboot_mod_list) + total_modcmd
-    + ALIGN_UP (sizeof(PACKAGE_STRING), 4) 
+    + ALIGN_UP (sizeof(PACKAGE_STRING), 4)
     + grub_multiboot_get_mmap_count () * sizeof (struct multiboot_mmap_entry)
     + elf_sec_entsize * elf_sec_num
     + 256 * sizeof (struct multiboot_color)
@@ -294,11 +294,11 @@ fill_vbe_info (struct multiboot_info *mbi, grub_uint8_t *ptrorig,
 #if GRUB_MACHINE_HAS_VBE
   grub_vbe_status_t status;
   void *scratch = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
-    
+
   status = grub_vbe_bios_get_controller_info (scratch);
   if (status != GRUB_VBE_STATUS_OK)
     return grub_error (GRUB_ERR_IO, "Can't get controller info.");
-  
+
   mbi->vbe_control_info = ptrdest;
   grub_memcpy (ptrorig, scratch, sizeof (struct grub_vbe_info_block));
   ptrorig += sizeof (struct grub_vbe_info_block);
@@ -307,7 +307,7 @@ fill_vbe_info (struct multiboot_info *mbi, grub_uint8_t *ptrorig,
   mbi->vbe_control_info = 0;
 #endif
 
-#if GRUB_MACHINE_HAS_VBE  
+#if GRUB_MACHINE_HAS_VBE
   status = grub_vbe_bios_get_mode (scratch);
   vbe_mode = *(grub_uint32_t *) scratch;
   if (status != GRUB_VBE_STATUS_OK)
@@ -329,7 +329,7 @@ fill_vbe_info (struct multiboot_info *mbi, grub_uint8_t *ptrorig,
     }
   else
     {
-#if GRUB_MACHINE_HAS_VBE  
+#if GRUB_MACHINE_HAS_VBE
       status = grub_vbe_bios_get_mode_info (vbe_mode, scratch);
       if (status != GRUB_VBE_STATUS_OK)
 	return grub_error (GRUB_ERR_IO, "can't get mode info");
@@ -340,19 +340,19 @@ fill_vbe_info (struct multiboot_info *mbi, grub_uint8_t *ptrorig,
   ptrorig += sizeof (struct grub_vbe_mode_info_block);
   ptrdest += sizeof (struct grub_vbe_mode_info_block);
 
-#if GRUB_MACHINE_HAS_VBE        
+#if GRUB_MACHINE_HAS_VBE
   grub_vbe_bios_get_pm_interface (&mbi->vbe_interface_seg,
 				  &mbi->vbe_interface_off,
 				  &mbi->vbe_interface_len);
 #endif
-  
+
   mbi->flags |= MULTIBOOT_INFO_VBE_INFO;
 
   if (fill_generic && mode_info->memory_model == GRUB_VBE_MEMORY_MODEL_TEXT)
     {
       mbi->framebuffer_addr = 0xb8000;
 
-      mbi->framebuffer_pitch = 2 * mode_info->x_resolution;	
+      mbi->framebuffer_pitch = 2 * mode_info->x_resolution;
       mbi->framebuffer_width = mode_info->x_resolution;
       mbi->framebuffer_height = mode_info->y_resolution;
 
@@ -406,7 +406,7 @@ retrieve_video_parameters (struct multiboot_info *mbi,
   mbi->framebuffer_height = mode_info.height;
 
   mbi->framebuffer_bpp = mode_info.bpp;
-      
+
   if (mode_info.mode_type & GRUB_VIDEO_MODE_TYPE_INDEX_COLOR)
     {
       struct multiboot_color *mb_palette;
@@ -457,7 +457,7 @@ grub_multiboot_make_mbi (grub_uint32_t *target)
   unsigned i;
   struct module *cur;
   grub_size_t mmap_size;
-  grub_uint8_t *ptrorig; 
+  grub_uint8_t *ptrorig;
   grub_addr_t ptrdest;
 
   grub_err_t err;
@@ -541,7 +541,7 @@ grub_multiboot_make_mbi (grub_uint32_t *target)
       mbi->mods_count = 0;
     }
 
-  mmap_size = grub_multiboot_get_mmap_count () 
+  mmap_size = grub_multiboot_get_mmap_count ()
     * sizeof (struct multiboot_mmap_entry);
   grub_fill_multiboot_mmap ((struct multiboot_mmap_entry *) ptrorig);
   mbi->mmap_length = mmap_size;
@@ -750,7 +750,7 @@ grub_multiboot_set_bootdev (void)
   if (dev)
     grub_device_close (dev);
 
-  bootdev = ((biosdev & 0xff) << 24) | ((slice & 0xff) << 16) 
+  bootdev = ((biosdev & 0xff) << 24) | ((slice & 0xff) << 16)
     | ((part & 0xff) << 8) | 0xff;
   bootdev_set = 1;
 }
