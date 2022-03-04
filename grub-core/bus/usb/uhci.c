@@ -244,10 +244,10 @@ grub_uhci_pci_iter (grub_pci_device_t dev,
   u->iobase = (base & GRUB_UHCI_IOMASK) + GRUB_MACHINE_PCI_IO_BASE;
 
   /* Reset PIRQ and SMI */
-  addr = grub_pci_make_address (dev, GRUB_UHCI_REG_USBLEGSUP);       
+  addr = grub_pci_make_address (dev, GRUB_UHCI_REG_USBLEGSUP);
   grub_pci_write_word(addr, GRUB_UHCI_RESET_LEGSUP_SMI);
   /* Reset the HC */
-  grub_uhci_writereg16(u, GRUB_UHCI_REG_USBCMD, GRUB_UHCI_CMD_HCRESET); 
+  grub_uhci_writereg16(u, GRUB_UHCI_REG_USBCMD, GRUB_UHCI_CMD_HCRESET);
   grub_millisleep(5);
   /* Disable interrupts and commands (just to be safe) */
   grub_uhci_writereg16(u, GRUB_UHCI_REG_USBINTR, 0);
@@ -399,7 +399,7 @@ grub_free_queue (struct grub_uhci *u, grub_uhci_qh_t qh, grub_uhci_td_t td,
   u->qh_busy[qh - u->qh_virt] = 0;
 
   *actual = 0;
-  
+
   /* Free the TDs in this queue and set last_trans.  */
   for (i=0; td; i++)
     {
@@ -411,7 +411,7 @@ grub_free_queue (struct grub_uhci *u, grub_uhci_qh_t qh, grub_uhci_td_t td,
         transfer->last_trans = i;
 
       *actual += (td->ctrl_status + 1) & 0x7ff;
-      
+
       /* Unlink the queue.  */
       tdprev = td;
       if (!td->linkptr2)
@@ -537,7 +537,7 @@ grub_uhci_setup_transfer (grub_usb_controller_t dev,
     }
 
   grub_dprintf ("uhci", "transfer, iobase:%08x\n", u->iobase);
-  
+
   for (i = 0; i < transfer->transcnt; i++)
     {
       grub_usb_transaction_t tr = &transfer->transactions[i];
@@ -604,7 +604,7 @@ grub_uhci_check_transfer (grub_usb_controller_t dev,
     errtd = grub_dma_phys2virt (cdata->qh->elinkptr & ~0x0f, u->qh_chunk);
   else
     errtd = 0;
-  
+
   if (errtd)
     {
       grub_dprintf ("uhci", ">t status=0x%02x data=0x%02x td=%p, %x\n",
@@ -632,27 +632,27 @@ grub_uhci_check_transfer (grub_usb_controller_t dev,
       /* Check if the endpoint is stalled.  */
       if (errtd->ctrl_status & (1 << 22))
 	err = GRUB_USB_ERR_STALL;
-      
+
       /* Check if an error related to the data buffer occurred.  */
       else if (errtd->ctrl_status & (1 << 21))
 	err = GRUB_USB_ERR_DATA;
-      
+
       /* Check if a babble error occurred.  */
       else if (errtd->ctrl_status & (1 << 20))
 	err = GRUB_USB_ERR_BABBLE;
-      
+
       /* Check if a NAK occurred.  */
       else if (errtd->ctrl_status & (1 << 19))
 	err = GRUB_USB_ERR_NAK;
-      
+
       /* Check if a timeout occurred.  */
       else if (errtd->ctrl_status & (1 << 18))
 	err = GRUB_USB_ERR_TIMEOUT;
-      
+
       /* Check if a bitstuff error occurred.  */
       else if (errtd->ctrl_status & (1 << 17))
 	err = GRUB_USB_ERR_BITSTUFF;
-      
+
       if (err)
 	{
 	  grub_dprintf ("uhci", "transaction failed\n");
@@ -719,7 +719,7 @@ grub_uhci_portstatus (grub_usb_controller_t dev,
   grub_uint64_t endtime;
 
   grub_dprintf ("uhci", "portstatus, iobase:%08x\n", u->iobase);
-  
+
   grub_dprintf ("uhci", "enable=%d port=%d\n", enable, port);
 
   if (port == 0)
@@ -746,7 +746,7 @@ grub_uhci_portstatus (grub_usb_controller_t dev,
       grub_dprintf ("uhci", ">3detect=0x%02x\n", status);
       return GRUB_USB_ERR_NONE;
     }
-    
+
   /* Reset the port.  */
   status = grub_uhci_readreg16 (u, reg) & ~GRUB_UHCI_PORTSC_RWC;
   grub_uhci_writereg16 (u, reg, status | (1 << 9));
@@ -796,7 +796,7 @@ grub_uhci_detect_dev (grub_usb_controller_t dev, int port, int *changed)
   unsigned int status;
 
   grub_dprintf ("uhci", "detect_dev, iobase:%08x\n", u->iobase);
-  
+
   if (port == 0)
     reg = GRUB_UHCI_REG_PORTSC1;
   else if (port == 1)
@@ -818,7 +818,7 @@ grub_uhci_detect_dev (grub_usb_controller_t dev, int port, int *changed)
     }
   else
     *changed = 0;
-    
+
   if (! (status & GRUB_UHCI_DETECT_HAVE_DEVICE))
     return GRUB_USB_SPEED_NONE;
   else if (status & GRUB_UHCI_DETECT_LOW_SPEED)

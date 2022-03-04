@@ -498,8 +498,8 @@ grub_ehci_init_device (volatile void *regs)
     }
   e->iobase = ((volatile grub_uint32_t *) e->iobase_ehcc
 	       + (caplen / sizeof (grub_uint32_t)));
-#else  
-  e->iobase = (volatile grub_uint32_t *) 
+#else
+  e->iobase = (volatile grub_uint32_t *)
     ((grub_uint8_t *) e->iobase_ehcc + caplen);
 #endif
 
@@ -869,7 +869,7 @@ grub_ehci_find_qh (struct grub_ehci *e, grub_usb_transfer_t transfer)
     i++ )
     {
       if (target == (qh_iter->ep_char & mask))
-	{		
+	{
 	  /* Found proper existing (and linked) QH, do setup of QH */
 	  grub_dprintf ("ehci", "find_qh: found, QH=%p\n", qh_iter);
 	  grub_ehci_setup_qh (qh_iter, transfer);
@@ -1813,7 +1813,7 @@ static struct grub_usb_controller_dev usb_controller = {
   .portstatus = grub_ehci_portstatus,
   .detect_dev = grub_ehci_detect_dev,
   /* estimated max. count of TDs for one bulk transfer */
-  .max_bulk_tds = GRUB_EHCI_N_TD * 3 / 4 
+  .max_bulk_tds = GRUB_EHCI_N_TD * 3 / 4
 };
 
 GRUB_MOD_INIT (ehci)

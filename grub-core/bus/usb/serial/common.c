@@ -93,7 +93,7 @@ grub_usbserial_attach (grub_usb_device_t usbdev, int configno, int interfno,
   /* Configure device */
   if (port->out_endp && port->in_endp)
     err = grub_usb_set_configuration (usbdev, configno + 1);
-  
+
   if (!port->out_endp || !port->in_endp || err)
     {
       grub_free (port->name);

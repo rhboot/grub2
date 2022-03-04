@@ -174,7 +174,7 @@ static struct grub_serial_driver grub_ftdi_driver =
     .fini = grub_usbserial_fini
   };
 
-static const struct 
+static const struct
 {
   grub_uint16_t vendor, product;
 } products[] =

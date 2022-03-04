@@ -196,7 +196,7 @@ grub_ohci_td_virt2phys (struct grub_ohci *o,  grub_ohci_td_t x)
   return (grub_uint8_t *)x - (grub_uint8_t *)o->td + o->td_addr;
 }
 
-  
+
 static grub_uint32_t
 grub_ohci_readreg32 (struct grub_ohci *o, grub_ohci_reg_t reg)
 {
@@ -224,7 +224,7 @@ grub_ohci_pci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
   struct grub_ohci *o;
   grub_uint32_t revision;
   int j;
-  
+
   /* Determine IO base address.  */
   grub_dprintf ("ohci", "pciid = %x\n", pciid);
 
@@ -253,7 +253,7 @@ grub_ohci_pci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
 
       addr = grub_pci_make_address (dev, GRUB_PCI_REG_CLASS);
       class_code = grub_pci_read (addr) >> 8;
-      
+
       interf = class_code & 0xFF;
       subclass = (class_code >> 8) & 0xFF;
       class = class_code >> 16;
@@ -315,7 +315,7 @@ grub_ohci_pci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
 	       * GRUB_OHCI_CTRL_EDS);
   for (j=0; j < GRUB_OHCI_CTRL_EDS; j++)
     o->ed_ctrl[j].target = grub_cpu_to_le32_compile_time (1 << 14); /* skip */
-    
+
   grub_dprintf ("ohci", "EDs-C: chunk=%p, virt=%p, phys=0x%02x\n",
                 o->ed_ctrl_chunk, o->ed_ctrl, o->ed_ctrl_addr);
 
@@ -385,7 +385,7 @@ grub_ohci_pci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
 	    grub_dprintf("ohci", "Ownership changing timeout, change forced !\n");
 	  }
       }
-    else if (((control & 0x100) == 0) && 
+    else if (((control & 0x100) == 0) &&
 	     ((control & 0xc0) != 0)) /* Not owned by SMM nor reset */
       {
 	grub_dprintf("ohci", "OHCI is owned by BIOS\n");
@@ -396,7 +396,7 @@ grub_ohci_pci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
       {
 	grub_dprintf("ohci", "OHCI is not owned by SMM nor BIOS\n");
 	/* We can setup OHCI. */
-      }  
+      }
   }
 
   /* Suspend the OHCI by issuing a reset.  */
@@ -513,7 +513,7 @@ grub_ohci_find_ed (struct grub_ohci *o, int bulk, grub_uint32_t target)
 
   /* Use proper values and structures. */
   if (bulk)
-    {    
+    {
       count = GRUB_OHCI_BULK_EDS;
       ed = o->ed_bulk;
       ed_next = grub_ohci_ed_phys2virt(o, bulk,
@@ -576,7 +576,7 @@ grub_ohci_alloc_td (struct grub_ohci *o)
 static void
 grub_ohci_free_td (struct grub_ohci *o, grub_ohci_td_t td)
 {
-  grub_memset ( (void*)td, 0, sizeof(struct grub_ohci_td) ); 
+  grub_memset ( (void*)td, 0, sizeof(struct grub_ohci_td) );
   td->link_td = o->td_free; /* Cahin new free TD & rest */
   o->td_free = td; /* Change address of first free TD */
 }
@@ -586,7 +586,7 @@ grub_ohci_free_tds (struct grub_ohci *o, grub_ohci_td_t td)
 {
   if (!td)
     return;
-    
+
   /* Unchain first TD from previous TD if it is chained */
   if (td->prev_td_phys)
     {
@@ -596,12 +596,12 @@ grub_ohci_free_tds (struct grub_ohci *o, grub_ohci_td_t td)
       if (td == (grub_ohci_td_t) td_prev_virt->link_td)
         td_prev_virt->link_td = 0;
     }
-  
+
   /* Free all TDs from td  (chained by link_td) */
   while (td)
     {
       grub_ohci_td_t tdprev;
-      
+
       /* Unlink the queue.  */
       tdprev = td;
       td = (grub_ohci_td_t) td->link_td;
@@ -658,7 +658,7 @@ grub_ohci_transaction (grub_ohci_td_t td,
       td->buffer = grub_cpu_to_le32 (buffer);
       td->buffer_end = grub_cpu_to_le32 (buffer_end);
     }
-  else 
+  else
     {
       td->buffer = 0;
       td->buffer_end = 0;
@@ -728,7 +728,7 @@ grub_ohci_setup_transfer (grub_usb_controller_t dev,
       grub_free (cdata);
       return GRUB_USB_ERR_INTERNAL;
     }
-  
+
   /* Take pointer to first TD from ED */
   td_head_phys = grub_le_to_cpu32 (cdata->ed_virt->td_head) & ~0xf;
   td_tail_phys = grub_le_to_cpu32 (cdata->ed_virt->td_tail) & ~0xf;
@@ -743,7 +743,7 @@ grub_ohci_setup_transfer (grub_usb_controller_t dev,
       grub_free (cdata);
       return GRUB_USB_ERR_INTERNAL;
     }
-  
+
   /* Now we should handle first TD. If ED is newly allocated,
    * we must allocate the first TD. */
   if (!td_head_phys)
@@ -762,7 +762,7 @@ grub_ohci_setup_transfer (grub_usb_controller_t dev,
     }
   else
     cdata->td_head_virt = grub_ohci_td_phys2virt ( o, td_head_phys );
-    
+
   /* Set TDs */
   cdata->td_last_phys = td_head_phys; /* initial value to make compiler happy... */
   for (i = 0, cdata->td_current_virt = cdata->td_head_virt;
@@ -775,10 +775,10 @@ grub_ohci_setup_transfer (grub_usb_controller_t dev,
 
       /* Set index of TD in transfer */
       cdata->td_current_virt->tr_index = (grub_uint32_t) i;
-      
+
       /* Remember last used (processed) TD phys. addr. */
       cdata->td_last_phys = grub_ohci_td_virt2phys (o, cdata->td_current_virt);
-      
+
       /* Allocate next TD */
       td_next_virt = grub_ohci_alloc_td (o);
       if (!td_next_virt) /* No free TD, cancel transfer and free TDs except head TD */
@@ -807,7 +807,7 @@ grub_ohci_setup_transfer (grub_usb_controller_t dev,
 
   grub_dprintf ("ohci", "Tail TD (not processed) = %p\n",
                 cdata->td_current_virt);
-  
+
   /* Setup the Endpoint Descriptor for transfer.  */
   /* First set necessary fields in TARGET but keep (or set) skip bit */
   /* Note: It could be simpler if speed, format and max. packet
@@ -923,7 +923,7 @@ finish_transfer (grub_usb_controller_t dev,
   struct grub_ohci_transfer_controller_data *cdata = transfer->controller_data;
 
   /* Set empty ED - set HEAD = TAIL = last (not processed) TD */
-  cdata->ed_virt->td_head = grub_cpu_to_le32 (grub_le_to_cpu32 (cdata->ed_virt->td_tail) & ~0xf); 
+  cdata->ed_virt->td_head = grub_cpu_to_le32 (grub_le_to_cpu32 (cdata->ed_virt->td_tail) & ~0xf);
 
   /* At this point always should be:
    * ED has skip bit set and halted or empty or after next SOF,
@@ -935,7 +935,7 @@ finish_transfer (grub_usb_controller_t dev,
     {
       grub_ohci_td_t td_prev_virt
 	= grub_ohci_td_phys2virt (o, cdata->td_current_virt->prev_td_phys);
-      
+
       if (cdata->td_current_virt == (grub_ohci_td_t) td_prev_virt->link_td)
         td_prev_virt->link_td = 0;
 
@@ -978,7 +978,7 @@ parse_halt (grub_usb_controller_t dev,
     }
   else
     transfer->last_trans = -1;
-  
+
   /* Evaluation of error code */
   grub_dprintf ("ohci", "OHCI tderr_phys=0x%02x, errcode=0x%02x\n",
 		cdata->tderr_phys, errcode);
@@ -1089,7 +1089,7 @@ parse_success (grub_usb_controller_t dev,
 
   /* Prepare pointer to last processed TD */
   tderr_virt = grub_ohci_td_phys2virt (o, cdata->tderr_phys);
-  
+
   /* Set index of last processed TD */
   if (tderr_virt)
     transfer->last_trans = tderr_virt->tr_index;
@@ -1207,7 +1207,7 @@ grub_ohci_cancel_transfer (grub_usb_controller_t dev,
   cdata->tderr_phys
     = grub_ohci_td_phys2virt (o, grub_le_to_cpu32 (cdata->ed_virt->td_head)
                               & ~0xf)->prev_td_phys;
-    
+
   tderr_virt = grub_ohci_td_phys2virt (o,cdata-> tderr_phys);
 
   grub_dprintf ("ohci", "Cancel: tderr_phys=0x%x, tderr_virt=%p\n",
@@ -1249,7 +1249,7 @@ grub_ohci_portstatus (grub_usb_controller_t dev,
          grub_ohci_readreg32 (o, GRUB_OHCI_REG_RHUBPORT + port));
        return GRUB_USB_ERR_NONE;
      }
-     
+
    /* OHCI does one reset signal 10ms long but USB spec.
     * requests 50ms for root hub (no need to be continuous).
     * So, we do reset 5 times... */
@@ -1276,7 +1276,7 @@ grub_ohci_portstatus (grub_usb_controller_t dev,
    grub_ohci_writereg32 (o, GRUB_OHCI_REG_RHUBPORT + port,
                          GRUB_OHCI_SET_PORT_ENABLE);
    grub_ohci_readreg32 (o, GRUB_OHCI_REG_RHUBPORT + port);
-   
+
    /* Wait for signal enabled */
    endtime = grub_get_time_ms () + 1000;
    while (! (grub_ohci_readreg32 (o, GRUB_OHCI_REG_RHUBPORT + port)
@@ -1290,10 +1290,10 @@ grub_ohci_portstatus (grub_usb_controller_t dev,
 
    /* "Reset recovery time" (USB spec.) */
    grub_millisleep (10);
-   
+
    grub_dprintf ("ohci", "end of portstatus=0x%02x\n",
 		 grub_ohci_readreg32 (o, GRUB_OHCI_REG_RHUBPORT + port));
- 
+
    return GRUB_USB_ERR_NONE;
 }
 

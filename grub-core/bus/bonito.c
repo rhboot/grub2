@@ -21,12 +21,12 @@
 #include <grub/misc.h>
 
 static grub_uint32_t base_win[GRUB_MACHINE_PCI_NUM_WIN];
-static const grub_size_t sizes_win[GRUB_MACHINE_PCI_NUM_WIN] = 
-  {GRUB_MACHINE_PCI_WIN1_SIZE, GRUB_MACHINE_PCI_WIN_SIZE, 
+static const grub_size_t sizes_win[GRUB_MACHINE_PCI_NUM_WIN] =
+  {GRUB_MACHINE_PCI_WIN1_SIZE, GRUB_MACHINE_PCI_WIN_SIZE,
    GRUB_MACHINE_PCI_WIN_SIZE};
 /* Usage counters.  */
 static int usage_win[GRUB_MACHINE_PCI_NUM_WIN];
-static grub_addr_t addr_win[GRUB_MACHINE_PCI_NUM_WIN] = 
+static grub_addr_t addr_win[GRUB_MACHINE_PCI_NUM_WIN] =
   {GRUB_MACHINE_PCI_WIN1_ADDR, GRUB_MACHINE_PCI_WIN2_ADDR,
    GRUB_MACHINE_PCI_WIN3_ADDR};
 
@@ -93,9 +93,9 @@ write_bases_2f (void)
 {
   int i;
   grub_uint32_t reg = 0;
-  for (i = 0; i < GRUB_MACHINE_PCI_NUM_WIN; i++) 
-    reg |= (((base_win[i] >> GRUB_MACHINE_PCI_WIN_SHIFT) 
-	     & GRUB_MACHINE_PCI_WIN_MASK) 
+  for (i = 0; i < GRUB_MACHINE_PCI_NUM_WIN; i++)
+    reg |= (((base_win[i] >> GRUB_MACHINE_PCI_WIN_SHIFT)
+	     & GRUB_MACHINE_PCI_WIN_MASK)
 	    << (i * GRUB_MACHINE_PCI_WIN_MASK_SIZE));
   GRUB_MACHINE_PCI_IO_CTRL_REG_2F = reg;
 }
@@ -111,23 +111,23 @@ grub_pci_device_map_range (grub_pci_device_t dev __attribute__ ((unused)),
 
       /* First try already used registers. */
       for (i = 0; i < GRUB_MACHINE_PCI_NUM_WIN; i++)
-	if (usage_win[i] && base_win[i] <= base 
+	if (usage_win[i] && base_win[i] <= base
 	    && base_win[i] + sizes_win[i] > base + size)
 	  {
 	    usage_win[i]++;
-	    return (void *) 
+	    return (void *)
 	      (addr_win[i] | (base & GRUB_MACHINE_PCI_WIN_OFFSET_MASK));
 	  }
       /* Map new register.  */
       newbase = base & ~GRUB_MACHINE_PCI_WIN_OFFSET_MASK;
       for (i = 0; i < GRUB_MACHINE_PCI_NUM_WIN; i++)
-	if (!usage_win[i] && newbase <= base 
+	if (!usage_win[i] && newbase <= base
 	    && newbase + sizes_win[i] > base + size)
 	  {
 	    usage_win[i]++;
 	    base_win[i] = newbase;
 	    write_bases_2f ();
-	    return (void *) 
+	    return (void *)
 	      (addr_win[i] | (base & GRUB_MACHINE_PCI_WIN_OFFSET_MASK));
 	  }
       grub_fatal ("Out of PCI windows.");
@@ -164,7 +164,7 @@ grub_pci_device_unmap_range (grub_pci_device_t dev __attribute__ ((unused)),
     {
       int i;
       for (i = 0; i < GRUB_MACHINE_PCI_NUM_WIN; i++)
-	if (usage_win[i] && addr_win[i] 
+	if (usage_win[i] && addr_win[i]
 	    == (((grub_addr_t) mem | 0x20000000)
 		& ~GRUB_MACHINE_PCI_WIN_OFFSET_MASK))
 	  {

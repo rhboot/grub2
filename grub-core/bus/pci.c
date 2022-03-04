@@ -159,12 +159,12 @@ grub_pci_find_capability (grub_pci_device_t dev, grub_uint8_t cap)
 
       pos &= ~3;
 
-      addr = grub_pci_make_address (dev, pos);      
+      addr = grub_pci_make_address (dev, pos);
       id = grub_pci_read_byte (addr);
 
       if (id == 0xff)
 	break;
-      
+
       if (id == cap)
 	return pos;
       pos++;

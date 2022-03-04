@@ -72,7 +72,7 @@ grub_cs5536_read_msr (grub_pci_device_t dev, grub_uint32_t addr)
 		  addr);
   ret = (grub_uint64_t)
     grub_pci_read (grub_pci_make_address (dev, GRUB_CS5536_MSR_MAILBOX_DATA0));
-  ret |= (((grub_uint64_t) 
+  ret |= (((grub_uint64_t)
 	  grub_pci_read (grub_pci_make_address (dev,
 						GRUB_CS5536_MSR_MAILBOX_DATA1)))
 	  << 32);
@@ -100,7 +100,7 @@ grub_cs5536_smbus_wait (grub_port_t smbbase)
       grub_uint8_t status;
       status = grub_inb (smbbase + GRUB_CS5536_SMB_REG_STATUS);
       if (status & GRUB_CS5536_SMB_REG_STATUS_SDAST)
-	return GRUB_ERR_NONE;	
+	return GRUB_ERR_NONE;
       if (status & GRUB_CS5536_SMB_REG_STATUS_BER)
 	return grub_error (GRUB_ERR_IO, "SM bus error");
       if (status & GRUB_CS5536_SMB_REG_STATUS_NACK)
@@ -122,8 +122,8 @@ grub_cs5536_read_spd_byte (grub_port_t smbbase, grub_uint8_t dev,
 	     smbbase + GRUB_CS5536_SMB_REG_CTRL1);
 
   /* Send device address.  */
-  err = grub_cs5536_smbus_wait (smbbase); 
-  if (err) 
+  err = grub_cs5536_smbus_wait (smbbase);
+  if (err)
     return err;
   grub_outb (dev << 1, smbbase + GRUB_CS5536_SMB_REG_DATA);
 
@@ -139,8 +139,8 @@ grub_cs5536_read_spd_byte (grub_port_t smbbase, grub_uint8_t dev,
   grub_outb (addr, smbbase + GRUB_CS5536_SMB_REG_DATA);
 
   /* Send START.  */
-  err = grub_cs5536_smbus_wait (smbbase); 
-  if (err) 
+  err = grub_cs5536_smbus_wait (smbbase);
+  if (err)
     return err;
   grub_outb (grub_inb (smbbase + GRUB_CS5536_SMB_REG_CTRL1)
 	     | GRUB_CS5536_SMB_REG_CTRL1_START,
@@ -161,7 +161,7 @@ grub_cs5536_read_spd_byte (grub_port_t smbbase, grub_uint8_t dev,
 	     smbbase + GRUB_CS5536_SMB_REG_CTRL1);
 
   err = grub_cs5536_smbus_wait (smbbase);
-  if (err) 
+  if (err)
     return err;
   *res = grub_inb (smbbase + GRUB_CS5536_SMB_REG_DATA);
 
@@ -198,8 +198,8 @@ grub_cs5536_init_smbus (grub_pci_device_t dev, grub_uint16_t divisor,
   grub_outb (((divisor >> 7) & 0xff), *smbbase + GRUB_CS5536_SMB_REG_CTRL3);
   grub_outb (((divisor << 1) & 0xfe) | GRUB_CS5536_SMB_REG_CTRL2_ENABLE,
 	     *smbbase + GRUB_CS5536_SMB_REG_CTRL2);
-  
-  return GRUB_ERR_NONE; 
+
+  return GRUB_ERR_NONE;
 }
 
 grub_err_t
@@ -217,7 +217,7 @@ grub_cs5536_read_spd (grub_port_t smbbase, grub_uint8_t dev,
   if (b == 0)
     return grub_error (GRUB_ERR_IO, "no SPD found");
   size = b;
-  
+
   ((grub_uint8_t *) res)[0] = b;
   for (ptr = 1; ptr < size; ptr++)
     {
@@ -310,7 +310,7 @@ grub_cs5536_init_geode (grub_pci_device_t dev)
 
   /* Initialise USB controller.  */
   /* FIXME: assign adresses dynamically.  */
-  grub_cs5536_write_msr (dev, GRUB_CS5536_MSR_USB_OHCI_BASE, 
+  grub_cs5536_write_msr (dev, GRUB_CS5536_MSR_USB_OHCI_BASE,
 			 GRUB_CS5536_MSR_USB_BASE_BUS_MASTER
 			 | GRUB_CS5536_MSR_USB_BASE_MEMORY_ENABLE
 			 | 0x05024000);

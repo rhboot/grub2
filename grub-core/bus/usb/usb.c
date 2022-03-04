@@ -144,7 +144,7 @@ grub_usb_device_initialize (grub_usb_device_t dev)
     {
       err = GRUB_USB_ERR_BADDEVICE;
       goto fail;
-    }    
+    }
 
   for (i = 0; i < descdev->configcnt; i++)
     {
@@ -235,7 +235,7 @@ grub_usb_device_initialize (grub_usb_device_t dev)
 void grub_usb_device_attach (grub_usb_device_t dev)
 {
   int i;
-  
+
   /* XXX: Just check configuration 0 for now.  */
   for (i = 0; i < dev->config[0].descconf->numif; i++)
     {
@@ -331,7 +331,7 @@ grub_usb_register_attach_hook_class (struct grub_usb_attach_desc *desc)
 void
 grub_usb_unregister_attach_hook_class (struct grub_usb_attach_desc *desc)
 {
-  grub_list_remove (GRUB_AS_LIST (desc));  
+  grub_list_remove (GRUB_AS_LIST (desc));
 }
 
 
