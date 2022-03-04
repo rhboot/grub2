@@ -63,7 +63,7 @@ get_test_cfg (grub_size_t *sz)
   return grub_strdup (testfile);
 }
 
-struct grub_procfs_entry test_cfg = 
+struct grub_procfs_entry test_cfg =
 {
   .name = "test.cfg",
   .get_contents = get_test_cfg
@@ -73,7 +73,7 @@ struct
 {
   const char *name;
   const char *var;
-  const char *val;  
+  const char *val;
 } tests[] =
   {
     { "gfxterm_menu", NULL, NULL },
@@ -121,7 +121,7 @@ gfxterm_menu (void)
     }
 
   grub_procfs_register ("test.cfg", &test_cfg);
-  
+
   for (j = 0; j < ARRAY_SIZE (tests); j++)
     for (i = 0; i < GRUB_TEST_VIDEO_SMALL_N_MODES; i++)
       {

@@ -40,7 +40,7 @@ get_hi_dsa_sig (grub_size_t *sz)
   return ret;
 }
 
-static struct grub_procfs_entry hi_dsa_sig_entry = 
+static struct grub_procfs_entry hi_dsa_sig_entry =
 {
   .name = "hi_dsa.sig",
   .get_contents = get_hi_dsa_sig
@@ -57,7 +57,7 @@ get_hi_dsa_pub (grub_size_t *sz)
   return ret;
 }
 
-static struct grub_procfs_entry hi_dsa_pub_entry = 
+static struct grub_procfs_entry hi_dsa_pub_entry =
 {
   .name = "hi_dsa.pub",
   .get_contents = get_hi_dsa_pub
@@ -74,7 +74,7 @@ get_hi_rsa_sig (grub_size_t *sz)
   return ret;
 }
 
-static struct grub_procfs_entry hi_rsa_sig_entry = 
+static struct grub_procfs_entry hi_rsa_sig_entry =
 {
   .name = "hi_rsa.sig",
   .get_contents = get_hi_rsa_sig
@@ -91,7 +91,7 @@ get_hi_rsa_pub (grub_size_t *sz)
   return ret;
 }
 
-static struct grub_procfs_entry hi_rsa_pub_entry = 
+static struct grub_procfs_entry hi_rsa_pub_entry =
 {
   .name = "hi_rsa.pub",
   .get_contents = get_hi_rsa_pub
@@ -104,7 +104,7 @@ get_hi (grub_size_t *sz)
   return grub_strdup ("hi\n");
 }
 
-struct grub_procfs_entry hi = 
+struct grub_procfs_entry hi =
 {
   .name = "hi",
   .get_contents = get_hi
@@ -117,7 +117,7 @@ get_hj (grub_size_t *sz)
   return grub_strdup ("hj\n");
 }
 
-struct grub_procfs_entry hj = 
+struct grub_procfs_entry hj =
 {
   .name = "hj",
   .get_contents = get_hj

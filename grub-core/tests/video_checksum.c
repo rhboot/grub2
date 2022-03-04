@@ -499,9 +499,9 @@ write_time (void)
 
   cur = grub_util_get_cpu_time_ms ();
   grub_snprintf (buf, sizeof (buf), "%s_%dx%dx%s:%d: %" PRIuGRUB_UINT64_T " ms\n",
-		 basename, 			
+		 basename,
 		 capt_mode_info.width,
-		 capt_mode_info.height, 
+		 capt_mode_info.height,
 		 grub_video_checksum_get_modename (), ctr,
 		 cur - prev);
   prev = cur;
@@ -605,9 +605,9 @@ checksum (void)
   if (!checksums || ctr >= nchk)
     {
       grub_test_assert (0, "Unexpected checksum %s_%dx%dx%s:%d: 0x%x",
-			basename, 			
+			basename,
 			capt_mode_info.width,
-			capt_mode_info.height, 
+			capt_mode_info.height,
 			grub_video_checksum_get_modename (), ctr, crc);
     }
   else if (crc != checksums[ctr])
@@ -628,7 +628,7 @@ checksum (void)
     }
 #endif
 #ifdef GRUB_MACHINE_EMU
-  char *name = grub_xasprintf ("%s_%dx%dx%s_%d.bmp", basename, 
+  char *name = grub_xasprintf ("%s_%dx%dx%s_%d.bmp", basename,
 			       capt_mode_info.width,
 			       capt_mode_info.height,
 			       grub_video_checksum_get_modename (),
@@ -785,7 +785,7 @@ grub_test_use_gfxterm (void)
     }
 
   if (gfxterm->init (gfxterm))
-    { 
+    {
       grub_test_assert (0, "terminal `%s' failed: %s", "gfxterm", grub_errmsg);
       return 1;
     }

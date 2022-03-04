@@ -99,7 +99,7 @@ arithmetic_right_shift64 (grub_uint64_t v, int s)
   if (get_bit64 (v, 63))
     for (i -= s; i < 64; i++)
 	r = set_bit64 (r, i);
-    
+
   return r;
 }
 

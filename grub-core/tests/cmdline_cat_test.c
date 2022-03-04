@@ -60,7 +60,7 @@ get_test_txt (grub_size_t *sz)
   return grub_strdup (testfile);
 }
 
-struct grub_procfs_entry test_txt = 
+struct grub_procfs_entry test_txt =
 {
   .name = "test.txt",
   .get_contents = get_test_txt
@@ -91,14 +91,14 @@ cmdline_cat_test (void)
     }
 
   grub_procfs_register ("test.txt", &test_txt);
-  
+
   for (i = 0; i < GRUB_TEST_VIDEO_SMALL_N_MODES; i++)
     {
       grub_video_capture_start (&grub_test_video_modes[i],
 				grub_video_fbstd_colors,
 				grub_test_video_modes[i].number_of_colors);
-      grub_terminal_input_fake_sequence ((int []) 
-					 {  'c', 'a', 't', ' ', 
+      grub_terminal_input_fake_sequence ((int [])
+					 {  'c', 'a', 't', ' ',
 					     '(', 'p', 'r', 'o', 'c', ')',
 					     '/', 't', 'e', 's', 't', '.',
 					     't', 'x', 't', '\n',
