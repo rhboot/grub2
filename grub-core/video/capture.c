@@ -92,7 +92,7 @@ grub_video_capture_start (const struct grub_video_mode_info *mode_info,
   framebuffer.ptr = grub_calloc (framebuffer.mode_info.height, framebuffer.mode_info.pitch);
   if (!framebuffer.ptr)
     return grub_errno;
-  
+
   err = grub_video_fb_create_render_target_from_pointer (&framebuffer.render_target,
 							 &framebuffer.mode_info,
 							 framebuffer.ptr);

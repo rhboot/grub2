@@ -916,7 +916,7 @@ grub_png_convert_image (struct grub_png_data *data)
 	}
       return;
     }
-  
+
   if (data->is_gray)
     {
       switch (data->bpp)

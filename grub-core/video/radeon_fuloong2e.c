@@ -75,7 +75,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
   if (((class >> 16) & 0xffff) != GRUB_PCI_CLASS_SUBCLASS_VGA
       || pciid != 0x515a1002)
     return 0;
-  
+
   *found = 1;
 
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_ADDRESS_REG0);
@@ -139,7 +139,7 @@ grub_video_radeon_fuloong2e_setup (unsigned int width, unsigned int height,
   framebuffer.mapped = 1;
 
   /* Prevent garbage from appearing on the screen.  */
-  grub_memset (framebuffer.ptr, 0x55, 
+  grub_memset (framebuffer.ptr, 0x55,
 	       framebuffer.mode_info.height * framebuffer.mode_info.pitch);
 
 #ifndef TEST
@@ -152,7 +152,7 @@ grub_video_radeon_fuloong2e_setup (unsigned int width, unsigned int height,
     return err;
 
   err = grub_video_fb_set_active_render_target (framebuffer.render_target);
-  
+
   if (err)
     return err;
 

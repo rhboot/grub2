@@ -273,7 +273,7 @@ grub_video_gop_iterate (int (*hook) (const struct grub_video_mode_info *info, vo
       grub_efi_status_t status;
       struct grub_efi_gop_mode_info *info = NULL;
       struct grub_video_mode_info mode_info;
-	 
+
       status = efi_call_4 (gop->query_mode, gop, mode, &size, &info);
 
       if (status)
@@ -390,7 +390,7 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 	  found = 1;
 	}
     }
- 
+
   if (!found)
     {
       unsigned mode;
@@ -399,7 +399,7 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 	{
 	  grub_efi_uintn_t size;
 	  grub_efi_status_t status;
-	 
+
 	  status = efi_call_4 (gop->query_mode, gop, mode, &size, &info);
 	  if (status)
 	    {
@@ -472,11 +472,11 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
   framebuffer.ptr = (void *) (grub_addr_t) gop->mode->fb_base;
   framebuffer.offscreen
     = grub_malloc (framebuffer.mode_info.height
-		   * framebuffer.mode_info.width 
+		   * framebuffer.mode_info.width
 		   * sizeof (struct grub_efi_gop_blt_pixel));
 
   buffer = framebuffer.offscreen;
-      
+
   if (!buffer)
     {
       grub_dprintf ("video", "GOP: couldn't allocate shadow\n");
@@ -485,11 +485,11 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 				     &framebuffer.mode_info);
       buffer = framebuffer.ptr;
     }
-    
+
   grub_dprintf ("video", "GOP: initialising FB @ %p %dx%dx%d\n",
 		framebuffer.ptr, framebuffer.mode_info.width,
 		framebuffer.mode_info.height, framebuffer.mode_info.bpp);
- 
+
   err = grub_video_fb_create_render_target_from_pointer
     (&framebuffer.render_target, &framebuffer.mode_info, buffer);
 
@@ -498,15 +498,15 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
       grub_dprintf ("video", "GOP: Couldn't create FB target\n");
       return err;
     }
- 
+
   err = grub_video_fb_set_active_render_target (framebuffer.render_target);
- 
+
   if (err)
     {
       grub_dprintf ("video", "GOP: Couldn't set FB target\n");
       return err;
     }
- 
+
   err = grub_video_fb_set_palette (0, GRUB_VIDEO_FBSTD_NUMCOLORS,
 				   grub_video_fbstd_colors);
 
@@ -514,7 +514,7 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
     grub_dprintf ("video", "GOP: Couldn't set palette\n");
   else
     grub_dprintf ("video", "GOP: Success\n");
- 
+
   return err;
 }
 

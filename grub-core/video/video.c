@@ -491,13 +491,13 @@ parse_modespec (const char *current_mode, int *width, int *height, int *depth)
 		       current_mode);
 
   param++;
-  
+
   *width = grub_strtoul (value, 0, 0);
   if (grub_errno != GRUB_ERR_NONE)
       return grub_error (GRUB_ERR_BAD_ARGUMENT,
 			 N_("invalid video mode specification `%s'"),
 			 current_mode);
-  
+
   /* Find height value.  */
   value = param;
   param = grub_strchr(param, 'x');
@@ -513,13 +513,13 @@ parse_modespec (const char *current_mode, int *width, int *height, int *depth)
     {
       /* We have optional color depth value.  */
       param++;
-      
+
       *height = grub_strtoul (value, 0, 0);
       if (grub_errno != GRUB_ERR_NONE)
 	return grub_error (GRUB_ERR_BAD_ARGUMENT,
 			   N_("invalid video mode specification `%s'"),
 			   current_mode);
-      
+
       /* Convert color depth value.  */
       value = param;
       *depth = grub_strtoul (value, 0, 0);

@@ -106,7 +106,7 @@ grub_video_cbfb_setup (unsigned int width, unsigned int height,
 
   grub_video_fb_set_palette (0, GRUB_VIDEO_FBSTD_NUMCOLORS,
 			     grub_video_fbstd_colors);
-    
+
   return err;
 }
 

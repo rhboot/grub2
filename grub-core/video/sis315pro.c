@@ -103,7 +103,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
   if (((class >> 16) & 0xffff) != GRUB_PCI_CLASS_SUBCLASS_VGA
       || pciid != GRUB_SIS315PRO_PCIID)
     return 0;
-  
+
   *found = 1;
 
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_ADDRESS_REG0);
@@ -218,7 +218,7 @@ grub_video_sis315pro_setup (unsigned int width, unsigned int height,
 
 #ifndef TEST
   /* Prevent garbage from appearing on the screen.  */
-  grub_memset (framebuffer.ptr, 0, 
+  grub_memset (framebuffer.ptr, 0,
 	       framebuffer.mode_info.height * framebuffer.mode_info.pitch);
   grub_arch_sync_dma_caches (framebuffer.ptr,
 			     framebuffer.mode_info.height
@@ -231,7 +231,7 @@ grub_video_sis315pro_setup (unsigned int width, unsigned int height,
 	     | GRUB_VGA_IO_MISC_EXTERNAL_CLOCK_0
 	     | GRUB_VGA_IO_MISC_28MHZ
 	     | GRUB_VGA_IO_MISC_ENABLE_VRAM_ACCESS
-	     | GRUB_VGA_IO_MISC_COLOR, 
+	     | GRUB_VGA_IO_MISC_COLOR,
 	     GRUB_VGA_IO_MISC_WRITE + GRUB_MACHINE_PCI_IO_BASE);
 
   grub_vga_sr_write (0x86, 5);
@@ -335,7 +335,7 @@ grub_video_sis315pro_setup (unsigned int width, unsigned int height,
   {
     if (read_sis_cmd (0x5) != 0xa1)
       write_sis_cmd (0x86, 0x5);
-    
+
     write_sis_cmd (read_sis_cmd (0x20) | 0xa1, 0x20);
     write_sis_cmd (read_sis_cmd (0x1e) | 0xda, 0x1e);
 

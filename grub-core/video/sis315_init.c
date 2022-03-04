@@ -1,4 +1,4 @@
-static const struct { grub_uint8_t reg; grub_uint8_t val; } sr_dump [] = 
+static const struct { grub_uint8_t reg; grub_uint8_t val; } sr_dump [] =
 {
   { 0x28, 0x81 },
   { 0x2a, 0x00 },

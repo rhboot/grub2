@@ -212,7 +212,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
 
   if (((class >> 16) & 0xffff) != 0x0300 || pciid != 0x11111234)
     return 0;
-  
+
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_ADDRESS_REG0);
   framebuffer.base = grub_pci_read (addr) & GRUB_PCI_ADDR_MEM_MASK;
   if (!framebuffer.base)

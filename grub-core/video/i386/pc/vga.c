@@ -48,7 +48,7 @@ static struct
   int back_page;
 } framebuffer;
 
-static unsigned char 
+static unsigned char
 grub_vga_set_mode (unsigned char mode)
 {
   struct grub_bios_int_registers regs;
@@ -182,10 +182,10 @@ grub_video_vga_setup (unsigned int width, unsigned int height,
 
   is_target = 1;
   err = grub_video_fb_set_active_render_target (framebuffer.render_target);
- 
+
   if (err)
     return err;
- 
+
   err = grub_video_fb_set_palette (0, GRUB_VIDEO_FBSTD_NUMCOLORS,
 				   grub_video_fbstd_colors);
 

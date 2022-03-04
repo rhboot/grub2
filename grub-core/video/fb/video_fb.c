@@ -754,7 +754,7 @@ grub_video_fb_unmap_color_int (struct grub_video_fbblit_info * source,
           *alpha = 0;
           return;
         }
-	
+
       /* If we have an out-of-bounds color, return transparent black.  */
       if (color > 255)
         {
@@ -1141,7 +1141,7 @@ grub_video_fb_scroll (grub_video_color_t color, int dx, int dy)
       /* If everything is aligned on 32-bit use 32-bit copy.  */
       if ((grub_addr_t) grub_video_fb_get_video_ptr (&target, src_x, src_y)
 	  % sizeof (grub_uint32_t) == 0
-	  && (grub_addr_t) grub_video_fb_get_video_ptr (&target, dst_x, dst_y) 
+	  && (grub_addr_t) grub_video_fb_get_video_ptr (&target, dst_x, dst_y)
 	  % sizeof (grub_uint32_t) == 0
 	  && linelen % sizeof (grub_uint32_t) == 0
 	  && linedelta % sizeof (grub_uint32_t) == 0)
@@ -1155,7 +1155,7 @@ grub_video_fb_scroll (grub_video_color_t color, int dx, int dy)
       else if ((grub_addr_t) grub_video_fb_get_video_ptr (&target, src_x, src_y)
 	       % sizeof (grub_uint16_t) == 0
 	       && (grub_addr_t) grub_video_fb_get_video_ptr (&target,
-							     dst_x, dst_y) 
+							     dst_x, dst_y)
 	       % sizeof (grub_uint16_t) == 0
 	       && linelen % sizeof (grub_uint16_t) == 0
 	       && linedelta % sizeof (grub_uint16_t) == 0)
@@ -1170,7 +1170,7 @@ grub_video_fb_scroll (grub_video_color_t color, int dx, int dy)
 	{
 	  grub_uint8_t *src, *dst;
 	  DO_SCROLL
-	}	
+	}
     }
 
   /* 4. Fill empty space with specified color.  In this implementation
@@ -1615,7 +1615,7 @@ grub_video_fb_setup (unsigned int mode_type, unsigned int mode_mask,
 	  framebuffer.render_target = framebuffer.back_target;
 	  return GRUB_ERR_NONE;
 	}
-      
+
       mode_info->mode_type &= ~(GRUB_VIDEO_MODE_TYPE_DOUBLE_BUFFERED
 				| GRUB_VIDEO_MODE_TYPE_UPDATING_SWAP);
 

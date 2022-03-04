@@ -167,7 +167,7 @@ enum
     GRUB_SM712_CR_SHADOW_VGA_VBLANK_START = 0x46,
     GRUB_SM712_CR_SHADOW_VGA_VBLANK_END = 0x47,
     GRUB_SM712_CR_SHADOW_VGA_VRETRACE_START = 0x48,
-    GRUB_SM712_CR_SHADOW_VGA_VRETRACE_END = 0x49,    
+    GRUB_SM712_CR_SHADOW_VGA_VRETRACE_END = 0x49,
     GRUB_SM712_CR_SHADOW_VGA_OVERFLOW = 0x4a,
     GRUB_SM712_CR_SHADOW_VGA_CELL_HEIGHT = 0x4b,
     GRUB_SM712_CR_SHADOW_VGA_HDISPLAY_END = 0x4c,
@@ -375,7 +375,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
   if (((class >> 16) & 0xffff) != GRUB_PCI_CLASS_SUBCLASS_VGA
       || pciid != GRUB_SM712_PCIID)
     return 0;
-  
+
   *found = 1;
 
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_ADDRESS_REG0);
@@ -471,7 +471,7 @@ grub_video_sm712_setup (unsigned int width, unsigned int height,
 
 #if !defined (TEST) && !defined(GENINIT)
   /* Prevent garbage from appearing on the screen.  */
-  grub_memset ((void *) framebuffer.cached_ptr, 0, 
+  grub_memset ((void *) framebuffer.cached_ptr, 0,
 	       framebuffer.mode_info.height * framebuffer.mode_info.pitch);
 #endif
 
@@ -482,7 +482,7 @@ grub_video_sm712_setup (unsigned int width, unsigned int height,
   grub_sm712_sr_write (0x2, 0x6b);
   grub_sm712_write_reg (0, GRUB_VGA_IO_PIXEL_MASK);
   grub_sm712_sr_write (GRUB_VGA_SR_RESET_ASYNC, GRUB_VGA_SR_RESET);
-  grub_sm712_write_reg (GRUB_VGA_IO_MISC_NEGATIVE_VERT_POLARITY 
+  grub_sm712_write_reg (GRUB_VGA_IO_MISC_NEGATIVE_VERT_POLARITY
 			| GRUB_VGA_IO_MISC_NEGATIVE_HORIZ_POLARITY
 			| GRUB_VGA_IO_MISC_UPPER_64K
 			| GRUB_VGA_IO_MISC_EXTERNAL_CLOCK_0
@@ -694,7 +694,7 @@ grub_video_sm712_setup (unsigned int width, unsigned int height,
   for (i = 0; i < ARRAY_SIZE (dda_lookups); i++)
     grub_sm712_write_dda_lookup (i, dda_lookups[i].compare, dda_lookups[i].dda,
 				 dda_lookups[i].vcentering);
-  
+
   /* Undocumented  */
   grub_sm712_cr_write (0, 0x9c);
   grub_sm712_cr_write (0, 0x9d);

@@ -233,7 +233,7 @@ grub_video_ieee1275_setup (unsigned int width, unsigned int height,
       /* TODO. */
       return grub_error (GRUB_ERR_IO, "can't set mode %dx%d", width, height);
     }
-  
+
   err = grub_video_ieee1275_fill_mode_info (dev, &framebuffer.mode_info);
   if (err)
     {
@@ -260,7 +260,7 @@ grub_video_ieee1275_setup (unsigned int width, unsigned int height,
 
   grub_video_ieee1275_set_palette (0, framebuffer.mode_info.number_of_colors,
 				   grub_video_fbstd_colors);
-    
+
   return err;
 }
 

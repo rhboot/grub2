@@ -466,7 +466,7 @@ grub_video_fbblit_replace_24bit_indexa (struct grub_video_fbblit_info *dst,
       for (i = 0; i < width; i++)
         {
 	  register grub_uint32_t col;
-	  if (*srcptr == 0xf0)	      
+	  if (*srcptr == 0xf0)
 	    col = palette[16];
 	  else
 	    col = palette[*srcptr & 0xf];
@@ -478,7 +478,7 @@ grub_video_fbblit_replace_24bit_indexa (struct grub_video_fbblit_info *dst,
 	  *dstptr++ = col >> 0;
 	  *dstptr++ = col >> 8;
 	  *dstptr++ = col >> 16;
-#endif	  
+#endif
 	  srcptr++;
         }
 
@@ -651,7 +651,7 @@ grub_video_fbblit_blend_24bit_indexa (struct grub_video_fbblit_info *dst,
       for (i = 0; i < width; i++)
         {
 	  register grub_uint32_t col;
-	  if (*srcptr != 0xf0)	      
+	  if (*srcptr != 0xf0)
 	    {
 	      col = palette[*srcptr & 0xf];
 #ifdef GRUB_CPU_WORDS_BIGENDIAN
@@ -662,7 +662,7 @@ grub_video_fbblit_blend_24bit_indexa (struct grub_video_fbblit_info *dst,
 	      *dstptr++ = col >> 0;
 	      *dstptr++ = col >> 8;
 	      *dstptr++ = col >> 16;
-#endif	  
+#endif
 	    }
 	  else
 	    dstptr += 3;

@@ -127,7 +127,7 @@ tga_load_palette (struct tga_data *data)
 
   if (len > sizeof (data->palette))
     len = sizeof (data->palette);
-  
+
   if (grub_file_read (data->file, &data->palette, len)
       != (grub_ssize_t) len)
     return grub_errno;

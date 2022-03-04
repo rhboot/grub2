@@ -219,7 +219,7 @@ grub_vbe_disable_mtrr (int mtrr)
 }
 
 /* Call VESA BIOS 0x4f09 to set palette data, return status.  */
-static grub_vbe_status_t 
+static grub_vbe_status_t
 grub_vbe_bios_set_palette_data (grub_uint32_t color_count,
 				grub_uint32_t start_index,
 				struct grub_vbe_palette_data *palette_data)
@@ -237,7 +237,7 @@ grub_vbe_bios_set_palette_data (grub_uint32_t color_count,
 }
 
 /* Call VESA BIOS 0x4f00 to get VBE Controller Information, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_controller_info (struct grub_vbe_info_block *ci)
 {
   struct grub_bios_int_registers regs;
@@ -251,7 +251,7 @@ grub_vbe_bios_get_controller_info (struct grub_vbe_info_block *ci)
 }
 
 /* Call VESA BIOS 0x4f01 to get VBE Mode Information, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_mode_info (grub_uint32_t mode,
 			     struct grub_vbe_mode_info_block *mode_info)
 {
@@ -285,7 +285,7 @@ grub_vbe_bios_set_mode (grub_uint32_t mode,
 }
 
 /* Call VESA BIOS 0x4f03 to return current VBE Mode, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_mode (grub_uint32_t *mode)
 {
   struct grub_bios_int_registers regs;
@@ -298,7 +298,7 @@ grub_vbe_bios_get_mode (grub_uint32_t *mode)
   return regs.eax & 0xffff;
 }
 
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_getset_dac_palette_width (int set, int *dac_mask_size)
 {
   struct grub_bios_int_registers regs;
@@ -346,7 +346,7 @@ grub_vbe_bios_get_memory_window (grub_uint32_t window,
 }
 
 /* Call VESA BIOS 0x4f06 to set scanline length (in bytes), return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_set_scanline_length (grub_uint32_t length)
 {
   struct grub_bios_int_registers regs;
@@ -354,14 +354,14 @@ grub_vbe_bios_set_scanline_length (grub_uint32_t length)
   regs.ecx = length;
   regs.eax = 0x4f06;
   /* BL = 2, Set Scan Line in Bytes.  */
-  regs.ebx = 0x0002;	
+  regs.ebx = 0x0002;
   regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
   grub_bios_interrupt (0x10, &regs);
   return regs.eax & 0xffff;
 }
 
 /* Call VESA BIOS 0x4f06 to return scanline length (in bytes), return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_scanline_length (grub_uint32_t *length)
 {
   struct grub_bios_int_registers regs;
@@ -377,7 +377,7 @@ grub_vbe_bios_get_scanline_length (grub_uint32_t *length)
 }
 
 /* Call VESA BIOS 0x4f07 to set display start, return status.  */
-static grub_vbe_status_t 
+static grub_vbe_status_t
 grub_vbe_bios_set_display_start (grub_uint32_t x, grub_uint32_t y)
 {
   struct grub_bios_int_registers regs;
@@ -390,7 +390,7 @@ grub_vbe_bios_set_display_start (grub_uint32_t x, grub_uint32_t y)
   regs.edx = y;
   regs.eax = 0x4f07;
   /* BL = 80h, Set Display Start during Vertical Retrace.  */
-  regs.ebx = 0x0080;	
+  regs.ebx = 0x0080;
   regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
   grub_bios_interrupt (0x10, &regs);
 
@@ -401,7 +401,7 @@ grub_vbe_bios_set_display_start (grub_uint32_t x, grub_uint32_t y)
 }
 
 /* Call VESA BIOS 0x4f07 to get display start, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_display_start (grub_uint32_t *x,
 				 grub_uint32_t *y)
 {
@@ -419,7 +419,7 @@ grub_vbe_bios_get_display_start (grub_uint32_t *x,
 }
 
 /* Call VESA BIOS 0x4f0a.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_pm_interface (grub_uint16_t *segment, grub_uint16_t *offset,
 				grub_uint16_t *length)
 {
@@ -896,7 +896,7 @@ vbe2videoinfo (grub_uint32_t mode,
     case GRUB_VBE_MEMORY_MODEL_YUV:
       mode_info->mode_type |= GRUB_VIDEO_MODE_TYPE_YUV;
       break;
-      
+
     case GRUB_VBE_MEMORY_MODEL_DIRECT_COLOR:
       mode_info->mode_type |= GRUB_VIDEO_MODE_TYPE_RGB;
       break;
@@ -923,10 +923,10 @@ vbe2videoinfo (grub_uint32_t mode,
       break;
     case 8:
       mode_info->bytes_per_pixel = 1;
-      break;  
+      break;
     case 4:
       mode_info->bytes_per_pixel = 0;
-      break;  
+      break;
     }
 
   if (controller_info.version >= 0x300)
@@ -976,7 +976,7 @@ grub_video_vbe_iterate (int (*hook) (const struct grub_video_mode_info *info, vo
 
 static grub_err_t
 grub_video_vbe_setup (unsigned int width, unsigned int height,
-                      grub_video_mode_type_t mode_type, 
+                      grub_video_mode_type_t mode_type,
 		      grub_video_mode_type_t mode_mask)
 {
   grub_uint16_t *p;
@@ -1193,7 +1193,7 @@ grub_video_vbe_print_adapter_specific_info (void)
 		controller_info.version & 0xFF,
 		controller_info.oem_software_rev >> 8,
 		controller_info.oem_software_rev & 0xFF);
-  
+
   /* The total_memory field is in 64 KiB units.  */
   grub_printf_ (N_("              total memory: %d KiB\n"),
 		(controller_info.total_memory << 6));

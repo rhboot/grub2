@@ -354,11 +354,11 @@ grub_video_cirrus_setup (unsigned int width, unsigned int height,
     grub_uint8_t sr_ext = 0, hidden_dac = 0;
 
     grub_vga_set_geometry (&config, grub_vga_cr_write);
-    
+
     grub_vga_gr_write (GRUB_VGA_GR_MODE_256_COLOR | GRUB_VGA_GR_MODE_READ_MODE1,
 		       GRUB_VGA_GR_MODE);
     grub_vga_gr_write (GRUB_VGA_GR_GR6_GRAPHICS_MODE, GRUB_VGA_GR_GR6);
-    
+
     grub_vga_sr_write (GRUB_VGA_SR_MEMORY_MODE_NORMAL, GRUB_VGA_SR_MEMORY_MODE);
 
     grub_vga_cr_write ((config.pitch >> CIRRUS_CR_EXTENDED_DISPLAY_PITCH_SHIFT)
