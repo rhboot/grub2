@@ -278,12 +278,12 @@ get_btrfs_fs_prefix (const char *mount_path)
   char *ret = NULL;
 
   fd = open (mount_path, O_RDONLY);
-	  
+
   if (fd < 0)
     return NULL;
   memset (&args, 0, sizeof(args));
   args.objectid = GRUB_BTRFS_TREE_ROOT_OBJECTID;
-  
+
   if (ioctl (fd, BTRFS_IOC_INO_LOOKUP, &args) < 0)
     goto fail;
   tree_id = args.treeid;
@@ -620,7 +620,7 @@ get_mdadm_uuid (const char *os_dev)
       if (strncmp (buf, "MD_UUID=", sizeof ("MD_UUID=") - 1) == 0)
 	{
 	  char *name_start, *ptri, *ptro;
-	  
+
 	  free (name);
 	  name_start = buf + sizeof ("MD_UUID=") - 1;
 	  ptro = name = xmalloc (strlen (name_start) + 1);
@@ -708,7 +708,7 @@ grub_util_is_imsm (const char *os_dev)
 		       sizeof ("MD_METADATA=imsm") - 1) == 0)
 	    {
 	      is_imsm = 1;
-	      grub_util_info ("%s is imsm", dev);	      
+	      grub_util_info ("%s is imsm", dev);
 	      break;
 	    }
 	}

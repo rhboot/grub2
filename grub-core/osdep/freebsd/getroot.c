@@ -85,7 +85,7 @@ grub_util_get_geom_abstraction (const char *dev)
     {
       struct ggeom *geom;
       LIST_FOREACH (geom, &class->lg_geom, lg_geom)
-	{ 
+	{
 	  struct gprovider *provider;
 	  LIST_FOREACH (provider, &geom->lg_provider, lg_provider)
 	    if (strcmp (provider->lg_name, name) == 0)
@@ -167,7 +167,7 @@ grub_util_pull_device_os (const char *os_dev,
 	  {
 	    struct ggeom *geom;
 	    LIST_FOREACH (geom, &class->lg_geom, lg_geom)
-	      { 
+	      {
 		struct gprovider *provider;
 		LIST_FOREACH (provider, &geom->lg_provider, lg_provider)
 		  if (strcmp (provider->lg_name, name) == 0)
@@ -261,7 +261,7 @@ grub_util_get_grub_dev_os (const char *os_dev)
 	  {
 	    struct ggeom *geom;
 	    LIST_FOREACH (geom, &class->lg_geom, lg_geom)
-	      { 
+	      {
 		struct gprovider *provider;
 		LIST_FOREACH (provider, &geom->lg_provider, lg_provider)
 		  if (strcmp (provider->lg_name, name) == 0)
@@ -289,7 +289,7 @@ grub_util_get_grub_dev_os (const char *os_dev)
       }
       break;
 
-    default:  
+    default:
       break;
     }
 
@@ -325,7 +325,7 @@ grub_util_follow_gpart_up (const char *name, grub_disk_addr_t *off_out, char **n
     grub_util_error ("%s", _("couldn't find geom `part' class"));
 
   LIST_FOREACH (geom, &class->lg_geom, lg_geom)
-    { 
+    {
       struct gprovider *provider;
       LIST_FOREACH (provider, &geom->lg_provider, lg_provider)
 	if (strcmp (provider->lg_name, name) == 0)

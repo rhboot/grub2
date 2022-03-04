@@ -119,16 +119,16 @@ grub_guess_root_devices (const char *dir)
     {
       free (dirwindows);
       grub_util_info ("can't get volume path name: %d", (int) GetLastError ());
-      return 0;      
+      return 0;
     }
 
   if (!mntpointwindows[0])
     {
       free (dirwindows);
       free (mntpointwindows);
-      return 0;      
+      return 0;
     }
-  
+
   for (ptr = mntpointwindows; *ptr; ptr++);
   if (*(ptr - 1) != '\\')
     {
@@ -255,7 +255,7 @@ grub_util_part_to_disk (const char *os_dev,
       free (name);
       return ret;
     }
-  
+
   CloseHandle (hd);
 
   *is_part = 1;
@@ -323,7 +323,7 @@ grub_util_find_partition_start_os (const char *os_dev)
       free (name);
       return 0;
     }
-  
+
   CloseHandle (hd);
   free (name);
   return exts.Extents[0].StartingOffset.QuadPart / 512;

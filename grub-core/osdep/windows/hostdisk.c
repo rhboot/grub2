@@ -351,7 +351,7 @@ grub_canonicalize_file_name (const char *path)
     return NULL;
   ret = grub_util_tchar_to_utf8 (windows_path);
   free (windows_path);
- 
+
   return ret;
 }
 
@@ -359,7 +359,7 @@ void
 grub_util_mkdir (const char *dir)
 {
   LPTSTR windows_name;
-      
+
   windows_name = grub_util_get_windows_path (dir);
   CreateDirectory (windows_name, NULL);
   free (windows_name);
@@ -522,7 +522,7 @@ get_temp_name (void)
 	*ptr++ = '0' + r;
       else
 	*ptr++ = 'a' + (r - 10);
-    }  
+    }
   *ptr = '\0';
 
   return grub_util_tchar_to_utf8 (rt);
@@ -606,7 +606,7 @@ grub_util_get_mtime (const char *path)
   us_ul.LowPart = attr.ftLastWriteTime.dwLowDateTime;
   us_ul.HighPart = attr.ftLastWriteTime.dwHighDateTime;
 
-  return (us_ul.QuadPart / 10000000) 
+  return (us_ul.QuadPart / 10000000)
     - 86400ULL * 365 * (1970 - 1601)
     - 86400ULL * ((1970 - 1601) / 4) + 86400ULL * ((1970 - 1601) / 100);
 }

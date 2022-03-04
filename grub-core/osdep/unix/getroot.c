@@ -257,7 +257,7 @@ grub_util_find_root_devices_from_poolname (char *poolname)
       ret = getline (&line, &len, fp);
       if (ret == -1)
 	break;
-	
+
       if (sscanf (line, " %s %256s %256s %256s %256s %256s",
 		  name, state, readlen, writelen, cksum, notes) >= 5)
 	switch (st)
@@ -305,7 +305,7 @@ grub_util_find_root_devices_from_poolname (char *poolname)
 	      }
 	    break;
 	  }
-	
+
       free (line);
     }
 
@@ -449,7 +449,7 @@ grub_find_device (const char *dir, dev_t dev)
 
 	  cwd = xgetcwd ();
 	  res = xmalloc (strlen (cwd) + strlen (ent->d_name) + 3);
-	  sprintf (res, 
+	  sprintf (res,
 #if defined(__NetBSD__) || defined(__OpenBSD__)
 		   /* Convert this block device to its character (raw) device.  */
 		   "%s/r%s",

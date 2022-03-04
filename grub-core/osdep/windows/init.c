@@ -164,7 +164,7 @@ grub_util_host_init (int *argc __attribute__ ((unused)),
   *argv = xcalloc (*argc + 1, sizeof (argv[0]));
 
   for (i = 0; i < *argc; i++)
-    (*argv)[i] = grub_util_tchar_to_utf8 (targv[i]); 
+    (*argv)[i] = grub_util_tchar_to_utf8 (targv[i]);
   (*argv)[i] = NULL;
 #else
 #error "Unsupported TCHAR size"

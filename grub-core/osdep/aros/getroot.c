@@ -193,7 +193,7 @@ grub_guess_root_devices (const char *path)
 
   os_dev = xmalloc (2 * sizeof (os_dev[0]));
   sz = strlen (nm);
-  
+
   os_dev[0] = xmalloc (sz + 4);
   os_dev[0][0] = '/';
   os_dev[0][1] = '/';

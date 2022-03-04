@@ -193,7 +193,7 @@ grub_util_find_partition_start_os (const char *dev)
     p_index = dev[strlen(dev) - 1] - 'a';
   else
     p_index = -1;
-  
+
   if (p_index >= label.d_npartitions || p_index < 0)
     {
       grub_error (GRUB_ERR_BAD_DEVICE,

@@ -104,14 +104,14 @@ get_platform (void)
     {
       platform = PLAT_BIOS;
       return;
-    }    
+    }
   platform = PLAT_EFI;
   return;
 }
 
 const char *
 grub_install_get_default_x86_platform (void)
-{ 
+{
   SYSTEM_INFO si;
 
   get_platform ();

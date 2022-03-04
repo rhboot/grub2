@@ -164,13 +164,13 @@ grub_install_register_efi (grub_device_t efidir_grub_dev,
     ret = grub_util_exec ((const char * []){ "efibootmgr", "-q",
 	  "-c", "-d", efidir_disk,
 	  "-p", efidir_part_str, "-w",
-	  "-L", efi_distributor, "-l", 
+	  "-L", efi_distributor, "-l",
 	  efifile_path, NULL });
   else
     ret = grub_util_exec ((const char * []){ "efibootmgr",
 	  "-c", "-d", efidir_disk,
 	  "-p", efidir_part_str, "-w",
-	  "-L", efi_distributor, "-l", 
+	  "-L", efi_distributor, "-l",
 	  efifile_path, NULL });
   free (efidir_part_str);
   return ret;
@@ -235,7 +235,7 @@ grub_install_sgi_setup (const char *install_device,
 			const char *imgfile, const char *destname)
 {
   grub_util_exec ((const char * []){ "dvhtool", "-d",
-	install_device, "--unix-to-vh", 
+	install_device, "--unix-to-vh",
 	imgfile, destname, NULL });
   grub_util_warn ("%s", _("You will have to set `SystemPartition' and `OSLoader' manually."));
 }

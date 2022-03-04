@@ -128,7 +128,7 @@ grub_make_system_path_relative_to_its_root (const char *path)
   free (buf);
   buf3 = xstrdup (buf2 + offset);
   buf2[offset] = 0;
-  
+
   free (buf2);
 
   /* Remove trailing slashes, return empty string if root directory.  */

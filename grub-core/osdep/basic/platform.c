@@ -26,7 +26,7 @@ grub_install_get_default_arm_platform (void)
 
 const char *
 grub_install_get_default_x86_platform (void)
-{ 
+{
   return "i386-pc";
 }
 

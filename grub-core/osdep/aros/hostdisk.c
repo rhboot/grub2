@@ -572,7 +572,7 @@ get_temp_name (void)
   static int ctr = 0;
   char *t;
   struct stat st;
-  
+
   while (1)
     {
       t = xasprintf ("T:grub.%d.%d.%d.%d", (int) getpid (), (int) getppid (),

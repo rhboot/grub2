@@ -52,7 +52,7 @@ grub_util_get_fd_size_os (grub_util_fd_t fd,
 {
   device_geometry part;
   unsigned lg;
-  if (ioctl (fd, B_GET_GEOMETRY, &part, sizeof (part)) < 0)  
+  if (ioctl (fd, B_GET_GEOMETRY, &part, sizeof (part)) < 0)
     return -1;
   for (lg = 0; (1 << lg) < part.bytes_per_sector; lg++);
   if (log_secsize)

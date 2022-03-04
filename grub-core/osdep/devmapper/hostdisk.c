@@ -122,7 +122,7 @@ grub_util_get_dm_node_linear_info (dev_t dev,
       dmt = dm_task_create(DM_DEVICE_TABLE);
       if (!dmt)
 	break;
-      
+
       if (! (dm_task_set_major_minor (dmt, major, minor, 0)))
 	{
 	  dm_task_destroy (dmt);

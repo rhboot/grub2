@@ -88,7 +88,7 @@ grub_util_exec_redirect_all (const char *const *argv, const char *stdin_file,
     {
       int fd;
       /* Child.  */
-      
+
       /* Close fd's.  */
 #ifdef GRUB_UTIL
       grub_util_devmapper_cleanup ();

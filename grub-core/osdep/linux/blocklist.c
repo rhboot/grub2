@@ -95,7 +95,7 @@ grub_install_get_blocklist (grub_device_t root_dev,
 	  if (ioctl (fd, FIBMAP, &blk) < 0)
 	    grub_util_error (_("can't retrieve blocklists: %s"),
 			     strerror (errno));
-	    
+
 	  rest = core_size - ((i * mul) << GRUB_DISK_SECTOR_BITS);
 	  if (rest <= 0)
 	    break;
