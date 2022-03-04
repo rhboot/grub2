@@ -117,7 +117,7 @@ grub_cpio_get_link_target (struct grub_archelp_data *data)
   if (!ret)
     return NULL;
 
-  err = grub_disk_read (data->disk, 0, data->dofs, data->size, 
+  err = grub_disk_read (data->disk, 0, data->dofs, data->size,
 			ret);
   if (err)
     {
