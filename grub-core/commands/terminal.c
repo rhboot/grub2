@@ -199,9 +199,9 @@ handle_command (int argc, char **args, struct abstract_terminal **enabled,
 
          grub_list_remove (GRUB_AS_LIST (term));
          grub_list_push (GRUB_AS_LIST_P (enabled), GRUB_AS_LIST (term));
-       }       
+       }
     }
-  
+
   {
     struct abstract_terminal *next;
     for (term = *enabled; term; term = next)

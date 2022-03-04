@@ -78,7 +78,7 @@ static inline grub_uint32_t
 skip_name_string (const grub_uint8_t *ptr, const grub_uint8_t *end)
 {
   const grub_uint8_t *ptr0 = ptr;
-  
+
   while (ptr < end && (*ptr == '^' || *ptr == '\\'))
     ptr++;
   switch (*ptr)
@@ -231,7 +231,7 @@ get_sleep_type (grub_uint8_t *table, grub_uint8_t *ptr, grub_uint8_t *end,
 		grub_uint8_t *scope, int scope_len)
 {
   grub_uint8_t *prev = table;
-  
+
   if (!ptr)
     ptr = table + sizeof (struct grub_acpi_table_header);
   while (ptr < end && prev < ptr)
@@ -337,7 +337,7 @@ get_sleep_type (grub_uint8_t *table, grub_uint8_t *ptr, grub_uint8_t *end,
 	  }
 	default:
 	  grub_printf ("Unknown opcode 0x%x\n", *ptr);
-	  return -1;	  
+	  return -1;
 	}
     }
 

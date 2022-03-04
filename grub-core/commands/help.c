@@ -64,11 +64,11 @@ grub_cmd_help (grub_extcmd_context_t ctxt __attribute__ ((unused)), int argc,
 
 	      stringwidth = 0;
 
-	      while (unicode_last_screen_position < unicode_last_position && 
+	      while (unicode_last_screen_position < unicode_last_position &&
 		     stringwidth < ((grub_term_width (term) / 2) - 2))
 		{
 		  struct grub_unicode_glyph glyph;
-		  unicode_last_screen_position 
+		  unicode_last_screen_position
 		    += grub_unicode_aglomerate_comb (unicode_last_screen_position,
 						     unicode_last_position
 						     - unicode_last_screen_position,
@@ -88,7 +88,7 @@ grub_cmd_help (grub_extcmd_context_t ctxt __attribute__ ((unused)), int argc,
 	    if (cnt % 2)
 	      grub_printf ("\n");
 	    cnt++;
-	  
+
 	    grub_free (command_help);
 	    grub_free (unicode_command_help);
 	  }

@@ -257,8 +257,8 @@ grub_cmd_legacy_source (struct grub_command *cmd,
 }
 
 static enum
-  { 
-    GUESS_IT, LINUX, MULTIBOOT, KFREEBSD, KNETBSD, KOPENBSD 
+  {
+    GUESS_IT, LINUX, MULTIBOOT, KFREEBSD, KNETBSD, KOPENBSD
   } kernel_type;
 
 static grub_err_t
@@ -273,7 +273,7 @@ grub_cmd_legacy_kernel (struct grub_command *mycmd __attribute__ ((unused)),
   char **cutargs;
   int cutargc;
   grub_err_t err = GRUB_ERR_NONE;
-  
+
   for (i = 0; i < 2; i++)
     {
       /* FIXME: really support this.  */
@@ -410,7 +410,7 @@ grub_cmd_legacy_kernel (struct grub_command *mycmd __attribute__ ((unused)),
 	  if (dev)
 	    grub_device_close (dev);
 	}
-	
+
 	/* k*BSD didn't really work well with grub-legacy.  */
 	if (kernel_type == GUESS_IT || kernel_type == KFREEBSD)
 	  {
@@ -632,7 +632,7 @@ check_password_md5_real (const char *entered,
   digest = GRUB_MD_MD5->read (ctx);
   GRUB_MD_MD5->final (ctx);
   grub_memcpy (alt_result, digest, MD5_HASHLEN);
-  
+
   GRUB_MD_MD5->init (ctx);
   GRUB_MD_MD5->write (ctx, entered, enteredlen);
   GRUB_MD_MD5->write (ctx, pw->salt, pw->saltlen); /* include the $1$ header */
@@ -654,7 +654,7 @@ check_password_md5_real (const char *entered,
 	GRUB_MD_MD5->write (ctx, entered, enteredlen);
       else
 	GRUB_MD_MD5->write (ctx, alt_result, 16);
-      
+
       if (i % 3 != 0)
 	GRUB_MD_MD5->write (ctx, pw->salt + 3, pw->saltlen - 3);
 

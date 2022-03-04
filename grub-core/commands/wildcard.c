@@ -444,7 +444,7 @@ check_file_iter (const char *name, const struct grub_dirhook_info *info,
       ctx->found = 1;
       return 1;
     }
-  
+
   return 0;
 }
 

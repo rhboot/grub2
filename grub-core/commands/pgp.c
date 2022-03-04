@@ -74,7 +74,7 @@ read_packet_header (grub_file_t sig, grub_uint8_t *out_type, grub_size_t *len)
   if (type == 0)
     {
       *out_type = 0xfe;
-      return 0;      
+      return 0;
     }
 
   if (!(type & 0x80))
@@ -166,7 +166,7 @@ struct
   int (*pad) (gcry_mpi_t *hmpi, grub_uint8_t *hval,
 	      const gcry_md_spec_t *hash, struct grub_public_subkey *sk);
   const char *module;
-} pkalgos[] = 
+} pkalgos[] =
   {
     [1] = { "rsa", 1, 2, &grub_crypto_pk_rsa, rsa_pad, "gcry_rsa" },
     [3] = { "rsa", 1, 2, &grub_crypto_pk_rsa, rsa_pad, "gcry_rsa" },
@@ -320,7 +320,7 @@ grub_load_public_key (grub_file_t f)
 	      grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
 	      break;
 	    }
-	  
+
 	  lb = (grub_be_to_cpu16 (l) + GRUB_CHAR_BIT - 1) / GRUB_CHAR_BIT;
 	  if (lb > READBUF_SIZE - sizeof (grub_uint16_t))
 	    {
@@ -335,7 +335,7 @@ grub_load_public_key (grub_file_t f)
 	  grub_memcpy (buffer, &l, sizeof (l));
 
 	  GRUB_MD_SHA1->write (fingerprint_context, buffer, lb + sizeof (grub_uint16_t));
- 
+
 	  if (gcry_mpi_scan (&sk->mpis[i], GCRYMPI_FMT_PGP,
 			     buffer, lb + sizeof (grub_uint16_t), 0))
 	    {
@@ -479,7 +479,7 @@ grub_verify_signature_init (struct grub_pubkey_context *ctxt, grub_file_t sig)
   h = ctxt->v4.hash;
   t = ctxt->v4.type;
   pk = ctxt->v4.pkeyalgo;
-  
+
   if (t != 0)
     return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
 
@@ -922,7 +922,7 @@ grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)),
   return grub_strdup (sec ? "enforce" : "no");
 }
 
-static grub_ssize_t 
+static grub_ssize_t
 pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
 {
   grub_memcpy (buf, (grub_uint8_t *) file->data + file->offset, len);
@@ -931,7 +931,7 @@ pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
 
 
 /* Filesystem descriptor.  */
-struct grub_fs pseudo_fs = 
+struct grub_fs pseudo_fs =
   {
     .name = "pseudo",
     .fs_read = pseudo_read

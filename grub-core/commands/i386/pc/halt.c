@@ -59,7 +59,7 @@ grub_halt (int no_apm)
   regs.ebx = 0;
   regs.flags = GRUB_CPU_INT_FLAGS_DEFAULT;
   grub_bios_interrupt (0x15, &regs);
-  
+
   if (regs.flags & GRUB_CPU_INT_FLAGS_CARRY)
     stop ();
 

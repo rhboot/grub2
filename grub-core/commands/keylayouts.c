@@ -35,7 +35,7 @@ static struct grub_keyboard_layout layout_us = {
     /* Keyboard errors. Handled by driver.  */
     /* 0x00 */   0,   0,   0,   0,
 
-    /* 0x04 */ 'a',  'b',  'c',  'd', 
+    /* 0x04 */ 'a',  'b',  'c',  'd',
     /* 0x08 */ 'e',  'f',  'g',  'h',  'i', 'j', 'k', 'l',
     /* 0x10 */ 'm',  'n',  'o',  'p',  'q', 'r', 's', 't',
     /* 0x18 */ 'u',  'v',  'w',  'x',  'y', 'z', '1', '2',
@@ -43,11 +43,11 @@ static struct grub_keyboard_layout layout_us = {
     /* 0x28 */ '\n', GRUB_TERM_ESC, GRUB_TERM_BACKSPACE, GRUB_TERM_TAB, ' ', '-', '=', '[',
     /* According to usage table 0x31 should be mapped to '/'
        but testing with real keyboard shows that 0x32 is remapped to '/'.
-       Map 0x31 to 0. 
+       Map 0x31 to 0.
     */
     /* 0x30 */ ']',   0,   '\\', ';', '\'', '`', ',', '.',
     /* 0x39 is CapsLock. Handled by driver.  */
-    /* 0x38 */ '/',   0,   GRUB_TERM_KEY_F1, GRUB_TERM_KEY_F2, 
+    /* 0x38 */ '/',   0,   GRUB_TERM_KEY_F1, GRUB_TERM_KEY_F2,
     /* 0x3c */ GRUB_TERM_KEY_F3,     GRUB_TERM_KEY_F4,
     /* 0x3e */ GRUB_TERM_KEY_F5,     GRUB_TERM_KEY_F6,
     /* 0x40 */ GRUB_TERM_KEY_F7,     GRUB_TERM_KEY_F8,
@@ -56,16 +56,16 @@ static struct grub_keyboard_layout layout_us = {
     /* PrtScr and ScrollLock. Not handled yet.  */
     /* 0x46 */ 0,                    0,
     /* 0x48 is Pause. Not handled yet.  */
-    /* 0x48 */ 0,                    GRUB_TERM_KEY_INSERT, 
+    /* 0x48 */ 0,                    GRUB_TERM_KEY_INSERT,
     /* 0x4a */ GRUB_TERM_KEY_HOME,   GRUB_TERM_KEY_PPAGE,
     /* 0x4c */ GRUB_TERM_KEY_DC,     GRUB_TERM_KEY_END,
     /* 0x4e */ GRUB_TERM_KEY_NPAGE,  GRUB_TERM_KEY_RIGHT,
     /* 0x50 */ GRUB_TERM_KEY_LEFT,   GRUB_TERM_KEY_DOWN,
     /* 0x53 is NumLock. Handled by driver.  */
     /* 0x52 */ GRUB_TERM_KEY_UP,     0,
-    /* 0x54 */ '/',                  '*', 
+    /* 0x54 */ '/',                  '*',
     /* 0x56 */ '-',                  '+',
-    /* 0x58 */ '\n',                 GRUB_TERM_KEY_END, 
+    /* 0x58 */ '\n',                 GRUB_TERM_KEY_END,
     /* 0x5a */ GRUB_TERM_KEY_DOWN,   GRUB_TERM_KEY_NPAGE,
     /* 0x5c */ GRUB_TERM_KEY_LEFT,   GRUB_TERM_KEY_CENTER,
     /* 0x5e */ GRUB_TERM_KEY_RIGHT,  GRUB_TERM_KEY_HOME,
@@ -77,7 +77,7 @@ static struct grub_keyboard_layout layout_us = {
     /* Keyboard errors. Handled by driver.  */
     /* 0x00 */   0,   0,   0,   0,
 
-    /* 0x04 */ 'A',  'B',  'C',  'D', 
+    /* 0x04 */ 'A',  'B',  'C',  'D',
     /* 0x08 */ 'E',  'F',  'G',  'H',  'I', 'J', 'K', 'L',
     /* 0x10 */ 'M',  'N',  'O',  'P',  'Q', 'R', 'S', 'T',
     /* 0x18 */ 'U',  'V',  'W',  'X',  'Y', 'Z', '!', '@',
@@ -87,27 +87,27 @@ static struct grub_keyboard_layout layout_us = {
     /* 0x2c */ ' '  | GRUB_TERM_SHIFT,  '_', '+', '{',
     /* According to usage table 0x31 should be mapped to '/'
        but testing with real keyboard shows that 0x32 is remapped to '/'.
-       Map 0x31 to 0. 
+       Map 0x31 to 0.
     */
     /* 0x30 */ '}',  0,    '|',  ':',  '"', '~', '<', '>',
     /* 0x39 is CapsLock. Handled by driver.  */
     /* 0x38 */ '?',  0,
     /* 0x3a */ GRUB_TERM_KEY_F1 | GRUB_TERM_SHIFT,
-    /* 0x3b */ GRUB_TERM_KEY_F2 | GRUB_TERM_SHIFT, 
-    /* 0x3c */ GRUB_TERM_KEY_F3 | GRUB_TERM_SHIFT, 
-    /* 0x3d */ GRUB_TERM_KEY_F4 | GRUB_TERM_SHIFT, 
-    /* 0x3e */ GRUB_TERM_KEY_F5 | GRUB_TERM_SHIFT, 
-    /* 0x3f */ GRUB_TERM_KEY_F6 | GRUB_TERM_SHIFT, 
-    /* 0x40 */ GRUB_TERM_KEY_F7 | GRUB_TERM_SHIFT, 
-    /* 0x41 */ GRUB_TERM_KEY_F8 | GRUB_TERM_SHIFT, 
-    /* 0x42 */ GRUB_TERM_KEY_F9 | GRUB_TERM_SHIFT, 
-    /* 0x43 */ GRUB_TERM_KEY_F10 | GRUB_TERM_SHIFT, 
-    /* 0x44 */ GRUB_TERM_KEY_F11 | GRUB_TERM_SHIFT, 
-    /* 0x45 */ GRUB_TERM_KEY_F12 | GRUB_TERM_SHIFT, 
+    /* 0x3b */ GRUB_TERM_KEY_F2 | GRUB_TERM_SHIFT,
+    /* 0x3c */ GRUB_TERM_KEY_F3 | GRUB_TERM_SHIFT,
+    /* 0x3d */ GRUB_TERM_KEY_F4 | GRUB_TERM_SHIFT,
+    /* 0x3e */ GRUB_TERM_KEY_F5 | GRUB_TERM_SHIFT,
+    /* 0x3f */ GRUB_TERM_KEY_F6 | GRUB_TERM_SHIFT,
+    /* 0x40 */ GRUB_TERM_KEY_F7 | GRUB_TERM_SHIFT,
+    /* 0x41 */ GRUB_TERM_KEY_F8 | GRUB_TERM_SHIFT,
+    /* 0x42 */ GRUB_TERM_KEY_F9 | GRUB_TERM_SHIFT,
+    /* 0x43 */ GRUB_TERM_KEY_F10 | GRUB_TERM_SHIFT,
+    /* 0x44 */ GRUB_TERM_KEY_F11 | GRUB_TERM_SHIFT,
+    /* 0x45 */ GRUB_TERM_KEY_F12 | GRUB_TERM_SHIFT,
     /* PrtScr and ScrollLock. Not handled yet.  */
     /* 0x46 */ 0,                    0,
     /* 0x48 is Pause. Not handled yet.  */
-    /* 0x48 */ 0,                    GRUB_TERM_KEY_INSERT | GRUB_TERM_SHIFT, 
+    /* 0x48 */ 0,                    GRUB_TERM_KEY_INSERT | GRUB_TERM_SHIFT,
     /* 0x4a */ GRUB_TERM_KEY_HOME | GRUB_TERM_SHIFT,
     /* 0x4b */ GRUB_TERM_KEY_PPAGE | GRUB_TERM_SHIFT,
     /* 0x4c */ GRUB_TERM_KEY_DC | GRUB_TERM_SHIFT,
@@ -118,7 +118,7 @@ static struct grub_keyboard_layout layout_us = {
     /* 0x51 */ GRUB_TERM_KEY_DOWN | GRUB_TERM_SHIFT,
     /* 0x53 is NumLock. Handled by driver.  */
     /* 0x52 */ GRUB_TERM_KEY_UP | GRUB_TERM_SHIFT,     0,
-    /* 0x54 */ '/',                    '*', 
+    /* 0x54 */ '/',                    '*',
     /* 0x56 */ '-',                    '+',
     /* 0x58 */ '\n' | GRUB_TERM_SHIFT, '1', '2', '3', '4', '5','6', '7',
     /* 0x60 */ '8', '9', '0', '.', '|'
@@ -148,7 +148,7 @@ map_key_core (int code, int status, int *alt_gr_consumed)
       else if (grub_current_layout->keyboard_map_l3[code])
 	{
 	  *alt_gr_consumed = 1;
-	  return grub_current_layout->keyboard_map_l3[code];  
+	  return grub_current_layout->keyboard_map_l3[code];
 	}
     }
   if (status & (GRUB_TERM_STATUS_LSHIFT | GRUB_TERM_STATUS_RSHIFT))
@@ -172,12 +172,12 @@ grub_term_map_key (grub_keyboard_key_t code, int status)
     }
 
   key = map_key_core (code, status, &alt_gr_consumed);
-  
+
   if (key == 0 || key == GRUB_TERM_SHIFT) {
     grub_printf ("Unknown key 0x%x detected\n", code);
     return GRUB_TERM_NO_KEY;
   }
-  
+
   if (status & GRUB_TERM_STATUS_CAPS)
     {
       if ((key >= 'a') && (key <= 'z'))
@@ -185,8 +185,8 @@ grub_term_map_key (grub_keyboard_key_t code, int status)
       else if ((key >= 'A') && (key <= 'Z'))
 	key += 'a' - 'A';
     }
-  
-  if ((status & GRUB_TERM_STATUS_LALT) || 
+
+  if ((status & GRUB_TERM_STATUS_LALT) ||
       ((status & GRUB_TERM_STATUS_RALT) && !alt_gr_consumed))
     key |= GRUB_TERM_ALT;
   if (status & (GRUB_TERM_STATUS_LCTRL | GRUB_TERM_STATUS_RCTRL))
@@ -212,7 +212,7 @@ grub_cmd_keymap (struct grub_command *cmd __attribute__ ((unused)),
     {
       const char *prefix = grub_env_get ("prefix");
       if (!prefix)
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("variable `%s' isn't set"), "prefix");	
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("variable `%s' isn't set"), "prefix");
       filename = grub_xasprintf ("%s/layouts/%s.gkb", prefix, argv[0]);
       if (!filename)
 	return grub_errno;

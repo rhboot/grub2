@@ -162,7 +162,7 @@ grub_cmd_password (grub_command_t cmd __attribute__ ((unused)),
       return grub_errno;
     }
   ptr = ptr2 + 1;
-  ptr2 += grub_strlen (ptr2); 
+  ptr2 += grub_strlen (ptr2);
   while (ptr < ptr2)
     {
       int hex1, hex2;

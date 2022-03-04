@@ -44,7 +44,7 @@ grub_cmd_lsspd (grub_command_t cmd __attribute__ ((unused)),
     }
   grub_printf_ (N_("CS5536 at %d:%d.%d\n"), grub_pci_get_bus (dev),
 		grub_pci_get_device (dev), grub_pci_get_function (dev));
-  
+
   err = grub_cs5536_init_smbus (dev, 0x7fff, &smbbase);
   if (err)
     return err;

@@ -31,7 +31,7 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static const char *modnames_def[] = { 
+static const char *modnames_def[] = {
   /* FIXME: autogenerate this.  */
 #if defined (__i386__) || defined (__x86_64__) || defined (GRUB_MACHINE_MIPS_LOONGSON)
   "pata", "ahci", "usbms", "ohci", "uhci", "ehci"

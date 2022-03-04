@@ -104,7 +104,7 @@ grub_cmd_cat (grub_extcmd_context_t ctxt, int argc, char **args)
 	       || grub_isspace (code)) && code != '\r')
 	    {
 	      grub_printf ("%C", code);
-	      count = 0; 
+	      count = 0;
 	      code = 0;
 	      utcount = 0;
 	      continue;
@@ -113,7 +113,7 @@ grub_cmd_cat (grub_extcmd_context_t ctxt, int argc, char **args)
 	  if (dos && code == '\r')
 	    {
 	      is_0d = 1;
-	      count = 0; 
+	      count = 0;
 	      code = 0;
 	      utcount = 0;
 	      continue;
@@ -123,7 +123,7 @@ grub_cmd_cat (grub_extcmd_context_t ctxt, int argc, char **args)
 	  for (j = 0; j < utcount; j++)
 	    grub_printf ("<%x>", (unsigned int) utbuf[j]);
 	  grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
-	  count = 0; 
+	  count = 0;
 	  code = 0;
 	  utcount = 0;
 	}

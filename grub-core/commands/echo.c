@@ -119,7 +119,7 @@ grub_cmd_echo (grub_extcmd_context_t ctxt, int argc, char **args)
   if (newline)
     grub_printf ("\n");
 
-  grub_refresh ();  
+  grub_refresh ();
 
   return 0;
 }

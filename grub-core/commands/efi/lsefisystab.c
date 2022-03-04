@@ -73,7 +73,7 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
     char *vendor;
     grub_uint16_t *vendor_utf16;
     grub_printf ("Vendor: ");
-    
+
     for (vendor_utf16 = st->firmware_vendor; *vendor_utf16; vendor_utf16++);
     /* Allocate extra 3 bytes to simplify math. */
     vendor = grub_calloc (4, vendor_utf16 - st->firmware_vendor + 1);
@@ -100,7 +100,7 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
 		   t->vendor_guid.data3);
       for (j = 0; j < 8; j++)
 	grub_printf ("%02x", t->vendor_guid.data4[j]);
-      
+
       for (j = 0; j < ARRAY_SIZE (guid_mappings); j++)
 	if (grub_memcmp (&guid_mappings[j].guid, &t->vendor_guid,
 			 sizeof (grub_efi_guid_t)) == 0)
@@ -116,7 +116,7 @@ static grub_command_t cmd;
 
 GRUB_MOD_INIT(lsefisystab)
 {
-  cmd = grub_register_command ("lsefisystab", grub_cmd_lsefisystab, 
+  cmd = grub_register_command ("lsefisystab", grub_cmd_lsefisystab,
 			       "", "Display EFI system tables.");
 }
 

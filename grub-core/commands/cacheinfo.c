@@ -42,7 +42,7 @@ grub_rescue_cmd_info (struct grub_command *cmd __attribute__ ((unused)),
 		    hits, misses);
     }
   else
-    grub_printf ("%s\n", _("No disk cache statistics available\n"));    
+    grub_printf ("%s\n", _("No disk cache statistics available\n"));
 
  return 0;
 }

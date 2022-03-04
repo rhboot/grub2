@@ -84,7 +84,7 @@ iterate_linuxbios_table (grub_linuxbios_table_item_t table_item,
       grub_uint32_t tmrel = tsc2ms (ts_table->entries[i].tsc - last_tsc);
       last_tsc = ts_table->entries[i].tsc;
 
-      grub_printf ("%3d.%03ds %2d.%03ds %02d %s\n", 
+      grub_printf ("%3d.%03ds %2d.%03ds %02d %s\n",
 		   tmabs / 1000, tmabs % 1000, tmrel / 1000, tmrel % 1000,
 		   ts_table->entries[i].id,
 		   (ts_table->entries[i].id < ARRAY_SIZE (descs)

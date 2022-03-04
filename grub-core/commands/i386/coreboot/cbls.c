@@ -84,7 +84,7 @@ iterate_linuxbios_table (grub_linuxbios_table_item_t table_item,
 
 	grub_printf (": %dx%dx%d pitch=%d lfb=0x%llx %d/%d/%d/%d %d/%d/%d/%d",
 		     fb->width, fb->height,
-		     fb->bpp, fb->pitch, 
+		     fb->bpp, fb->pitch,
 		     (unsigned long long) fb->lfb,
 		     fb->red_mask_size, fb->green_mask_size,
 		     fb->blue_mask_size, fb->reserved_mask_size,

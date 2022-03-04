@@ -55,12 +55,12 @@ static const struct grub_arg_option options[] =
     {"no-led", 0, 0, N_("don't update LED state"), 0, 0},
     {0, 0, 0, 0, 0, 0}
   };
-static int simple_flag_offsets[] 
+static int simple_flag_offsets[]
 = {5, 6, 4, 7, 11, 1, 0, 10, 13, 14, 12, 15, 9, 3, 8, 2};
 
 static grub_uint32_t andmask = 0xffffffff, ormask = 0;
 
-struct 
+struct
 keysym
 {
   const char *unshifted_name;		/* the name in unshifted state */
@@ -171,13 +171,13 @@ static struct keysym keysym_table[] =
   {"right",		0,		0xe0,	0,	0x4d}
 };
 
-/* Set a simple flag in flags variable  
+/* Set a simple flag in flags variable
    OUTOFFSET - offset of flag in FLAGS,
    OP - action id
 */
 static void
 grub_sendkey_set_simple_flag (int outoffset, int op)
-{      
+{
   if (op == 2)
     {
       andmask |= (1 << outoffset);
@@ -199,7 +199,7 @@ grub_sendkey_parse_op (struct grub_arg_list state)
   if (! state.set)
     return 2;
 
-  if (grub_strcmp (state.arg, "off") == 0 || grub_strcmp (state.arg, "0") == 0 
+  if (grub_strcmp (state.arg, "off") == 0 || grub_strcmp (state.arg, "0") == 0
       || grub_strcmp (state.arg, "unpress") == 0)
     return 0;
 
@@ -234,7 +234,7 @@ grub_sendkey_preboot (int noret __attribute__ ((unused)))
   grub_uint32_t *flags = (grub_uint32_t *) 0x417;
 
   oldflags = *flags;
-  
+
   /* Set the sendkey.  */
   *((char *) 0x41a) = 0x1e;
   *((char *) 0x41c) = keylen + 0x1e;
@@ -247,7 +247,7 @@ grub_sendkey_preboot (int noret __attribute__ ((unused)))
   /* Transform "any alt" to "right alt" flag.  */
   if (*flags & (1 << 9))
     *flags &= ~(1 << 3);
-  
+
   *flags = (*flags & andmask) | ormask;
 
   /* Transform "right ctrl" to "any ctrl" flag.  */
@@ -294,10 +294,10 @@ find_key_code (char *key)
 
   for (i = 0; i < ARRAY_SIZE(keysym_table); i++)
     {
-      if (keysym_table[i].unshifted_name 
+      if (keysym_table[i].unshifted_name
 	  && grub_strcmp (key, keysym_table[i].unshifted_name) == 0)
 	return keysym_table[i].keycode;
-      else if (keysym_table[i].shifted_name 
+      else if (keysym_table[i].shifted_name
 	       && grub_strcmp (key, keysym_table[i].shifted_name) == 0)
 	return keysym_table[i].keycode;
     }
@@ -313,10 +313,10 @@ find_ascii_code (char *key)
 
   for (i = 0; i < ARRAY_SIZE(keysym_table); i++)
     {
-      if (keysym_table[i].unshifted_name 
+      if (keysym_table[i].unshifted_name
 	  && grub_strcmp (key, keysym_table[i].unshifted_name) == 0)
 	return keysym_table[i].unshifted_ascii;
-      else if (keysym_table[i].shifted_name 
+      else if (keysym_table[i].shifted_name
 	       && grub_strcmp (key, keysym_table[i].shifted_name) == 0)
 	return keysym_table[i].shifted_ascii;
     }
@@ -340,7 +340,7 @@ grub_cmd_sendkey (grub_extcmd_context_t ctxt, int argc, char **args)
     for (i = 0; i < argc && keylen < 0x20; i++)
       {
 	int key_code;
-	
+
 	key_code = find_key_code (args[i]);
 	if (key_code)
 	  {
@@ -353,7 +353,7 @@ grub_cmd_sendkey (grub_extcmd_context_t ctxt, int argc, char **args)
   {
     unsigned i;
     for (i = 0; i < ARRAY_SIZE(simple_flag_offsets); i++)
-      grub_sendkey_set_simple_flag (simple_flag_offsets[i], 
+      grub_sendkey_set_simple_flag (simple_flag_offsets[i],
 				    grub_sendkey_parse_op(state[i]));
   }
 
@@ -374,8 +374,8 @@ GRUB_MOD_INIT (sendkey)
 				 keypresses.  */
 			      N_("Emulate a keystroke sequence"), options);
 
-  preboot_hook 
-    = grub_loader_register_preboot_hook (grub_sendkey_preboot, 
+  preboot_hook
+    = grub_loader_register_preboot_hook (grub_sendkey_preboot,
 					 grub_sendkey_postboot,
 					 GRUB_LOADER_PREBOOT_HOOK_PRIO_CONSOLE);
 }

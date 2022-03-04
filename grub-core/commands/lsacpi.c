@@ -35,7 +35,7 @@ print_strn (grub_uint8_t *str, grub_size_t len)
   for (; *str && len; str++, len--)
     grub_printf ("%c", *str);
   for (len++; len; len--)
-    grub_printf (" ");  
+    grub_printf (" ");
 }
 
 #define print_field(x) print_strn(x, sizeof (x))

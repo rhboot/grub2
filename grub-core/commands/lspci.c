@@ -171,7 +171,7 @@ grub_lspci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
 
 	  if (space == 0)
 	    continue;
-	 
+
 	  switch (space & GRUB_PCI_ADDR_SPACE_MASK)
 	    {
 	    case GRUB_PCI_ADDR_SPACE_IO:
@@ -195,13 +195,13 @@ grub_lspci_iter (grub_pci_device_t dev, grub_pci_id_t pciid,
 			       (space & GRUB_PCI_ADDR_MEM_MASK),
 			       space & GRUB_PCI_ADDR_MEM_PREFETCH
 			       ? "prefetchable" : "non-prefetchable");
-		 
+
 		}
 	      else
 		grub_printf ("\t32-bit memory space %d at 0x%016llx [%s]\n",
 			     (unsigned) ((reg - GRUB_PCI_REG_ADDRESSES)
 			      / sizeof (grub_uint32_t)) - 1,
-			     (unsigned long long) 
+			     (unsigned long long)
 			     (space & GRUB_PCI_ADDR_MEM_MASK),
 			     space & GRUB_PCI_ADDR_MEM_PREFETCH
 			     ? "prefetchable" : "non-prefetchable");

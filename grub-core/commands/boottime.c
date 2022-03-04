@@ -43,7 +43,7 @@ grub_cmd_boottime (struct grub_command *cmd __attribute__ ((unused)),
       grub_uint32_t tmrel = cur->tp - last_time;
       last_time = cur->tp;
 
-      grub_printf ("%3d.%03ds %2d.%03ds %s:%d %s\n", 
+      grub_printf ("%3d.%03ds %2d.%03ds %s:%d %s\n",
 		   tmabs / 1000, tmabs % 1000, tmrel / 1000, tmrel % 1000, cur->file, cur->line,
 		   cur->msg);
     }

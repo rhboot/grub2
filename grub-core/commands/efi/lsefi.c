@@ -33,7 +33,7 @@ struct known_protocol
 {
   grub_efi_guid_t guid;
   const char *name;
-} known_protocols[] = 
+} known_protocols[] =
   {
     { GRUB_EFI_DISK_IO_GUID, "disk" },
     { GRUB_EFI_BLOCK_IO_GUID, "block" },

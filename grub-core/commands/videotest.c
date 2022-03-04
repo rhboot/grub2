@@ -158,7 +158,7 @@ grub_cmd_videotest (grub_command_t cmd __attribute__ ((unused)),
     {
 
       if (i == 0 || i == 1)
-	{	  
+	{
 	  color = grub_video_map_rgb (0, 0, 0);
 	  grub_video_fill_rect (color, 0, 0, width, height);
 
