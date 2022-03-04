@@ -111,7 +111,7 @@ enum grub_ieee1275_flag
   /* OLPC / XO firmware has the cursor ON/OFF routines.  */
   GRUB_IEEE1275_FLAG_HAS_CURSORONOFF,
 
-  /* Some PowerMacs claim to use 2 address cells but in fact use only 1. 
+  /* Some PowerMacs claim to use 2 address cells but in fact use only 1.
      Other PowerMacs claim to use only 1 and really do so. Always assume
      1 address cell is used on PowerMacs.
    */

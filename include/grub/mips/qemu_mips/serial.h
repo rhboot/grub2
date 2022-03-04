@@ -21,4 +21,4 @@
 
 #define GRUB_MACHINE_SERIAL_PORTS { 0xb40003f8 }
 
-#endif 
+#endif

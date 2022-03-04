@@ -310,7 +310,7 @@ struct linux_kernel_params
   grub_uint32_t bootsect_kludge;	/* obsolete */
   grub_uint16_t heap_end_ptr;		/* Free memory after setup end */
   grub_uint8_t ext_loader_ver;		/* Extended loader version */
-  grub_uint8_t ext_loader_type;		/* Extended loader type */  
+  grub_uint8_t ext_loader_type;		/* Extended loader type */
   grub_uint32_t cmd_line_ptr;		/* Points to the kernel command line */
   grub_uint32_t initrd_addr_max;	/* Maximum initrd address */
   grub_uint32_t kernel_alignment;	/* Alignment of the kernel */

@@ -103,12 +103,12 @@ struct grub_diskfilter_lv {
 struct grub_diskfilter_segment {
   grub_uint64_t start_extent;
   grub_uint64_t extent_count;
-  enum 
+  enum
     {
       GRUB_DISKFILTER_STRIPED = 0,
       GRUB_DISKFILTER_MIRROR = 1,
       GRUB_DISKFILTER_RAID4 = 4,
-      GRUB_DISKFILTER_RAID5 = 5,      
+      GRUB_DISKFILTER_RAID5 = 5,
       GRUB_DISKFILTER_RAID6 = 6,
       GRUB_DISKFILTER_RAID10 = 10,
   } type;

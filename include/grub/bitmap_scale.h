@@ -65,7 +65,7 @@ grub_err_t
 EXPORT_FUNC (grub_video_bitmap_create_scaled) (struct grub_video_bitmap **dst,
 					       int dst_width, int dst_height,
 					       struct grub_video_bitmap *src,
-					       enum 
+					       enum
 					       grub_video_bitmap_scale_method
 					       scale_method);
 

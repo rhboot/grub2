@@ -58,11 +58,11 @@ grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int64_t *nix)
   int y4, ay;
   const grub_uint16_t monthssum[12]
     = { 0,
-	31, 
+	31,
 	31 + 28,
 	31 + 28 + 31,
 	31 + 28 + 31 + 30,
-	31 + 28 + 31 + 30 + 31, 
+	31 + 28 + 31 + 30 + 31,
 	31 + 28 + 31 + 30 + 31 + 30,
 	31 + 28 + 31 + 30 + 31 + 30 + 31,
 	31 + 28 + 31 + 30 + 31 + 30 + 31 + 31,

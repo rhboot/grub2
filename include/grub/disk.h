@@ -60,7 +60,7 @@ struct grub_disk_memberlist;
 #endif
 
 typedef enum
-  { 
+  {
     GRUB_DISK_PULL_NONE,
     GRUB_DISK_PULL_REMOVABLE,
     GRUB_DISK_PULL_RESCAN,

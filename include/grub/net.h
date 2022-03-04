@@ -35,12 +35,12 @@ enum
     GRUB_NET_OUR_IPV4_HEADER_SIZE = 20,
     GRUB_NET_OUR_IPV6_HEADER_SIZE = 40,
     GRUB_NET_OUR_MAX_IP_HEADER_SIZE = 40,
-    GRUB_NET_TCP_RESERVE_SIZE = GRUB_NET_TCP_HEADER_SIZE 
+    GRUB_NET_TCP_RESERVE_SIZE = GRUB_NET_TCP_HEADER_SIZE
     + GRUB_NET_OUR_IPV4_HEADER_SIZE
     + GRUB_NET_MAX_LINK_HEADER_SIZE
   };
 
-typedef enum grub_link_level_protocol_id 
+typedef enum grub_link_level_protocol_id
 {
   GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET
 } grub_link_level_protocol_id_t;
@@ -149,7 +149,7 @@ struct grub_net_card
 
 struct grub_net_network_level_interface;
 
-typedef enum grub_network_level_protocol_id 
+typedef enum grub_network_level_protocol_id
 {
   GRUB_NET_NETWORK_LEVEL_PROTOCOL_DHCP_RECV,
   GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4,
@@ -182,11 +182,11 @@ typedef struct grub_net_network_level_netaddress
   {
     struct {
       grub_uint32_t base;
-      int masksize; 
+      int masksize;
     } ipv4;
     struct {
       grub_uint64_t base[2];
-      int masksize; 
+      int masksize;
     } ipv6;
   };
 } grub_net_network_level_netaddress_t;
@@ -252,7 +252,7 @@ typedef struct grub_net_app_protocol *grub_net_app_level_t;
 
 typedef struct grub_net_socket *grub_net_socket_t;
 
-struct grub_net_app_protocol 
+struct grub_net_app_protocol
 {
   struct grub_net_app_protocol *next;
   struct grub_net_app_protocol **prev;

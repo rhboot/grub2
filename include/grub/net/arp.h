@@ -29,4 +29,4 @@ grub_err_t
 grub_net_arp_send_request (struct grub_net_network_level_interface *inf,
                            const grub_net_network_level_address_t *proto_addr);
 
-#endif 
+#endif

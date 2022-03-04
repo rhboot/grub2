@@ -97,7 +97,7 @@ grub_err_t grub_netbsd_load_elf_meta64 (struct grub_relocator *relocator,
 					const char *filename,
 					grub_addr_t *kern_end);
 
-grub_err_t grub_bsd_add_meta (grub_uint32_t type, 
+grub_err_t grub_bsd_add_meta (grub_uint32_t type,
 			      const void *data, grub_uint32_t len);
 grub_err_t grub_freebsd_add_meta_module (const char *filename, const char *type,
 					 int argc, char **argv,

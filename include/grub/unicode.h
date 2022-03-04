@@ -354,7 +354,7 @@ grub_uint32_t
 grub_unicode_shape_code (grub_uint32_t in, grub_uint8_t attr);
 
 const grub_uint32_t *
-grub_unicode_get_comb_end (const grub_uint32_t *end, 
+grub_unicode_get_comb_end (const grub_uint32_t *end,
 			   const grub_uint32_t *cur);
 
 #endif

@@ -413,7 +413,7 @@ static inline void
 grub_video_register (grub_video_adapter_t adapter)
 {
   grub_video_adapter_t *p;
-  for (p = &grub_video_adapter_list; *p && (*p)->prio > adapter->prio; 
+  for (p = &grub_video_adapter_list; *p && (*p)->prio > adapter->prio;
        p = &((*p)->next));
   adapter->next = *p;
   *p = adapter;
@@ -497,7 +497,7 @@ grub_err_t EXPORT_FUNC (grub_video_unmap_color) (grub_video_color_t color,
 						 grub_uint8_t *blue,
 						 grub_uint8_t *alpha);
 
-grub_err_t EXPORT_FUNC (grub_video_fill_rect) (grub_video_color_t color, 
+grub_err_t EXPORT_FUNC (grub_video_fill_rect) (grub_video_color_t color,
 					       int x, int y,
 					       unsigned int width,
 					       unsigned int height);

@@ -48,4 +48,4 @@ grub_net_send_udp_packet (const grub_net_udp_socket_t socket,
 			  struct grub_net_buff *nb);
 
 
-#endif 
+#endif

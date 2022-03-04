@@ -43,7 +43,7 @@ struct grub_efi_edid_override {
 };
 
 typedef struct grub_efi_edid_override grub_efi_edid_override_t;
-  
+
 
 struct grub_efi_active_edid
 {

@@ -134,7 +134,7 @@ struct grub_usb_controller_dev
   /* Value is calculated/estimated in driver - some TDs should be */
   /* reserved for posible concurrent control or "interrupt" transfers */
   grub_size_t max_bulk_tds;
-  
+
   /* The next host controller.  */
   struct grub_usb_controller_dev *next;
 };
@@ -178,7 +178,7 @@ struct grub_usb_hub_port
 {
   grub_uint64_t soft_limit_time;
   grub_uint64_t hard_limit_time;
-  enum { 
+  enum {
     PORT_STATE_NORMAL = 0,
     PORT_STATE_WAITING_FOR_STABLE_POWER = 1,
     PORT_STATE_FAILED_DEVICE = 2,

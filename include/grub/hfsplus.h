@@ -250,7 +250,7 @@ grub_hfsplus_btree_search (struct grub_hfsplus_btree *btree,
 			   struct grub_hfsplus_key_internal *key,
 			   int (*compare_keys) (struct grub_hfsplus_key *keya,
 						struct grub_hfsplus_key_internal *keyb),
-			   struct grub_hfsplus_btnode **matchnode, 
+			   struct grub_hfsplus_btnode **matchnode,
 			   grub_off_t *keyoffset);
 grub_err_t
 grub_mac_bless_inode (grub_device_t dev, grub_uint32_t inode, int is_dir,

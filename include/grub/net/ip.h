@@ -58,7 +58,7 @@ grub_net_send_ip_packet (struct grub_net_network_level_interface *inf,
 			 struct grub_net_buff *nb,
 			 grub_net_ip_protocol_t proto);
 
-grub_err_t 
+grub_err_t
 grub_net_recv_icmp_packet (struct grub_net_buff *nb,
 			   struct grub_net_network_level_interface *inf,
 			   const grub_net_link_level_address_t *ll_src,
@@ -95,4 +95,4 @@ grub_net_icmp6_send_request (struct grub_net_network_level_interface *inf,
 
 grub_err_t
 grub_net_icmp6_send_router_solicit (struct grub_net_network_level_interface *inf);
-#endif 
+#endif

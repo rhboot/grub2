@@ -184,7 +184,7 @@ struct grub_arc_firmware_vector
   const struct grub_arc_component * (*getpeer) (const struct grub_arc_component *comp);
   const struct grub_arc_component * (*getchild) (const struct grub_arc_component *comp);
   void *getparent;
-  
+
   /* 0x30. */
   void *getconfigurationdata;
   void *addchild;
@@ -227,7 +227,7 @@ struct grub_arc_firmware_vector
   void *setfileinformation;
   void *flushallcaches;
   void *testunicodecharacter;
-  
+
   /* 0x90. */
   struct grub_arc_display_status * (*getdisplaystatus) (grub_arc_fileno_t fileno);
 };

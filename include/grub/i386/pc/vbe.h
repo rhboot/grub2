@@ -188,14 +188,14 @@ struct grub_vbe_flat_panel_info
 
 /* Prototypes for helper functions.  */
 /* Call VESA BIOS 0x4f00 to get VBE Controller Information, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_controller_info (struct grub_vbe_info_block *controller_info);
 /* Call VESA BIOS 0x4f01 to get VBE Mode Information, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_mode_info (grub_uint32_t mode,
 			     struct grub_vbe_mode_info_block *mode_info);
 /* Call VESA BIOS 0x4f03 to return current VBE Mode, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_mode (grub_uint32_t *mode);
 /* Call VESA BIOS 0x4f05 to set memory window, return status.  */
 grub_vbe_status_t
@@ -205,13 +205,13 @@ grub_vbe_status_t
 grub_vbe_bios_get_memory_window (grub_uint32_t window,
 				 grub_uint32_t *position);
 /* Call VESA BIOS 0x4f06 to set scanline length (in bytes), return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_set_scanline_length (grub_uint32_t length);
 /* Call VESA BIOS 0x4f06 to return scanline length (in bytes), return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_scanline_length (grub_uint32_t *length);
 /* Call VESA BIOS 0x4f07 to get display start, return status.  */
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_display_start (grub_uint32_t *x,
 				 grub_uint32_t *y);
 
@@ -224,7 +224,7 @@ grub_err_t grub_vbe_probe (struct grub_vbe_info_block *info_block);
 grub_err_t grub_vbe_get_video_mode (grub_uint32_t *mode);
 grub_err_t grub_vbe_get_video_mode_info (grub_uint32_t mode,
                                          struct grub_vbe_mode_info_block *mode_info);
-grub_vbe_status_t 
+grub_vbe_status_t
 grub_vbe_bios_get_pm_interface (grub_uint16_t *seg, grub_uint16_t *offset,
 				grub_uint16_t *length);
 
