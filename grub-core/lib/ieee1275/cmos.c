@@ -52,7 +52,7 @@ grub_cmos_find_port_iter (struct grub_ieee1275_devalias *alias)
 #if GRUB_CPU_SIZEOF_VOID_P == 8
   if (actual == 8)
     {
-      grub_cmos_port = (volatile grub_uint8_t *) 
+      grub_cmos_port = (volatile grub_uint8_t *)
 	((((grub_addr_t) addr[0]) << 32) | addr[1]);
       return 1;
     }
@@ -72,6 +72,6 @@ grub_cmos_find_port (void)
   grub_ieee1275_devices_iterate (grub_cmos_find_port_iter);
   if (!grub_cmos_port)
     return grub_error (GRUB_ERR_IO, "no cmos found");
-  
+
   return GRUB_ERR_NONE;
 }

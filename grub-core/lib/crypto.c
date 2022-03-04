@@ -59,7 +59,7 @@ _gcry_burn_stack (int size)
 void __attribute__ ((noreturn))
 _gcry_assert_failed (const char *expr, const char *file, int line,
 		     const char *func)
-  
+
 {
   grub_fatal ("assertion %s at %s:%d (%s) failed\n", expr, file, line, func);
 }
@@ -83,7 +83,7 @@ void _gcry_log_error (const char *fmt, ...)
     }
 }
 
-void 
+void
 grub_cipher_register (gcry_cipher_spec_t *cipher)
 {
   cipher->next = grub_ciphers;
@@ -102,14 +102,14 @@ grub_cipher_unregister (gcry_cipher_spec_t *cipher)
       }
 }
 
-void 
+void
 grub_md_register (gcry_md_spec_t *digest)
 {
   digest->next = grub_digests;
   grub_digests = digest;
 }
 
-void 
+void
 grub_md_unregister (gcry_md_spec_t *cipher)
 {
   gcry_md_spec_t **ciph;
@@ -314,7 +314,7 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
   if (!ctx)
     goto err;
 
-  if ( keylen > md->blocksize ) 
+  if ( keylen > md->blocksize )
     {
       helpkey = grub_malloc (md->mdlen);
       if (!helpkey)
@@ -335,7 +335,7 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
 
   grub_memcpy ( ipad, key, keylen );
   grub_memcpy ( opad, key, keylen );
-  for (i=0; i < md->blocksize; i++ ) 
+  for (i=0; i < md->blocksize; i++ )
     {
       ipad[i] ^= 0x36;
       opad[i] ^= 0x5c;
@@ -458,7 +458,7 @@ grub_password_get (char buf[], unsigned buf_size)
 
   while (1)
     {
-      key = grub_getkey (); 
+      key = grub_getkey ();
       if (key == '\n' || key == '\r')
 	break;
 

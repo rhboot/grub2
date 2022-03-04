@@ -2,7 +2,7 @@
  *
  *      Copyright (C) 1992, 1994, 1996, 1998,
  *                    2001, 2002 Free Software Foundation, Inc.
- *       
+ *
  * This file is part of Libgcrypt.
  *
  * Libgcrypt is free software; you can redistribute it and/or modify

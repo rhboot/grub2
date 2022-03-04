@@ -42,7 +42,7 @@ grub_reboot (void)
 	  break;
 	grub_cs5536_write_msr (dev, GRUB_CS5536_MSR_DIVIL_RESET,
 			       grub_cs5536_read_msr (dev,
-						     GRUB_CS5536_MSR_DIVIL_RESET) 
+						     GRUB_CS5536_MSR_DIVIL_RESET)
 			       | 1);
 	break;
       }

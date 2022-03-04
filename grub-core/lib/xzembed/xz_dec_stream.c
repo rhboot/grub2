@@ -381,7 +381,7 @@ static enum xz_ret hash_validate(struct xz_dec *s, struct xz_buf *b,
 {
 #ifndef GRUB_EMBED_DECOMPRESSOR
 	const gcry_md_spec_t *hash = crc32 ? s->crc32 : s->hash;
-	void *hash_context = crc32 ? s->crc32_context 
+	void *hash_context = crc32 ? s->crc32_context
 		: s->hash_context;
 	if(!s->have_hash_value && hash
 		&& sizeof (s->hash_value) >= hash->mdlen)
@@ -512,7 +512,7 @@ static enum xz_ret dec_stream_header(struct xz_dec *s)
 				kfree(s->crc32_context);
 				return XZ_MEMLIMIT_ERROR;
 			}
-			
+
 			s->index.hash.hash_context = kmalloc(s->hash->contextsize,
 							     GFP_KERNEL);
 			if (s->index.hash.hash_context == NULL)
@@ -521,7 +521,7 @@ static enum xz_ret dec_stream_header(struct xz_dec *s)
 				kfree(s->crc32_context);
 				return XZ_MEMLIMIT_ERROR;
 			}
-			
+
 			s->block.hash.hash_context = kmalloc(s->hash->contextsize, GFP_KERNEL);
 			if (s->block.hash.hash_context == NULL)
 			{

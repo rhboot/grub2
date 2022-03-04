@@ -335,7 +335,7 @@ int grub_fdt_next_node (const void *fdt, unsigned int currentoffset)
     return -1;
   return (int) ((grub_addr_t) token - (grub_addr_t) fdt
 		- grub_fdt_get_off_dt_struct (fdt));
-}			 
+}
 
 int grub_fdt_first_node (const void *fdt, unsigned int parentoffset)
 {
@@ -355,7 +355,7 @@ int grub_fdt_first_node (const void *fdt, unsigned int parentoffset)
     return -1;
   return (int) ((grub_addr_t) token - (grub_addr_t) fdt
 		- grub_fdt_get_off_dt_struct (fdt));
-}			 
+}
 
 /* Find a direct sub-node of a given parent node. */
 int grub_fdt_find_subnode (const void *fdt, unsigned int parentoffset,

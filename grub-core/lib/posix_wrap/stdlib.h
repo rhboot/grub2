@@ -23,7 +23,7 @@
 #include <grub/misc.h>
 #include <grub/safemath.h>
 
-static inline void 
+static inline void
 free (void *ptr)
 {
   grub_free (ptr);

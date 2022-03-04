@@ -48,7 +48,7 @@ _gcry_mpih_sub_n( mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
   res_ptr -= j;
 
   cy = 0;
-  do 
+  do
     {
       y = s2_ptr[j];
       x = s1_ptr[j];
@@ -57,7 +57,7 @@ _gcry_mpih_sub_n( mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
       y = x - y;		  /* main subtract */
       cy += y > x;		  /* get out carry from the subtract, combine */
       res_ptr[j] = y;
-    } 
+    }
   while( ++j );
 
   return cy;
