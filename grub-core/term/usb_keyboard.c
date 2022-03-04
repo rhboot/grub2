@@ -162,7 +162,7 @@ grub_usb_keyboard_attach (grub_usb_device_t usbdev, int configno, int interfno)
   if (curnum == ARRAY_SIZE (grub_usb_keyboards))
     return 0;
 
-  if (usbdev->descdev.class != 0 
+  if (usbdev->descdev.class != 0
       || usbdev->descdev.subclass != 0 || usbdev->descdev.protocol != 0)
     return 0;
 
@@ -199,7 +199,7 @@ grub_usb_keyboard_attach (grub_usb_device_t usbdev, int configno, int interfno)
 
   /* Configure device */
   grub_usb_set_configuration (usbdev, configno + 1);
-  
+
   /* Place the device in boot mode.  */
   grub_usb_control_msg (usbdev, GRUB_USB_REQTYPE_CLASS_INTERFACE_OUT,
   			USB_HID_SET_PROTOCOL, 0, interfno, 0, 0);
@@ -291,7 +291,7 @@ parse_keycode (struct grub_usb_keyboard_data *termdata)
   for ( ; index < termdata->max_index; index++)
     {
       keycode = termdata->current_report[index];
-      
+
       if (keycode == KEY_NO_KEY
           || keycode == KEY_ERR_BUFFER
           || keycode == KEY_ERR_POST
@@ -316,7 +316,7 @@ parse_keycode (struct grub_usb_keyboard_data *termdata)
         /* Keycode is in last report, it means it was not released,
          * ignore it. */
         continue;
-        
+
       if (keycode == KEY_CAPS_LOCK)
         {
           termdata->mods ^= GRUB_TERM_STATUS_CAPS;
@@ -367,7 +367,7 @@ grub_usb_keyboard_getkey (struct grub_term_input *term)
     keycode = parse_keycode (termdata);
   if (keycode != GRUB_TERM_NO_KEY)
     return keycode;
-    
+
   /* Poll interrupt pipe.  */
   err = grub_usb_check_transfer (termdata->transfer, &actual);
 
@@ -387,7 +387,7 @@ grub_usb_keyboard_getkey (struct grub_term_input *term)
     grub_memcpy (termdata->last_report,
                  termdata->current_report,
                  sizeof (termdata->report));
-                 
+
   grub_memcpy (termdata->current_report,
                termdata->report,
                sizeof (termdata->report));
@@ -424,7 +424,7 @@ grub_usb_keyboard_getkey (struct grub_term_input *term)
 
   termdata->index = 2; /* New data received. */
   termdata->max_index = actual;
-  
+
   return parse_keycode (termdata);
 }
 
@@ -457,7 +457,7 @@ GRUB_MOD_FINI(usb_keyboard)
 
 	if (!data)
 	  continue;
-	
+
 	if (data->transfer)
 	  grub_usb_cancel_transfer (data->transfer);
 

@@ -43,7 +43,7 @@ enum
 static const struct grub_arg_option background_image_cmd_options[] =
   {
     {"mode", 'm', 0, N_("Background image mode."),
-    /* TRANSLATORS: This refers to background image mode (stretched or 
+    /* TRANSLATORS: This refers to background image mode (stretched or
        in left-top corner). Note that GRUB will accept only original
        keywords stretch and normal, not the translated ones.
        So please put both in translation
@@ -100,7 +100,7 @@ grub_gfxterm_background_image_cmd (grub_extcmd_context_t ctxt,
               {
                 struct grub_video_bitmap *scaled_bitmap;
                 grub_video_bitmap_create_scaled (&scaled_bitmap,
-                                                 width, 
+                                                 width,
                                                  height,
                                                  grub_gfxterm_background.bitmap,
                                                  GRUB_VIDEO_BITMAP_SCALE_METHOD_BEST);

@@ -90,7 +90,7 @@ do_real_config (struct grub_serial_port *port)
       break;
     case GRUB_SERIAL_STOP_BITS_2:
       parity_stop_spec |= 0xc;
-      break;      
+      break;
     }
 
   *port->escc_desc->escc_ctrl = 4;

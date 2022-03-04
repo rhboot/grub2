@@ -306,10 +306,10 @@ grub_gfxterm_set_window (struct grub_video_render_target *target,
   render_target = target;
 
   /* Create virtual screen.  */
-  if (grub_virtual_screen_setup (border_width, border_width, 
-                                 width - 2 * border_width, 
-                                 height - 2 * border_width, 
-                                 font) 
+  if (grub_virtual_screen_setup (border_width, border_width,
+                                 width - 2 * border_width,
+                                 height - 2 * border_width,
+                                 font)
       != GRUB_ERR_NONE)
     {
       return grub_errno;
@@ -439,9 +439,9 @@ redraw_screen_rect (unsigned int x, unsigned int y,
 
   grub_video_set_active_render_target (render_target);
   /* Save viewport and set it to our window.  */
-  grub_video_get_viewport ((unsigned *) &saved_view.x, 
-                           (unsigned *) &saved_view.y, 
-                           (unsigned *) &saved_view.width, 
+  grub_video_get_viewport ((unsigned *) &saved_view.x,
+                           (unsigned *) &saved_view.y,
+                           (unsigned *) &saved_view.width,
                            (unsigned *) &saved_view.height);
   grub_video_set_viewport (window.x, window.y, window.width, window.height);
 
@@ -679,7 +679,7 @@ draw_cursor (int show)
   unsigned int height;
   unsigned int ascent;
   grub_video_color_t color;
-  
+
   write_char ();
 
   if (!show)
@@ -702,12 +702,12 @@ draw_cursor (int show)
        * virtual_screen.normal_char_height
        + ascent);
   height = 2;
-  
+
   /* Render cursor to text layer.  */
   grub_video_set_active_render_target (text_layer);
   grub_video_fill_rect (color, x, y, width, height);
   grub_video_set_active_render_target (render_target);
-  
+
   /* Mark cursor to be redrawn.  */
   dirty_region_add (virtual_screen.offset_x + x,
 		    virtual_screen.offset_y + y,
@@ -751,9 +751,9 @@ real_scroll (void)
       while (i--)
 	{
 	  /* Save viewport and set it to our window.  */
-	  grub_video_get_viewport ((unsigned *) &saved_view.x, 
-				   (unsigned *) &saved_view.y, 
-				   (unsigned *) &saved_view.width, 
+	  grub_video_get_viewport ((unsigned *) &saved_view.x,
+				   (unsigned *) &saved_view.y,
+				   (unsigned *) &saved_view.width,
 				   (unsigned *) &saved_view.height);
 
 	  grub_video_set_viewport (window.x, window.y, window.width,
@@ -818,7 +818,7 @@ scroll_up (void)
   /* Clear first line in text buffer.  */
   for (i = 0; i < virtual_screen.columns; i++)
     grub_unicode_destroy_glyph (&virtual_screen.text_buffer[i].code);
-  
+
   /* Scroll text buffer with one line to up.  */
   grub_memmove (virtual_screen.text_buffer,
                 virtual_screen.text_buffer + virtual_screen.columns,
@@ -904,7 +904,7 @@ grub_gfxterm_putchar (struct grub_term_output *term,
         {
           unsigned i;
 
-          for (i = 1; i < char_width && p + i < 
+          for (i = 1; i < char_width && p + i <
 		 virtual_screen.text_buffer + virtual_screen.columns
 		 * virtual_screen.rows; i++)
 	      {

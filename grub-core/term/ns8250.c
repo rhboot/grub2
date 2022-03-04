@@ -312,7 +312,7 @@ grub_serial_ns8250_add_port (grub_port_t port)
   p->driver = &grub_ns8250_driver;
   grub_serial_config_defaults (p);
   p->port = port;
-  grub_serial_register (p);  
+  grub_serial_register (p);
 
   return p->name;
 }

@@ -286,7 +286,7 @@ grub_terminfo_setcolorstate (struct grub_term_output *term,
       int fg;
       int bg;
       /* Map from VGA to terminal colors.  */
-      const int colormap[8] 
+      const int colormap[8]
 	= { 0, /* Black. */
 	    4, /* Blue. */
 	    2, /* Green. */
@@ -479,10 +479,10 @@ grub_terminfo_readkey (struct grub_term_input *term, int *keys, int *len, int ma
 	[23] = GRUB_TERM_KEY_F11,
 	[24] = GRUB_TERM_KEY_F12,
       };
-    char fx_key[] = 
+    char fx_key[] =
       { 'P', 'Q', 'w', 'x', 't', 'u',
         'q', 'r', 'p', 'M', 'A', 'B', 'H', 'F' };
-    unsigned fx_code[] = 
+    unsigned fx_code[] =
 	{ GRUB_TERM_KEY_F1, GRUB_TERM_KEY_F2, GRUB_TERM_KEY_F3,
 	  GRUB_TERM_KEY_F4, GRUB_TERM_KEY_F5, GRUB_TERM_KEY_F6,
 	  GRUB_TERM_KEY_F7, GRUB_TERM_KEY_F8, GRUB_TERM_KEY_F9,
@@ -512,7 +512,7 @@ grub_terminfo_readkey (struct grub_term_input *term, int *keys, int *len, int ma
       }
 
     CONTINUE_READ;
-	
+
     for (i = 0; i < ARRAY_SIZE (three_code_table); i++)
       if (three_code_table[i].key == c)
 	{
@@ -562,7 +562,7 @@ grub_terminfo_readkey (struct grub_term_input *term, int *keys, int *len, int ma
 	  keys[0] = fx_code[num - 1];
 	  *len = 1;
 	  return;
-	}	  
+	}
 
       case '1' ... '9':
 	{
@@ -662,7 +662,7 @@ grub_terminfo_output_init (struct grub_term_output *term)
 static grub_err_t
 print_terminfo (void)
 {
-  const char *encoding_names[(GRUB_TERM_CODE_TYPE_MASK 
+  const char *encoding_names[(GRUB_TERM_CODE_TYPE_MASK
 			      >> GRUB_TERM_CODE_TYPE_SHIFT) + 1]
     = {
     /* VGA and glyph descriptor types are just for completeness,

@@ -88,7 +88,7 @@ grub_console_dimensions (void)
 					  val, sizeof (val) - 1, 0))
     {
       grub_ieee1275_ihandle_t stdout_options;
-      val[sizeof (val) - 1] = 0;      
+      val[sizeof (val) - 1] = 0;
 
       if (! grub_ieee1275_finddevice (val, &stdout_options)
 	  && ! grub_ieee1275_get_property (stdout_options, "device_type",

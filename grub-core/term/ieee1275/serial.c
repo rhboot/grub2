@@ -276,7 +276,7 @@ grub_ofserial_init (void)
     dev_iterate_real (&alias, 1);
 
   grub_ieee1275_devices_iterate (dev_iterate);
-  
+
   for (i = 0; i < ARRAY_SIZE (ofserial_hash); i++)
     {
       struct ofserial_hash_ent *ent;

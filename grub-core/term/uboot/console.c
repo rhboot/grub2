@@ -110,7 +110,7 @@ grub_console_init_early (void)
  * grub_console_init_lately():
  *   Initializes terminfo formatting by registering terminal type.
  *   Called after heap has been configured.
- *   
+ *
  */
 void
 grub_console_init_lately (void)

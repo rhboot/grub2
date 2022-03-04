@@ -122,7 +122,7 @@ check_is_serial (void)
     return is_serial = 0;
   return is_serial = grub_arc_is_device_serial (consout, 0);
 }
-    
+
 static void
 set_console_dimensions (void)
 {
