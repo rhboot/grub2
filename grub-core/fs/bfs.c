@@ -531,13 +531,13 @@ iterate_in_b_tree (grub_disk_t disk,
       err = read_b_node (disk, sb, ino,
 			 node_off,
 			 &node,
-			 &key_data, 
+			 &key_data,
 			 &keylen_idx,
 			 &key_values);
 
       if (err)
 	return 0;
-      
+
       for (i = 0; i < grub_bfs_to_cpu_treehead (node->count_keys); i++)
 	{
 	  char c;
@@ -683,7 +683,7 @@ find_in_b_tree (grub_disk_t disk,
 		level--;
 		grub_free (node);
 		continue;
-	      }	      
+	      }
 	  }
 	else if (level != 0
 		 && i + 1 < grub_bfs_to_cpu_treehead (node->count_keys))
@@ -828,7 +828,7 @@ mount (grub_disk_t disk, struct grub_bfs_superblock *sb)
   grub_err_t err;
   err = grub_disk_read (disk, SUPERBLOCK, 0, sizeof (*sb), sb);
   if (err == GRUB_ERR_OUT_OF_RANGE)
-    return grub_error (GRUB_ERR_BAD_FS, 
+    return grub_error (GRUB_ERR_BAD_FS,
 #ifdef MODE_AFS
 		       "not an AFS filesystem"
 #else
@@ -844,7 +844,7 @@ mount (grub_disk_t disk, struct grub_bfs_superblock *sb)
       || (grub_bfs_to_cpu32 (sb->bsize)
 	  != (1U << grub_bfs_to_cpu32 (sb->log2_bsize)))
       || grub_bfs_to_cpu32 (sb->log2_bsize) < GRUB_DISK_SECTOR_BITS)
-    return grub_error (GRUB_ERR_BAD_FS, 
+    return grub_error (GRUB_ERR_BAD_FS,
 #ifdef MODE_AFS
 		       "not an AFS filesystem"
 #else

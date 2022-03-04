@@ -99,10 +99,10 @@ struct grub_minix_sblock
   grub_uint32_t max_file_size;
   grub_uint32_t zones;
   grub_uint16_t magic;
-  
+
   grub_uint16_t pad2;
   grub_uint16_t block_size;
-  grub_uint8_t disk_version; 
+  grub_uint8_t disk_version;
 };
 #else
 struct grub_minix_sblock
@@ -352,7 +352,7 @@ grub_minix_read_inode (struct grub_minix_data *data, grub_minix_ino_t ino)
   int offs = (ino % (GRUB_DISK_SECTOR_SIZE
 		     / sizeof (struct grub_minix_inode))
 	      * sizeof (struct grub_minix_inode));
-  
+
   grub_disk_read (data->disk, block, offs,
 		  sizeof (struct grub_minix_inode), &data->inode);
 

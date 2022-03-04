@@ -568,7 +568,7 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 		    (buf + sizeof (struct grub_udf_aed));
 	      continue;
 	    }
-	      
+
 	  if (filebytes < adlen)
 	    {
 	      grub_uint32_t ad_block_num = ad->block.block_num;

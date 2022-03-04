@@ -883,7 +883,7 @@ grub_hfs_iterate_dir_it_dir (struct grub_hfs_node *hnd __attribute ((unused)),
 {
   struct grub_hfs_catalog_key *ckey = rec->key;
   struct grub_hfs_iterate_dir_node_found_ctx *ctx = hook_arg;
-  
+
   /* Stop when the entries do not match anymore.  */
   if (ckey->parent_dir != ctx->dir_be)
     return 1;
@@ -1077,7 +1077,7 @@ macroman_to_utf8 (char *to, const grub_uint8_t *from, grub_size_t len,
 	{
 	  *optr++ = ':';
 	  continue;
-	}	
+	}
       if (!(*iptr & 0x80))
 	{
 	  *optr++ = *iptr;
@@ -1094,7 +1094,7 @@ utf8_to_macroman (grub_uint8_t *to, const char *from)
   grub_uint8_t *end = to + 31;
   grub_uint8_t *optr = to;
   const char *iptr = from;
-  
+
   while (*iptr && optr < end)
     {
       int i, clen;
@@ -1104,7 +1104,7 @@ utf8_to_macroman (grub_uint8_t *to, const char *from)
 	  *optr++ = '/';
 	  iptr++;
 	  continue;
-	}	
+	}
       if (!(*iptr & 0x80))
 	{
 	  *optr++ = *iptr++;
@@ -1165,7 +1165,7 @@ lookup_file (grub_fshelp_node_t dir,
   *foundnode = grub_malloc (sizeof (struct grub_fshelp_node));
   if (!*foundnode)
     return grub_errno;
-  
+
   (*foundnode)->inode = grub_be_to_cpu32 (fdrec.dir.dirid);
   (*foundnode)->fdrec = fdrec;
   (*foundnode)->data = dir->data;
@@ -1266,7 +1266,7 @@ grub_hfs_dir (grub_device_t device, const char *path, grub_fs_dir_hook_t hook,
       .hook_data = hook_data
     };
   grub_fshelp_node_t found = NULL;
-  
+
   grub_dl_ref (my_mod);
 
   data = grub_hfs_mount (device->disk);
@@ -1295,7 +1295,7 @@ grub_hfs_open (struct grub_file *file, const char *name)
 {
   struct grub_hfs_data *data;
   grub_fshelp_node_t found = NULL;
-  
+
   grub_dl_ref (my_mod);
 
   data = grub_hfs_mount (file->device->disk);
