@@ -33,7 +33,7 @@ struct load_spec
 
 static struct load_spec *crypto_specs = NULL;
 
-static void 
+static void
 grub_crypto_autoload (const char *name)
 {
   struct load_spec *cur;
@@ -57,7 +57,7 @@ grub_crypto_autoload (const char *name)
   depth--;
 }
 
-static void 
+static void
 grub_crypto_spec_free (void)
 {
   struct load_spec *cur, *next;
@@ -85,7 +85,7 @@ read_crypto_list (const char *prefix)
       grub_errno = GRUB_ERR_NONE;
       return;
     }
-  
+
   filename = grub_xasprintf ("%s/" GRUB_TARGET_CPU "-" GRUB_PLATFORM
 			     "/crypto.lst", prefix);
   if (!filename)
@@ -109,12 +109,12 @@ read_crypto_list (const char *prefix)
     {
       char *p, *name;
       struct load_spec *cur;
-      
+
       buf = grub_file_getline (file);
-	
+
       if (! buf)
 	break;
-      
+
       name = buf;
       while (grub_isspace (name[0]))
 	name++;
@@ -122,7 +122,7 @@ read_crypto_list (const char *prefix)
       p = grub_strchr (name, ':');
       if (! p)
 	continue;
-      
+
       *p = '\0';
       p++;
       while (*p == ' ' || *p == '\t')
@@ -134,7 +134,7 @@ read_crypto_list (const char *prefix)
 	  grub_errno = GRUB_ERR_NONE;
 	  continue;
 	}
-      
+
       cur->name = grub_strdup (name);
       if (! cur->name)
 	{
@@ -142,7 +142,7 @@ read_crypto_list (const char *prefix)
 	  grub_free (cur);
 	  continue;
 	}
-	
+
       cur->modname = grub_strdup (p);
       if (! cur->modname)
 	{
@@ -154,7 +154,7 @@ read_crypto_list (const char *prefix)
       cur->next = crypto_specs;
       crypto_specs = cur;
     }
-  
+
   grub_file_close (file);
 
   grub_errno = GRUB_ERR_NONE;

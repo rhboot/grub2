@@ -333,7 +333,7 @@ update_screen (struct screen *screen, struct per_term_screen *term_screen,
       while (y < term_screen->geo.num_entries);
 
       /* Draw up and down arrows.  */
-      
+
       if (term_screen->geo.num_entries == 1)
 	{
 	  if (up || down)
@@ -361,12 +361,12 @@ update_screen (struct screen *screen, struct per_term_screen *term_screen,
       for (i = 0; i < screen->line; i++)
 	y += get_logical_num_lines (screen->lines + i, term_screen);
       if (cpos >= &(screen->lines[screen->line].pos[term_screen - screen->terms])[0])
-	grub_term_gotoxy (term_screen->term, 
+	grub_term_gotoxy (term_screen->term,
 			  (struct grub_term_coordinate) { cpos->x + term_screen->geo.first_entry_x,
 			      cpos->y + y
 			      + term_screen->geo.first_entry_y });
       else
-	grub_term_gotoxy (term_screen->term, 
+	grub_term_gotoxy (term_screen->term,
 			  (struct grub_term_coordinate) { term_screen->geo.first_entry_x,
 			      y + term_screen->geo.first_entry_y });
 
@@ -659,14 +659,14 @@ backward_char (struct screen *screen, int update)
       linep = screen->lines + screen->line;
 
       screen->column--;
-      screen->column = grub_unicode_get_comb_start (linep->buf, 
+      screen->column = grub_unicode_get_comb_start (linep->buf,
 						    linep->buf + screen->column)
 	- linep->buf;
 
       grub_unicode_aglomerate_comb (screen->lines[screen->line].buf + screen->column,
 				    screen->lines[screen->line].len - screen->column,
 				    &glyph);
-      screen->column = grub_unicode_get_comb_start (linep->buf, 
+      screen->column = grub_unicode_get_comb_start (linep->buf,
 						    linep->buf + screen->column)
 	- linep->buf;
 
@@ -1028,12 +1028,12 @@ complete (struct screen *screen, int continuous, int update)
     return 1;
 
   insert = grub_normal_do_completion (u8, &restore, store_completion);
-  
+
   if (completion_buffer.buf)
     {
       buflen = grub_strlen (completion_buffer.buf);
       ucs4 = grub_calloc (buflen + 1, sizeof (grub_uint32_t));
-      
+
       if (!ucs4)
 	{
 	  grub_print_error ();

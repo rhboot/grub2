@@ -167,7 +167,7 @@ print_completion (const char *item, grub_completion_type_t type, int count)
   if (count == 0)
     {
       /* If this is the first time, print a label.  */
-      
+
       grub_puts ("");
       switch (type)
 	{

@@ -99,7 +99,7 @@ print_more (void)
   grub_setcolorstate (GRUB_TERM_COLOR_NORMAL);
 
   grub_free (unicode_str);
-  
+
   key = grub_getkey ();
 
   /* Remove the message.  */
@@ -184,28 +184,28 @@ map_code (grub_uint32_t in, struct grub_term_output *term)
 	{
 	case GRUB_UNICODE_LEFTARROW:
 	  return '<';
-		
+
 	case GRUB_UNICODE_UPARROW:
 	  return '^';
-	  
+
 	case GRUB_UNICODE_RIGHTARROW:
 	  return '>';
-		
+
 	case GRUB_UNICODE_DOWNARROW:
 	  return 'v';
-		  
+
 	case GRUB_UNICODE_HLINE:
 	  return '-';
-		  
+
 	case GRUB_UNICODE_VLINE:
 	  return '|';
-		  
+
 	case GRUB_UNICODE_CORNER_UL:
 	case GRUB_UNICODE_CORNER_UR:
 	case GRUB_UNICODE_CORNER_LL:
 	case GRUB_UNICODE_CORNER_LR:
 	  return '+';
-		
+
 	}
       return '?';
     }
@@ -260,7 +260,7 @@ grub_term_save_pos (void)
   struct grub_term_output *cur;
   unsigned cnt = 0;
   struct grub_term_coordinate *ret, *ptr;
-  
+
   FOR_ACTIVE_TERM_OUTPUTS(cur)
     cnt++;
 
@@ -291,7 +291,7 @@ grub_term_restore_pos (struct grub_term_coordinate *pos)
   }
 }
 
-static void 
+static void
 grub_terminal_autoload_free (void)
 {
   struct grub_term_autoload *cur, *next;
@@ -322,7 +322,7 @@ read_terminal_list (const char *prefix)
       grub_errno = GRUB_ERR_NONE;
       return;
     }
-  
+
   filename = grub_xasprintf ("%s/" GRUB_TARGET_CPU "-" GRUB_PLATFORM
 			     "/terminal.lst", prefix);
   if (!filename)
@@ -347,9 +347,9 @@ read_terminal_list (const char *prefix)
       char *p, *name;
       struct grub_term_autoload *cur;
       struct grub_term_autoload **target = NULL;
-      
+
       buf = grub_file_getline (file);
-	
+
       if (! buf)
 	break;
 
@@ -369,9 +369,9 @@ read_terminal_list (const char *prefix)
 	}
       if (!target)
 	continue;
-      
+
       name = p + 1;
-            
+
       p = grub_strchr (name, ':');
       if (! p)
 	continue;
@@ -387,7 +387,7 @@ read_terminal_list (const char *prefix)
 	  grub_errno = GRUB_ERR_NONE;
 	  continue;
 	}
-      
+
       cur->name = grub_strdup (name);
       if (! cur->name)
 	{
@@ -395,7 +395,7 @@ read_terminal_list (const char *prefix)
 	  grub_free (cur);
 	  continue;
 	}
-	
+
       cur->modname = grub_strdup (p);
       if (! cur->modname)
 	{
@@ -407,7 +407,7 @@ read_terminal_list (const char *prefix)
       cur->next = *target;
       *target = cur;
     }
-  
+
   grub_file_close (file);
 
   grub_errno = GRUB_ERR_NONE;
@@ -451,7 +451,7 @@ putglyph (const struct grub_unicode_glyph *c, struct grub_term_output *term,
     }
 
   if ((term->flags & GRUB_TERM_CODE_TYPE_MASK)
-      == GRUB_TERM_CODE_TYPE_UTF8_LOGICAL 
+      == GRUB_TERM_CODE_TYPE_UTF8_LOGICAL
       || (term->flags & GRUB_TERM_CODE_TYPE_MASK)
       == GRUB_TERM_CODE_TYPE_UTF8_VISUAL)
     {
@@ -461,7 +461,7 @@ putglyph (const struct grub_unicode_glyph *c, struct grub_term_output *term,
 	{
 	  grub_uint8_t u8[20], *ptr;
 	  grub_uint32_t code;
-	      
+
 	  if (i == -1)
 	    {
 	      code = c->base;
@@ -534,7 +534,7 @@ get_maxwidth (struct grub_term_output *term,
     .ncomb = 0,
   };
   return (grub_term_width (term)
-	  - grub_term_getcharwidth (term, &space_glyph) 
+	  - grub_term_getcharwidth (term, &space_glyph)
 	  * (margin_left + margin_right) - 1);
 }
 
@@ -643,7 +643,7 @@ print_ucs4_terminal (const grub_uint32_t * str,
 
 	  if (line_width > max_width && last_space > line_start)
 	    ptr = last_space;
-	  else if (line_width > max_width 
+	  else if (line_width > max_width
 		   && line_start == str && line_width - lastspacewidth < max_width - 5)
 	    {
 	      ptr = str;
@@ -659,7 +659,7 @@ print_ucs4_terminal (const grub_uint32_t * str,
 	      for (ptr2 = line_start; ptr2 < ptr; ptr2++)
 		{
 		  /* Skip combining characters on non-UTF8 terminals.  */
-		  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK) 
+		  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK)
 		      != GRUB_TERM_CODE_TYPE_UTF8_LOGICAL
 		      && grub_unicode_get_comb_type (*ptr2)
 		      != GRUB_UNICODE_COMB_NONE)
@@ -677,7 +677,7 @@ print_ucs4_terminal (const grub_uint32_t * str,
 	      if (state != &local_state && ++state->num_lines
 		  >= (grub_ssize_t) grub_term_height (term) - 2)
 		{
-		  state->backlog_ucs4 = (ptr == last_space || *ptr == '\n') 
+		  state->backlog_ucs4 = (ptr == last_space || *ptr == '\n')
 		    ? ptr + 1 : ptr;
 		  state->backlog_len = last_position - state->backlog_ucs4;
 		  state->backlog_fixed_tab = fixed_tab;
@@ -735,7 +735,7 @@ print_ucs4_terminal (const grub_uint32_t * str,
       for (ptr2 = line_start; ptr2 < last_position; ptr2++)
 	{
 	  /* Skip combining characters on non-UTF8 terminals.  */
-	  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK) 
+	  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK)
 	      != GRUB_TERM_CODE_TYPE_UTF8_LOGICAL
 	      && grub_unicode_get_comb_type (*ptr2)
 	      != GRUB_UNICODE_COMB_NONE)
@@ -888,7 +888,7 @@ print_ucs4_real (const grub_uint32_t * str,
 	state = find_term_state (term);
 
       xy = term->getxy (term);
-      
+
       if (xy.x < margin_left)
 	{
 	  if (!contchar)
@@ -899,9 +899,9 @@ print_ucs4_real (const grub_uint32_t * str,
 	}
     }
 
-  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK) 
+  if ((term->flags & GRUB_TERM_CODE_TYPE_MASK)
       == GRUB_TERM_CODE_TYPE_VISUAL_GLYPHS
-      || (term->flags & GRUB_TERM_CODE_TYPE_MASK) 
+      || (term->flags & GRUB_TERM_CODE_TYPE_MASK)
       == GRUB_TERM_CODE_TYPE_UTF8_VISUAL)
     {
       grub_ssize_t visual_len;
@@ -913,10 +913,10 @@ print_ucs4_real (const grub_uint32_t * str,
 
       visual_len = grub_bidi_logical_to_visual (str, last_position - str,
 						&visual, getcharwidth, term,
-						get_maxwidth (term, 
+						get_maxwidth (term,
 							      margin_left,
 							      margin_right),
-						dry_run ? 0 : get_startwidth (term, 
+						dry_run ? 0 : get_startwidth (term,
 									      margin_left),
 						contchar, pos, !!contchar);
       if (visual_len < 0)
@@ -935,7 +935,7 @@ print_ucs4_real (const grub_uint32_t * str,
 	    if (vptr->base == '\n')
 	      max_lines--;
 
-	  visual_len_show = vptr - visual_show;	  
+	  visual_len_show = vptr - visual_show;
 	}
       else
 	visual_len_show = visual + visual_len - visual_show;
@@ -1014,7 +1014,7 @@ grub_xnputs (const char *str, grub_size_t msg_len)
   grub_error_push ();
 
   unicode_str = grub_calloc (msg_len, sizeof (grub_uint32_t));
- 
+
   grub_error_pop ();
 
   if (!unicode_str)
@@ -1085,7 +1085,7 @@ grub_cls (void)
 {
   struct grub_term_output *term;
 
-  FOR_ACTIVE_TERM_OUTPUTS(term)  
+  FOR_ACTIVE_TERM_OUTPUTS(term)
   {
     if ((term->flags & GRUB_TERM_DUMB) || (grub_env_get ("debug")))
       {

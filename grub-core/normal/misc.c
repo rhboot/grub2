@@ -39,7 +39,7 @@ static const char *grub_human_sizes[3][6] =
     /* TRANSLATORS: that's the list of binary unit prefixes.  */
     {    "",     N_("K"),     N_("M"),     N_("G"),     N_("T"),     N_("P") },
     /* TRANSLATORS: that's the list of binary unit prefixes.  */
-    { N_("B/s"), N_("KiB/s"), N_("MiB/s"), N_("GiB/s"), N_("TiB/s"), N_("PiB/s"),  },    
+    { N_("B/s"), N_("KiB/s"), N_("MiB/s"), N_("GiB/s"), N_("TiB/s"), N_("PiB/s"),  },
   };
 
 const char *
