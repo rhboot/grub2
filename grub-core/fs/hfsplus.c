@@ -19,7 +19,7 @@
 
 /* HFS+ is documented at http://developer.apple.com/technotes/tn/tn1150.html */
 
-#define grub_fshelp_node grub_hfsplus_file 
+#define grub_fshelp_node grub_hfsplus_file
 #include <grub/err.h>
 #include <grub/file.h>
 #include <grub/mm.h>
@@ -146,7 +146,7 @@ grub_hfsplus_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 {
   struct grub_hfsplus_btnode *nnode = 0;
   grub_disk_addr_t blksleft = fileblock;
-  struct grub_hfsplus_extent *extents = node->compressed 
+  struct grub_hfsplus_extent *extents = node->compressed
     ? &node->resource_extents[0] : &node->extents[0];
 
   while (1)
@@ -477,7 +477,7 @@ grub_hfsplus_cmp_extkey (struct grub_hfsplus_key *keya,
 
   if (extkey_a->type < extkey_b->type)
     return -1;
-  
+
   akey = grub_be_to_cpu32 (extkey_a->start);
   if (akey > extkey_b->start)
     return 1;
@@ -568,7 +568,7 @@ grub_hfsplus_btree_search (struct grub_hfsplus_btree *btree,
 			   struct grub_hfsplus_key_internal *key,
 			   int (*compare_keys) (struct grub_hfsplus_key *keya,
 						struct grub_hfsplus_key_internal *keyb),
-			   struct grub_hfsplus_btnode **matchnode, 
+			   struct grub_hfsplus_btnode **matchnode,
 			   grub_off_t *keyoffset)
 {
   grub_uint64_t currnode;
