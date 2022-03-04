@@ -248,7 +248,7 @@ grub_pxe_recv (struct grub_net_card *dev __attribute__ ((unused)))
   return buf;
 }
 
-static grub_err_t 
+static grub_err_t
 grub_pxe_send (struct grub_net_card *dev __attribute__ ((unused)),
 	       struct grub_net_buff *pack)
 {
@@ -295,7 +295,7 @@ grub_pxe_open (struct grub_net_card *dev __attribute__ ((unused)))
   if (ou->status)
     return grub_error (GRUB_ERR_IO, "can't open UNDI");
   return GRUB_ERR_NONE;
-} 
+}
 
 struct grub_net_card_driver grub_pxe_card_driver =
 {

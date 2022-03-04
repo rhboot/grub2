@@ -145,7 +145,7 @@ parse_line (grub_file_t file, http_data_t data, char *ptr, grub_size_t len)
       return GRUB_ERR_NONE;
     }
 
-  return GRUB_ERR_NONE;  
+  return GRUB_ERR_NONE;
 }
 
 static void
@@ -205,7 +205,7 @@ http_receive (grub_net_tcp_socket_t sock __attribute__ ((unused)),
 	      grub_net_tcp_close (data->sock, GRUB_NET_TCP_ABORT);
 	      return grub_errno;
 	    }
-	      
+
 	  data->current_line = t;
 	  grub_memcpy (data->current_line + data->current_line_len,
 		       nb->data, ptr - (char *) nb->data);
@@ -261,7 +261,7 @@ http_receive (grub_net_tcp_socket_t sock __attribute__ ((unused)),
 	{
 	  grub_netbuff_free (nb);
 	  return GRUB_ERR_NONE;
-	} 
+	}
       err = grub_netbuff_pull (nb, ptr - (char *) nb->data);
       if (err)
 	{
@@ -370,7 +370,7 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
 	       grub_strlen (file->device->net->server));
 
   ptr = nb->tail;
-  err = grub_netbuff_put (nb, 
+  err = grub_netbuff_put (nb,
 			  sizeof ("\r\nUser-Agent: " PACKAGE_STRING "\r\n")
 			  - 1);
   if (err)
@@ -578,7 +578,7 @@ http_packets_pulled (struct grub_file *file)
   return 0;
 }
 
-static struct grub_net_app_protocol grub_http_protocol = 
+static struct grub_net_app_protocol grub_http_protocol =
   {
     .name = "http",
     .open = http_open,

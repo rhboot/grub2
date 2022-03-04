@@ -79,7 +79,7 @@ grub_net_udp_open (grub_net_network_level_address_t addr,
       grub_error (GRUB_ERR_BUG, "not an IP address");
       return NULL;
     }
- 
+
   err = grub_net_route_address (addr, &gateway, &inf);
   if (err)
     return NULL;
@@ -90,7 +90,7 @@ grub_net_udp_open (grub_net_network_level_address_t addr,
 
   socket = grub_zalloc (sizeof (*socket));
   if (socket == NULL)
-    return NULL; 
+    return NULL;
 
   socket->out_port = out_port;
   socket->inf = inf;

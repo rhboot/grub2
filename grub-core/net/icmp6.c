@@ -225,7 +225,7 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 	    if (ohdr->len == 0 || ptr + 8 * ohdr->len > nb->tail)
 	      {
 		grub_netbuff_free (nb);
-		return GRUB_ERR_NONE; 
+		return GRUB_ERR_NONE;
 	      }
 	    if (ohdr->type == OPTION_SOURCE_LINK_LAYER_ADDRESS
 		&& ohdr->len == 1)
@@ -329,7 +329,7 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 	    if (ohdr->len == 0 || ptr + 8 * ohdr->len > nb->tail)
 	      {
 		grub_netbuff_free (nb);
-		return GRUB_ERR_NONE; 
+		return GRUB_ERR_NONE;
 	      }
 	    if (ohdr->type == OPTION_TARGET_LINK_LAYER_ADDRESS
 		&& ohdr->len == 1)
@@ -378,7 +378,7 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 	    if (ohdr->len == 0 || ptr + 8 * ohdr->len > nb->tail)
 	      {
 		grub_netbuff_free (nb);
-		return GRUB_ERR_NONE; 
+		return GRUB_ERR_NONE;
 	      }
 	    if (ohdr->type == OPTION_SOURCE_LINK_LAYER_ADDRESS
 		&& ohdr->len == 1)
@@ -448,7 +448,7 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 			  grub_errno = GRUB_ERR_NONE;
 			  continue;
 			}
-		      inf = grub_net_add_addr (name, 
+		      inf = grub_net_add_addr (name,
 					       card, &addr,
 					       &slaac->address, 0);
 		      if (!route_inf)
@@ -523,7 +523,7 @@ grub_net_icmp6_send_request (struct grub_net_network_level_interface *inf,
   multicast.ipv6[1] = (grub_be_to_cpu64_compile_time (0x01ff000000ULL)
 		       | (proto_addr->ipv6[1]
 			  & grub_be_to_cpu64_compile_time (0xffffff)));
-  
+
   err = grub_net_link_layer_resolve (inf, &multicast, &ll_multicast);
   if (err)
     return err;
@@ -555,7 +555,7 @@ grub_net_icmp6_send_request (struct grub_net_network_level_interface *inf,
   ohdr = (struct option_header *) nb->data;
   ohdr->type = OPTION_SOURCE_LINK_LAYER_ADDRESS;
   ohdr->len = 1;
-  err = grub_netbuff_push (nb, sizeof (*sol));  
+  err = grub_netbuff_push (nb, sizeof (*sol));
   if (err)
     goto fail;
 

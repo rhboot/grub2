@@ -25,21 +25,21 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static grub_err_t 
+static grub_err_t
 send_card_buffer (struct grub_net_card *dev __attribute__ ((unused)),
 		  struct grub_net_buff *pack);
 
 static struct grub_net_buff *
 get_card_packet (struct grub_net_card *dev __attribute__ ((unused)));
 
-static struct grub_net_card_driver emudriver = 
+static struct grub_net_card_driver emudriver =
   {
     .name = "emu",
     .send = send_card_buffer,
     .recv = get_card_packet
   };
 
-static struct grub_net_card emucard = 
+static struct grub_net_card emucard =
   {
     .name = "emu0",
     .driver = &emudriver,
@@ -51,7 +51,7 @@ static struct grub_net_card emucard =
     .flags = 0
   };
 
-static grub_err_t 
+static grub_err_t
 send_card_buffer (struct grub_net_card *dev __attribute__ ((unused)),
 		  struct grub_net_buff *pack)
 {

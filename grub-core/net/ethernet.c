@@ -45,7 +45,7 @@ struct llchdr
 
 struct snaphdr
 {
-  grub_uint8_t oui[3]; 
+  grub_uint8_t oui[3];
   grub_uint16_t type;
 } GRUB_PACKED;
 

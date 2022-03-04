@@ -155,7 +155,7 @@ GRUB_MOD_FINI (ubootnet)
 {
   struct grub_net_card *card, *next;
 
-  FOR_NET_CARDS_SAFE (card, next) 
+  FOR_NET_CARDS_SAFE (card, next)
     if (card->driver && grub_strcmp (card->driver->name, "ubnet") == 0)
       grub_net_card_unregister (card);
 }
