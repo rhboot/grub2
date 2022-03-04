@@ -283,7 +283,7 @@ grub_xzio_read (grub_file_t file, char *buf, grub_size_t len)
 
       {
 	grub_off_t new_offset = current_offset + xzio->buf.out_pos;
-	
+
 	if (file->offset <= new_offset)
 	  /* Store first chunk of data in buffer.  */
 	  {

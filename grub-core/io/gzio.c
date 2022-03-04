@@ -1252,7 +1252,7 @@ static int
 test_zlib_header (grub_gzio_t gzio)
 {
   grub_uint8_t cmf, flg;
-  
+
   cmf = get_byte (gzio);
   flg = get_byte (gzio);
 
