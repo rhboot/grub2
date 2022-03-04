@@ -112,7 +112,7 @@ grub_romfs_mount (grub_device_t dev)
     {
       grub_error (GRUB_ERR_BAD_FS, "not romfs");
       return NULL;
-    }    
+    }
   err = do_checksum (&sb, sizeof (sb) < grub_be_to_cpu32 (sb.sb.total_size) ?
 		     sizeof (sb) : grub_be_to_cpu32 (sb.sb.total_size));
   if (err)
@@ -271,7 +271,7 @@ grub_romfs_iterate_dir (grub_fshelp_node_t dir,
 		while (1)
 		  {
 		    char buf[16];
-		    err = grub_disk_read (dir->data->disk, 
+		    err = grub_disk_read (dir->data->disk,
 					  laddr >> GRUB_DISK_SECTOR_BITS,
 					  laddr & (GRUB_DISK_SECTOR_SIZE - 1),
 					  16, buf);
@@ -298,7 +298,7 @@ grub_romfs_iterate_dir (grub_fshelp_node_t dir,
 		node->data_addr = grub_be_to_cpu32 (node->file.spec);
 		filetype = GRUB_FSHELP_DIR;
 	      }
-	    
+
 	    break;
 	  }
 	}
@@ -402,7 +402,7 @@ grub_romfs_read (grub_file_t file, char *buf, grub_size_t len)
   data->data->disk->read_hook_data = file->read_hook_data;
   grub_disk_read (data->data->disk,
 		  (data->data_addr + file->offset) >> GRUB_DISK_SECTOR_BITS,
-		  (data->data_addr + file->offset) & (GRUB_DISK_SECTOR_SIZE - 1),		  
+		  (data->data_addr + file->offset) & (GRUB_DISK_SECTOR_SIZE - 1),
 		  len, buf);
   data->data->disk->read_hook = NULL;
 
