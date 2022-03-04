@@ -1,5 +1,5 @@
-/* 
- *  nilfs2.c - New Implementation of Log filesystem 
+/*
+ *  nilfs2.c - New Implementation of Log filesystem
  *
  *  Written by Jiro SEKIBA <jir@unicus.jp>
  *
@@ -680,12 +680,12 @@ grub_nilfs2_read_checkpoint (struct grub_nilfs2_data *data,
   grub_disk_t disk = data->disk;
   unsigned int nilfs2_block_count = (1 << LOG2_NILFS2_BLOCK_SIZE (data));
 
-  /* Assume sizeof(struct grub_nilfs2_cpfile_header) < 
+  /* Assume sizeof(struct grub_nilfs2_cpfile_header) <
      sizeof(struct grub_nilfs2_checkpoint).
    */
   blockno = grub_divmod64 (cpno, NILFS2_BLOCK_SIZE (data) /
                           sizeof (struct grub_nilfs2_checkpoint), &offset);
-  
+
   pptr = grub_nilfs2_bmap_lookup (data, &data->sroot.sr_cpfile, blockno, 1);
   if (pptr == (grub_uint64_t) - 1)
     {

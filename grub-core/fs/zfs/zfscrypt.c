@@ -46,7 +46,7 @@
 GRUB_MOD_LICENSE ("GPLv3+");
 
 /*
-  Mostly based on following article: 
+  Mostly based on following article:
   https://blogs.oracle.com/darren/entry/zfs_encryption_what_is_on
  */
 
@@ -179,7 +179,7 @@ grub_gcm_mul (grub_uint8_t *a, const grub_uint8_t *b)
 	grub_crypto_xor (res, res, bs, 16);
       grub_gcm_mul_x (bs);
     }
- 
+
   grub_memcpy (a, res, 16);
 }
 
@@ -275,7 +275,7 @@ algo_decrypt (grub_crypto_cipher_handle_t cipher, grub_uint64_t algo,
 }
 
 static grub_err_t
-grub_zfs_decrypt_real (grub_crypto_cipher_handle_t cipher, 
+grub_zfs_decrypt_real (grub_crypto_cipher_handle_t cipher,
 		       grub_uint64_t algo,
 		       void *nonce,
 		       char *buf, grub_size_t size,
@@ -286,7 +286,7 @@ grub_zfs_decrypt_real (grub_crypto_cipher_handle_t cipher,
   unsigned i;
   grub_uint32_t sw[4];
   gcry_err_code_t err;
-      
+
   grub_memcpy (sw, nonce, 16);
   if (endian != GRUB_ZFS_BIG_ENDIAN)
     for (i = 0; i < 4; i++)
@@ -302,7 +302,7 @@ grub_zfs_decrypt_real (grub_crypto_cipher_handle_t cipher,
 		      sw + 1, 3, 12);
   if (err)
     return grub_crypto_gcry_error (err);
-  
+
   for (i = 0; i < 3; i++)
     if (grub_zfs_to_cpu32 (expected_mac[i], endian)
 	!= grub_be_to_cpu32 (mac[i]))
@@ -362,7 +362,7 @@ grub_zfs_load_key_real (const struct grub_zfs_key *key,
 	  grub_crypto_cipher_close (cipher);
 	  continue;
 	}
-		    
+
       err = grub_crypto_cipher_set_key (cipher, wrap_key_real,
 					keylen);
       if (err)
@@ -371,7 +371,7 @@ grub_zfs_load_key_real (const struct grub_zfs_key *key,
 	  grub_crypto_cipher_close (cipher);
 	  continue;
 	}
-      
+
       err = algo_decrypt (cipher, algo, decrypted, key->unknown_purpose_key, 32,
 			  mac, key->unknown_purpose_nonce, 2, 16);
       if (err || (grub_crypto_memcmp (mac, key->unknown_purpose_key + 32, 16)

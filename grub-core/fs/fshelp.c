@@ -215,7 +215,7 @@ find_file (char *currpath,
 	break;
 
       push_node (ctx, foundnode, foundtype);
- 
+
       /* Read in the symlink and follow it.  */
       if (ctx->currnode->type == GRUB_FSHELP_SYMLINK)
 	{
@@ -326,7 +326,7 @@ grub_fshelp_find_file (const char *path, grub_fshelp_node_t rootnode,
 		       enum grub_fshelp_filetype expecttype)
 {
   return grub_fshelp_find_file_real (path, rootnode, foundnode,
-				     iterate_dir, NULL, 
+				     iterate_dir, NULL,
 				     read_symlink, expecttype);
 
 }
@@ -339,7 +339,7 @@ grub_fshelp_find_file_lookup (const char *path, grub_fshelp_node_t rootnode,
 			      enum grub_fshelp_filetype expecttype)
 {
   return grub_fshelp_find_file_real (path, rootnode, foundnode,
-				     NULL, lookup_file, 
+				     NULL, lookup_file,
 				     read_symlink, expecttype);
 
 }
