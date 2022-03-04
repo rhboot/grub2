@@ -91,11 +91,11 @@ sun_pc_partition_map_iterate (grub_disk_t disk,
       grub_free (p);
       return err;
     }
-  
+
   if (GRUB_PARTMAP_SUN_PC_MAGIC != grub_le_to_cpu16 (block.sun_block.magic))
     {
       grub_free (p);
-      return grub_error (GRUB_ERR_BAD_PART_TABLE, 
+      return grub_error (GRUB_ERR_BAD_PART_TABLE,
 			 "not a sun_pc partition table");
     }
 

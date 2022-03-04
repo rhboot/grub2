@@ -55,7 +55,7 @@ const char message_warn[][200] = {
 		       " avoiding it.  "
 		       "This software may cause boot or other problems in "
 		       "future.  Please ask its authors not to store data "
-		       "in the boot track") 
+		       "in the boot track")
 };
 
 
@@ -312,7 +312,7 @@ pc_partition_map_embed (struct grub_disk *disk, unsigned int *nsectors,
 
 	  if (grub_msdos_partition_is_extended (e->type))
 	    {
-	      offset = ext_offset 
+	      offset = ext_offset
 		+ ((grub_disk_addr_t)grub_le_to_cpu32 (e->start)
 		   << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS));
 	      if (! ext_offset)

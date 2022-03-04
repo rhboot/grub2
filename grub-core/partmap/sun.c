@@ -108,7 +108,7 @@ sun_partition_map_iterate (grub_disk_t disk,
 
   if (! grub_sun_is_valid (block.raw))
       return grub_error (GRUB_ERR_BAD_PART_TABLE, "invalid checksum");
-  
+
   /* Maybe another error value would be better, because partition
      table _is_ recognized but invalid.  */
   for (partnum = 0; partnum < GRUB_PARTMAP_SUN_MAX_PARTS; partnum++)

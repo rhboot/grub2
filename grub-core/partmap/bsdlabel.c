@@ -132,14 +132,14 @@ bsdlabel_partition_map_iterate (grub_disk_t disk,
     return iterate_real (disk, GRUB_PC_PARTITION_BSD_LABEL_SECTOR, 1,
 			 &grub_bsdlabel_partition_map, hook, hook_data);
 
-  if (disk->partition 
+  if (disk->partition
       && (grub_strcmp (disk->partition->partmap->name, "msdos") == 0
 	  || disk->partition->partmap == &grub_bsdlabel_partition_map
 	  || disk->partition->partmap == &grub_netbsdlabel_partition_map
 	  || disk->partition->partmap == &grub_openbsdlabel_partition_map))
       return grub_error (GRUB_ERR_BAD_PART_TABLE, "no embedding supported");
 
-  return iterate_real (disk, GRUB_PC_PARTITION_BSD_LABEL_SECTOR, 0, 
+  return iterate_real (disk, GRUB_PC_PARTITION_BSD_LABEL_SECTOR, 0,
 		       &grub_bsdlabel_partition_map, hook, hook_data);
 }
 
