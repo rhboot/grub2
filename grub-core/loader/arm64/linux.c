@@ -34,7 +34,6 @@
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 #include <grub/verify.h>
-#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -341,7 +340,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_off_t filelen;
   grub_uint32_t align;
   void *kernel = NULL;
-  int rc;
 
   grub_dl_ref (my_mod);
 
@@ -368,17 +366,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
 		  argv[0]);
       goto fail;
-    }
-
-  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
-    {
-      rc = grub_linuxefi_secure_validate (kernel, filelen);
-      if (rc <= 0)
-	{
-	  grub_error (GRUB_ERR_INVALID_COMMAND,
-		      N_("%s has invalid signature"), argv[0]);
-	  goto fail;
-	}
     }
 
   if (grub_arch_efi_linux_check_image (kernel) != GRUB_ERR_NONE)
