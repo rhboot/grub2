@@ -116,23 +116,23 @@ zio_checksum_SHA256(const void *buf, grub_uint64_t size,
   grub_uint8_t pad[128];
   unsigned padsize = size & 63;
   unsigned i;
-  
+
   for (i = 0; i < size - padsize; i += 64)
     SHA256Transform(H, (grub_uint8_t *)buf + i);
-  
+
   for (i = 0; i < padsize; i++)
     pad[i] = ((grub_uint8_t *)buf)[i];
-  
+
   for (pad[padsize++] = 0x80; (padsize & 63) != 56; padsize++)
     pad[padsize] = 0;
-  
+
   for (i = 0; i < 8; i++)
     pad[padsize++] = (size << 3) >> (56 - 8 * i);
-  
+
   for (i = 0; i < padsize && i <= 64; i += 64)
     SHA256Transform(H, pad + i);
-  
-  zcp->zc_word[0] = grub_cpu_to_zfs64 ((grub_uint64_t)H[0] << 32 | H[1], 
+
+  zcp->zc_word[0] = grub_cpu_to_zfs64 ((grub_uint64_t)H[0] << 32 | H[1],
 				       endian);
   zcp->zc_word[1] = grub_cpu_to_zfs64 ((grub_uint64_t)H[2] << 32 | H[3],
 				       endian);

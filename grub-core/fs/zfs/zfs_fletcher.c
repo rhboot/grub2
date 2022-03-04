@@ -39,14 +39,14 @@
 #include <grub/zfs/dsl_dataset.h>
 
 void
-fletcher_2(const void *buf, grub_uint64_t size, grub_zfs_endian_t endian, 
+fletcher_2(const void *buf, grub_uint64_t size, grub_zfs_endian_t endian,
 	   zio_cksum_t *zcp)
 {
   const grub_uint64_t *ip = buf;
   const grub_uint64_t *ipend = ip + (size / sizeof (grub_uint64_t));
   grub_uint64_t a0, b0, a1, b1;
-  
-  for (a0 = b0 = a1 = b1 = 0; ip < ipend; ip += 2) 
+
+  for (a0 = b0 = a1 = b1 = 0; ip < ipend; ip += 2)
     {
       a0 += grub_zfs_to_cpu64 (ip[0], endian);
       a1 += grub_zfs_to_cpu64 (ip[1], endian);
@@ -61,14 +61,14 @@ fletcher_2(const void *buf, grub_uint64_t size, grub_zfs_endian_t endian,
 }
 
 void
-fletcher_4 (const void *buf, grub_uint64_t size, grub_zfs_endian_t endian, 
+fletcher_4 (const void *buf, grub_uint64_t size, grub_zfs_endian_t endian,
 	    zio_cksum_t *zcp)
 {
   const grub_uint32_t *ip = buf;
   const grub_uint32_t *ipend = ip + (size / sizeof (grub_uint32_t));
   grub_uint64_t a, b, c, d;
-  
-  for (a = b = c = d = 0; ip < ipend; ip++) 
+
+  for (a = b = c = d = 0; ip < ipend; ip++)
     {
       a += grub_zfs_to_cpu32 (ip[0], endian);;
       b += a;
