@@ -73,9 +73,9 @@ grub_get_ext_memsize (void)
    in 1KB parts, and upper 16 bits are above 16MB in 64KB parts. If error, return zero.
    BIOS call "INT 15H, AH=E801H" to get EISA memory map,
      AX = memory between 1M and 16M in 1K parts.
-     BX = memory above 16M in 64K parts. 
+     BX = memory above 16M in 64K parts.
 */
- 
+
 static inline grub_uint32_t
 grub_get_eisa_mmap (void)
 {
@@ -114,7 +114,7 @@ grub_get_mmap_entry (struct grub_machine_mmap_entry *entry,
   /* place address (+4) in ES:DI */
   regs.es = ((grub_addr_t) &entry->addr) >> 4;
   regs.edi = ((grub_addr_t) &entry->addr) & 0xf;
-	
+
   /* set continuation value */
   regs.ebx = cont;
 
@@ -127,7 +127,7 @@ grub_get_mmap_entry (struct grub_machine_mmap_entry *entry,
   regs.eax = 0xe820;
   grub_bios_interrupt (0x15, &regs);
 
-  /* write length of buffer (zero if error) into ADDR */	
+  /* write length of buffer (zero if error) into ADDR */
   if ((regs.flags & GRUB_CPU_INT_FLAGS_CARRY) || regs.eax != 0x534d4150
       || regs.ecx < 0x14 || regs.ecx > 0x400)
     entry->size = 0;

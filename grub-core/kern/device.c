@@ -56,7 +56,7 @@ grub_device_open (const char *name)
   if (grub_net_open && grub_errno == GRUB_ERR_UNKNOWN_DEVICE)
     {
       grub_errno = GRUB_ERR_NONE;
-      dev->net = grub_net_open (name); 
+      dev->net = grub_net_open (name);
     }
 
   if (dev->net)

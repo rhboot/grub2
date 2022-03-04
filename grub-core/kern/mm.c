@@ -283,7 +283,7 @@ grub_real_malloc (grub_mm_header_t *first, grub_size_t n, grub_size_t align)
 	  else if (extra == 0)
 	    {
 	      grub_mm_header_t r;
-	      
+
 	      r = cur + extra + n;
 	      r->magic = GRUB_MM_FREE_MAGIC;
 	      r->size = cur->size - extra - n;
@@ -707,7 +707,7 @@ grub_debug_memalign (const char *file, int line, grub_size_t align,
   void *ptr;
 
   if (grub_mm_debug)
-    grub_printf ("%s:%d: memalign (0x%" PRIxGRUB_SIZE  ", 0x%" PRIxGRUB_SIZE  
+    grub_printf ("%s:%d: memalign (0x%" PRIxGRUB_SIZE  ", 0x%" PRIxGRUB_SIZE
 		 ") = ", file, line, align, size);
   ptr = grub_memalign (align, size);
   if (grub_mm_debug)

@@ -69,9 +69,9 @@ grub_arm64_set_hi21 (grub_uint32_t *place, grub_int64_t offset)
   grub_uint32_t val;
 
   offset >>= 12;
-  
+
   val = ((offset & 3) << 29) | (((offset >> 2) & 0x7ffff) << 5);
-  
+
   *place &= insmask;
   *place |= grub_cpu_to_le32 (val) & ~insmask;
 }

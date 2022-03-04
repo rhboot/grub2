@@ -208,7 +208,7 @@ grub_set_prefix_and_root (void)
   if (device)
     {
       char *prefix_set;
-    
+
       prefix_set = grub_xasprintf ("(%s)%s", device, path ? : "");
       if (prefix_set)
 	{
@@ -286,7 +286,7 @@ grub_main (void)
   grub_register_exported_symbols ();
 #ifdef GRUB_LINKER_HAVE_INIT
   grub_arch_dl_init_linker ();
-#endif  
+#endif
   grub_load_modules ();
 
   grub_boot_time ("After loading embedded modules.");

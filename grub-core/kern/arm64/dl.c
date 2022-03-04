@@ -49,7 +49,7 @@ grub_arch_dl_check_header (void *ehdr)
 #pragma GCC diagnostic ignored "-Wcast-align"
 
 /*
- * Unified function for both REL and RELA 
+ * Unified function for both REL and RELA
  */
 grub_err_t
 grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,

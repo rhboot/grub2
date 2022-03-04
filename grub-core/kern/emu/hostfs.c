@@ -122,7 +122,7 @@ grub_hostfs_open (struct grub_file *file, const char *name)
       return grub_errno;
     }
 
-  data->f = f;  
+  data->f = f;
 
   file->data = data;
 

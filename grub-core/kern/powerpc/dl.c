@@ -47,7 +47,7 @@ struct trampoline
   grub_uint32_t bctr;
 };
 
-static const struct trampoline trampoline_template = 
+static const struct trampoline trampoline_template =
   {
     0x3d800000,
     0x618c0000,
@@ -74,7 +74,7 @@ grub_arch_dl_get_tramp_got_size (const void *ehdr, grub_size_t *tramp,
     if (s->sh_type == SHT_RELA)
       {
 	const Elf_Rela *rel, *max;
-	
+
 	for (rel = (const Elf_Rela *) ((const char *) e + s->sh_offset),
 	       max = rel + s->sh_size / s->sh_entsize;
 	     rel < max;
@@ -82,7 +82,7 @@ grub_arch_dl_get_tramp_got_size (const void *ehdr, grub_size_t *tramp,
 	  if (ELF_R_TYPE (rel->r_info) == GRUB_ELF_R_PPC_REL24
 	      || ELF_R_TYPE (rel->r_info) == GRUB_ELF_R_PPC_PLTREL24)
 	    (*tramp)++;
-	
+
       }
 
   *tramp *= sizeof (struct trampoline);
@@ -138,7 +138,7 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 		tptr->ori |= ((value) & 0xffff);
 		mod->trampptr = tptr + 1;
 	      }
-			
+
 	    if (delta << 6 >> 6 != delta)
 	      return grub_error (GRUB_ERR_BAD_MODULE,
 				 "relocation overflow");

@@ -46,7 +46,7 @@ grub_register_command_prio (const char *name,
 
   cmd->flags = 0;
   cmd->prio = prio;
-    
+
   for (p = &grub_command_list, q = *p; q; p = &(q->next), q = q->next)
     {
       int r;

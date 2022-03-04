@@ -62,7 +62,7 @@ signature_found:
        {
          table_header = (grub_linuxbios_table_header_t) (grub_addr_t)
            *(grub_uint64_t *) (table_item + 1);
-         goto signature_found;   
+         goto signature_found;
        }
       if (hook (table_item, hook_data))
        return 1;

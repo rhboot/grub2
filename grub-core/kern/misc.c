@@ -1253,7 +1253,7 @@ static void __attribute__ ((noreturn))
 grub_abort (void)
 {
   grub_printf ("\nAborted.");
-  
+
 #ifndef GRUB_UTIL
   if (grub_term_inputs)
 #endif
@@ -1308,7 +1308,7 @@ grub_real_boot_time (const char *file,
   n->next = 0;
 
   va_start (args, fmt);
-  n->msg = grub_xvasprintf (fmt, args);    
+  n->msg = grub_xvasprintf (fmt, args);
   va_end (args);
 
   *boot_time_last = n;

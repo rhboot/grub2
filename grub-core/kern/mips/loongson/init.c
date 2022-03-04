@@ -107,10 +107,10 @@ init_pci (void)
 
   *((volatile grub_uint32_t *) (GRUB_MACHINE_PCI_CONTROLLER_HEADER
 				+ GRUB_PCI_REG_CACHELINE)) = 0xff;
-  *((volatile grub_uint32_t *) (GRUB_MACHINE_PCI_CONTROLLER_HEADER 
+  *((volatile grub_uint32_t *) (GRUB_MACHINE_PCI_CONTROLLER_HEADER
 				+ GRUB_PCI_REG_ADDRESS_REG0))
     = 0x80000000 | GRUB_PCI_ADDR_MEM_TYPE_64 | GRUB_PCI_ADDR_MEM_PREFETCH;
-  *((volatile grub_uint32_t *) (GRUB_MACHINE_PCI_CONTROLLER_HEADER 
+  *((volatile grub_uint32_t *) (GRUB_MACHINE_PCI_CONTROLLER_HEADER
 				+ GRUB_PCI_REG_ADDRESS_REG1)) = 0;
 
   grub_pci_iterate (set_card, NULL);
@@ -183,7 +183,7 @@ grub_machine_init (void)
       else
 	totalmem = ((spd.ddr2.num_of_ranks
 		     & GRUB_SMBUS_SPD_MEMORY_NUM_OF_RANKS_MASK) + 1) << (i + 2);
-      
+
       if (totalmem >= 256)
 	{
 	  grub_arch_memsize = 256;

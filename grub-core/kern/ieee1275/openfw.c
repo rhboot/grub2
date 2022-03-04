@@ -404,7 +404,7 @@ grub_ieee1275_parse_args (const char *path, enum grub_ieee1275_parse_type ptype)
 	if (comma)
 	  {
 	    char *filepath = comma + 1;
-	    
+
 	    /* Make sure filepath has leading backslash.  */
 	    if (filepath[0] != '\\')
 	      ret = grub_xasprintf ("\\%s", filepath);

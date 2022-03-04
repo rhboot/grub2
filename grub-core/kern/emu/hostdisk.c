@@ -538,7 +538,7 @@ read_device_map (const char *dev_map)
       map[drive].device = grub_canonicalize_file_name (p);
       if (! map[drive].device)
 	map[drive].device = xstrdup (p);
-      
+
       if (!map[drive].drive)
 	{
 	  char c;

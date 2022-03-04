@@ -306,7 +306,7 @@ grub_ieee1275_seek (grub_ieee1275_ihandle_t ihandle, grub_disk_addr_t pos,
   args.pos_lo = pos;
 #else
   args.pos_hi = (grub_ieee1275_cell_t) (pos >> (8 * GRUB_IEEE1275_CELL_SIZEOF));
-  args.pos_lo = (grub_ieee1275_cell_t) 
+  args.pos_lo = (grub_ieee1275_cell_t)
     (pos & ((1ULL << (8 * GRUB_IEEE1275_CELL_SIZEOF)) - 1));
 #endif
 

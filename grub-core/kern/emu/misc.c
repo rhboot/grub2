@@ -135,16 +135,16 @@ xstrdup (const char *str)
 #if !defined (GRUB_MKFONT) && !defined (GRUB_BUILD)
 char *
 xasprintf (const char *fmt, ...)
-{ 
+{
   va_list ap;
   char *result;
-  
+
   va_start (ap, fmt);
   result = grub_xvasprintf (fmt, ap);
   va_end (ap);
   if (!result)
     grub_util_error ("%s", _("out of memory"));
-  
+
   return result;
 }
 #endif
@@ -180,7 +180,7 @@ grub_util_get_image_size (const char *path)
     grub_util_error (_("cannot open `%s': %s"), path, strerror (errno));
 
   fseeko (f, 0, SEEK_END);
-  
+
   sz = ftello (f);
   if (sz < 0)
     grub_util_error (_("cannot open `%s': %s"), path, strerror (errno));

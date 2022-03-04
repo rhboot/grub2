@@ -1,4 +1,4 @@
-/* 
+/*
  *  GRUB  --  GRand Unified Bootloader
  *  Copyright (C) 2012  Free Software Foundation, Inc.
  *

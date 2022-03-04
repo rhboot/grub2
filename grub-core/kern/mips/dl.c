@@ -164,7 +164,7 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 #endif
 
 	    /* Handle partner lo16 relocation. Lower part is
-	       treated as signed. Hence add 0x8000 to compensate. 
+	       treated as signed. Hence add 0x8000 to compensate.
 	    */
 	    value = (*(grub_uint16_t *) addr << 16)
 	      + sym_value + 0x8000;
@@ -206,8 +206,8 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 	    value = raw << 2;
 	    value += sym_value;
 	    raw = (value >> 2) & 0x3ffffff;
-			
-	    *(grub_uint32_t *) addr = 
+
+	    *(grub_uint32_t *) addr =
 	      raw | ((*(grub_uint32_t *) addr) & 0xfc000000);
 	  }
 	  break;
@@ -265,7 +265,7 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
   return GRUB_ERR_NONE;
 }
 
-void 
+void
 grub_arch_dl_init_linker (void)
 {
   grub_dl_register_symbol ("__gnu_local_gp", &__gnu_local_gp_dummy, 0, 0);

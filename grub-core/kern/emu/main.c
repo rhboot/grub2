@@ -194,7 +194,7 @@ int
 main (int argc, char *argv[])
 {
   struct arguments arguments =
-    { 
+    {
       .dev_map = DEFAULT_DEVICE_MAP,
       .hold = 0,
       .mem_disk = 0,

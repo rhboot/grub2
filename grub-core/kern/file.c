@@ -210,9 +210,9 @@ grub_file_seek (grub_file_t file, grub_off_t offset)
 		  N_("attempt to seek outside of the file"));
       return -1;
     }
-  
+
   old = file->offset;
   file->offset = offset;
-    
+
   return old;
 }

@@ -138,7 +138,7 @@ grub_machine_get_bootlocation (char **device, char **path)
 
 /* Claim some available memory in the first /memory node. */
 #ifdef __sparc__
-static void 
+static void
 grub_claim_heap (void)
 {
   grub_mm_init_region ((void *) (grub_modules_get_end ()
@@ -200,7 +200,7 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
   return 0;
 }
 
-static void 
+static void
 grub_claim_heap (void)
 {
   unsigned long total = 0;
@@ -254,7 +254,7 @@ grub_addr_t grub_modbase;
 void
 grub_machine_init (void)
 {
-  grub_modbase = ALIGN_UP((grub_addr_t) _end 
+  grub_modbase = ALIGN_UP((grub_addr_t) _end
 			  + GRUB_KERNEL_MACHINE_MOD_GAP,
 			  GRUB_KERNEL_MACHINE_MOD_ALIGN);
   grub_ieee1275_init ();

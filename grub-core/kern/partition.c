@@ -128,7 +128,7 @@ grub_partition_probe (struct grub_disk *disk, const char *str)
       partname = ptr;
       while (*ptr && grub_isalpha (*ptr))
 	ptr++;
-      partname_end = ptr; 
+      partname_end = ptr;
       num = grub_strtoul (ptr, &ptr, 0) - 1;
 
       curpart = 0;

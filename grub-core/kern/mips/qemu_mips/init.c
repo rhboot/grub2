@@ -41,7 +41,7 @@ grub_machine_init (void)
   if (grub_arch_memsize == 0)
     {
       int i;
-      
+
       for (i = 27; i >= 0; i--)
 	if (probe_mem (grub_arch_memsize | (1 << i)))
 	  grub_arch_memsize |= (1 << i);
@@ -87,7 +87,7 @@ grub_halt (void)
   while (1);
 }
 
-grub_err_t 
+grub_err_t
 grub_machine_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
 {
   hook (0, grub_arch_memsize, GRUB_MEMORY_AVAILABLE, hook_data);

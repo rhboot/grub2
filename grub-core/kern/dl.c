@@ -483,7 +483,7 @@ grub_dl_resolve_name (grub_dl_t mod, Elf_Ehdr *e)
   s = grub_dl_find_section (e, ".modname");
   if (!s)
     return grub_error (GRUB_ERR_BAD_MODULE, "no module name found");
-  
+
   mod->name = grub_strdup ((char *) e + s->sh_offset);
   if (! mod->name)
     return grub_errno;

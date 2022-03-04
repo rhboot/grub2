@@ -73,7 +73,7 @@ grub_ia64_add_value_to_slot_20b (grub_addr_t addr, grub_uint32_t value)
     case 0:
       val = grub_le_to_cpu32 (grub_get_unaligned32 (((grub_uint8_t *)
 						     (addr & MASK3) + 2)));
-      val = (((((val & MASK20) + value) & MASK20) << 2) 
+      val = (((((val & MASK20) + value) & MASK20) << 2)
 	    | (val & ~(MASK20 << 2)));
       grub_set_unaligned32 (((grub_uint8_t *) (addr & MASK3) + 2),
 			    grub_cpu_to_le32 (val));
@@ -161,9 +161,9 @@ static grub_uint8_t jump[0x20] =
     /* 	[MIB]       ld8 r1=[r15] */
     0x11, 0x08, 0x00, 0x1e, 0x18, 0x10,
     /* mov b6=r16 */
-    0x60, 0x80, 0x04, 0x80, 0x03, 0x00, 
+    0x60, 0x80, 0x04, 0x80, 0x03, 0x00,
     /* br.few b6;; */
-    0x60, 0x00, 0x80, 0x00       	            
+    0x60, 0x00, 0x80, 0x00
   };
 #else
 static const grub_uint8_t jump[0x20] =

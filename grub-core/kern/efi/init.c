@@ -111,7 +111,7 @@ grub_efi_init (void)
   grub_efidisk_init ();
 }
 
-void (*grub_efi_net_config) (grub_efi_handle_t hnd, 
+void (*grub_efi_net_config) (grub_efi_handle_t hnd,
 			     char **device,
 			     char **path);
 
