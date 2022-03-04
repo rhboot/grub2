@@ -75,7 +75,7 @@ handle_symlink (struct grub_archelp_data *data,
       || !arcops->get_link_target)
     return GRUB_ERR_NONE;
   flen = grub_strlen (fn);
-  if (grub_memcmp (*name, fn, flen) != 0 
+  if (grub_memcmp (*name, fn, flen) != 0
       || ((*name)[flen] != 0 && (*name)[flen] != '/'))
     return GRUB_ERR_NONE;
   rest = *name + flen;
@@ -251,7 +251,7 @@ grub_archelp_open (struct grub_archelp_data *data,
       grub_uint32_t mode;
       grub_int32_t mtime;
       int restart;
-      
+
       if (arcops->find_file (data, &fn, &mtime, &mode))
 	goto fail;
 
