@@ -29,10 +29,10 @@
 #include FT_SYNTHESIS_H
 
 #undef __FTERRORS_H__
-#define FT_ERROR_START_LIST   const char *ft_errmsgs[] = { 
+#define FT_ERROR_START_LIST   const char *ft_errmsgs[] = {
 #define FT_ERRORDEF(e, v, s)  [e] = s,
 #define FT_ERROR_END_LIST     };
-#include FT_ERRORS_H   
+#include FT_ERRORS_H
 
 #define GRUB_FONT_DEFAULT_SIZE		16
 
@@ -119,7 +119,7 @@ main (int argc, char *argv[])
 	fprintf (stderr, "grub-gen-widthspec: error: can't set %dx%d font size", size, size);
 	return 1;
       }
-  
+
     for (char_code = FT_Get_First_Char (ft_face, &glyph_index);
 	 glyph_index;
 	 char_code = FT_Get_Next_Char (ft_face, char_code, &glyph_index))

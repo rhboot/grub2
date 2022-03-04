@@ -62,7 +62,7 @@ main (int argc, char **argv)
     {
       out = grub_util_fopen (argv[2], "w");
       if (!out)
-	{					
+	{
 	  if (in != stdin)
 	    fclose (in);
 	  fprintf (stderr, _("cannot open `%s': %s"),

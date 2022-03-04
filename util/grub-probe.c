@@ -433,7 +433,7 @@ probe (const char *path, char **device_names, char delim)
       dev = grub_device_open (drives_names[0]);
       if (! dev)
 	grub_util_error ("%s", grub_errmsg);
-      
+
       fs = grub_fs_probe (dev);
       if (! fs)
 	grub_util_error ("%s", grub_errmsg);
@@ -543,7 +543,7 @@ probe (const char *path, char **device_names, char delim)
 	  else
 	    printf ("\n");
 	}
-      
+
       else if ((print == PRINT_COMPATIBILITY_HINT || print == PRINT_BIOS_HINT
 	   || print == PRINT_IEEE1275_HINT || print == PRINT_BAREMETAL_HINT
 	   || print == PRINT_EFI_HINT || print == PRINT_ARC_HINT)

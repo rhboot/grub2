@@ -121,7 +121,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-pc", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_I386_PC, 
+      .id = IMAGE_I386_PC,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
@@ -155,7 +155,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-pc-pxe", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_I386_PC_PXE, 
+      .id = IMAGE_I386_PC_PXE,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
@@ -171,7 +171,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-pc-eltorito", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_I386_PC_ELTORITO, 
+      .id = IMAGE_I386_PC_ELTORITO,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
@@ -203,7 +203,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-ieee1275", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_I386_IEEE1275, 
+      .id = IMAGE_I386_IEEE1275,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -222,7 +222,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-qemu", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_QEMU, 
+      .id = IMAGE_QEMU,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -236,8 +236,8 @@ static const struct grub_install_image_target_desc image_targets[] =
       .dirname = "x86_64-efi",
       .names = { "x86_64-efi", NULL },
       .voidp_sizeof = 8,
-      .bigendian = 0, 
-      .id = IMAGE_EFI, 
+      .bigendian = 0,
+      .id = IMAGE_EFI,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -253,7 +253,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "i386-xen", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_XEN, 
+      .id = IMAGE_XEN,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -272,7 +272,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "x86_64-xen", NULL },
       .voidp_sizeof = 8,
       .bigendian = 0,
-      .id = IMAGE_XEN, 
+      .id = IMAGE_XEN,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -291,7 +291,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mipsel-yeeloong-flash", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_YEELOONG_FLASH, 
+      .id = IMAGE_YEELOONG_FLASH,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -309,7 +309,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mipsel-fuloong2f-flash", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_FULOONG2F_FLASH, 
+      .id = IMAGE_FULOONG2F_FLASH,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -329,7 +329,7 @@ static const struct grub_install_image_target_desc image_targets[] =
 		 "mipsel-fuloong-elf", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_LOONGSON_ELF, 
+      .id = IMAGE_LOONGSON_ELF,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -347,7 +347,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "powerpc-ieee1275", NULL },
       .voidp_sizeof = 4,
       .bigendian = 1,
-      .id = IMAGE_PPC, 
+      .id = IMAGE_PPC,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -365,7 +365,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .dirname = "sparc64-ieee1275",
       .names = { "sparc64-ieee1275-raw", NULL },
       .voidp_sizeof = 8,
-      .bigendian = 1, 
+      .bigendian = 1,
       .id = IMAGE_SPARC64_RAW,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = GRUB_KERNEL_SPARC64_IEEE1275_TOTAL_MODULE_SIZE,
@@ -381,7 +381,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .dirname = "sparc64-ieee1275",
       .names = { "sparc64-ieee1275-cdcore", NULL },
       .voidp_sizeof = 8,
-      .bigendian = 1, 
+      .bigendian = 1,
       .id = IMAGE_SPARC64_CDCORE,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = GRUB_KERNEL_SPARC64_IEEE1275_TOTAL_MODULE_SIZE,
@@ -413,8 +413,8 @@ static const struct grub_install_image_target_desc image_targets[] =
       .dirname = "ia64-efi",
       .names = {"ia64-efi", NULL},
       .voidp_sizeof = 8,
-      .bigendian = 0, 
-      .id = IMAGE_EFI, 
+      .bigendian = 0,
+      .id = IMAGE_EFI,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -430,7 +430,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = {"mips-arc", NULL},
       .voidp_sizeof = 4,
       .bigendian = 1,
-      .id = IMAGE_MIPS_ARC, 
+      .id = IMAGE_MIPS_ARC,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_ARC_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -448,7 +448,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = {"mipsel-arc", NULL},
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_MIPS_ARC, 
+      .id = IMAGE_MIPS_ARC,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_ARC_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -466,7 +466,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mipsel-qemu_mips-elf", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_LOONGSON_ELF, 
+      .id = IMAGE_LOONGSON_ELF,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -484,7 +484,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mips-qemu_mips-flash", NULL },
       .voidp_sizeof = 4,
       .bigendian = 1,
-      .id = IMAGE_QEMU_MIPS_FLASH, 
+      .id = IMAGE_QEMU_MIPS_FLASH,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -502,7 +502,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mipsel-qemu_mips-flash", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_QEMU_MIPS_FLASH, 
+      .id = IMAGE_QEMU_MIPS_FLASH,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -520,7 +520,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "mips-qemu_mips-elf", NULL },
       .voidp_sizeof = 4,
       .bigendian = 1,
-      .id = IMAGE_LOONGSON_ELF, 
+      .id = IMAGE_LOONGSON_ELF,
       .flags = PLATFORM_FLAGS_DECOMPRESSORS,
       .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
@@ -538,7 +538,7 @@ static const struct grub_install_image_target_desc image_targets[] =
       .names = { "arm-uboot", NULL },
       .voidp_sizeof = 4,
       .bigendian = 0,
-      .id = IMAGE_UBOOT, 
+      .id = IMAGE_UBOOT,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = GRUB_KERNEL_ARM_UBOOT_TOTAL_MODULE_SIZE,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -594,8 +594,8 @@ static const struct grub_install_image_target_desc image_targets[] =
       .dirname = "arm-efi",
       .names = { "arm-efi", NULL },
       .voidp_sizeof = 4,
-      .bigendian = 0, 
-      .id = IMAGE_EFI, 
+      .bigendian = 0,
+      .id = IMAGE_EFI,
       .flags = PLATFORM_FLAGS_NONE,
       .total_module_size = TARGET_NO_FIELD,
       .decompressor_compressed_size = TARGET_NO_FIELD,
@@ -1114,7 +1114,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
   grub_util_info ("the core size is 0x%" GRUB_HOST_PRIxLONG_LONG,
 		  (unsigned long long) core_size);
 
-  if (!(image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS) 
+  if (!(image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS)
       && image_target->total_module_size != TARGET_NO_FIELD)
     *((grub_uint32_t *) (core_img + image_target->total_module_size))
       = grub_host_to_target32 (total_module_size);
@@ -1140,7 +1140,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	default:
 	  grub_util_error (_("unknown compression %d"), comp);
 	}
-      
+
       decompress_path = grub_util_get_path (dir, name);
       decompress_size = grub_util_get_image_size (decompress_path);
       decompress_img = grub_util_read_image (decompress_path);
@@ -1240,11 +1240,11 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    char *pxeboot_path, *pxeboot_img;
 	    size_t pxeboot_size;
 	    grub_uint32_t *ptr;
-	    
+
 	    pxeboot_path = grub_util_get_path (dir, "pxeboot.img");
 	    pxeboot_size = grub_util_get_image_size (pxeboot_path);
 	    pxeboot_img = grub_util_read_image (pxeboot_path);
-	    
+
 	    grub_util_write_image (pxeboot_img, pxeboot_size, out,
 				   outname);
 	    free (pxeboot_img);
@@ -1267,11 +1267,11 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	  {
 	    char *eltorito_path, *eltorito_img;
 	    size_t eltorito_size;
-	    
+
 	    eltorito_path = grub_util_get_path (dir, "cdboot.img");
 	    eltorito_size = grub_util_get_image_size (eltorito_path);
 	    eltorito_img = grub_util_read_image (eltorito_path);
-	    
+
 	    grub_util_write_image (eltorito_img, eltorito_size, out,
 				   outname);
 	    free (eltorito_img);
@@ -1554,7 +1554,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
       size_t boot_size;
       /* fwstart.img is the only part which can't be tested by using *-elf
 	 target. Check it against the checksum. */
-      const grub_uint8_t yeeloong_fwstart_good_hash[512 / 8] = 
+      const grub_uint8_t yeeloong_fwstart_good_hash[512 / 8] =
 	{
 	  0x5f, 0x67, 0x46, 0x57, 0x31, 0x30, 0xc5, 0x0a,
 	  0xe9, 0x98, 0x18, 0xc9, 0xf3, 0xca, 0x45, 0xa5,
@@ -1565,8 +1565,8 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	  0x5e, 0x5f, 0x23, 0x7d, 0x7a, 0xe8, 0x51, 0xf7,
 	  0x1a, 0xaf, 0x2f, 0x54, 0x11, 0x2e, 0x5c, 0x25
 	};
-      const grub_uint8_t fuloong2f_fwstart_good_hash[512 / 8] = 
-	{ 
+      const grub_uint8_t fuloong2f_fwstart_good_hash[512 / 8] =
+	{
 	  0x76, 0x9b, 0xad, 0x6e, 0xa2, 0x39, 0x47, 0x62,
 	  0x1f, 0xc9, 0x3a, 0x6d, 0x05, 0x5c, 0x43, 0x5c,
 	  0x29, 0x4a, 0x7e, 0x08, 0x2a, 0x31, 0x8f, 0x5d,
@@ -1578,7 +1578,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	};
       const grub_uint8_t *fwstart_good_hash;
       grub_uint8_t fwstart_hash[512 / 8];
-            
+
       if (image_target->id == IMAGE_FULOONG2F_FLASH)
 	{
 	  fwstart_good_hash = fuloong2f_fwstart_good_hash;
@@ -1607,7 +1607,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
       rom_size = 512 * 1024;
 
       rom_img = xmalloc (rom_size);
-      memset (rom_img, 0, rom_size); 
+      memset (rom_img, 0, rom_size);
 
       memcpy (rom_img, boot_img, boot_size);
 
@@ -1633,7 +1633,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
       rom_size = 512 * 1024;
 
       rom_img = xmalloc (rom_size);
-      memset (rom_img, 0, rom_size); 
+      memset (rom_img, 0, rom_size);
 
       memcpy (rom_img, core_img, core_size);
 
@@ -1739,7 +1739,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	head->entry = grub_host_to_target32 (target_addr);
 	head->text_start = grub_host_to_target32 (target_addr);
 	head->data_start = grub_host_to_target32 (target_addr + program_size);
-	grub_memcpy (section->name, ".text", sizeof (".text") - 1); 
+	grub_memcpy (section->name, ".text", sizeof (".text") - 1);
 	section->vaddr = grub_host_to_target32 (target_addr);
 	section->size = grub_host_to_target32 (program_size);
 	section->file_offset = grub_host_to_target32 (sizeof (*head) + sizeof (*section));

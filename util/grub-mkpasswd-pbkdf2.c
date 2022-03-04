@@ -135,7 +135,7 @@ main (int argc, char *argv[])
 
   buf = xmalloc (arguments.buflen);
   salt = xmalloc (arguments.saltlen);
-  
+
   printf ("%s", _("Enter password: "));
   if (!grub_password_get (pass1, GRUB_AUTH_MAX_PASSLEN))
     {
@@ -189,7 +189,7 @@ main (int argc, char *argv[])
   ptr = result;
   memcpy (ptr, "grub.pbkdf2.sha512.", sizeof ("grub.pbkdf2.sha512.") - 1);
   ptr += sizeof ("grub.pbkdf2.sha512.") - 1;
-  
+
   grub_snprintf (ptr, sizeof ("XXXXXXXXXXXXXXXXXXX"), "%d", arguments.count);
   ptr += strlen (ptr);
   *ptr++ = '.';

@@ -92,7 +92,7 @@ write_fat (FILE *in32, FILE *in64, FILE *out, const char *out_filename,
   if (fwrite (buf, 1, size32, out) != size32)
     {
       if (out_filename)
-	grub_util_error ("cannot write to `%s': %s", 
+	grub_util_error ("cannot write to `%s': %s",
 			 out_filename, strerror (errno));
       else
 	grub_util_error ("cannot write to the stdout: %s", strerror (errno));

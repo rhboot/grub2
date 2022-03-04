@@ -184,7 +184,7 @@ main (int argc, char *argv[])
     {
       input = 0;
       get_config_line (&input, 0, &ctx);
-      if (! input) 
+      if (! input)
 	break;
       found_input = 1;
 

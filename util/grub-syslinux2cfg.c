@@ -180,7 +180,7 @@ main (int argc, char *argv[])
     {
       grub_util_error (_("cannot open `%s': %s"), arguments.input,
 		       strerror (errno));
-    }  
+    }
 
   inpfull = xasprintf ("(host)/%s", t);
   free (t);
@@ -190,7 +190,7 @@ main (int argc, char *argv[])
     {
       grub_util_error (_("cannot open `%s': %s"), arguments.root,
 		       strerror (errno));
-    }  
+    }
 
   rootfull = xasprintf ("(host)/%s", t);
   free (t);
@@ -211,7 +211,7 @@ main (int argc, char *argv[])
     {
       grub_util_error (_("cannot open `%s': %s"), arguments.root,
 		       strerror (errno));
-    }  
+    }
 
   cwdfull = xasprintf ("(host)/%s", t);
   free (t);
@@ -227,7 +227,7 @@ main (int argc, char *argv[])
       if (!f)
 	grub_util_error (_("cannot open `%s': %s"), arguments.output,
 			 strerror (errno));
-      fwrite (res, 1, strlen (res), f); 
+      fwrite (res, 1, strlen (res), f);
       fclose (f);
     }
   else

@@ -169,4 +169,4 @@ grub_util_fprint_full_disk_name (FILE *f,
   else
     fprintf (f, "%s", dname);
   free (dname);
-} 
+}

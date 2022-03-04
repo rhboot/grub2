@@ -112,7 +112,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
 struct argp argp = {
   options, argp_parser, N_("[OPTION] SOURCE..."),
-  N_("Generate a standalone image (containing all modules) in the selected format")"\v"N_("Graft point syntax (E.g. /boot/grub/grub.cfg=./grub.cfg) is accepted"), 
+  N_("Generate a standalone image (containing all modules) in the selected format")"\v"N_("Graft point syntax (E.g. /boot/grub/grub.cfg=./grub.cfg) is accepted"),
   NULL, help_filter, NULL
 };
 
@@ -273,7 +273,7 @@ add_tar_file (const char *from,
   compute_checksum (&hd);
 
   fwrite (&hd, 1, sizeof (hd), memdisk);
- 
+
   while (1)
     {
       r = grub_util_fd_read (in, grub_install_copy_buffer, GRUB_INSTALL_COPY_BUFFER_SIZE);

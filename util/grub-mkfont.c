@@ -50,10 +50,10 @@
 #include FT_SYNTHESIS_H
 
 #undef __FTERRORS_H__
-#define FT_ERROR_START_LIST   const char *ft_errmsgs[] = { 
+#define FT_ERROR_START_LIST   const char *ft_errmsgs[] = {
 #define FT_ERRORDEF(e, v, s)  [e] = s,
 #define FT_ERROR_END_LIST     };
-#include FT_ERRORS_H   
+#include FT_ERRORS_H
 
 #ifndef GRUB_BUILD
 #include "progname.h"
@@ -312,7 +312,7 @@ add_char (struct grub_font_info *font_info, FT_Face face,
 			 char_code | GRUB_FONT_CODE_RIGHT_JOINED, nocut);
 	    break;
 	  }
-	      
+
     }
 
   for (cur = subst_leftjoin; cur; cur = cur->next)
@@ -338,7 +338,7 @@ add_char (struct grub_font_info *font_info, FT_Face face,
 			 char_code | GRUB_FONT_CODE_LEFT_JOINED, nocut);
 	    break;
 	  }
-	      
+
     }
   for (cur = subst_medijoin; cur; cur = cur->next)
     if (cur->from == glyph_idx)
@@ -365,7 +365,7 @@ add_char (struct grub_font_info *font_info, FT_Face face,
 			 | GRUB_FONT_CODE_RIGHT_JOINED, nocut);
 	    break;
 	  }
-	      
+
     }
 }
 
@@ -440,7 +440,7 @@ struct gsub_coverage_ranges
 {
   grub_uint16_t type;
   grub_uint16_t count;
-  struct 
+  struct
   {
     grub_uint16_t start;
     grub_uint16_t end;
@@ -501,20 +501,20 @@ process_cursive (struct gsub_feature *feature,
       if (lookup_index >= grub_be_to_cpu16 (lookups->count))
 	{
 	  /* TRANSLATORS: "lookup" is taken directly from font specifications
-	   which are formulated as "Under condition X replace LOOKUP with 
+	   which are formulated as "Under condition X replace LOOKUP with
 	   SUBSTITUITION".  "*/
 	  printf (_("Out of range lookup: %d\n"), lookup_index);
 	  continue;
 	}
       lookup = (struct gsub_lookup *)
-	((grub_uint8_t *) lookups 
+	((grub_uint8_t *) lookups
 	 + grub_be_to_cpu16 (lookups->offsets[lookup_index]));
       if (grub_be_to_cpu16 (lookup->type) != GSUB_SINGLE_SUBSTITUTION)
 	{
 	  printf (_("Unsupported substitution type: %d\n"),
 		  grub_be_to_cpu16 (lookup->type));
 	  continue;
-	}		      
+	}
       if (grub_be_to_cpu16 (lookup->flag) & ~GSUB_RTL_CHAR)
 	{
 	  grub_util_info ("unsupported substitution flag: 0x%x",
@@ -536,7 +536,7 @@ process_cursive (struct gsub_feature *feature,
 	  break;
 	case FEATURE_MEDI:
 	  target = &subst_medijoin;
-	  break;	  
+	  break;
 	}
       for (k = 0; k < grub_be_to_cpu16 (lookup->subtablecount); k++)
 	{
@@ -602,7 +602,7 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
     }
   if (gsub)
     {
-      struct gsub_features *features 
+      struct gsub_features *features
 	= (struct gsub_features *) (((grub_uint8_t *) gsub)
 				    + grub_be_to_cpu16 (gsub->features_off));
       struct gsub_lookup_list *lookups
@@ -941,10 +941,10 @@ static struct argp_option options[] = {
       This option is used to chose among them, the first face being '0'.
       Rarely used.  */
    N_("select face index"), 0},
-  {"range",  'r', N_("FROM-TO[,FROM-TO]"), 0, 
+  {"range",  'r', N_("FROM-TO[,FROM-TO]"), 0,
    /* TRANSLATORS: It refers to the range of characters in font.  */
    N_("set font range"), 0},
-  {"name",  'n', N_("NAME"), 0, 
+  {"name",  'n', N_("NAME"), 0,
    /* TRANSLATORS: "family name" for font is just a generic name without suffix
       like "Bold".  */
    N_("set font family name"), 0},
@@ -1186,7 +1186,7 @@ main (int argc, char *argv[])
     grub_util_error ("%s", _("FT_Init_FreeType fails"));
 
   {
-    size_t i;      
+    size_t i;
     for (i = 0; i < arguments.nfiles; i++)
       {
 	FT_Face ft_face;

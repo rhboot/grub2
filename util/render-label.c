@@ -162,7 +162,7 @@ grub_util_render_label (const char *label_font,
     {
       grub_util_error (_("cannot open `%s': %s"), label_font,
 		       strerror (errno));
-    }  
+    }
 
   fontfull = xasprintf ("(host)/%s", t);
   free (t);
@@ -173,7 +173,7 @@ grub_util_render_label (const char *label_font,
     {
       grub_util_error (_("cannot open `%s': %s"), label_font,
 		       grub_errmsg);
-    }  
+    }
 
   width = grub_font_get_string_width (font, text) + 10;
   height = grub_font_get_height (font);

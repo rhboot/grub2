@@ -151,7 +151,7 @@ fuse_getattr (const char *path, struct stat *st)
 {
   struct fuse_getattr_ctx ctx;
   char *pathname, *path2;
-  
+
   if (path[0] == '/' && path[1] == 0)
     {
       st->st_dev = 0;
@@ -170,7 +170,7 @@ fuse_getattr (const char *path, struct stat *st)
   ctx.file_exists = 0;
 
   pathname = xstrdup (path);
-  
+
   /* Remove trailing '/'. */
   while (*pathname && pathname[grub_strlen (pathname) - 1] == '/')
     pathname[grub_strlen (pathname) - 1] = 0;
@@ -231,7 +231,7 @@ fuse_getattr (const char *path, struct stat *st)
 }
 
 static int
-fuse_opendir (const char *path, struct fuse_file_info *fi) 
+fuse_opendir (const char *path, struct fuse_file_info *fi)
 {
   return 0;
 }
@@ -240,7 +240,7 @@ fuse_opendir (const char *path, struct fuse_file_info *fi)
 static grub_file_t files[65536];
 static int first_fd = 1;
 
-static int 
+static int
 fuse_open (const char *path, struct fuse_file_info *fi __attribute__ ((unused)))
 {
   grub_file_t file;
@@ -252,9 +252,9 @@ fuse_open (const char *path, struct fuse_file_info *fi __attribute__ ((unused)))
   files[first_fd++] = file;
   grub_errno = GRUB_ERR_NONE;
   return 0;
-} 
+}
 
-static int 
+static int
 fuse_read (const char *path, char *buf, size_t sz, off_t off,
 	   struct fuse_file_info *fi)
 {
@@ -265,7 +265,7 @@ fuse_read (const char *path, char *buf, size_t sz, off_t off,
     return -EINVAL;
 
   file->offset = off;
-  
+
   size = grub_file_read (file, buf, sz);
   if (size < 0)
     return translate_error ();
@@ -274,9 +274,9 @@ fuse_read (const char *path, char *buf, size_t sz, off_t off,
       grub_errno = GRUB_ERR_NONE;
       return size;
     }
-} 
+}
 
-static int 
+static int
 fuse_release (const char *path, struct fuse_file_info *fi)
 {
   grub_file_close (files[fi->fh]);
@@ -334,7 +334,7 @@ fuse_readdir_call_fill (const char *filename,
   return 0;
 }
 
-static int 
+static int
 fuse_readdir (const char *path, void *buf,
 	      fuse_fill_dir_t fill, off_t off, struct fuse_file_info *fi)
 {
@@ -346,7 +346,7 @@ fuse_readdir (const char *path, void *buf,
   char *pathname;
 
   pathname = xstrdup (path);
-  
+
   /* Remove trailing '/'. */
   while (pathname [0] && pathname[1]
 	 && pathname[grub_strlen (pathname) - 1] == '/')
@@ -448,7 +448,7 @@ fuse_init (void)
   return grub_errno;
 }
 
-static struct argp_option options[] = {  
+static struct argp_option options[] = {
   {"root",      'r', N_("DEVICE_NAME"), 0, N_("Set root device."),                 2},
   {"debug",     'd', N_("STRING"),           0, N_("Set debug environment variable."),  2},
   {"crypto",   'C', NULL, 0, N_("Mount crypto devices."), 2},
@@ -467,7 +467,7 @@ print_version (FILE *stream, struct argp_state *state)
 }
 void (*argp_program_version_hook) (FILE *, struct argp_state *) = print_version;
 
-static error_t 
+static error_t
 argp_parser (int key, char *arg, struct argp_state *state)
 {
   switch (key)
@@ -479,7 +479,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
     case 'K':
       if (strcmp (arg, "prompt") == 0)
 	{
-	  char buf[1024];	  
+	  char buf[1024];
 	  grub_printf ("%s", _("Enter ZFS password: "));
 	  if (grub_password_get (buf, 1023))
 	    {
@@ -550,7 +550,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
 struct argp argp = {
   options, argp_parser, N_("IMAGE1 [IMAGE2 ...] MOUNTPOINT"),
-  N_("Debug tool for filesystem driver."), 
+  N_("Debug tool for filesystem driver."),
   NULL, NULL, NULL
 };
 
@@ -570,7 +570,7 @@ main (int argc, char *argv[])
   fuse_argc++;
 
   argp_parse (&argp, argc, argv, 0, 0, 0);
-  
+
   if (num_disks < 2)
     grub_util_error ("%s", _("need an image and mountpoint"));
   fuse_args = xrealloc (fuse_args, (fuse_argc + 2) * sizeof (fuse_args[0]));
