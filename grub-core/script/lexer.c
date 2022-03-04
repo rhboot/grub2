@@ -303,7 +303,7 @@ grub_script_yylex (union YYSTYPE *value,
   if (lexerstate->eof)
     return GRUB_PARSER_TOKEN_EOF;
 
-  /* 
+  /*
    * Words with environment variables, like foo${bar}baz needs
    * multiple tokens to be merged into a single grub_script_arg.  We
    * use two variables to achieve this: lexerstate->merge_start and

@@ -788,7 +788,7 @@ cleanup:
 	      grub_free (expansions[j]);
 	    }
 	  grub_free (expansions);
-	  
+
 	  if (failed)
 	    {
 	      grub_script_argv_free (&unexpanded);
