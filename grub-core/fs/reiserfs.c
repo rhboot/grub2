@@ -785,7 +785,7 @@ grub_reiserfs_iterate_dir (grub_fshelp_node_t item,
 	  char *entry_name;
 	  char *entry_name_end = 0;
 	  char c;
-	  
+
           if (!(entry_state & GRUB_REISERFS_VISIBLE_MASK))
 	    continue;
 

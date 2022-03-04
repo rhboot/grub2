@@ -568,7 +568,7 @@ grub_ufs_find_file (struct grub_ufs_data *data, const char *path)
 	    {
 	      dirino = data->ino;
 	      grub_ufs_read_inode (data, grub_ufs_to_cpu32 (dirent.ino), 0);
-	      
+
 	      if ((INODE_MODE(data) & GRUB_UFS_ATTR_TYPE)
 		  == GRUB_UFS_ATTR_LNK)
 		{
@@ -613,7 +613,7 @@ grub_ufs_mount (grub_disk_t disk)
 	  && ((data->sblock.bsize & (data->sblock.bsize - 1)) == 0)
 	  && data->sblock.ino_per_group != 0)
 	{
-	  for (data->log2_blksz = 0; 
+	  for (data->log2_blksz = 0;
 	       (1U << data->log2_blksz) < grub_ufs_to_cpu32 (data->sblock.bsize);
 	       data->log2_blksz++);
 
