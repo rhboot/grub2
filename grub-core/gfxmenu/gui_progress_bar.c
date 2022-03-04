@@ -320,7 +320,7 @@ static void
 progress_bar_set_state (void *vself, int visible, int start,
 			int current, int end)
 {
-  grub_gui_progress_bar_t self = vself;  
+  grub_gui_progress_bar_t self = vself;
   self->visible = visible;
   self->start = start;
   self->value = current;
@@ -335,7 +335,7 @@ progress_bar_set_property (void *vself, const char *name, const char *value)
     {
       grub_free (self->template);
       if (grub_strcmp (value, "@TIMEOUT_NOTIFICATION_LONG@") == 0)
-	value 
+	value
 	  = _("The highlighted entry will be executed automatically in %ds.");
       else if (grub_strcmp (value, "@TIMEOUT_NOTIFICATION_MIDDLE@") == 0)
 	/* TRANSLATORS:  's' stands for seconds.

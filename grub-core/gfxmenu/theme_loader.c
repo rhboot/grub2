@@ -419,7 +419,7 @@ read_expression (struct parsebuf *p)
   skip_whitespace (p);
   if (peek_char (p) == '"')
     {
-      /* Read as a quoted string.  
+      /* Read as a quoted string.
          The quotation marks are not included in the expression value.  */
       /* Skip opening quotation mark.  */
       read_char (p);

@@ -42,7 +42,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_gfxmenu_view_t cached_view;
 
-static void 
+static void
 grub_gfxmenu_viewer_fini (void *data __attribute__ ((unused)))
 {
 }

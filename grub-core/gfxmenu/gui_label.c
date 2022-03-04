@@ -160,7 +160,7 @@ static void
 label_set_state (void *vself, int visible, int start __attribute__ ((unused)),
 		 int current, int end __attribute__ ((unused)))
 {
-  grub_gui_label_t self = vself;  
+  grub_gui_label_t self = vself;
   self->value = -current;
   self->visible = visible;
   grub_free (self->text);
