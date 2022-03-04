@@ -51,7 +51,7 @@ struct header
   grub_uint32_t offset_translation;
 };
 
-struct string_descriptor 
+struct string_descriptor
 {
   grub_uint32_t length;
   grub_uint32_t offset;
@@ -206,7 +206,7 @@ grub_gettext_translate_real (struct grub_gettext_context *ctx,
 	    }
 	  grub_error_pop ();
 	  depth--;
-	  return ret;      
+	  return ret;
 	}
     }
 
@@ -235,7 +235,7 @@ grub_gettext_translate_real (struct grub_gettext_context *ctx,
 	    }
 	  grub_error_pop ();
 	  depth--;
-	  return ret;      
+	  return ret;
 	}
     }
 
@@ -452,7 +452,7 @@ void
 grub_gettext_reread_prefix (const char *val)
 {
   grub_err_t err;
-  err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"), 
+  err = grub_gettext_init_ext (&main_context, grub_env_get ("lang"),
 			       grub_env_get ("locale_dir"),
 			       val);
   if (err)
@@ -519,7 +519,7 @@ GRUB_MOD_INIT (gettext)
   grub_register_command_p1 ("gettext", grub_cmd_translate,
 			    N_("STRING"),
 			    /* TRANSLATORS: It refers to passing the string through gettext.
-			       So it's "translate" in the same meaning as in what you're 
+			       So it's "translate" in the same meaning as in what you're
 			       doing now.
 			     */
 			    N_("Translates the string with the current settings."));
