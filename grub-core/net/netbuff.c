@@ -54,7 +54,7 @@ grub_err_t
 grub_netbuff_pull (struct grub_net_buff *nb, grub_size_t len)
 {
   nb->data += len;
-  if (nb->data > nb->end)
+  if (nb->data > nb->end || nb->data > nb->tail)
     return grub_error (GRUB_ERR_BUG,
 		       "pull out of the packet range.");
   return GRUB_ERR_NONE;
