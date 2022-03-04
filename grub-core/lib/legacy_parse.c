@@ -92,7 +92,7 @@ static struct legacy_command legacy_commands[] =
      2, {TYPE_FILE, TYPE_FILE}, FLAG_IGNORE_REST, "FILE1 FILE2",
      "Compare the file FILE1 with the FILE2 and inform the different values"
      " if any."},
-    {"color", "set color_normal='%s'; set color_highlight='%s'\n", NULL, 0, 
+    {"color", "set color_normal='%s'; set color_highlight='%s'\n", NULL, 0,
      2, {TYPE_VERBATIM, TYPE_VERBATIM},
      FLAG_IGNORE_REST | FLAG_FALLBACK_AVAILABLE, "NORMAL [HIGHLIGHT]",
      "Change the menu colors. The color NORMAL is used for most"
@@ -115,7 +115,7 @@ static struct legacy_command legacy_commands[] =
      0, {}, 0, 0, "Turn on/off the debug mode."},
     {"default",
      "set default='%s'; if [ x\"$default\" = xsaved ]; then load_env; "
-     "set default=\"$saved_entry\"; fi\n", NULL, 0, 1, {TYPE_VERBATIM}, 0, 
+     "set default=\"$saved_entry\"; fi\n", NULL, 0, 1, {TYPE_VERBATIM}, 0,
      "[NUM | `saved']",
      "Set the default entry to entry number NUM (if not specified, it is"
      " 0, the first entry) or the entry number saved by savedefault."},
@@ -128,7 +128,7 @@ static struct legacy_command legacy_commands[] =
      " tag."},
     {"displayapm", "lsapm\n", NULL, 0, 0, {}, 0, 0,
      "Display APM BIOS information."},
-    {"displaymem", "lsmmap\n", NULL, 0, 0, {}, 0, 0, 
+    {"displaymem", "lsmmap\n", NULL, 0, 0, {}, 0, 0,
      "Display what GRUB thinks the system address space map of the"
      " machine is, including all regions of physical RAM installed."},
     /* FIXME: device and efimap unsupported.  */
@@ -213,7 +213,7 @@ static struct legacy_command legacy_commands[] =
      1, {TYPE_BOOL}, FLAG_FALLBACK_AVAILABLE, "[FLAG]",
      "Toggle pager mode with no argument. If FLAG is given and its value"
      " is `on', turn on the mode. If FLAG is `off', turn off the mode."},
-    {"pager", 
+    {"pager",
      "if [ \"$pager\" = 1 ]; then pager=0; echo Internal pager is now off;"
       "else pager=1; echo Internal pager is now on; fi\n", NULL, 0, 0, {},
      FLAG_FALLBACK, NULL, NULL},
@@ -291,7 +291,7 @@ static struct legacy_command legacy_commands[] =
      "Save the current entry as the default boot entry if no argument is"
      " specified. If a number is specified, this number is saved. If"
      " `fallback' is used, next fallback entry is saved."},
-    {"serial", "serial %s\n", NULL, 0, 1, {TYPE_REST_VERBATIM}, 0, 
+    {"serial", "serial %s\n", NULL, 0, 1, {TYPE_REST_VERBATIM}, 0,
      "[--unit=UNIT] [--port=PORT] [--speed=SPEED] [--word=WORD] "
      "[--parity=PARITY] [--stop=STOP] [--device=DEV]",
      "Initialize a serial device. UNIT is a digit that specifies which serial"
@@ -438,7 +438,7 @@ adjust_file (const char *in, grub_size_t len)
     {
       if (*ptr == '\'' || *ptr == '\\')
 	*outptr++ = '\\';
-      
+
       *outptr++ = *ptr;
     }
   if (subpart != -1)
@@ -451,7 +451,7 @@ adjust_file (const char *in, grub_size_t len)
     {
       if (*ptr == '\'' || *ptr == '\\')
 	*outptr++ = '\\';
-      
+
       *outptr++ = *ptr;
     }
   *outptr = 0;
@@ -489,7 +489,7 @@ is_option (enum arg_type opt, const char *curarg, grub_size_t len)
       return (len >= 2 && curarg[0] == '-' && curarg[1] == '-');
     default:
       return 0;
-    } 
+    }
 }
 
 char *
@@ -635,7 +635,7 @@ grub_legacy_parse (const char *buf, char **entryname, char **suffix)
 
   {
     int hold_arg = 0;
-    const char *curarg = NULL; 
+    const char *curarg = NULL;
     for (i = 0; i < legacy_commands[cmdnum].argc; i++)
       {
  	grub_size_t curarglen;
@@ -685,7 +685,7 @@ grub_legacy_parse (const char *buf, char **entryname, char **suffix)
 		    ptr++;
 		  overhead += 3;
 		}
-		
+
 	      outptr0 = args[i] = grub_malloc (overhead + (ptr - curarg));
 	      if (!outptr0)
 		return NULL;
@@ -819,14 +819,14 @@ grub_legacy_parse (const char *buf, char **entryname, char **suffix)
       case TYPE_FORCE_OPTION:
       case TYPE_NOAPM_OPTION:
       case TYPE_TYPE_OR_NOMEM_OPTION:
-      case TYPE_OPTION:	
+      case TYPE_OPTION:
 	args[i] = grub_strdup ("");
 	break;
       case TYPE_BOOL:
       case TYPE_INT:
 	args[i] = grub_strdup ("0");
 	break;
-      case TYPE_VBE_MODE:    
+      case TYPE_VBE_MODE:
 	args[i] = grub_strdup ("auto");
 	break;
       }
@@ -849,7 +849,7 @@ grub_legacy_parse (const char *buf, char **entryname, char **suffix)
       if (!invert)
 	return NULL;
       grub_memcpy (invert, slash + 1, len - (slash - corig) - 1);
-      invert[len - (slash - args[0]) - 1] = '/'; 
+      invert[len - (slash - args[0]) - 1] = '/';
       grub_memcpy (invert + len - (slash - corig), corig, slash - corig);
       invert[len] = 0;
       args[legacy_commands[cmdnum].argc] = invert;

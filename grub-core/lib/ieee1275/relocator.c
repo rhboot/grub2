@@ -33,7 +33,7 @@ count (grub_uint64_t addr __attribute__ ((unused)),
   return 0;
 }
 
-unsigned 
+unsigned
 grub_relocator_firmware_get_max_events (void)
 {
   int counter = 0;
@@ -82,7 +82,7 @@ grub_relocator_firmware_fill_events_iter (grub_uint64_t addr,
   return 0;
 }
 
-unsigned 
+unsigned
 grub_relocator_firmware_fill_events (struct grub_relocator_mmap_event *events)
 {
   struct grub_relocator_firmware_fill_events_ctx ctx = {

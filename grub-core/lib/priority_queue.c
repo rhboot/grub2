@@ -139,7 +139,7 @@ void
 grub_priority_queue_pop (grub_priority_queue_t pq)
 {
   grub_size_t p;
-  
+
   swap (pq, 0, pq->used - 1);
   pq->used--;
   for (p = 0; left_child (p) < pq->used; )

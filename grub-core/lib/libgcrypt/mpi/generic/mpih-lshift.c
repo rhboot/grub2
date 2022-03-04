@@ -54,7 +54,7 @@ _gcry_mpih_lshift( mpi_ptr_t wp, mpi_ptr_t up, mpi_size_t usize,
   low_limb = up[i];
   retval = low_limb >> sh_2;
   high_limb = low_limb;
-  while ( --i >= 0 ) 
+  while ( --i >= 0 )
     {
       low_limb = up[i];
       wp[i] = (high_limb << sh_1) | (low_limb >> sh_2);

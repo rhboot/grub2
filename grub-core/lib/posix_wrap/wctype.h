@@ -37,7 +37,7 @@ static inline wctype_t
 wctype (const char *name)
 {
   wctype_t i;
-  static const char names[][10] = { "", 
+  static const char names[][10] = { "",
 				    "alnum", "cntrl", "lower",
 				    "space", "alpha", "digit",
 				    "print", "upper", "blank",

@@ -27,13 +27,13 @@ toupper (int c)
   return grub_toupper (c);
 }
 
-static inline int 
+static inline int
 isspace (int c)
 {
   return grub_isspace (c);
 }
 
-static inline int 
+static inline int
 isdigit (int c)
 {
   return grub_isdigit (c);
@@ -63,19 +63,19 @@ isxdigit (int c)
   return grub_isxdigit (c);
 }
 
-static inline int 
+static inline int
 isprint (int c)
 {
   return grub_isprint (c);
 }
 
-static inline int 
+static inline int
 iscntrl (int c)
 {
   return !grub_isprint (c);
 }
 
-static inline int 
+static inline int
 isgraph (int c)
 {
   return grub_isprint (c) && !grub_isspace (c);
@@ -87,13 +87,13 @@ isalnum (int c)
   return grub_isalpha (c) || grub_isdigit (c);
 }
 
-static inline int 
+static inline int
 ispunct (int c)
 {
   return grub_isprint (c) && !grub_isspace (c) && !isalnum (c);
 }
 
-static inline int 
+static inline int
 isalpha (int c)
 {
   return grub_isalpha (c);

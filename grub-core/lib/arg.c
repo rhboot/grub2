@@ -270,7 +270,7 @@ grub_arg_parse (grub_extcmd_t cmd, int argc, char **argv,
 	      for (curshort = arg + 1; *curshort; curshort++)
 		if (!find_short (cmd->options, *curshort))
 		  break;
-	    
+
 	      if (*curshort)
 		{
 		  if (add_arg (&argl, &num, arg) != 0)

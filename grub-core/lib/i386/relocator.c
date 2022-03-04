@@ -131,7 +131,7 @@ grub_relocator16_boot (struct grub_relocator *rel,
   if (err)
     return err;
 
-  grub_relocator16_cs = state.cs;  
+  grub_relocator16_cs = state.cs;
   grub_relocator16_ip = state.ip;
 
   grub_relocator16_ds = state.ds;

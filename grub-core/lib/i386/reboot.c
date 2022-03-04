@@ -55,7 +55,7 @@ grub_reboot (void)
   state.a20 = 0;
 
   grub_stop_floppy ();
-  
+
   err = grub_relocator16_boot (relocator, state);
 
   while (1);

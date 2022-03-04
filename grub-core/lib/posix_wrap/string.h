@@ -30,13 +30,13 @@ strlen (const char *s)
   return grub_strlen (s);
 }
 
-static inline int 
+static inline int
 strcmp (const char *s1, const char *s2)
 {
   return grub_strcmp (s1, s2);
 }
 
-static inline int 
+static inline int
 strcasecmp (const char *s1, const char *s2)
 {
   return grub_strcasecmp (s1, s2);

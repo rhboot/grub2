@@ -265,7 +265,7 @@ rs_recover (gf_single_t *mm, grub_size_t s, grub_size_t rs)
       sigma[i] = 0;
 
     gauss_solve (eqstat, rs2, rs2, sigma);
-  } 
+  }
 
   for (i = 0; i < (int) (rs + s); i++)
     if (pol_evaluate (sigma, rs2 - 1, 255 - i) == gf_powx[i])
@@ -338,7 +338,7 @@ encode_block (gf_single_t *ptr, grub_size_t s,
       for (j = 0; j < ds; j++)
 	m[j] = ptr[SECTOR_SIZE * j + i];
       rs_encode (m, ds, rr);
-      for (j = 0; j < rr; j++)      
+      for (j = 0; j < rr; j++)
 	rptr[SECTOR_SIZE * j + i] = m[j + ds];
       free (m);
     }
@@ -473,7 +473,7 @@ main (int argc, char **argv)
 
   buf = xmalloc (s + rs + SECTOR_SIZE);
   fread (buf, 1, s + rs, out);
-  fclose (out);  
+  fclose (out);
 #endif
 #if 1
   grub_memset (buf + 512 * 15, 0, 512);

@@ -27,7 +27,7 @@ main (int argc, char **argv)
     }
 
   printf ("ru_utime   = %ld.%06ld\n",
-          buf.ru_utime.tv_sec, buf.ru_utime.tv_usec); 
+          buf.ru_utime.tv_sec, buf.ru_utime.tv_usec);
   printf ("ru_stime   = %ld.%06ld\n",
           buf.ru_stime.tv_sec, buf.ru_stime.tv_usec);
   printf ("ru_maxrss  = %ld\n", buf.ru_maxrss   );
@@ -60,7 +60,7 @@ collect_rusage_stats (struct rusage *rb)
 {
   static int idx;
   static struct rusage buf[100];
-  
+
   if (!rb)
     {
       int i;
@@ -68,12 +68,12 @@ collect_rusage_stats (struct rusage *rb)
       fprintf (stderr, "ru_utime   ru_stime   ru_minflt  ru_nvcsw  ru_nivcsw\n");
       for (i=0; i < idx; i++)
         fprintf (stderr, "%ld.%06ld   %ld.%06ld %5ld       %5ld      %5ld\n",
-                 buf[i].ru_utime.tv_sec, buf[i].ru_utime.tv_usec, 
-                 buf[i].ru_stime.tv_sec, buf[i].ru_stime.tv_usec, 
-                 buf[i].ru_minflt, 
+                 buf[i].ru_utime.tv_sec, buf[i].ru_utime.tv_usec,
+                 buf[i].ru_stime.tv_sec, buf[i].ru_stime.tv_usec,
+                 buf[i].ru_minflt,
                  buf[i].ru_nvcsw,
                  buf[i].ru_nivcsw);
-    }      
+    }
   else if (idx < DIM(buf))
     {
       buf[idx++] = *rb;
@@ -99,7 +99,7 @@ collect_rusage_stats (struct rusage *rb)
      add_randomness( &buf, sizeof buf, 1 );
      memset( &buf, 0, sizeof buf );
    }
- 
+
 */
 
 

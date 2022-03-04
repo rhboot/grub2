@@ -26,7 +26,7 @@
 #define NEXT_MEMORY_DESCRIPTOR(desc, size)	\
   ((grub_efi_memory_descriptor_t *) ((char *) (desc) + (size)))
 
-unsigned 
+unsigned
 grub_relocator_firmware_get_max_events (void)
 {
   grub_efi_uintn_t mmapsize = 0, descriptor_size = 0;
@@ -39,7 +39,7 @@ grub_relocator_firmware_get_max_events (void)
   return 2 * (mmapsize / descriptor_size + 10);
 }
 
-unsigned 
+unsigned
 grub_relocator_firmware_fill_events (struct grub_relocator_mmap_event *events)
 {
   grub_efi_uintn_t mmapsize = 0, desc_size = 0;
@@ -65,7 +65,7 @@ grub_relocator_firmware_fill_events (struct grub_relocator_mmap_event *events)
       grub_uint64_t start = desc->physical_start;
       grub_uint64_t end = desc->physical_start + (desc->num_pages << 12);
 
-      /* post-4G addresses are never supported on 32-bit EFI. 
+      /* post-4G addresses are never supported on 32-bit EFI.
 	 Moreover it has been reported that some 64-bit EFI contrary to the
 	 spec don't map post-4G pages. So if you enable post-4G allocations,
 	 map pages manually or check that they are mapped.
@@ -81,7 +81,7 @@ grub_relocator_firmware_fill_events (struct grub_relocator_mmap_event *events)
       counter++;
       events[counter].type = REG_FIRMWARE_END;
       events[counter].pos = end;
-      counter++;      
+      counter++;
     }
 
   return counter;
