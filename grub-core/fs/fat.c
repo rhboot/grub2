@@ -245,7 +245,7 @@ grub_fat_mount (grub_disk_t disk)
 #ifdef MODE_EXFAT
   if (grub_memcmp ((const char *) bpb.oem_name, "EXFAT   ",
 		   sizeof (bpb.oem_name)) != 0)
-    goto fail;    
+    goto fail;
 #endif
 
   /* Get the sizes of logical sectors and clusters.  */
@@ -320,7 +320,7 @@ grub_fat_mount (grub_disk_t disk)
 #endif
 
 #ifdef MODE_EXFAT
-  data->cluster_sector = (grub_le_to_cpu32 (bpb.cluster_offset) 
+  data->cluster_sector = (grub_le_to_cpu32 (bpb.cluster_offset)
 			  << data->logical_sector_bits);
   data->num_clusters = (grub_le_to_cpu32 (bpb.cluster_count)
 			  << data->logical_sector_bits);
@@ -692,7 +692,7 @@ grub_fat_iterate_dir_next (grub_fshelp_node_t node,
 		  {
 		    int j;
 		    for (j = 0; j < 15; j++)
-		      ctxt->unibuf[slots * 15 + j] 
+		      ctxt->unibuf[slots * 15 + j]
 			= grub_le_to_cpu16 (sec.type_specific.file_name.str[j]);
 		    slots++;
 		  }

@@ -181,7 +181,7 @@ static grub_err_t
 iso9660_to_unixtime (const struct grub_iso9660_date *i, grub_int32_t *nix)
 {
   struct grub_datetime datetime;
-  
+
   if (! i->year[0] && ! i->year[1]
       && ! i->year[2] && ! i->year[3]
       && ! i->month[0] && ! i->month[1]
@@ -198,7 +198,7 @@ iso9660_to_unixtime (const struct grub_iso9660_date *i, grub_int32_t *nix)
   datetime.hour = (i->hour[0] - '0') * 10 + (i->hour[1] - '0');
   datetime.minute = (i->minute[0] - '0') * 10 + (i->minute[1] - '0');
   datetime.second = (i->second[0] - '0') * 10 + (i->second[1] - '0');
-  
+
   if (!grub_datetime2unixtime (&datetime, nix))
     return grub_error (GRUB_ERR_BAD_NUMBER, "incorrect date");
   *nix -= i->offset * 60 * 15;
@@ -216,7 +216,7 @@ iso9660_to_unixtime2 (const struct grub_iso9660_date2 *i, grub_int32_t *nix)
   datetime.hour = i->hour;
   datetime.minute = i->minute;
   datetime.second = i->second;
-  
+
   if (!grub_datetime2unixtime (&datetime, nix))
     return 0;
   *nix -= i->offset * 60 * 15;
@@ -502,7 +502,7 @@ grub_iso9660_mount (grub_disk_t disk)
 static char *
 grub_iso9660_read_symlink (grub_fshelp_node_t node)
 {
-  return node->have_symlink 
+  return node->have_symlink
     ? grub_strdup (node->symlink
 		   + (node->have_dirents) * sizeof (node->dirents[0])
 		   - sizeof (node->dirents)) : grub_strdup ("");
@@ -552,7 +552,7 @@ add_part (struct iterate_dir_ctx *ctx,
   ctx->symlink = new;
 
   grub_memcpy (ctx->symlink + size, part, len2);
-  ctx->symlink[size + len2] = 0;  
+  ctx->symlink[size + len2] = 0;
 }
 
 static grub_err_t
@@ -1119,7 +1119,7 @@ grub_iso9660_uuid (grub_device_t device, char **uuid)
 }
 
 /* Get writing time of filesystem. */
-static grub_err_t 
+static grub_err_t
 grub_iso9660_mtime (grub_device_t device, grub_int32_t *timebuf)
 {
   struct grub_iso9660_data *data;
