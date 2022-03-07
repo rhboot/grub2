@@ -89,6 +89,7 @@ grub_cmd_search (grub_extcmd_context_t ctxt, int argc, char **args)
   const char *id = 0;
   int i = 0, j = 0, nhints = 0;
   char **hints = NULL;
+  enum search_flags flags = SEARCH_FLAGS_NONE;
 
   if (state[SEARCH_HINT].set)
     for (i = 0; state[SEARCH_HINT].args[i]; i++)
@@ -180,15 +181,15 @@ grub_cmd_search (grub_extcmd_context_t ctxt, int argc, char **args)
       goto out;
     }
 
+  if (state[SEARCH_NO_FLOPPY].set)
+    flags |= SEARCH_FLAGS_NO_FLOPPY;
+
   if (state[SEARCH_LABEL].set)
-    grub_search_label (id, var, state[SEARCH_NO_FLOPPY].set,
-		       hints, nhints);
+    grub_search_label (id, var, flags, hints, nhints);
   else if (state[SEARCH_FS_UUID].set)
-    grub_search_fs_uuid (id, var, state[SEARCH_NO_FLOPPY].set,
-			 hints, nhints);
+    grub_search_fs_uuid (id, var, flags, hints, nhints);
   else if (state[SEARCH_FILE].set)
-    grub_search_fs_file (id, var, state[SEARCH_NO_FLOPPY].set,
-			 hints, nhints);
+    grub_search_fs_file (id, var, flags, hints, nhints);
   else
     grub_error (GRUB_ERR_INVALID_COMMAND, "unspecified search type");
 

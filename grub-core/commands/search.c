@@ -47,7 +47,7 @@ struct search_ctx
 {
   const char *key;
   const char *var;
-  int no_floppy;
+  enum search_flags flags;
   char **hints;
   unsigned nhints;
   int count;
@@ -62,7 +62,7 @@ iterate_device (const char *name, void *data)
   int found = 0;
 
   /* Skip floppy drives when requested.  */
-  if (ctx->no_floppy &&
+  if (ctx->flags & SEARCH_FLAGS_NO_FLOPPY &&
       name[0] == 'f' && name[1] == 'd' && name[2] >= '0' && name[2] <= '9')
     return 0;
 
@@ -261,13 +261,13 @@ try (struct search_ctx *ctx)
 }
 
 void
-FUNC_NAME (const char *key, const char *var, int no_floppy,
+FUNC_NAME (const char *key, const char *var, enum search_flags flags,
 	   char **hints, unsigned nhints)
 {
   struct search_ctx ctx = {
     .key = key,
     .var = var,
-    .no_floppy = no_floppy,
+    .flags = flags,
     .hints = hints,
     .nhints = nhints,
     .count = 0,
