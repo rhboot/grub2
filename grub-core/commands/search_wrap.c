@@ -40,6 +40,7 @@ static const struct grub_arg_option options[] =
      N_("Set a variable to the first device found."), N_("VARNAME"),
      ARG_TYPE_STRING},
     {"no-floppy",	'n', 0, N_("Do not probe any floppy drive."), 0, 0},
+    {"efidisk-only",	0, 0, N_("Only probe EFI disks."), 0, 0},
     {"hint",	        'h', GRUB_ARG_OPTION_REPEATABLE,
      N_("First try the device HINT. If HINT ends in comma, "
 	"also try subpartitions"), N_("HINT"), ARG_TYPE_STRING},
@@ -73,6 +74,7 @@ enum options
     SEARCH_FS_UUID,
     SEARCH_SET,
     SEARCH_NO_FLOPPY,
+    SEARCH_EFIDISK_ONLY,
     SEARCH_HINT,
     SEARCH_HINT_IEEE1275,
     SEARCH_HINT_BIOS,
@@ -183,6 +185,9 @@ grub_cmd_search (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (state[SEARCH_NO_FLOPPY].set)
     flags |= SEARCH_FLAGS_NO_FLOPPY;
+
+  if (state[SEARCH_EFIDISK_ONLY].set)
+    flags |= SEARCH_FLAGS_EFIDISK_ONLY;
 
   if (state[SEARCH_LABEL].set)
     grub_search_label (id, var, flags, hints, nhints);

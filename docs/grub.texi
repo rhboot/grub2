@@ -5043,7 +5043,7 @@ unbootable. @xref{Using digital signatures}, for more information.
 
 @deffn Command search @
  [@option{--file}|@option{--label}|@option{--fs-uuid}] @
- [@option{--set} [var]] [@option{--no-floppy}] name
+ [@option{--set} [var]] [@option{--no-floppy}|@option{--efidisk-only}] name
 Search devices by file (@option{-f}, @option{--file}), filesystem label
 (@option{-l}, @option{--label}), or filesystem UUID (@option{-u},
 @option{--fs-uuid}).
@@ -5054,6 +5054,9 @@ set as the value of environment variable @var{var}. The default variable is
 
 The (@option{-n}, @option{--no-floppy}) option prevents searching floppy
 devices, which can be slow.
+
+The (@option{--efidisk-only}) option prevents searching any other devices then
+EFI disks. This is typically used when chainloading to local EFI partition.
 
 The @samp{search.file}, @samp{search.fs_label}, and @samp{search.fs_uuid}
 commands are aliases for @samp{search --file}, @samp{search --label}, and

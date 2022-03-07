@@ -66,6 +66,26 @@ iterate_device (const char *name, void *data)
       name[0] == 'f' && name[1] == 'd' && name[2] >= '0' && name[2] <= '9')
     return 0;
 
+  /* Limit to EFI disks when requested.  */
+  if (ctx->flags & SEARCH_FLAGS_EFIDISK_ONLY)
+    {
+      grub_device_t dev;
+
+      dev = grub_device_open (name);
+      if (dev == NULL)
+	{
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      if (dev->disk == NULL || dev->disk->dev->id != GRUB_DISK_DEVICE_EFIDISK_ID)
+	{
+	  grub_device_close (dev);
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      grub_device_close (dev);
+    }
+
 #ifdef DO_SEARCH_FS_UUID
 #define compare_fn grub_strcasecmp
 #else
