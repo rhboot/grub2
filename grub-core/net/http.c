@@ -193,9 +193,7 @@ http_receive (grub_net_tcp_socket_t sock __attribute__ ((unused)),
 	  int have_line = 1;
 	  char *t;
 	  ptr = grub_memchr (nb->data, '\n', nb->tail - nb->data);
-	  if (ptr)
-	    ptr++;
-	  else
+	  if (ptr == NULL)
 	    {
 	      have_line = 0;
 	      ptr = (char *) nb->tail;
