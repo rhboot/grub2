@@ -69,7 +69,15 @@ parse_line (grub_file_t file, http_data_t data, char *ptr, grub_size_t len)
   char *end = ptr + len;
   while (end > ptr && *(end - 1) == '\r')
     end--;
+
+  /* LF without CR. */
+  if (end == ptr + len)
+    {
+      data->errmsg = grub_strdup (_("invalid HTTP header - LF without CR"));
+      return GRUB_ERR_NONE;
+    }
   *end = 0;
+
   /* Trailing CRLF.  */
   if (data->in_chunk_len == 1)
     {
