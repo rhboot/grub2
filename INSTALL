@@ -36,7 +36,6 @@ For optional grub-emu features, you need:
 
 * SDL (recommended)
 * libpciaccess (optional)
-* libusb (optional)
 
 To build GRUB's graphical terminal (gfxterm), you need:
 
@@ -253,7 +252,6 @@ corresponding platform are not needed for the platform in question.
   - Additionally for emu, for host and target.
     1. SDL is looked for in standard linker directories (-lSDL) (optional)
     2. libpciaccess is looked for in standard linker directories (-lpciaccess) (optional)
-    3. libusb is looked for in standard linker directories (-lusb) (optional)
 
   - Platform-agnostic tools and data.
     1. make is the tool you execute after ./configure.
