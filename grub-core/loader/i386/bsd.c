@@ -263,7 +263,7 @@ grub_err_t
 grub_bsd_add_meta (grub_uint32_t type, const void *data, grub_uint32_t len)
 {
   grub_err_t err;
-  void *ptr;
+  void *ptr = NULL;
 
   err = grub_bsd_add_meta_ptr (type, &ptr, len);
   if (err)
