@@ -220,8 +220,8 @@ grub_sendkey_postboot (void)
 
   *flags = oldflags;
 
-  *((char *) 0x41a) = 0x1e;
-  *((char *) 0x41c) = 0x1e;
+  *((volatile char *) 0x41a) = 0x1e;
+  *((volatile char *) 0x41c) = 0x1e;
 
   return GRUB_ERR_NONE;
 }
@@ -236,8 +236,8 @@ grub_sendkey_preboot (int noret __attribute__ ((unused)))
   oldflags = *flags;
 
   /* Set the sendkey.  */
-  *((char *) 0x41a) = 0x1e;
-  *((char *) 0x41c) = keylen + 0x1e;
+  *((volatile char *) 0x41a) = 0x1e;
+  *((volatile char *) 0x41c) = keylen + 0x1e;
   grub_memcpy ((char *) 0x41e, sendkey, 0x20);
 
   /* Transform "any ctrl" to "right ctrl" flag.  */
