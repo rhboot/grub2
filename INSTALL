@@ -52,7 +52,8 @@ need the following.
 
 Your distro may package cross-compiling toolchains such as the following
 incomplete list on Debian: gcc-aarch64-linux-gnu, gcc-arm-linux-gnueabihf,
-gcc-mipsel-linux-gnu, and mingw-w64.
+gcc-mips-linux-gnu, gcc-mipsel-linux-gnu, gcc-powerpc64-linux-gnu,
+gcc-riscv64-linux-gnu, gcc-sparc64-linux-gnu, mingw-w64 and mingw-w64-tools.
 
 More cross compiling toolchains can be found at the following trusted sites:
 
