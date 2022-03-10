@@ -14,6 +14,8 @@ SECTIONS
   {
     __data_start__ = . ;
     *(.data)
+    /* Do not discard this section. */
+    . = . ;
     __data_end__ = . ;
     __rdata_start__ = . ;
     *(.rdata)
@@ -34,6 +36,8 @@ SECTIONS
   .edata :
   {
     *(.edata)
+    /* Do not discard this section. */
+    . = . ;
     end = . ;
     _end = . ;
     __end = . ;
