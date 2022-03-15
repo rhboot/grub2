@@ -149,4 +149,9 @@ typedef __UINT_FAST32_TYPE__ uint_fast32_t;
 #    define abort __builtin_trap
 #  endif /* !_GL_INLINE_HEADER_BEGIN */
 
+/* gnulib doesn't build cleanly with older compilers. */
+#  if __GNUC__ < 11
+_Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+#  endif
+
 #endif
