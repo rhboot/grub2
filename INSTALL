@@ -46,8 +46,8 @@ If you use a development snapshot or want to hack on GRUB you may
 need the following.
 
 * Python 3 (NOTE: python 2.6 should still work, but it's not tested)
-* Autoconf 2.63 or later
-* Automake 1.11 or later
+* Autoconf 2.64 or later
+* Automake 1.14 or later
 
 Your distro may package cross-compiling toolchains such as the following
 incomplete list on Debian: gcc-aarch64-linux-gnu, gcc-arm-linux-gnueabihf,
