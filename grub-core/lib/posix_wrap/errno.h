@@ -26,4 +26,8 @@
 #define EINVAL GRUB_ERR_BAD_NUMBER
 #define ENOMEM GRUB_ERR_OUT_OF_MEMORY
 
+/* From glibc <errno.h>. */
+#ifndef __set_errno
+# define __set_errno(val) (grub_errno = (val))
+#endif
 #endif
