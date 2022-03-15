@@ -36,6 +36,7 @@ dnl description of the relationships between them.
 
 AC_INIT([GRUB],[2.11],[bug-grub@gnu.org])
 
+AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_AUX_DIR([build-aux])
 
 # We don't want -g -O2 by default in CFLAGS
@@ -51,7 +52,7 @@ program_prefix="${save_program_prefix}"
 AM_INIT_AUTOMAKE([1.11])
 AC_PREREQ(2.64)
 AC_CONFIG_SRCDIR([include/grub/dl.h])
-AC_CONFIG_HEADER([config-util.h])
+AC_CONFIG_HEADERS([config-util.h])
 
 # Explicitly check for pkg-config early on, since otherwise conditional
 # calls are problematic.
@@ -333,7 +334,7 @@ fi
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_AWK
-AC_PROG_LEX
+AC_PROG_LEX([noyywrap])
 AC_PROG_YACC
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
@@ -369,7 +370,6 @@ test "x$GCC" = xyes || AC_MSG_ERROR([GCC is required])
 
 AC_CHECK_PROG(HAVE_CXX, $CXX, yes, no)
 
-AC_GNU_SOURCE
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.18.3])
 AC_SYS_LARGEFILE
