@@ -36,10 +36,16 @@ grub_rescue_parse_line (char *line,
 
   if (grub_parser_split_cmdline (line, getline, getline_data, &n, &args)
       || n < 0)
-    return grub_errno;
+    {
+      grub_free(args);
+      return grub_errno;
+    }
 
   if (n == 0)
-    return GRUB_ERR_NONE;
+    {
+      grub_free(args);
+      return GRUB_ERR_NONE;
+    }
 
   /* In case of an assignment set the environment accordingly
      instead of calling a function.  */

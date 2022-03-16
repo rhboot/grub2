@@ -298,6 +298,8 @@ grub_parser_split_cmdline (const char *cmdline,
 
  fail:
   grub_free (*argv);
+  *argv = NULL;
+  *argc = 0;
   goto out;
 }
 
