@@ -189,14 +189,19 @@ For this example the configure line might look like (more details below)
 (some options are optional and included here for completeness but some rarely
 used options are omitted):
 
-  ./configure --host=x86_64-linux-gnu --target=arm-linux-gnueabihf \
-    --with-platform=efi BUILD_CC=gcc BUILD_PKG_CONFIG=pkg-config \
+  ./configure --build=sparc64-freebsd --host=x86_64-linux-gnu \
+    --target=arm-linux-gnueabihf --with-platform=efi \
+    BUILD_CC=gcc BUILD_PKG_CONFIG=pkg-config \
     HOST_CC=x86_64-linux-gnu-gcc HOST_CFLAGS='-g -O2' \
     PKG_CONFIG=x86_64-linux-gnu-pkg-config TARGET_CC=arm-linux-gnueabihf-gcc \
     TARGET_CFLAGS='-Os -march=armv8.3-a' TARGET_CCASFLAGS='-march=armv8.3-a' \
     TARGET_OBJCOPY=arm-linux-gnueabihf-objcopy \
     TARGET_STRIP=arm-linux-gnueabihf-strip TARGET_NM=arm-linux-gnueabihf-nm \
     TARGET_RANLIB=arm-linux-gnueabihf-ranlib LEX=flex
+
+Note, that the autoconf 2.65 manual states that when using the --host argument
+to configure, the --build argument should be specified as well. Not sending
+--build, enters a compatibility mode that will be removed in the future.
 
 Normally, for building a GRUB on amd64 with tools to run on amd64 to
 generate images to run on ARM, using your Linux distribution's
@@ -209,13 +214,14 @@ version look at prerequisites. All tools not mentioned in this section under
 corresponding platform are not needed for the platform in question.
 
   - For build
-    1. BUILD_CC= to gcc able to compile for build. This is used, for
+    1. --build= to autoconf name of build.
+    2. BUILD_CC= to gcc able to compile for build. This is used, for
        example, to compile build-gentrigtables which is then run to
        generate sin and cos tables.
-    2. BUILD_CFLAGS= for C options for build.
-    3. BUILD_CPPFLAGS= for C preprocessor options for build.
-    4. BUILD_LDFLAGS= for linker options for build.
-    5. BUILD_PKG_CONFIG= for pkg-config for build (optional).
+    3. BUILD_CFLAGS= for C options for build.
+    4. BUILD_CPPFLAGS= for C preprocessor options for build.
+    5. BUILD_LDFLAGS= for linker options for build.
+    6. BUILD_PKG_CONFIG= for pkg-config for build (optional).
 
   - For host
     1. --host= to autoconf name of host.
