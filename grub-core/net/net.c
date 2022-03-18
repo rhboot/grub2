@@ -1948,5 +1948,5 @@ GRUB_MOD_FINI(net)
   grub_net_open = NULL;
   grub_net_fini_hw (0);
   grub_loader_unregister_preboot_hook (fini_hnd);
-  grub_net_poll_cards_idle = grub_net_poll_cards_idle_real;
+  grub_net_poll_cards_idle = NULL;
 }
