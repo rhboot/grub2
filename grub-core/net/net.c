@@ -1580,7 +1580,8 @@ grub_net_poll_cards_idle_real (void)
 	|| ctime >= card->last_poll + card->idle_poll_delay_ms)
       receive_packets (card, 0);
   }
-  grub_net_tcp_retransmit ();
+  if (grub_net_cards == NULL)
+    grub_net_tcp_retransmit ();
 }
 
 /*  Read from the packets list*/
