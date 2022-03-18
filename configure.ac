@@ -113,18 +113,10 @@ case "$target_cpu" in
                 target_cpu=mips
 		machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_CPU_MIPS=1"
 		;;
-  arm*)
-		target_cpu=arm
-		;;
-  aarch64*)
-		target_cpu=arm64
-		;;
-  riscv32*)
-		target_cpu=riscv32
-		;;
-  riscv64*)
-		target_cpu=riscv64
-		;;
+  arm*)		target_cpu=arm ;;
+  aarch64*)	target_cpu=arm64 ;;
+  riscv32*)	target_cpu=riscv32 ;;
+  riscv64*)	target_cpu=riscv64 ;;
 esac
 
 # Specify the platform (such as firmware).
@@ -253,7 +245,7 @@ case "$platform" in
   emu)		machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE_EMU=1" ;;
   loongson)	machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE_MIPS_LOONGSON=1" ;;
   qemu_mips)	machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE_MIPS_QEMU_MIPS=1" ;;
-  arc)	machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE_ARC=1" ;;
+  arc)		machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE_ARC=1" ;;
 esac
 if test x${target_cpu} = xmipsel ; then
    machine_CPPFLAGS="$machine_CPPFLAGS -DGRUB_MACHINE=`echo mips_$platform | sed y,abcdefghijklmnopqrstuvwxyz,ABCDEFGHIJKLMNOPQRSTUVWXYZ,`"
@@ -1476,9 +1468,9 @@ int va_arg_func (int fixed, va_list args);]], [[]])],
   CPPFLAGS="$SAVED_CPPFLAGS"
 ])
 
-if test x"$grub_cv_cc_isystem" = xyes ; then
-  TARGET_CPPFLAGS="$TARGET_CPPFLAGS -nostdinc -isystem `$TARGET_CC -print-file-name=include`"
-fi
+  if test x"$grub_cv_cc_isystem" = xyes ; then
+    TARGET_CPPFLAGS="$TARGET_CPPFLAGS -nostdinc -isystem `$TARGET_CC -print-file-name=include`"
+  fi
 fi
 
 AC_CACHE_CHECK([whether -Wtrampolines work], [grub_cv_cc_wtrampolines], [
@@ -1509,9 +1501,9 @@ AC_ARG_ENABLE([mm-debug],
 	      AS_HELP_STRING([--enable-mm-debug],
                              [include memory manager debugging]))
 if test x$enable_mm_debug = xyes; then
-    MM_DEBUG=1
+  MM_DEBUG=1
 else
-    MM_DEBUG=0
+  MM_DEBUG=0
 fi
 AC_SUBST([MM_DEBUG])
 
@@ -1547,62 +1539,61 @@ AC_ARG_ENABLE([grub-emu-pci],
 
 if test "$platform" = emu; then
 
-if test x"$enable_grub_emu_sdl" = xno ; then
-  grub_emu_sdl_excuse="explicitly disabled"
-fi
-[if [ x"$grub_emu_sdl_excuse" = x ]; then
+  if test x"$enable_grub_emu_sdl" = xno ; then
+    grub_emu_sdl_excuse="explicitly disabled"
+  fi
+  [if [ x"$grub_emu_sdl_excuse" = x ]; then
     # Check for libSDL libraries.]
 AC_CHECK_LIB([SDL], [SDL_Init], [LIBSDL="-lSDL"],
     [grub_emu_sdl_excuse=["libSDL libraries are required to build \`grub-emu' with SDL support"]])
     AC_SUBST([LIBSDL])
-[fi]
+  [fi]
 
-[if [ x"$grub_emu_sdl_excuse" = x ]; then
+  [if [ x"$grub_emu_sdl_excuse" = x ]; then
     # Check for headers.]
     AC_CHECK_HEADERS([SDL/SDL.h], [],
       [grub_emu_sdl_excuse=["libSDL header file is required to build \`grub-emu' with SDL support"]])
-[fi]
+  [fi]
 
-if test x"enable_grub_emu_sdl" = xyes && test x"$grub_emu_sdl_excuse" != x ; then
+  if test x"enable_grub_emu_sdl" = xyes && test x"$grub_emu_sdl_excuse" != x ; then
   AC_MSG_ERROR([SDL support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl_excuse)])
-fi
-if test x"$grub_emu_sdl_excuse" = x ; then
-enable_grub_emu_sdl=yes
-else
-enable_grub_emu_sdl=no
-fi
+  fi
+  if test x"$grub_emu_sdl_excuse" = x ; then
+    enable_grub_emu_sdl=yes
+  else
+    enable_grub_emu_sdl=no
+  fi
 
-if test x"$enable_grub_emu_pci" != xyes ; then
-   grub_emu_pci_excuse="not enabled"
-fi
+  if test x"$enable_grub_emu_pci" != xyes ; then
+    grub_emu_pci_excuse="not enabled"
+  fi
 
-[if [ x"$grub_emu_pci_excuse" = x ]; then
-      # Check for libpci libraries.]
-   AC_CHECK_LIB([pciaccess], [pci_system_init], [LIBPCIACCESS="-lpciaccess"],
+  [if [ x"$grub_emu_pci_excuse" = x ]; then
+    # Check for libpci libraries.]
+    AC_CHECK_LIB([pciaccess], [pci_system_init], [LIBPCIACCESS="-lpciaccess"],
       [grub_emu_pci_excuse=["need libpciaccess library"]])
     AC_SUBST([LIBPCIACCESS])
-[fi]
-[if [ x"$grub_emu_pci_excuse" = x ]; then
+  [fi]
+  [if [ x"$grub_emu_pci_excuse" = x ]; then
     # Check for headers.]
     AC_CHECK_HEADERS([pciaccess.h], [],
       [grub_emu_pci_excuse=["need libpciaccess headers"]])
-[fi]
+  [fi]
 
-if test x"$grub_emu_pci_excuse" = x ; then
-enable_grub_emu_pci=yes
+  if test x"$grub_emu_pci_excuse" = x ; then
+    enable_grub_emu_pci=yes
+  else
+    enable_grub_emu_pci=no
+  fi
+
+  AC_SUBST([enable_grub_emu_sdl])
+  AC_SUBST([enable_grub_emu_pci])
+
 else
 
-enable_grub_emu_pci=no
-fi
-
-AC_SUBST([enable_grub_emu_sdl])
-AC_SUBST([enable_grub_emu_pci])
-
-else
-
-# Ignore --enable-emu-* if platform is not emu
-enable_grub_emu_sdl=no
-enable_grub_emu_pci=no
+  # Ignore --enable-emu-* if platform is not emu
+  enable_grub_emu_sdl=no
+  enable_grub_emu_pci=no
 fi
 
 AC_ARG_ENABLE([grub-mkfont],
@@ -1634,9 +1625,9 @@ if test x"$enable_grub_mkfont" = xyes && test x"$grub_mkfont_excuse" != x ; then
   AC_MSG_ERROR([grub-mkfont was explicitly requested but can't be compiled ($grub_mkfont_excuse)])
 fi
 if test x"$grub_mkfont_excuse" = x ; then
-enable_grub_mkfont=yes
+  enable_grub_mkfont=yes
 else
-enable_grub_mkfont=no
+  enable_grub_mkfont=no
 fi
 AC_SUBST([enable_grub_mkfont])
 
