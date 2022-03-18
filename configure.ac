@@ -1433,16 +1433,6 @@ CFLAGS="$TARGET_CFLAGS -nostdlib -Wno-error"
 fi
 CPPFLAGS="$TARGET_CPPFLAGS"
 
-grub_ASM_USCORE
-if test "x$TARGET_APPLE_LINKER" = x0 && test x"$platform" != xemu; then
-if test x$grub_cv_asm_uscore = xyes; then
-DEFSYM="-Wl,--defsym,_abort=_main -Wl,--defsym,__main=_main"
-else
-DEFSYM="-Wl,--defsym,abort=main -Wl,--defsym,_main=main -Wl,--defsym,__main=main"
-fi
-CFLAGS="$TARGET_CFLAGS -nostdlib $DEFSYM"
-fi
-
 # Check for libgcc symbols
 if test x"$platform" = xemu; then
 AC_CHECK_FUNCS(__udivsi3 __umodsi3 __divsi3 __modsi3 __divdi3 __moddi3 __udivdi3 __umoddi3 __ctzdi2 __ctzsi2 __clzdi2 __aeabi_uidiv __aeabi_uidivmod __aeabi_idiv __aeabi_idivmod __aeabi_ulcmp __muldi3 __aeabi_lmul __aeabi_memcpy __aeabi_memcpy4 __aeabi_memcpy8 __aeabi_memclr __aeabi_memclr4 __aeabi_memclr8 __aeabi_memset __aeabi_lasr __aeabi_llsl __aeabi_llsr _restgpr_14_x __ucmpdi2 __ashldi3 __ashrdi3 __lshrdi3 __bswapsi2 __bswapdi2 __bzero __register_frame_info __deregister_frame_info ___chkstk_ms __chkstk_ms)
@@ -1455,7 +1445,8 @@ CFLAGS="$TARGET_CFLAGS -nostdlib"
 fi
 LIBS=""
 
-# Defined in aclocal.m4.
+# Defined in acinclude.m4.
+grub_ASM_USCORE
 grub_PROG_TARGET_CC
 if test "x$TARGET_APPLE_LINKER" != x1 ; then
 grub_PROG_OBJCOPY_ABSOLUTE
