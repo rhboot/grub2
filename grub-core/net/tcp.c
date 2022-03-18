@@ -362,8 +362,13 @@ void
 grub_net_tcp_retransmit (void)
 {
   grub_net_tcp_socket_t sock;
-  grub_uint64_t ctime = grub_get_time_ms ();
-  grub_uint64_t limit_time = ctime - TCP_RETRANSMISSION_TIMEOUT;
+  grub_uint64_t ctime = 0, limit_time = 0;
+
+  if (tcp_sockets != NULL)
+    {
+      ctime = grub_get_time_ms ();
+      limit_time = ctime - TCP_RETRANSMISSION_TIMEOUT;
+    }
 
   FOR_TCP_SOCKETS (sock)
   {
