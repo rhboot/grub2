@@ -79,6 +79,11 @@ grub_TRANSFORM([grub-sparc64-setup])
 grub_TRANSFORM([grub-render-label])
 grub_TRANSFORM([grub-file])
 
+# Allow HOST_CC to override CC.
+if test "x$HOST_CC" != x; then
+  CC=$HOST_CC
+fi
+
 # Optimization flag.  Allow user to override.
 if test "x$TARGET_CFLAGS" = x; then
   TARGET_CFLAGS=-Os
