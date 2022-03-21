@@ -35,6 +35,14 @@
 #define ARRAY_SIZE(array) (sizeof (array) / sizeof (array[0]))
 #define COMPILE_TIME_ASSERT(cond) switch (0) { case 1: case !(cond): ; }
 
+#ifndef CONCAT_
+#define CONCAT_(a, b) a ## b
+#endif
+
+#ifndef CONCAT
+#define CONCAT(a, b) CONCAT_(a, b)
+#endif
+
 #define grub_dprintf(condition, ...) grub_real_dprintf(GRUB_FILE, __LINE__, condition, __VA_ARGS__)
 
 void *EXPORT_FUNC(grub_memmove) (void *dest, const void *src, grub_size_t n);
@@ -524,7 +532,20 @@ void EXPORT_FUNC(grub_real_boot_time) (const char *file,
 #define grub_boot_time(...)
 #endif
 
-#define grub_max(a, b) (((a) > (b)) ? (a) : (b))
-#define grub_min(a, b) (((a) < (b)) ? (a) : (b))
+#define _grub_min(a, b, _a, _b)						      \
+  ({ typeof (a) _a = (a);						      \
+     typeof (b) _b = (b);						      \
+     _a < _b ? _a : _b; })
+#define grub_min(a, b) _grub_min(a, b,					      \
+				 CONCAT(_a_,__COUNTER__),		      \
+				 CONCAT(_b_,__COUNTER__))
+
+#define _grub_max(a, b, _a, _b)						      \
+  ({ typeof (a) _a = (a);						      \
+     typeof (b) _b = (b);						      \
+     _a > _b ? _a : _b; })
+#define grub_max(a, b) _grub_max(a, b,					      \
+				 CONCAT(_a_,__COUNTER__),		      \
+				 CONCAT(_b_,__COUNTER__))
 
 #endif /* ! GRUB_MISC_HEADER */
