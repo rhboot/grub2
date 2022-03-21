@@ -929,7 +929,7 @@ grub_netbsd_setup_video (void)
   struct grub_video_mode_info mode_info;
   void *framebuffer;
   const char *modevar;
-  struct grub_netbsd_btinfo_framebuf params;
+  struct grub_netbsd_btinfo_framebuf params = {0};
   grub_err_t err;
   grub_video_driver_id_t driv_id;
 
