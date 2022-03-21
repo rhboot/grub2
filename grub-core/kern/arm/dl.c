@@ -278,3 +278,16 @@ grub_arch_dl_check_header (void *ehdr)
 
   return GRUB_ERR_NONE;
 }
+
+/*
+ * Tell the loader what our minimum section alignment is.
+ */
+grub_size_t
+grub_arch_dl_min_alignment (void)
+{
+#ifdef GRUB_MACHINE_EFI
+  return 4096;
+#else
+  return 1;
+#endif
+}

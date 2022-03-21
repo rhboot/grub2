@@ -272,3 +272,11 @@ grub_arch_dl_init_linker (void)
   grub_dl_register_symbol ("_gp_disp", &_gp_disp_dummy, 0, 0);
 }
 
+/*
+ * Tell the loader what our minimum section alignment is.
+ */
+grub_size_t
+grub_arch_dl_min_alignment (void)
+{
+  return 1;
+}
