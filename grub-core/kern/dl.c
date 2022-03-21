@@ -290,6 +290,9 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
        i < e->e_shnum;
        i++, s = (const Elf_Shdr *)((const char *) s + e->e_shentsize))
     {
+      if (s->sh_size == 0 || !(s->sh_flags & SHF_ALLOC))
+	continue;
+
       tsize = ALIGN_UP (tsize, s->sh_addralign) + s->sh_size;
       if (talign < s->sh_addralign)
 	talign = s->sh_addralign;
