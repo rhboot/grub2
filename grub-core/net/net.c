@@ -292,6 +292,7 @@ grub_net_ipv6_get_link_local (struct grub_net_card *card,
   addr.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
   addr.ipv6[0] = grub_cpu_to_be64_compile_time (0xfe80ULL << 48);
   addr.ipv6[1] = grub_net_ipv6_get_id (hwaddr);
+  addr.option = 0;
 
   FOR_NET_NETWORK_LEVEL_INTERFACES (inf)
   {
