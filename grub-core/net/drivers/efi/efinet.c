@@ -339,6 +339,10 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 {
   struct grub_net_card *card;
   grub_efi_device_path_t *dp;
+  struct grub_net_network_level_interface *inter;
+  grub_efi_device_path_t *vlan_dp;
+  grub_efi_uint16_t vlan_dp_len;
+  grub_efi_vlan_device_path_t *vlan;
 
   dp = grub_efi_get_device_path (hnd);
   if (! dp)
@@ -387,11 +391,35 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
     if (! pxe)
       continue;
     pxe_mode = pxe->mode;
-    grub_net_configure_by_dhcp_ack (card->name, card, 0,
-				    (struct grub_net_bootp_packet *)
-				    &pxe_mode->dhcp_ack,
-				    sizeof (pxe_mode->dhcp_ack),
-				    1, device, path);
+
+    inter = grub_net_configure_by_dhcp_ack (card->name, card, 0,
+					    (struct grub_net_bootp_packet *)
+					    &pxe_mode->dhcp_ack,
+					    sizeof (pxe_mode->dhcp_ack),
+					    1, device, path);
+
+    if (inter != NULL)
+      {
+	/*
+	 * Search the device path for any VLAN subtype and use it
+	 * to configure the interface.
+	 */
+	vlan_dp = dp;
+
+	while (!GRUB_EFI_END_ENTIRE_DEVICE_PATH (vlan_dp))
+	  {
+	    if (GRUB_EFI_DEVICE_PATH_TYPE (vlan_dp) == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE &&
+		GRUB_EFI_DEVICE_PATH_SUBTYPE (vlan_dp) == GRUB_EFI_VLAN_DEVICE_PATH_SUBTYPE)
+	      {
+		vlan = (grub_efi_vlan_device_path_t *) vlan_dp;
+		inter->vlantag = vlan->vlan_id;
+		break;
+	      }
+
+	    vlan_dp_len = GRUB_EFI_DEVICE_PATH_LENGTH (vlan_dp);
+	    vlan_dp = (grub_efi_device_path_t *) ((grub_efi_uint8_t *) vlan_dp + vlan_dp_len);
+	  }
+      }
     return;
   }
 }
