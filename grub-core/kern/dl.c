@@ -277,7 +277,7 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
 {
   unsigned i;
   const Elf_Shdr *s;
-  grub_size_t tsize = 0, talign = 1;
+  grub_size_t tsize = 0, talign = 1, arch_addralign = 1;
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv)
   grub_size_t tramp;
   grub_size_t got;
@@ -285,16 +285,24 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
 #endif
   char *ptr;
 
+  arch_addralign = grub_arch_dl_min_alignment ();
+
   for (i = 0, s = (const Elf_Shdr *)((const char *) e + e->e_shoff);
        i < e->e_shnum;
        i++, s = (const Elf_Shdr *)((const char *) s + e->e_shentsize))
     {
+      grub_size_t sh_addralign;
+      grub_size_t sh_size;
+
       if (s->sh_size == 0 || !(s->sh_flags & SHF_ALLOC))
 	continue;
 
-      tsize = ALIGN_UP (tsize, s->sh_addralign) + s->sh_size;
-      if (talign < s->sh_addralign)
-	talign = s->sh_addralign;
+      sh_addralign = ALIGN_UP(s->sh_addralign, arch_addralign);
+      sh_size = ALIGN_UP(s->sh_size, sh_addralign);
+
+      tsize = ALIGN_UP (tsize, sh_addralign) + sh_size;
+      if (talign < sh_addralign)
+	talign = sh_addralign;
     }
 
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv)
@@ -323,6 +331,9 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
        i < e->e_shnum;
        i++, s = (Elf_Shdr *)((char *) s + e->e_shentsize))
     {
+      grub_size_t sh_addralign = ALIGN_UP(s->sh_addralign, arch_addralign);
+      grub_size_t sh_size = ALIGN_UP(s->sh_size, sh_addralign);
+
       if (s->sh_flags & SHF_ALLOC)
 	{
 	  grub_dl_segment_t seg;
@@ -335,17 +346,19 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
 	    {
 	      void *addr;
 
-	      ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, s->sh_addralign);
+	      ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, sh_addralign);
 	      addr = ptr;
-	      ptr += s->sh_size;
+	      ptr += sh_size;
 
 	      switch (s->sh_type)
 		{
 		case SHT_PROGBITS:
 		  grub_memcpy (addr, (char *) e + s->sh_offset, s->sh_size);
+		  grub_memset ((char *)addr + s->sh_size, 0,
+			       sh_size - s->sh_size);
 		  break;
 		case SHT_NOBITS:
-		  grub_memset (addr, 0, s->sh_size);
+		  grub_memset (addr, 0, sh_size);
 		  break;
 		}
 
@@ -354,7 +367,7 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
 	  else
 	    seg->addr = 0;
 
-	  seg->size = s->sh_size;
+	  seg->size = sh_size;
 	  seg->section = i;
 	  seg->next = mod->segment;
 	  mod->segment = seg;
