@@ -755,9 +755,9 @@ declare startup asm file ($cpu_$platform_startup) as well as any other files
 (e.g. init.c and callwrap.S) (e.g. $cpu_$platform = kern/$cpu/$platform/init.c).
 At this stage you will also need to add dummy dl.c and cache.S with functions
 grub_err_t grub_arch_dl_check_header (void *ehdr), grub_err_t
-grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr) (dl.c) and
-void grub_arch_sync_caches (void *address, grub_size_t len) (cache.S). They
-won't be used for now.
+grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr) (dl.c), grub_uint32_t
+grub_arch_dl_min_alignment (void), and void grub_arch_sync_caches (void
+*address, grub_size_t len) (cache.S). They won't be used for now.
 
 You will need to create directory include/$cpu/$platform and a file
 include/$cpu/types.h. The later folowing this template:
