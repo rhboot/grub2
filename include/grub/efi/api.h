@@ -908,6 +908,15 @@ struct grub_efi_sata_device_path
 } GRUB_PACKED;
 typedef struct grub_efi_sata_device_path grub_efi_sata_device_path_t;
 
+#define GRUB_EFI_VLAN_DEVICE_PATH_SUBTYPE		20
+
+struct grub_efi_vlan_device_path
+{
+  grub_efi_device_path_t header;
+  grub_efi_uint16_t vlan_id;
+} GRUB_PACKED;
+typedef struct grub_efi_vlan_device_path grub_efi_vlan_device_path_t;
+
 #define GRUB_EFI_VENDOR_MESSAGING_DEVICE_PATH_SUBTYPE	10
 
 /* Media Device Path.  */

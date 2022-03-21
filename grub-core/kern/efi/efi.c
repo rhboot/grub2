@@ -832,6 +832,13 @@ grub_efi_print_device_path (grub_efi_device_path_t *dp)
 			     sata->lun);
 	      }
 	      break;
+	    case GRUB_EFI_VLAN_DEVICE_PATH_SUBTYPE:
+	      {
+		grub_efi_vlan_device_path_t *vlan;
+		vlan = (grub_efi_vlan_device_path_t *) dp;
+		grub_printf ("/Vlan(%u)", vlan->vlan_id);
+	      }
+	      break;
 
 	    case GRUB_EFI_VENDOR_MESSAGING_DEVICE_PATH_SUBTYPE:
 	      dump_vendor_path ("Messaging",
