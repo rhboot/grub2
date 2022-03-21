@@ -27,6 +27,7 @@
 #include <grub/elf.h>
 #include <grub/list.h>
 #include <grub/misc.h>
+#include <grub/mm.h>
 #endif
 
 /*
@@ -266,6 +267,49 @@ static inline int
 grub_dl_is_persistent (grub_dl_t mod)
 {
   return mod->persistent;
+}
+
+static inline const char *
+grub_dl_get_section_name (const Elf_Ehdr *e, const Elf_Shdr *s)
+{
+  Elf_Shdr *str_s;
+  const char *str;
+
+  str_s = (Elf_Shdr *) ((char *) e + e->e_shoff + e->e_shstrndx * e->e_shentsize);
+  str = (char *) e + str_s->sh_offset;
+
+  return str + s->sh_name;
+}
+
+static inline long
+grub_dl_find_section_index (Elf_Ehdr *e, const char *name)
+{
+  Elf_Shdr *s;
+  const char *str;
+  unsigned i;
+
+  s = (Elf_Shdr *) ((char *) e + e->e_shoff + e->e_shstrndx * e->e_shentsize);
+  str = (char *) e + s->sh_offset;
+
+  for (i = 0, s = (Elf_Shdr *) ((char *) e + e->e_shoff);
+       i < e->e_shnum;
+       i++, s = (Elf_Shdr *) ((char *) s + e->e_shentsize))
+    if (grub_strcmp (str + s->sh_name, name) == 0)
+      return (long)i;
+  return -1;
+}
+
+/* Return the segment for a section of index N */
+static inline grub_dl_segment_t
+grub_dl_find_segment (grub_dl_t mod, unsigned n)
+{
+  grub_dl_segment_t seg;
+
+  for (seg = mod->segment; seg; seg = seg->next)
+    if (seg->section == n)
+      return seg;
+
+  return NULL;
 }
 
 #endif
