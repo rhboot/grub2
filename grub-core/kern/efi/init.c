@@ -31,6 +31,11 @@
 
 #ifdef GRUB_STACK_PROTECTOR
 
+static grub_efi_char16_t stack_chk_fail_msg[] =
+  L"* GRUB: STACK SMASHING DETECTED!!! *\r\n"
+  L"* GRUB: ABORTED!!! *\r\n"
+  L"* GRUB: REBOOTING IN 5 SECONDS... *\r\n";
+
 static grub_efi_guid_t rng_protocol_guid = GRUB_EFI_RNG_PROTOCOL_GUID;
 
 /*
@@ -44,9 +49,23 @@ grub_addr_t __stack_chk_guard;
 void __attribute__ ((noreturn))
 __stack_chk_fail (void)
 {
+  grub_efi_simple_text_output_interface_t *o;
+
   /*
-   * Assume it's not safe to call into EFI Boot Services. Sorry, that
-   * means no console message here.
+   * Use ConOut here rather than StdErr. StdErr only goes to
+   * the serial console, at least on EDK2.
+   */
+  o = grub_efi_system_table->con_out;
+  efi_call_2 (o->output_string, o, stack_chk_fail_msg);
+
+  efi_call_1 (grub_efi_system_table->boot_services->stall, 5000000);
+  efi_call_4 (grub_efi_system_table->runtime_services->reset_system,
+	      GRUB_EFI_RESET_SHUTDOWN, GRUB_EFI_ABORTED, 0, NULL);
+
+  /*
+   * We shouldn't get here. It's unsafe to return because the stack
+   * is compromised and this function is noreturn, so just busy
+   * loop forever.
    */
   do
     {
