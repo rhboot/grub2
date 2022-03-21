@@ -805,7 +805,7 @@ grub_cpu_xnu_fill_devicetree (grub_uint64_t *fsbfreq_out)
 grub_err_t
 grub_xnu_boot_resume (void)
 {
-  struct grub_relocator32_state state;
+  struct grub_relocator32_state state = {0};
 
   state.esp = grub_xnu_stack;
   state.ebp = grub_xnu_stack;
