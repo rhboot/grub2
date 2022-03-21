@@ -128,6 +128,8 @@ grub_net_arp_receive (struct grub_net_buff *nb, struct grub_net_card *card,
   target_addr.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4;
   sender_addr.ipv4 = arp_packet->sender_ip;
   target_addr.ipv4 = arp_packet->recv_ip;
+  sender_addr.option = 0;
+  target_addr.option = 0;
   if (arp_packet->sender_ip == pending_req)
     have_pending = 1;
 
