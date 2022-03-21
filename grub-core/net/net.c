@@ -782,6 +782,20 @@ grub_net_hwaddr_to_str (const grub_net_link_level_address_t *addr, char *str)
   grub_printf (_("Unsupported hw address type %d\n"), addr->type);
 }
 
+void
+grub_net_vlan_to_str (grub_uint16_t vlantag, char *str)
+{
+  str[0] = 0;
+
+  /* 12 bits are used to identify the vlan in 802.1Q. */
+  vlantag = vlantag & 0x0fff;
+
+  if (vlantag == 0)
+    return;
+
+  grub_snprintf (str, GRUB_NET_MAX_STR_VLAN_LEN, "vlan%u", vlantag);
+}
+
 int
 grub_net_hwaddr_cmp (const grub_net_link_level_address_t *a,
 		     const grub_net_link_level_address_t *b)
@@ -1251,9 +1265,12 @@ grub_cmd_listaddrs (struct grub_command *cmd __attribute__ ((unused)),
   {
     char bufh[GRUB_NET_MAX_STR_HWADDR_LEN];
     char bufn[GRUB_NET_MAX_STR_ADDR_LEN];
+    char bufv[GRUB_NET_MAX_STR_VLAN_LEN];
+
     grub_net_hwaddr_to_str (&inf->hwaddress, bufh);
     grub_net_addr_to_str (&inf->address, bufn);
-    grub_printf ("%s %s %s\n", inf->name, bufh, bufn);
+    grub_net_vlan_to_str (inf->vlantag, bufv);
+    grub_printf ("%s %s %s %s\n", inf->name, bufh, bufn, bufv);
   }
   return GRUB_ERR_NONE;
 }

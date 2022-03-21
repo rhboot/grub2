@@ -512,11 +512,17 @@ grub_net_addr_cmp (const grub_net_network_level_address_t *a,
 
 #define GRUB_NET_MAX_STR_HWADDR_LEN (sizeof ("XX:XX:XX:XX:XX:XX"))
 
+/* Max VLAN id = 4094 */
+#define GRUB_NET_MAX_STR_VLAN_LEN (sizeof ("vlanXXXX"))
+
 void
 grub_net_addr_to_str (const grub_net_network_level_address_t *target,
 		      char *buf);
 void
 grub_net_hwaddr_to_str (const grub_net_link_level_address_t *addr, char *str);
+
+void
+grub_net_vlan_to_str (grub_uint16_t vlantag, char *str);
 
 grub_err_t
 grub_env_set_net_property (const char *intername, const char *suffix,
