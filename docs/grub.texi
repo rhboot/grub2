@@ -5557,6 +5557,7 @@ This command is only available on AArch64 systems.
 * net_ls_dns::                  List DNS servers
 * net_ls_routes::               List routing entries
 * net_nslookup::                Perform a DNS lookup
+* net_set_vlan::                Set vlan id on an interface
 @end menu
 
 
@@ -5730,6 +5731,25 @@ List routing entries.
 @deffn Command net_nslookup @var{name} [@var{server}]
 Resolve address of @var{name} using DNS server @var{server}. If no server
 is given, use default list of servers.
+@end deffn
+
+
+@node net_set_vlan
+@subsection net_set_vlan
+
+@deffn Command net_set_vlan @var{interface} @var{vlanid}
+Set the 802.1Q VLAN identifier on @var{interface} to @var{vlanid}. For example,
+to set the VLAN identifier on interface @samp{efinet1} to @samp{100}:
+
+@example
+net_set_vlan efinet1 100
+@end example
+
+The VLAN identifier can be removed by setting it to @samp{0}:
+
+@example
+net_set_vlan efinet1 0
+@end example
 @end deffn
 
 

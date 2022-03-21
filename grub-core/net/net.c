@@ -1177,6 +1177,42 @@ grub_cmd_addroute (struct grub_command *cmd __attribute__ ((unused)),
     }
 }
 
+static grub_err_t
+grub_cmd_setvlan (struct grub_command *cmd __attribute__ ((unused)),
+		  int argc, char **args)
+{
+  const char *vlan_string, *vlan_string_end;
+  unsigned long vlantag;
+  struct grub_net_network_level_interface *inter;
+
+  if (argc != 2)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("two arguments expected"));
+
+  vlan_string = args[1];
+  vlantag = grub_strtoul (vlan_string, &vlan_string_end, 10);
+
+  if (*vlan_string == '\0' || *vlan_string_end != '\0')
+    return grub_error (GRUB_ERR_BAD_NUMBER,
+		       N_("non-numeric or invalid number `%s'"), vlan_string);
+
+  if (vlantag > 4094)
+    return grub_error (GRUB_ERR_OUT_OF_RANGE,
+		       N_("vlan id `%s' not in the valid range of 0-4094"),
+		       vlan_string);
+
+  FOR_NET_NETWORK_LEVEL_INTERFACES (inter)
+    {
+      if (grub_strcmp (inter->name, args[0]) != 0)
+	continue;
+
+      inter->vlantag = vlantag;
+      return GRUB_ERR_NONE;
+    }
+
+  return grub_error (GRUB_ERR_BAD_ARGUMENT,
+                     N_("network interface not found"));
+}
+
 static void
 print_net_address (const grub_net_network_level_netaddress_t *target)
 {
@@ -1894,7 +1930,7 @@ grub_net_search_config_file (char *config)
 static struct grub_preboot *fini_hnd;
 
 static grub_command_t cmd_addaddr, cmd_deladdr, cmd_addroute, cmd_delroute;
-static grub_command_t cmd_lsroutes, cmd_lscards;
+static grub_command_t cmd_setvlan, cmd_lsroutes, cmd_lscards;
 static grub_command_t cmd_lsaddr, cmd_slaac;
 
 GRUB_MOD_INIT(net)
@@ -1932,6 +1968,9 @@ GRUB_MOD_INIT(net)
   cmd_delroute = grub_register_command ("net_del_route", grub_cmd_delroute,
 					N_("SHORTNAME"),
 					N_("Delete a network route."));
+  cmd_setvlan = grub_register_command ("net_set_vlan", grub_cmd_setvlan,
+				       N_("SHORTNAME VLANID"),
+				       N_("Set an interface's vlan id."));
   cmd_lsroutes = grub_register_command ("net_ls_routes", grub_cmd_listroutes,
 					"", N_("list network routes"));
   cmd_lscards = grub_register_command ("net_ls_cards", grub_cmd_listcards,
