@@ -960,7 +960,7 @@ grub_xnu_boot (void)
   grub_addr_t devtree_target;
   grub_size_t devtreelen;
   int i;
-  struct grub_relocator32_state state;
+  struct grub_relocator32_state state = {0};
   grub_uint64_t fsbfreq = 100000000;
   int v2 = (grub_xnu_darwin_version >= 11);
   grub_uint32_t efi_system_table = 0;
