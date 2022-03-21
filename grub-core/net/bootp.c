@@ -244,6 +244,7 @@ grub_net_configure_by_dhcp_ack (const char *name,
 
   addr.type = GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4;
   addr.ipv4 = bp->your_ip;
+  addr.option = 0;
 
   if (device)
     *device = 0;
