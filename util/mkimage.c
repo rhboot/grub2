@@ -1418,6 +1418,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    section = (struct grub_pe32_section_table *)(o64 + 1);
 	  }
 
+	PE_OHDR (o32, o64, dll_characteristics) = grub_host_to_target16 (GRUB_PE32_NX_COMPAT);
 	PE_OHDR (o32, o64, header_size) = grub_host_to_target32 (header_size);
 	PE_OHDR (o32, o64, entry_addr) = grub_host_to_target32 (layout.start_address);
 	PE_OHDR (o32, o64, image_base) = 0;
