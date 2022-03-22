@@ -805,6 +805,11 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       kernel_offset += len;
     }
 
+  grub_dprintf("efi", "setting attributes for %p (%zu bytes) to +rw-x\n",
+	       &linux_params, sizeof (lh) + len);
+  grub_update_mem_attrs ((grub_addr_t)&linux_params, sizeof (lh) + len,
+			 GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_W, GRUB_MEM_ATTR_X);
+
   linux_params.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
   linux_params.kernel_alignment = (1 << align);
   linux_params.ps_mouse = linux_params.padding11 = 0;

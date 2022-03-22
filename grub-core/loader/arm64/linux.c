@@ -173,7 +173,8 @@ free_params (void)
 }
 
 grub_err_t
-grub_arch_efi_linux_boot_image (grub_addr_t addr, char *args)
+grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args,
+				int nx_supported)
 {
   grub_err_t retval;
 
@@ -183,7 +184,8 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, char *args)
 
   grub_dprintf ("linux", "linux command line: '%s'\n", args);
 
-  retval = grub_efi_linux_boot ((char *)addr, handover_offset, (void *)addr);
+  retval = grub_efi_linux_boot (addr, size, handover_offset,
+				(void *)addr, nx_supported);
 
   /* Never reached... */
   free_params();
@@ -193,7 +195,10 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, char *args)
 static grub_err_t
 grub_linux_boot (void)
 {
-  return (grub_arch_efi_linux_boot_image((grub_addr_t)kernel_addr, linux_args));
+  return grub_arch_efi_linux_boot_image((grub_addr_t)kernel_addr,
+					(grub_size_t)kernel_size,
+					linux_args,
+					0);
 }
 
 static grub_err_t
@@ -342,6 +347,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_uint32_t align;
   void *kernel = NULL;
   int rc;
+  int nx_supported = 1;
 
   grub_dl_ref (my_mod);
 
@@ -388,6 +394,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_dprintf ("linux", "kernel mem size     : %lld\n", (long long) kernel_size);
   grub_dprintf ("linux", "kernel entry offset : %d\n", handover_offset);
   grub_dprintf ("linux", "kernel alignment    : 0x%x\n", align);
+
+  err = grub_efi_check_nx_image_support((grub_addr_t)kernel, filelen, &nx_supported);
+  if (err != GRUB_ERR_NONE)
+    goto fail;
 
   grub_loader_unset();
 
