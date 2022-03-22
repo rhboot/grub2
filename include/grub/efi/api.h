@@ -354,6 +354,11 @@
     { 0xab, 0xb6, 0x3d, 0xd8, 0x10, 0xdd, 0x8b, 0x23 } \
    }
 
+#define GRUB_EFI_MEMORY_ATTRIBUTE_PROTOCOL_GUID \
+  { 0xf4560cf6, 0x40ec, 0x4b4a, \
+    { 0xa1, 0x92, 0xbf, 0x1d, 0x57, 0xd0, 0xb1, 0x89 } \
+  }
+
 struct grub_efi_sal_system_table
 {
   grub_uint32_t signature;
@@ -2090,6 +2095,26 @@ struct grub_efi_rng_protocol
 				grub_efi_uint8_t *rng_value);
 };
 typedef struct grub_efi_rng_protocol grub_efi_rng_protocol_t;
+
+struct grub_efi_memory_attribute_protocol
+{
+  grub_efi_status_t (*get_memory_attributes) (
+			    struct grub_efi_memory_attribute_protocol *this,
+			    grub_efi_physical_address_t base_address,
+			    grub_efi_uint64_t length,
+			    grub_efi_uint64_t *attributes);
+  grub_efi_status_t (*set_memory_attributes) (
+			    struct grub_efi_memory_attribute_protocol *this,
+			    grub_efi_physical_address_t base_address,
+			    grub_efi_uint64_t length,
+			    grub_efi_uint64_t attributes);
+  grub_efi_status_t (*clear_memory_attributes) (
+			    struct grub_efi_memory_attribute_protocol *this,
+			    grub_efi_physical_address_t base_address,
+			    grub_efi_uint64_t length,
+			    grub_efi_uint64_t attributes);
+};
+typedef struct grub_efi_memory_attribute_protocol grub_efi_memory_attribute_protocol_t;
 
 #if (GRUB_TARGET_SIZEOF_VOID_P == 4) || defined (__ia64__) \
   || defined (__aarch64__) || defined (__MINGW64__) || defined (__CYGWIN__)
