@@ -1055,6 +1055,17 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
+  /*
+   * The OS kernel is going to set its own permissions when it takes over
+   * paging a few million instructions from now, and load_image() will set up
+   * anything that's needed based on the section headers, so there's no point
+   * in doing anything but clearing the protection bits here.
+   */
+  grub_dprintf("nx", "setting attributes for %p (%lu bytes) to %llx\n",
+	       (void *)(grub_addr_t)address, fsize, 0llu);
+  grub_update_mem_attrs (address, fsize,
+			 GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_W|GRUB_MEM_ATTR_X, 0);
+
 #if defined (__i386__) || defined (__x86_64__)
   if (fsize >= (grub_ssize_t) sizeof (struct grub_macho_fat_header))
     {
