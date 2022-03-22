@@ -181,6 +181,8 @@ struct grub_pe32_optional_header
   struct grub_pe32_data_directory reserved_entry;
 };
 
+#define GRUB_PE32_NX_COMPAT 0x0100
+
 struct grub_pe64_optional_header
 {
   grub_uint16_t magic;

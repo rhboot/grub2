@@ -45,7 +45,7 @@ struct grub_linuxefi_context {
   grub_uint32_t handover_offset;
   struct linux_kernel_params *params;
   char *cmdline;
-
+  int nx_supported;
   void *initrd_mem;
 };
 
@@ -111,13 +111,19 @@ kernel_alloc(grub_efi_uintn_t size,
       pages = BYTES_TO_PAGES(size);
       grub_dprintf ("linux", "Trying to allocate %lu pages from %p\n",
 		    (unsigned long)pages, (void *)(unsigned long)max);
+      size = pages * GRUB_EFI_PAGE_SIZE;
 
       prev_max = max;
       addr = grub_efi_allocate_pages_real (max, pages,
 					   max_addresses[i].alloc_type,
 					   memtype);
       if (addr)
-	grub_dprintf ("linux", "Allocated at %p\n", addr);
+	{
+	  grub_dprintf ("linux", "Allocated at %p\n", addr);
+	  grub_update_mem_attrs ((grub_addr_t)addr, size,
+				 GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_W,
+				 GRUB_MEM_ATTR_X);
+	}
     }
 
   while (grub_error_pop ())
@@ -138,9 +144,11 @@ grub_linuxefi_boot (void *data)
 
   asm volatile ("cli");
 
-  return grub_efi_linux_boot ((char *)context->kernel_mem,
+  return grub_efi_linux_boot ((grub_addr_t)context->kernel_mem,
+			      context->kernel_size,
 			      context->handover_offset,
-			      context->params);
+			      context->params,
+			      context->nx_supported);
 }
 
 static grub_err_t
@@ -306,7 +314,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_uint32_t handover_offset;
   struct linux_kernel_params *params = 0;
   char *cmdline = 0;
+  int nx_supported = 1;
   struct grub_linuxefi_context *context = 0;
+  grub_err_t err;
 
   grub_dl_ref (my_mod);
 
@@ -346,6 +356,13 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 	  goto fail;
 	}
     }
+
+  err = grub_efi_check_nx_image_support ((grub_addr_t)kernel, filelen,
+					 &nx_supported);
+  if (err != GRUB_ERR_NONE)
+    return err;
+  grub_dprintf ("linux", "nx is%s supported by this kernel\n",
+		nx_supported ? "" : " not");
 
   lh = (struct linux_i386_kernel_header *)kernel;
   grub_dprintf ("linux", "original lh is at %p\n", kernel);
@@ -511,6 +528,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   context->handover_offset = handover_offset;
   context->params = params;
   context->cmdline = cmdline;
+  context->nx_supported = nx_supported;
 
   grub_loader_set_ex (grub_linuxefi_boot, grub_linuxefi_unload, context, 0);
 
