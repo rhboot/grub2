@@ -135,12 +135,16 @@ extern void (*EXPORT_VAR(grub_efi_net_config)) (grub_efi_handle_t hnd,
 						char **device,
 						char **path);
 
+extern grub_addr_t EXPORT_VAR(grub_stack_addr);
+extern grub_size_t EXPORT_VAR(grub_stack_size);
+
 #if defined(__arm__) || defined(__aarch64__)
 void *EXPORT_FUNC(grub_efi_get_firmware_fdt)(void);
 grub_err_t EXPORT_FUNC(grub_efi_get_ram_base)(grub_addr_t *);
 #include <grub/cpu/linux.h>
 grub_err_t grub_armxx_efi_linux_check_image(struct linux_armxx_kernel_header *lh);
-grub_err_t grub_armxx_efi_linux_boot_image(grub_addr_t addr, char *args);
+grub_err_t grub_armxx_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
+					  char *args, int nx_enabled);
 #endif
 
 grub_addr_t grub_efi_section_addr (const char *section);

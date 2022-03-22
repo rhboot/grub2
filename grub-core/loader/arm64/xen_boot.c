@@ -266,7 +266,9 @@ xen_boot (void)
     return err;
 
   return grub_armxx_efi_linux_boot_image (xen_hypervisor->start,
-					  xen_hypervisor->cmdline);
+                                         xen_hypervisor->size,
+                                         xen_hypervisor->cmdline,
+                                         0);
 }
 
 static void
