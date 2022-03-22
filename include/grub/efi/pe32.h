@@ -231,6 +231,8 @@ struct grub_pe64_optional_header
 
 #define GRUB_PE32_SUBSYSTEM_EFI_APPLICATION	10
 
+#define GRUB_PE32_NX_COMPAT	0x0100
+
 #define GRUB_PE32_NUM_DATA_DIRECTORIES	16
 
 struct grub_pe32_section_table
