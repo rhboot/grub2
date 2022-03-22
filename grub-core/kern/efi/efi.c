@@ -1093,3 +1093,39 @@ grub_efi_compare_device_paths (const grub_efi_device_path_t *dp1,
 
   return 0;
 }
+
+grub_err_t
+grub_efi_status_to_err (grub_efi_status_t status)
+{
+  grub_err_t err;
+  switch (status)
+    {
+    case GRUB_EFI_SUCCESS:
+      err = GRUB_ERR_NONE;
+      break;
+    case GRUB_EFI_INVALID_PARAMETER:
+    default:
+      err = GRUB_ERR_BAD_ARGUMENT;
+      break;
+    case GRUB_EFI_OUT_OF_RESOURCES:
+      err = GRUB_ERR_OUT_OF_MEMORY;
+      break;
+    case GRUB_EFI_DEVICE_ERROR:
+      err = GRUB_ERR_IO;
+      break;
+    case GRUB_EFI_WRITE_PROTECTED:
+      err = GRUB_ERR_WRITE_ERROR;
+      break;
+    case GRUB_EFI_SECURITY_VIOLATION:
+      err = GRUB_ERR_ACCESS_DENIED;
+      break;
+    case GRUB_EFI_NOT_FOUND:
+      err = GRUB_ERR_FILE_NOT_FOUND;
+      break;
+    case GRUB_EFI_ABORTED:
+      err = GRUB_ERR_WAIT;
+      break;
+    }
+
+  return err;
+}

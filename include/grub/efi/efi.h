@@ -159,4 +159,6 @@ struct grub_net_card;
 grub_efi_handle_t
 grub_efinet_get_device_handle (struct grub_net_card *card);
 
+grub_err_t EXPORT_FUNC(grub_efi_status_to_err) (grub_efi_status_t status);
+
 #endif /* ! GRUB_EFI_EFI_HEADER */
