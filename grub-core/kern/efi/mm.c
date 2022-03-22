@@ -738,3 +738,134 @@ grub_efi_get_ram_base(grub_addr_t *base_addr)
   return GRUB_ERR_NONE;
 }
 #endif
+
+static inline grub_uint64_t
+grub_mem_attrs_to_uefi_mem_attrs (grub_uint64_t attrs)
+{
+  grub_uint64_t ret = GRUB_EFI_MEMORY_RP |
+		      GRUB_EFI_MEMORY_RO |
+		      GRUB_EFI_MEMORY_XP;
+
+  if (attrs & GRUB_MEM_ATTR_R)
+    ret &= ~GRUB_EFI_MEMORY_RP;
+
+  if (attrs & GRUB_MEM_ATTR_W)
+    ret &= ~GRUB_EFI_MEMORY_RO;
+
+  if (attrs & GRUB_MEM_ATTR_X)
+    ret &= ~GRUB_EFI_MEMORY_XP;
+
+  return ret;
+}
+
+static inline grub_uint64_t
+uefi_mem_attrs_to_grub_mem_attrs (grub_uint64_t attrs)
+{
+  grub_uint64_t ret = GRUB_MEM_ATTR_R |
+		      GRUB_MEM_ATTR_W |
+		      GRUB_MEM_ATTR_X;
+
+  if (attrs & GRUB_EFI_MEMORY_RP)
+    ret &= ~GRUB_MEM_ATTR_R;
+
+  if (attrs & GRUB_EFI_MEMORY_RO)
+    ret &= ~GRUB_MEM_ATTR_W;
+
+  if (attrs & GRUB_EFI_MEMORY_XP)
+    ret &= ~GRUB_MEM_ATTR_X;
+
+  return ret;
+}
+
+grub_err_t
+grub_get_mem_attrs (grub_addr_t addr, grub_size_t size, grub_uint64_t *attrs)
+{
+  grub_efi_memory_attribute_protocol_t *proto;
+  grub_efi_physical_address_t physaddr = addr;
+  grub_efi_guid_t protocol_guid = GRUB_EFI_MEMORY_ATTRIBUTE_PROTOCOL_GUID;
+  grub_efi_status_t efi_status;
+
+  proto = grub_efi_locate_protocol (&protocol_guid, 0);
+  if (!proto)
+    return GRUB_ERR_NOT_IMPLEMENTED_YET;
+
+  if (physaddr & 0xfff || size & 0xfff || size == 0 || attrs == NULL)
+    {
+      grub_dprintf ("nx", "%s called on 0x%"PRIxGRUB_ADDR"-0x%"PRIxGRUB_ADDR" and attrs %p\n",
+		    __func__, physaddr, physaddr+size-1, attrs);
+      return 0;
+    }
+
+  efi_status = efi_call_4(proto->get_memory_attributes,
+			  proto, physaddr, size, attrs);
+  *attrs = uefi_mem_attrs_to_grub_mem_attrs (*attrs);
+
+  return grub_efi_status_to_err (efi_status);
+}
+
+grub_err_t
+grub_update_mem_attrs (grub_addr_t addr, grub_size_t size,
+		       grub_uint64_t set_attrs, grub_uint64_t clear_attrs)
+{
+  grub_efi_memory_attribute_protocol_t *proto;
+  grub_efi_physical_address_t physaddr = addr;
+  grub_efi_guid_t protocol_guid = GRUB_EFI_MEMORY_ATTRIBUTE_PROTOCOL_GUID;
+  grub_efi_status_t efi_status = GRUB_EFI_SUCCESS;
+  grub_uint64_t before = 0, after = 0, uefi_set_attrs, uefi_clear_attrs;
+  grub_err_t err;
+
+  proto = grub_efi_locate_protocol (&protocol_guid, 0);
+  if (!proto)
+    return GRUB_ERR_NONE;
+
+  err = grub_get_mem_attrs (addr, size, &before);
+  if (err)
+    grub_dprintf ("nx", "grub_get_mem_attrs(0x%"PRIxGRUB_ADDR", %"PRIuGRUB_SIZE", %p) -> 0x%x\n",
+		  addr, size, &before, err);
+
+  if (physaddr & 0xfff || size & 0xfff || size == 0)
+    {
+      grub_dprintf ("nx", "%s called on 0x%"PRIxGRUB_ADDR"-0x%"PRIxGRUB_ADDR" +%s%s%s -%s%s%s\n",
+		    __func__, physaddr, physaddr + size - 1,
+		    (set_attrs & GRUB_MEM_ATTR_R) ? "r" : "",
+		    (set_attrs & GRUB_MEM_ATTR_W) ? "w" : "",
+		    (set_attrs & GRUB_MEM_ATTR_X) ? "x" : "",
+		    (clear_attrs & GRUB_MEM_ATTR_R) ? "r" : "",
+		    (clear_attrs & GRUB_MEM_ATTR_W) ? "w" : "",
+		    (clear_attrs & GRUB_MEM_ATTR_X) ? "x" : "");
+      return 0;
+    }
+
+  uefi_set_attrs = grub_mem_attrs_to_uefi_mem_attrs (set_attrs);
+  grub_dprintf ("nx", "translating set_attrs from 0x%lx to 0x%lx\n", set_attrs, uefi_set_attrs);
+  uefi_clear_attrs = grub_mem_attrs_to_uefi_mem_attrs (clear_attrs);
+  grub_dprintf ("nx", "translating clear_attrs from 0x%lx to 0x%lx\n", clear_attrs, uefi_clear_attrs);
+  if (uefi_set_attrs)
+    efi_status = efi_call_4(proto->set_memory_attributes,
+			    proto, physaddr, size, uefi_set_attrs);
+  if (efi_status == GRUB_EFI_SUCCESS && uefi_clear_attrs)
+    efi_status = efi_call_4(proto->clear_memory_attributes,
+			    proto, physaddr, size, uefi_clear_attrs);
+
+  err = grub_get_mem_attrs (addr, size, &after);
+  if (err)
+    grub_dprintf ("nx", "grub_get_mem_attrs(0x%"PRIxGRUB_ADDR", %"PRIuGRUB_SIZE", %p) -> 0x%x\n",
+		  addr, size, &after, err);
+
+  grub_dprintf ("nx", "set +%s%s%s -%s%s%s on 0x%"PRIxGRUB_ADDR"-0x%"PRIxGRUB_ADDR" before:%c%c%c after:%c%c%c\n",
+		(set_attrs & GRUB_MEM_ATTR_R) ? "r" : "",
+		(set_attrs & GRUB_MEM_ATTR_W) ? "w" : "",
+		(set_attrs & GRUB_MEM_ATTR_X) ? "x" : "",
+		(clear_attrs & GRUB_MEM_ATTR_R) ? "r" : "",
+		(clear_attrs & GRUB_MEM_ATTR_W) ? "w" : "",
+		(clear_attrs & GRUB_MEM_ATTR_X) ? "x" : "",
+		addr, addr + size - 1,
+		(before & GRUB_MEM_ATTR_R) ? 'r' : '-',
+		(before & GRUB_MEM_ATTR_W) ? 'w' : '-',
+		(before & GRUB_MEM_ATTR_X) ? 'x' : '-',
+		(after & GRUB_MEM_ATTR_R) ? 'r' : '-',
+		(after & GRUB_MEM_ATTR_W) ? 'w' : '-',
+		(after & GRUB_MEM_ATTR_X) ? 'x' : '-');
+
+  return grub_efi_status_to_err (efi_status);
+}
