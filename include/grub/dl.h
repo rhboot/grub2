@@ -209,7 +209,6 @@ extern void grub_dl_unload_unneeded (void);
 extern int EXPORT_FUNC(grub_dl_ref) (grub_dl_t mod);
 extern int EXPORT_FUNC(grub_dl_unref) (grub_dl_t mod);
 extern int EXPORT_FUNC(grub_dl_ref_count) (grub_dl_t mod);
-
 extern grub_dl_t EXPORT_VAR(grub_dl_head);
 
 #ifndef GRUB_UTIL
