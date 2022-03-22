@@ -602,6 +602,82 @@ print_memory_map (grub_efi_memory_descriptor_t *memory_map,
 }
 #endif
 
+grub_addr_t grub_stack_addr = (grub_addr_t)-1ll;
+grub_size_t grub_stack_size = 0;
+
+static void
+grub_nx_init (void)
+{
+  grub_uint64_t attrs, stack_attrs;
+  grub_err_t err;
+  grub_addr_t stack_current, stack_end;
+  const grub_uint64_t page_size = 4096;
+  const grub_uint64_t page_mask = ~(page_size - 1);
+
+  /*
+   * These are to confirm that the flags are working as expected when
+   * debugging.
+   */
+  attrs = 0;
+  stack_current = (grub_addr_t)grub_nx_init & page_mask;
+  err = grub_get_mem_attrs (stack_current, page_size, &attrs);
+  if (err)
+    {
+      grub_dprintf ("nx",
+		    "grub_get_mem_attrs(0x%"PRIxGRUB_UINT64_T", ...) -> 0x%x\n",
+		    stack_current, err);
+      grub_error_pop ();
+    }
+  else
+    grub_dprintf ("nx", "page attrs for grub_nx_init (%p) are %c%c%c\n",
+		  grub_dl_load_core,
+		  (attrs & GRUB_MEM_ATTR_R) ? 'r' : '-',
+		  (attrs & GRUB_MEM_ATTR_R) ? 'w' : '-',
+		  (attrs & GRUB_MEM_ATTR_R) ? 'x' : '-');
+
+  stack_current = (grub_addr_t)&stack_current & page_mask;
+  err = grub_get_mem_attrs (stack_current, page_size, &stack_attrs);
+  if (err)
+    {
+      grub_dprintf ("nx",
+		    "grub_get_mem_attrs(0x%"PRIxGRUB_UINT64_T", ...) -> 0x%x\n",
+		    stack_current, err);
+      grub_error_pop ();
+    }
+  else
+    {
+      attrs = stack_attrs;
+      grub_dprintf ("nx", "page attrs for stack (%p) are %c%c%c\n",
+                    &attrs,
+                    (attrs & GRUB_MEM_ATTR_R) ? 'r' : '-',
+                    (attrs & GRUB_MEM_ATTR_R) ? 'w' : '-',
+                    (attrs & GRUB_MEM_ATTR_R) ? 'x' : '-');
+    }
+
+  for (stack_end = stack_current + page_size ;
+       !(attrs & GRUB_MEM_ATTR_R);
+       stack_end += page_size)
+    {
+      err = grub_get_mem_attrs (stack_current, page_size, &attrs);
+      if (err)
+	{
+	  grub_dprintf ("nx",
+			"grub_get_mem_attrs(0x%"PRIxGRUB_UINT64_T", ...) -> 0x%x\n",
+			stack_current, err);
+	  grub_error_pop ();
+	  break;
+	}
+    }
+  if (stack_end > stack_current)
+    {
+      grub_stack_addr = stack_current;
+      grub_stack_size = stack_end - stack_current;
+      grub_dprintf ("nx",
+		    "detected stack from 0x%"PRIxGRUB_ADDR" to 0x%"PRIxGRUB_ADDR"\n",
+		    grub_stack_addr, grub_stack_addr + grub_stack_size - 1);
+    }
+}
+
 void
 grub_efi_mm_init (void)
 {
@@ -614,6 +690,8 @@ grub_efi_mm_init (void)
   grub_efi_uint64_t total_pages;
   grub_efi_uint64_t required_pages;
   int mm_status;
+
+  grub_nx_init ();
 
   /* Prepare a memory region to store two memory maps.  */
   memory_map = grub_efi_allocate_any_pages (2 * BYTES_TO_PAGES (MEMORY_MAP_SIZE));

@@ -191,7 +191,8 @@ free_params (void)
 }
 
 grub_err_t
-grub_armxx_efi_linux_boot_image (grub_addr_t addr, char *args)
+grub_armxx_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args,
+				int nx_supported)
 {
   grub_err_t retval;
 
@@ -201,7 +202,8 @@ grub_armxx_efi_linux_boot_image (grub_addr_t addr, char *args)
 
   grub_dprintf ("linux", "linux command line: '%s'\n", args);
 
-  retval = grub_efi_linux_boot ((char *)addr, handover_offset, (void *)addr);
+  retval = grub_efi_linux_boot (addr, size, handover_offset,
+				(void *)addr, nx_supported);
 
   /* Never reached... */
   free_params();
@@ -211,7 +213,10 @@ grub_armxx_efi_linux_boot_image (grub_addr_t addr, char *args)
 static grub_err_t
 grub_linux_boot (void)
 {
-  return grub_armxx_efi_linux_boot_image((grub_addr_t)kernel_addr, linux_args);
+  return grub_armxx_efi_linux_boot_image((grub_addr_t)kernel_addr,
+					(grub_size_t)kernel_size,
+					linux_args,
+					0);
 }
 
 static grub_err_t
@@ -340,6 +345,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct grub_armxx_linux_pe_header *pe;
   int rc;
   grub_err_t err;
+  int nx_supported = 1;
 
   grub_dl_ref (my_mod);
 
@@ -394,6 +400,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 	  goto fail;
 	}
     }
+
+  err = grub_efi_check_nx_image_support((grub_addr_t) kernel_addr, kernel_size, &nx_supported);
+  if (err != GRUB_ERR_NONE)
+    goto fail;
 
   pe = (void *)((unsigned long)kernel_addr + lh.hdr_offset);
   handover_offset = pe->opt.entry_addr;
