@@ -1438,6 +1438,7 @@ grub_real_boot_time (const char *file,
 
   va_start (args, fmt);
   n->msg = grub_xvasprintf (fmt, args);
+  grub_dprintf ("boot", "%s\n", n->msg);
   va_end (args);
 
   *boot_time_last = n;
