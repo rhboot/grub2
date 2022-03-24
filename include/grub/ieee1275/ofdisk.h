@@ -25,7 +25,12 @@ extern void grub_ofdisk_fini (void);
 #define MAX_RETRIES 20
 
 
-#define RETRY_IEEE1275_OFDISK_OPEN(device, last_ihandle) unsigned retry_i=0;for(retry_i=0; retry_i < MAX_RETRIES; retry_i++){ \
+#define RETRY_IEEE1275_OFDISK_OPEN(device, last_ihandle) \
+	                                        unsigned max_retries = MAX_RETRIES; \
+                                                if(grub_env_get("ofdisk_retries") != NULL) \
+                                                     max_retries = grub_strtoul(grub_env_get("ofdisk_retries"), 0, 10)+1; \
+                                                grub_dprintf("ofdisk","MAX_RETRIES set to %u\n",max_retries); \
+                                                unsigned retry_i=0;for(retry_i=0; retry_i < max_retries; retry_i++){ \
 						if(!grub_ieee1275_open(device, last_ihandle)) \
 						break; \
 						grub_dprintf("ofdisk","Opening disk %s failed. Retrying...\n",device); }
