@@ -242,14 +242,29 @@ grub_set_prefix_and_root (void)
 	    what sorts of paths represent disks with partition tables and those
 	    without partition tables.
 
-	 So we act unless there is a comma in the device, which would indicate
-	 a partition has already been specified.
+          - Frustratingly, the device name itself can contain an embedded comma:
+            /pci@800000020000015/pci1014,034A@0/sas/disk@5000c50098a0ee8b
+            So we cannot even rely upon the presence of a comma to say that a
+            partition has been specified!
 
-	 (If we only have a path, the code in normal to discover config files
-	 will try both without partitions and then with any partitions so we
-	 will cover both CDs and HDs.)
+         If we only have a path in $prefix, the code in normal to discover
+	 config files will try all disks, both without partitions and then with
+	 any partitions so we will cover both CDs and HDs.
+
+         However, it doesn't then set the prefix to be something like
+         (discovered partition)/path, and so it is fragile against runtime
+         changes to $root. For example some of the stuff done in 10_linux to
+         reload $root sets root differently and then uses search to find it
+         again. If the search module is not built in, when we change root, grub
+         will look in (new root)/path/powerpc-ieee1275, that won't work, and we
+         will not be able to load the search module and the boot will fail.
+
+         This is particularly likely to hit us in the grub-install
+         (,msdos2)/grub2 case, so we act unless the supplied prefix starts with
+         '(', which would likely indicate a partition has already been
+         specified.
        */
-      if (grub_strchr (device, ',') == NULL)
+      if (prefix && prefix[0] != '(')
         grub_env_set ("prefix", path);
       else
 #endif
