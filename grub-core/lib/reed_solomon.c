@@ -102,6 +102,11 @@ static gf_single_t errvals[256];
 static gf_single_t eqstat[65536 + 256];
 #endif
 
+#if __GNUC__ == 12
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+
 static gf_single_t
 gf_mul (gf_single_t a, gf_single_t b)
 {
@@ -318,6 +323,10 @@ decode_block (gf_single_t *ptr, grub_size_t s,
 	ptr[SECTOR_SIZE * j + i] = mstat[j];
     }
 }
+
+#if __GNUC__ == 12
+#pragma GCC diagnostic pop
+#endif
 
 #if !defined (STANDALONE)
 static void
