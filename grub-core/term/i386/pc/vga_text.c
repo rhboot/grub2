@@ -45,15 +45,15 @@ GRUB_MOD_LICENSE ("GPLv3+");
 static struct grub_term_coordinate grub_curr_pos;
 
 #ifdef __mips__
-#define VGA_TEXT_SCREEN		((grub_uint16_t *) 0xb00b8000)
+#define VGA_TEXT_SCREEN		((grub_uint16_t *) grub_absolute_pointer (0xb00b8000))
 #define cr_read grub_vga_cr_read
 #define cr_write grub_vga_cr_write
 #elif defined (MODE_MDA)
-#define VGA_TEXT_SCREEN		((grub_uint16_t *) 0xb0000)
+#define VGA_TEXT_SCREEN		((grub_uint16_t *) grub_absolute_pointer (0xb0000))
 #define cr_read grub_vga_cr_bw_read
 #define cr_write grub_vga_cr_bw_write
 #else
-#define VGA_TEXT_SCREEN		((grub_uint16_t *) 0xb8000)
+#define VGA_TEXT_SCREEN		((grub_uint16_t *) grub_absolute_pointer (0xb8000))
 #define cr_read grub_vga_cr_read
 #define cr_write grub_vga_cr_write
 #endif

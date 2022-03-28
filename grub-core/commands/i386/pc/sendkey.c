@@ -216,12 +216,12 @@ static grub_err_t
 grub_sendkey_postboot (void)
 {
   /* For convention: pointer to flags.  */
-  grub_uint32_t *flags = (grub_uint32_t *) 0x417;
+  grub_uint32_t *flags = grub_absolute_pointer (0x417);
 
   *flags = oldflags;
 
-  *((volatile char *) 0x41a) = 0x1e;
-  *((volatile char *) 0x41c) = 0x1e;
+  *((volatile char *) grub_absolute_pointer (0x41a)) = 0x1e;
+  *((volatile char *) grub_absolute_pointer (0x41c)) = 0x1e;
 
   return GRUB_ERR_NONE;
 }
@@ -231,13 +231,13 @@ static grub_err_t
 grub_sendkey_preboot (int noret __attribute__ ((unused)))
 {
   /* For convention: pointer to flags.  */
-  grub_uint32_t *flags = (grub_uint32_t *) 0x417;
+  grub_uint32_t *flags = grub_absolute_pointer (0x417);
 
   oldflags = *flags;
 
   /* Set the sendkey.  */
-  *((volatile char *) 0x41a) = 0x1e;
-  *((volatile char *) 0x41c) = keylen + 0x1e;
+  *((volatile char *) grub_absolute_pointer (0x41a)) = 0x1e;
+  *((volatile char *) grub_absolute_pointer (0x41c)) = keylen + 0x1e;
   grub_memcpy ((char *) 0x41e, sendkey, 0x20);
 
   /* Transform "any ctrl" to "right ctrl" flag.  */

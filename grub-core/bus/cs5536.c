@@ -331,8 +331,9 @@ grub_cs5536_init_geode (grub_pci_device_t dev)
 
   {
     volatile grub_uint32_t *oc;
-    oc = grub_pci_device_map_range (dev, 0x05022000,
-				    GRUB_CS5536_USB_OPTION_REGS_SIZE);
+
+    oc = grub_absolute_pointer (grub_pci_device_map_range (dev, 0x05022000,
+				GRUB_CS5536_USB_OPTION_REGS_SIZE));
 
     oc[GRUB_CS5536_USB_OPTION_REG_UOCMUX] =
       (oc[GRUB_CS5536_USB_OPTION_REG_UOCMUX]

@@ -293,7 +293,7 @@ fill_vbe_info (struct multiboot_info *mbi, grub_uint8_t *ptrorig,
   struct grub_vbe_mode_info_block *mode_info;
 #if GRUB_MACHINE_HAS_VBE
   grub_vbe_status_t status;
-  void *scratch = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  void *scratch = grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
 
   status = grub_vbe_bios_get_controller_info (scratch);
   if (status != GRUB_VBE_STATUS_OK)

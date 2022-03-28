@@ -504,7 +504,7 @@ static void
 fill_vbe_tag (struct multiboot_tag_vbe *tag)
 {
   grub_vbe_status_t status;
-  void *scratch = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  void *scratch = grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
 
   tag->type = MULTIBOOT_TAG_TYPE_VBE;
   tag->size = 0;
@@ -577,7 +577,7 @@ retrieve_video_parameters (grub_properly_aligned_t **ptrorig)
 #if defined (GRUB_MACHINE_PCBIOS)
       {
 	grub_vbe_status_t status;
-	void *scratch = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+	void *scratch = grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
 	status = grub_vbe_bios_get_mode (scratch);
 	vbe_mode = *(grub_uint32_t *) scratch;
 	if (status != GRUB_VBE_STATUS_OK)

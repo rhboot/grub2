@@ -27,7 +27,7 @@ grub_machine_acpi_get_rsdpv1 (void)
   grub_uint8_t *ebda, *ptr;
 
   grub_dprintf ("acpi", "Looking for RSDP. Scanning EBDA\n");
-  ebda = (grub_uint8_t *) ((* ((grub_uint16_t *) 0x40e)) << 4);
+  ebda = (grub_uint8_t *) ((* ((grub_uint16_t *) grub_absolute_pointer (0x40e))) << 4);
   ebda_len = * (grub_uint16_t *) ebda;
   if (! ebda_len) /* FIXME do we really need this check? */
     goto scan_bios;
@@ -55,7 +55,7 @@ grub_machine_acpi_get_rsdpv2 (void)
   grub_uint8_t *ebda, *ptr;
 
   grub_dprintf ("acpi", "Looking for RSDP. Scanning EBDA\n");
-  ebda = (grub_uint8_t *) ((* ((grub_uint16_t *) 0x40e)) << 4);
+  ebda = (grub_uint8_t *) ((* ((grub_uint16_t *) grub_absolute_pointer (0x40e))) << 4);
   ebda_len = * (grub_uint16_t *) ebda;
   if (! ebda_len) /* FIXME do we really need this check? */
     goto scan_bios;

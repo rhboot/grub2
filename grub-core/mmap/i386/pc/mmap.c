@@ -80,13 +80,13 @@ preboot (int noreturn __attribute__ ((unused)))
     = min (grub_mmap_get_post64 (), 0xfc000000ULL) >> 16;
 
   /* Correct BDA. */
-  *((grub_uint16_t *) 0x413) = grub_mmap_get_lower () >> 10;
+  *((grub_uint16_t *) grub_absolute_pointer (0x413)) = grub_mmap_get_lower () >> 10;
 
   /* Save old interrupt handlers. */
-  grub_machine_mmaphook_int12offset = *((grub_uint16_t *) 0x48);
-  grub_machine_mmaphook_int12segment = *((grub_uint16_t *) 0x4a);
-  grub_machine_mmaphook_int15offset = *((grub_uint16_t *) 0x54);
-  grub_machine_mmaphook_int15segment = *((grub_uint16_t *) 0x56);
+  grub_machine_mmaphook_int12offset = *((grub_uint16_t *) grub_absolute_pointer (0x48));
+  grub_machine_mmaphook_int12segment = *((grub_uint16_t *) grub_absolute_pointer (0x4a));
+  grub_machine_mmaphook_int15offset = *((grub_uint16_t *) grub_absolute_pointer (0x54));
+  grub_machine_mmaphook_int15segment = *((grub_uint16_t *) grub_absolute_pointer (0x56));
 
   grub_dprintf ("mmap", "hooktarget = %p\n", hooktarget);
 
@@ -94,11 +94,11 @@ preboot (int noreturn __attribute__ ((unused)))
   grub_memcpy (hooktarget, &grub_machine_mmaphook_start,
 	       &grub_machine_mmaphook_end - &grub_machine_mmaphook_start);
 
-  *((grub_uint16_t *) 0x4a) = ((grub_addr_t) hooktarget) >> 4;
-  *((grub_uint16_t *) 0x56) = ((grub_addr_t) hooktarget) >> 4;
-  *((grub_uint16_t *) 0x48) = &grub_machine_mmaphook_int12
+  *((grub_uint16_t *) grub_absolute_pointer (0x4a)) = ((grub_addr_t) hooktarget) >> 4;
+  *((grub_uint16_t *) grub_absolute_pointer (0x56)) = ((grub_addr_t) hooktarget) >> 4;
+  *((grub_uint16_t *) grub_absolute_pointer (0x48)) = &grub_machine_mmaphook_int12
     - &grub_machine_mmaphook_start;
-  *((grub_uint16_t *) 0x54) = &grub_machine_mmaphook_int15
+  *((grub_uint16_t *) grub_absolute_pointer (0x54)) = &grub_machine_mmaphook_int15
     - &grub_machine_mmaphook_start;
 
   return GRUB_ERR_NONE;
@@ -108,10 +108,10 @@ static grub_err_t
 preboot_rest (void)
 {
   /* Restore old interrupt handlers. */
-  *((grub_uint16_t *) 0x48) = grub_machine_mmaphook_int12offset;
-  *((grub_uint16_t *) 0x4a) = grub_machine_mmaphook_int12segment;
-  *((grub_uint16_t *) 0x54) = grub_machine_mmaphook_int15offset;
-  *((grub_uint16_t *) 0x56) = grub_machine_mmaphook_int15segment;
+  *((grub_uint16_t *) grub_absolute_pointer (0x48)) = grub_machine_mmaphook_int12offset;
+  *((grub_uint16_t *) grub_absolute_pointer (0x4a)) = grub_machine_mmaphook_int12segment;
+  *((grub_uint16_t *) grub_absolute_pointer (0x54)) = grub_machine_mmaphook_int15offset;
+  *((grub_uint16_t *) grub_absolute_pointer (0x56)) = grub_machine_mmaphook_int15segment;
 
   return GRUB_ERR_NONE;
 }

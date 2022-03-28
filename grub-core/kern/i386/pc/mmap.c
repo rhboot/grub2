@@ -143,7 +143,7 @@ grub_machine_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
 {
   grub_uint32_t cont = 0;
   struct grub_machine_mmap_entry *entry
-    = (struct grub_machine_mmap_entry *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+    = (struct grub_machine_mmap_entry *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
   int e820_works = 0;
 
   while (1)

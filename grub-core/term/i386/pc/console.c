@@ -238,12 +238,11 @@ grub_console_getkey (struct grub_term_input *term __attribute__ ((unused)))
   return (regs.eax & 0xff) + (('a' - 1) | GRUB_TERM_CTRL);
 }
 
-static const struct grub_machine_bios_data_area *bios_data_area =
-  (struct grub_machine_bios_data_area *) GRUB_MEMORY_MACHINE_BIOS_DATA_AREA_ADDR;
-
 static int
 grub_console_getkeystatus (struct grub_term_input *term __attribute__ ((unused)))
 {
+  const struct grub_machine_bios_data_area *bios_data_area =
+  (struct grub_machine_bios_data_area *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_BIOS_DATA_AREA_ADDR);
   /* conveniently GRUB keystatus is modelled after BIOS one.  */
   return bios_data_area->keyboard_flag_lower & ~0x80;
 }

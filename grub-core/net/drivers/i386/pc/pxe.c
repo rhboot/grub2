@@ -174,7 +174,7 @@ grub_pxe_recv (struct grub_net_card *dev __attribute__ ((unused)))
   grub_uint8_t *ptr, *end;
   struct grub_net_buff *buf;
 
-  isr = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  isr = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
 
   if (!in_progress)
     {
@@ -256,11 +256,11 @@ grub_pxe_send (struct grub_net_card *dev __attribute__ ((unused)),
   struct grub_pxe_undi_tbd *tbd;
   char *buf;
 
-  trans = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  trans = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
   grub_memset (trans, 0, sizeof (*trans));
-  tbd = (void *) (GRUB_MEMORY_MACHINE_SCRATCH_ADDR + 128);
+  tbd = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR + 128);
   grub_memset (tbd, 0, sizeof (*tbd));
-  buf = (void *) (GRUB_MEMORY_MACHINE_SCRATCH_ADDR + 256);
+  buf = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR + 256);
   grub_memcpy (buf, pack->data, pack->tail - pack->data);
 
   trans->tbd = SEGOFS ((grub_addr_t) tbd);
@@ -287,7 +287,7 @@ static grub_err_t
 grub_pxe_open (struct grub_net_card *dev __attribute__ ((unused)))
 {
   struct grub_pxe_undi_open *ou;
-  ou = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  ou = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
   grub_memset (ou, 0, sizeof (*ou));
   ou->pkt_filter = 4;
   grub_pxe_call (GRUB_PXENV_UNDI_OPEN, ou, pxe_rm_entry);
@@ -382,7 +382,7 @@ GRUB_MOD_INIT(pxe)
   if (! pxenv)
     return;
 
-  ui = (void *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+  ui = (void *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
   grub_memset (ui, 0, sizeof (*ui));
   grub_pxe_call (GRUB_PXENV_UNDI_GET_INFORMATION, ui, pxe_rm_entry);
 

@@ -46,7 +46,7 @@ enable_rom_area (void)
   grub_uint32_t *rom_ptr;
   grub_pci_device_t dev = { .bus = 0, .device = 0, .function = 0};
 
-  rom_ptr = (grub_uint32_t *) VBIOS_ADDR;
+  rom_ptr = grub_absolute_pointer (VBIOS_ADDR);
   if (*rom_ptr != BLANK_MEM)
     {
       grub_puts_ (N_("ROM image is present."));
@@ -96,8 +96,8 @@ fake_bios_data (int use_rom)
   void *acpi, *smbios;
   grub_uint16_t *ebda_seg_ptr, *low_mem_ptr;
 
-  ebda_seg_ptr = (grub_uint16_t *) EBDA_SEG_ADDR;
-  low_mem_ptr = (grub_uint16_t *) LOW_MEM_ADDR;
+  ebda_seg_ptr = grub_absolute_pointer (EBDA_SEG_ADDR);
+  low_mem_ptr = grub_absolute_pointer (LOW_MEM_ADDR);
   if ((*ebda_seg_ptr) || (*low_mem_ptr))
     return;
 
@@ -132,7 +132,8 @@ fake_bios_data (int use_rom)
   *ebda_seg_ptr = FAKE_EBDA_SEG;
   *low_mem_ptr = (FAKE_EBDA_SEG >> 6);
 
-  *((grub_uint16_t *) (FAKE_EBDA_SEG << 4)) = 640 - *low_mem_ptr;
+  /* *((grub_uint16_t *) (FAKE_EBDA_SEG << 4)) = 640 - *low_mem_ptr; */
+  *((grub_uint16_t *) (grub_absolute_pointer (FAKE_EBDA_SEG << 4))) = 640 - *low_mem_ptr;
 
   if (acpi)
     grub_memcpy ((char *) ((FAKE_EBDA_SEG << 4) + 16), acpi, 1024 - 16);

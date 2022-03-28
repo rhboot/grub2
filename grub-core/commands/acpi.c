@@ -168,7 +168,7 @@ grub_acpi_create_ebda (void)
   struct grub_acpi_rsdp_v10 *v1;
   struct grub_acpi_rsdp_v20 *v2;
 
-  ebda = (grub_uint8_t *) (grub_addr_t) ((*((grub_uint16_t *)0x40e)) << 4);
+  ebda = (grub_uint8_t *) (grub_addr_t) ((*((grub_uint16_t *) grub_absolute_pointer (0x40e))) << 4);
   grub_dprintf ("acpi", "EBDA @%p\n", ebda);
   if (ebda)
     ebda_kb_len = *(grub_uint16_t *) ebda;
@@ -298,7 +298,7 @@ grub_acpi_create_ebda (void)
       *target = 0;
 
   grub_dprintf ("acpi", "Switching EBDA\n");
-  (*((grub_uint16_t *) 0x40e)) = ((grub_addr_t) targetebda) >> 4;
+  (*((grub_uint16_t *) grub_absolute_pointer (0x40e))) = ((grub_addr_t) targetebda) >> 4;
   grub_dprintf ("acpi", "EBDA switched\n");
 
   return GRUB_ERR_NONE;

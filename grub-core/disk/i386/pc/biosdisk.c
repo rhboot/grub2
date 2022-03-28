@@ -367,7 +367,7 @@ grub_biosdisk_open (const char *name, grub_disk_t disk)
       if (version)
 	{
 	  struct grub_biosdisk_drp *drp
-	    = (struct grub_biosdisk_drp *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+	    = (struct grub_biosdisk_drp *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
 
 	  /* Clear out the DRP.  */
 	  grub_memset (drp, 0, sizeof (*drp));
@@ -654,7 +654,7 @@ grub_disk_biosdisk_fini (void)
 GRUB_MOD_INIT(biosdisk)
 {
   struct grub_biosdisk_cdrp *cdrp
-    = (struct grub_biosdisk_cdrp *) GRUB_MEMORY_MACHINE_SCRATCH_ADDR;
+    = (struct grub_biosdisk_cdrp *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_SCRATCH_ADDR);
   grub_uint8_t boot_drive;
 
   if (grub_disk_firmware_is_tainted)

@@ -28,7 +28,6 @@
 
 #ifdef GRUB_MACHINE_PCBIOS
 #include <grub/machine/memory.h>
-static const unsigned short *serial_hw_io_addr = (const unsigned short *) GRUB_MEMORY_MACHINE_BIOS_DATA_AREA_ADDR;
 #define GRUB_SERIAL_PORT_NUM 4
 #else
 #include <grub/machine/serial.h>
@@ -237,6 +236,9 @@ static struct grub_serial_port com_ports[GRUB_SERIAL_PORT_NUM];
 void
 grub_ns8250_init (void)
 {
+#ifdef GRUB_MACHINE_PCBIOS
+  const unsigned short *serial_hw_io_addr = (const unsigned short *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_BIOS_DATA_AREA_ADDR);
+#endif
   unsigned i;
   for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
     if (serial_hw_io_addr[i])
@@ -272,6 +274,9 @@ grub_ns8250_init (void)
 grub_port_t
 grub_ns8250_hw_get_port (const unsigned int unit)
 {
+#ifdef GRUB_MACHINE_PCBIOS
+  const unsigned short *serial_hw_io_addr = (const unsigned short *) grub_absolute_pointer (GRUB_MEMORY_MACHINE_BIOS_DATA_AREA_ADDR);
+#endif
   if (unit < GRUB_SERIAL_PORT_NUM
       && !(dead_ports & (1 << unit)))
     return serial_hw_io_addr[unit];

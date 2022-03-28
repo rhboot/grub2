@@ -342,7 +342,7 @@ init_cbfsdisk (void)
   grub_uint32_t ptr;
   struct cbfs_header *head;
 
-  ptr = *(grub_uint32_t *) 0xfffffffc;
+  ptr = *((grub_uint32_t *) grub_absolute_pointer (0xfffffffc));
   head = (struct cbfs_header *) (grub_addr_t) ptr;
   grub_dprintf ("cbfs", "head=%p\n", head);
 

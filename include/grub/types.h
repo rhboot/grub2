@@ -340,4 +340,28 @@ static inline void grub_set_unaligned64 (void *ptr, grub_uint64_t val)
   dd->d = val;
 }
 
+/*
+ * The grub_absolute_pointer() macro borrows the idea from Linux kernel of using
+ * RELOC_HIDE() macro to stop GCC from checking the result of pointer arithmetic
+ * and also it's conversion to be inside the symbol's boundary [1]. The check
+ * is sometimes false positive, especially it is controversial to emit the array
+ * bounds [-Warray-bounds] warning on all hardwired literal pointers since GCC
+ * 11/12 [2]. Unless a good solution can be settled, for the time being we
+ * would be in favor of the macro instead of GCC pragmas which cannot match the
+ * places the warning needs to be ignored in an exact way.
+ *
+ * [1] https://lists.linuxcoding.com/kernel/2006-q3/msg17979.html
+ * [2] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99578
+ */
+#if defined(__GNUC__)
+# define grub_absolute_pointer(val)					\
+({									\
+	grub_addr_t __ptr;						\
+	asm ("" : "=r" (__ptr) : "0" ((void *) (val)));			\
+	(void *) (__ptr);						\
+})
+#else
+# define grub_absolute_pointer(val) ((void *) (val))
+#endif
+
 #endif /* ! GRUB_TYPES_HEADER */
