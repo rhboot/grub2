@@ -1383,6 +1383,10 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	    section = (struct grub_pe32_section_table *)(o64 + 1);
 	  }
 
+#if __GNUC__ >= 12
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
 	PE_OHDR (o32, o64, header_size) = grub_host_to_target32 (header_size);
 	PE_OHDR (o32, o64, entry_addr) = grub_host_to_target32 (layout.start_address);
 	PE_OHDR (o32, o64, image_base) = 0;
@@ -1402,6 +1406,9 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	/* The sections.  */
 	PE_OHDR (o32, o64, code_base) = grub_host_to_target32 (vma);
 	PE_OHDR (o32, o64, code_size) = grub_host_to_target32 (layout.exec_size);
+#if __GNUC__ >= 12
+#pragma GCC diagnostic pop
+#endif
 	section = init_pe_section (image_target, section, ".text",
 				   &vma, layout.exec_size,
 				   image_target->section_align,
@@ -1411,10 +1418,17 @@ grub_install_generate_image (const char *dir, const char *prefix,
 				   GRUB_PE32_SCN_MEM_READ);
 
 	scn_size = ALIGN_UP (layout.kernel_size - layout.exec_size, GRUB_PE32_FILE_ALIGNMENT);
+#if __GNUC__ >= 12
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
 	/* ALIGN_UP (sbat_size, GRUB_PE32_FILE_ALIGNMENT) is done earlier. */
 	PE_OHDR (o32, o64, data_size) = grub_host_to_target32 (scn_size + sbat_size +
 							       ALIGN_UP (total_module_size,
 									 GRUB_PE32_FILE_ALIGNMENT));
+#if __GNUC__ >= 12
+#pragma GCC diagnostic pop
+#endif
 
 	section = init_pe_section (image_target, section, ".data",
 				   &vma, scn_size, image_target->section_align,
@@ -1445,8 +1459,15 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	  }
 
 	scn_size = layout.reloc_size;
+#if __GNUC__ >= 12
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
 	PE_OHDR (o32, o64, base_relocation_table.rva) = grub_host_to_target32 (vma);
 	PE_OHDR (o32, o64, base_relocation_table.size) = grub_host_to_target32 (scn_size);
+#if __GNUC__ >= 12
+#pragma GCC diagnostic pop
+#endif
 	memcpy (pe_img + raw_data, layout.reloc_section, scn_size);
 	init_pe_section (image_target, section, ".reloc",
 			 &vma, scn_size, image_target->section_align,
