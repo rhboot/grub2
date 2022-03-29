@@ -2254,6 +2254,7 @@ grub_btrfs_dir (grub_device_t device, const char *path,
   grub_uint64_t tree;
   grub_uint8_t type;
   char *new_path = NULL;
+  grub_size_t est_size = 0;
 
   if (!data)
     return grub_errno;
@@ -2320,6 +2321,18 @@ grub_btrfs_dir (grub_device_t device, const char *path,
 	  break;
 	}
 
+      if (direl == NULL ||
+	  grub_add (grub_le_to_cpu16 (direl->n),
+		    grub_le_to_cpu16 (direl->m), &est_size) ||
+	  grub_add (est_size, sizeof (*direl), &est_size) ||
+	  grub_sub (est_size, sizeof (direl->name), &est_size) ||
+	  est_size > allocated)
+       {
+         grub_errno = GRUB_ERR_OUT_OF_RANGE;
+         r = -grub_errno;
+         goto out;
+       }
+
       for (cdirel = direl;
 	   (grub_uint8_t *) cdirel - (grub_uint8_t *) direl
 	   < (grub_ssize_t) elemsize;
@@ -2330,6 +2343,19 @@ grub_btrfs_dir (grub_device_t device, const char *path,
 	  char c;
 	  struct grub_btrfs_inode inode;
 	  struct grub_dirhook_info info;
+
+	  if (cdirel == NULL ||
+	      grub_add (grub_le_to_cpu16 (cdirel->n),
+			grub_le_to_cpu16 (cdirel->m), &est_size) ||
+	      grub_add (est_size, sizeof (*cdirel), &est_size) ||
+	      grub_sub (est_size, sizeof (cdirel->name), &est_size) ||
+	      est_size > allocated)
+	   {
+	     grub_errno = GRUB_ERR_OUT_OF_RANGE;
+	     r = -grub_errno;
+	     goto out;
+	   }
+
 	  err = grub_btrfs_read_inode (data, &inode, cdirel->key.object_id,
 				       tree);
 	  grub_memset (&info, 0, sizeof (info));
