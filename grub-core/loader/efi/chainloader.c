@@ -44,25 +44,20 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_dl_t my_mod;
 
-static grub_efi_physical_address_t address;
-static grub_efi_uintn_t pages;
-static grub_efi_device_path_t *file_path;
 static grub_efi_handle_t image_handle;
-static grub_efi_char16_t *cmdline;
 
 static grub_err_t
 grub_chainloader_unload (void)
 {
+  grub_efi_loaded_image_t *loaded_image;
   grub_efi_boot_services_t *b;
+
+  loaded_image = grub_efi_get_loaded_image (image_handle);
+  if (loaded_image != NULL)
+    grub_free (loaded_image->load_options);
 
   b = grub_efi_system_table->boot_services;
   efi_call_1 (b->unload_image, image_handle);
-  efi_call_2 (b->free_pages, address, pages);
-
-  grub_free (file_path);
-  grub_free (cmdline);
-  cmdline = 0;
-  file_path = 0;
 
   grub_dl_unref (my_mod);
   return GRUB_ERR_NONE;
@@ -140,7 +135,7 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
   char *dir_start;
   char *dir_end;
   grub_size_t size;
-  grub_efi_device_path_t *d;
+  grub_efi_device_path_t *d, *file_path;
 
   dir_start = grub_strchr (filename, ')');
   if (! dir_start)
@@ -222,22 +217,20 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_efi_status_t status;
   grub_efi_boot_services_t *b;
   grub_device_t dev = 0;
-  grub_efi_device_path_t *dp = 0;
+  grub_efi_device_path_t *dp = NULL, *file_path = NULL;
   grub_efi_loaded_image_t *loaded_image;
   char *filename;
   void *boot_image = 0;
   grub_efi_handle_t dev_handle = 0;
+  grub_efi_physical_address_t address = 0;
+  grub_efi_uintn_t pages = 0;
+  grub_efi_char16_t *cmdline = NULL;
 
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
   filename = argv[0];
 
   grub_dl_ref (my_mod);
-
-  /* Initialize some global variables.  */
-  address = 0;
-  image_handle = 0;
-  file_path = 0;
 
   b = grub_efi_system_table->boot_services;
 
@@ -408,6 +401,10 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_file_close (file);
   grub_device_close (dev);
 
+  /* We're finished with the source image buffer and file path now. */
+  efi_call_2 (b->free_pages, address, pages);
+  grub_free (file_path);
+
   grub_loader_set (grub_chainloader_boot, grub_chainloader_unload, 0);
   return 0;
 
@@ -419,10 +416,17 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   if (file)
     grub_file_close (file);
 
+  grub_free (cmdline);
   grub_free (file_path);
 
   if (address)
     efi_call_2 (b->free_pages, address, pages);
+
+  if (image_handle != NULL)
+    {
+      efi_call_1 (b->unload_image, image_handle);
+      image_handle = NULL;
+    }
 
   grub_dl_unref (my_mod);
 
