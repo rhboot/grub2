@@ -44,11 +44,10 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 static grub_dl_t my_mod;
 
-static grub_efi_handle_t image_handle;
-
 static grub_err_t
-grub_chainloader_unload (void)
+grub_chainloader_unload (void *context)
 {
+  grub_efi_handle_t image_handle = (grub_efi_handle_t) context;
   grub_efi_loaded_image_t *loaded_image;
   grub_efi_boot_services_t *b;
 
@@ -64,8 +63,9 @@ grub_chainloader_unload (void)
 }
 
 static grub_err_t
-grub_chainloader_boot (void)
+grub_chainloader_boot (void *context)
 {
+  grub_efi_handle_t image_handle = (grub_efi_handle_t) context;
   grub_efi_boot_services_t *b;
   grub_efi_status_t status;
   grub_efi_uintn_t exit_data_size;
@@ -225,6 +225,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_efi_physical_address_t address = 0;
   grub_efi_uintn_t pages = 0;
   grub_efi_char16_t *cmdline = NULL;
+  grub_efi_handle_t image_handle = NULL;
 
   if (argc == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -405,7 +406,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   efi_call_2 (b->free_pages, address, pages);
   grub_free (file_path);
 
-  grub_loader_set (grub_chainloader_boot, grub_chainloader_unload, 0);
+  grub_loader_set_ex (grub_chainloader_boot, grub_chainloader_unload, image_handle, 0);
   return 0;
 
  fail:
@@ -423,10 +424,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     efi_call_2 (b->free_pages, address, pages);
 
   if (image_handle != NULL)
-    {
-      efi_call_1 (b->unload_image, image_handle);
-      image_handle = NULL;
-    }
+    efi_call_1 (b->unload_image, image_handle);
 
   grub_dl_unref (my_mod);
 
