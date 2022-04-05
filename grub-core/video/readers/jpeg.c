@@ -199,6 +199,12 @@ grub_jpeg_decode_huff_table (struct grub_jpeg_data *data)
   next_marker = data->file->offset;
   next_marker += grub_jpeg_get_word (data);
 
+  if (next_marker > data->file->size)
+    {
+      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+			 "jpeg: invalid huffman table");
+    }
+
   while (data->file->offset + sizeof (count) + 1 <= next_marker)
     {
       id = grub_jpeg_get_byte (data);
