@@ -1003,6 +1003,10 @@ grub_f2fs_check_dentries (struct grub_f2fs_dir_iter_ctx *ctx)
 
       ftype = ctx->dentry[i].file_type;
       name_len = grub_le_to_cpu16 (ctx->dentry[i].name_len);
+
+      if (name_len >= F2FS_NAME_LEN)
+        return 0;
+
       filename = grub_malloc (name_len + 1);
       if (!filename)
         return 0;
