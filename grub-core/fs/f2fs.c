@@ -632,23 +632,27 @@ get_nat_journal (struct grub_f2fs_data *data)
   return err;
 }
 
-static grub_uint32_t
-get_blkaddr_from_nat_journal (struct grub_f2fs_data *data, grub_uint32_t nid)
+static grub_err_t
+get_blkaddr_from_nat_journal (struct grub_f2fs_data *data, grub_uint32_t nid,
+                              grub_uint32_t *blkaddr)
 {
   grub_uint16_t n = grub_le_to_cpu16 (data->nat_j.n_nats);
-  grub_uint32_t blkaddr = 0;
   grub_uint16_t i;
+
+  if (n >= NAT_JOURNAL_ENTRIES)
+    return grub_error (GRUB_ERR_BAD_FS,
+                       "invalid number of nat journal entries");
 
   for (i = 0; i < n; i++)
     {
       if (grub_le_to_cpu32 (data->nat_j.entries[i].nid) == nid)
         {
-          blkaddr = grub_le_to_cpu32 (data->nat_j.entries[i].ne.block_addr);
+          *blkaddr = grub_le_to_cpu32 (data->nat_j.entries[i].ne.block_addr);
           break;
         }
     }
 
-  return blkaddr;
+  return GRUB_ERR_NONE;
 }
 
 static grub_uint32_t
@@ -656,10 +660,13 @@ get_node_blkaddr (struct grub_f2fs_data *data, grub_uint32_t nid)
 {
   struct grub_f2fs_nat_block *nat_block;
   grub_uint32_t seg_off, block_off, entry_off, block_addr;
-  grub_uint32_t blkaddr;
+  grub_uint32_t blkaddr = 0;
   grub_err_t err;
 
-  blkaddr = get_blkaddr_from_nat_journal (data, nid);
+  err = get_blkaddr_from_nat_journal (data, nid, &blkaddr);
+  if (err != GRUB_ERR_NONE)
+    return 0;
+
   if (blkaddr)
     return blkaddr;
 
