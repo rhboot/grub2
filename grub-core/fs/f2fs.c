@@ -122,6 +122,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define F2FS_INLINE_DOTS          0x10  /* File having implicit dot dentries. */
 
 #define MAX_VOLUME_NAME           512
+#define MAX_NAT_BITMAP_SIZE       3900
 
 enum FILE_TYPE
 {
@@ -183,7 +184,7 @@ struct grub_f2fs_checkpoint
   grub_uint32_t                   checksum_offset;
   grub_uint64_t                   elapsed_time;
   grub_uint8_t                    alloc_type[MAX_ACTIVE_LOGS];
-  grub_uint8_t                    sit_nat_version_bitmap[3900];
+  grub_uint8_t                    sit_nat_version_bitmap[MAX_NAT_BITMAP_SIZE];
   grub_uint32_t                   checksum;
 } GRUB_PACKED;
 
@@ -302,6 +303,7 @@ struct grub_f2fs_data
 
   struct grub_f2fs_nat_journal    nat_j;
   char                            *nat_bitmap;
+  grub_uint32_t                   nat_bitmap_size;
 
   grub_disk_t                     disk;
   struct grub_f2fs_node           *inode;
@@ -377,15 +379,20 @@ sum_blk_addr (struct grub_f2fs_data *data, int base, int type)
 }
 
 static void *
-nat_bitmap_ptr (struct grub_f2fs_data *data)
+nat_bitmap_ptr (struct grub_f2fs_data *data, grub_uint32_t *nat_bitmap_size)
 {
   struct grub_f2fs_checkpoint *ckpt = &data->ckpt;
   grub_uint32_t offset;
+  *nat_bitmap_size = MAX_NAT_BITMAP_SIZE;
 
   if (grub_le_to_cpu32 (data->sblock.cp_payload) > 0)
     return ckpt->sit_nat_version_bitmap;
 
   offset = grub_le_to_cpu32 (ckpt->sit_ver_bitmap_bytesize);
+  if (offset >= MAX_NAT_BITMAP_SIZE)
+     return NULL;
+
+  *nat_bitmap_size = *nat_bitmap_size - offset;
 
   return ckpt->sit_nat_version_bitmap + offset;
 }
@@ -438,11 +445,15 @@ grub_f2fs_crc_valid (grub_uint32_t blk_crc, void *buf, const grub_uint32_t len)
 }
 
 static int
-grub_f2fs_test_bit (grub_uint32_t nr, const char *p)
+grub_f2fs_test_bit (grub_uint32_t nr, const char *p, grub_uint32_t len)
 {
   int mask;
+  grub_uint32_t shifted_nr = (nr >> 3);
 
-  p += (nr >> 3);
+  if (shifted_nr >= len)
+    return -1;
+
+  p += shifted_nr;
   mask = 1 << (7 - (nr & 0x07));
 
   return mask & *p;
@@ -662,6 +673,7 @@ get_node_blkaddr (struct grub_f2fs_data *data, grub_uint32_t nid)
   grub_uint32_t seg_off, block_off, entry_off, block_addr;
   grub_uint32_t blkaddr = 0;
   grub_err_t err;
+  int result_bit;
 
   err = get_blkaddr_from_nat_journal (data, nid, &blkaddr);
   if (err != GRUB_ERR_NONE)
@@ -682,8 +694,15 @@ get_node_blkaddr (struct grub_f2fs_data *data, grub_uint32_t nid)
         ((seg_off * data->blocks_per_seg) << 1) +
         (block_off & (data->blocks_per_seg - 1));
 
-  if (grub_f2fs_test_bit (block_off, data->nat_bitmap))
+  result_bit = grub_f2fs_test_bit (block_off, data->nat_bitmap,
+                                   data->nat_bitmap_size);
+  if (result_bit > 0)
     block_addr += data->blocks_per_seg;
+  else if (result_bit == -1)
+    {
+      grub_free (nat_block);
+      return 0;
+    }
 
   err = grub_f2fs_block_read (data, block_addr, nat_block);
   if (err)
@@ -833,7 +852,9 @@ grub_f2fs_mount (grub_disk_t disk)
   if (err)
     goto fail;
 
-  data->nat_bitmap = nat_bitmap_ptr (data);
+  data->nat_bitmap = nat_bitmap_ptr (data, &data->nat_bitmap_size);
+  if (data->nat_bitmap == NULL)
+    goto fail;
 
   err = get_nat_journal (data);
   if (err)
