@@ -294,33 +294,37 @@ grub_ieee1275_total_mem (grub_uint64_t *total)
 
 /* Based on linux - arch/powerpc/kernel/prom_init.c */
 struct option_vector2 {
-	grub_uint8_t byte1;
-	grub_uint16_t reserved;
-	grub_uint32_t real_base;
-	grub_uint32_t real_size;
-	grub_uint32_t virt_base;
-	grub_uint32_t virt_size;
-	grub_uint32_t load_base;
-	grub_uint32_t min_rma;
-	grub_uint32_t min_load;
-	grub_uint8_t min_rma_percent;
-	grub_uint8_t max_pft_size;
+  grub_uint8_t byte1;
+  grub_uint16_t reserved;
+  grub_uint32_t real_base;
+  grub_uint32_t real_size;
+  grub_uint32_t virt_base;
+  grub_uint32_t virt_size;
+  grub_uint32_t load_base;
+  grub_uint32_t min_rma;
+  grub_uint32_t min_load;
+  grub_uint8_t min_rma_percent;
+  grub_uint8_t max_pft_size;
 } __attribute__((packed));
 
 struct pvr_entry {
-	  grub_uint32_t mask;
-	  grub_uint32_t entry;
+  grub_uint32_t mask;
+  grub_uint32_t entry;
 };
 
 struct cas_vector {
-    struct {
-      struct pvr_entry terminal;
-    } pvr_list;
-    grub_uint8_t num_vecs;
-    grub_uint8_t vec1_size;
-    grub_uint8_t vec1;
-    grub_uint8_t vec2_size;
-    struct option_vector2 vec2;
+  struct {
+    struct pvr_entry terminal;
+  } pvr_list;
+  grub_uint8_t num_vecs;
+  grub_uint8_t vec1_size;
+  grub_uint8_t vec1;
+  grub_uint8_t vec2_size;
+  struct option_vector2 vec2;
+  grub_uint8_t vec3_size;
+  grub_uint16_t vec3;
+  grub_uint8_t vec4_size;
+  grub_uint16_t vec4;
 } __attribute__((packed));
 
 /* Call ibm,client-architecture-support to try to get more RMA.
@@ -341,13 +345,17 @@ grub_ieee1275_ibm_cas (void)
   } args;
   struct cas_vector vector = {
     .pvr_list = { { 0x00000000, 0xffffffff } }, /* any processor */
-    .num_vecs = 2 - 1,
+    .num_vecs = 4 - 1,
     .vec1_size = 0,
     .vec1 = 0x80, /* ignore */
     .vec2_size = 1 + sizeof(struct option_vector2) - 2,
     .vec2 = {
       0, 0, -1, -1, -1, -1, -1, 512, -1, 0, 48
     },
+    .vec3_size = 2 - 1,
+    .vec3 = 0x00e0, // ask for FP + VMX + DFP but don't halt if unsatisfied
+    .vec4_size = 2 - 1,
+    .vec4 = 0x0001, // set required minimum capacity % to the lowest value
   };
 
   INIT_IEEE1275_COMMON (&args.common, "call-method", 3, 2);
@@ -360,7 +368,7 @@ grub_ieee1275_ibm_cas (void)
   args.ihandle = root;
   args.cas_addr = (grub_ieee1275_cell_t)&vector;
 
-  grub_printf("Calling ibm,client-architecture-support...");
+  grub_printf("Calling ibm,client-architecture-support from grub...");
   IEEE1275_CALL_ENTRY_FN (&args);
   grub_printf("done\n");
 
