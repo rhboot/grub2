@@ -36,11 +36,11 @@ dnl description of the relationships between them.
 
 AC_INIT([GRUB],[2.11],[bug-grub@gnu.org])
 
-AC_USE_SYSTEM_EXTENSIONS
-AC_CONFIG_AUX_DIR([build-aux])
-
 # We don't want -g -O2 by default in CFLAGS
 : ${CFLAGS=""}
+
+AC_USE_SYSTEM_EXTENSIONS
+AC_CONFIG_AUX_DIR([build-aux])
 
 # Checks for build, host and target systems.
 AC_CANONICAL_BUILD
