@@ -1,6 +1,7 @@
 #!@BUILD_SHEBANG@
 
 set -e
+export BLKID_FILE=/dev/null
 
 fs="$1"
 
