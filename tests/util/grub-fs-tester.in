@@ -7,7 +7,7 @@ fs="$1"
 
 GRUBFSTEST="@builddir@/grub-fstest"
 
-tempdir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` ||
+tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX"` ||
 { echo "Failed to make temporary directory"; exit 99; }
 
 # xorriso -as mkisofs options to ignore locale when processing file names and
