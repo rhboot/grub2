@@ -836,22 +836,29 @@ use difficult disk access methods like ahci. Hence GRUB will warn if attempted
 to install into small MBR gap except in a small number of configurations
 that were grandfathered. The grandfathered config must:
 
-* use biosdisk as disk access module for @file{/boot}
-* not use any additional partition maps to access @file{/boot}
-* @file{/boot} must be on one of following filesystems:
-   * AFFS, AFS, BFS, cpio, newc, odc, ext2/3/4, FAT, exFAT,
+@itemize @bullet
+@item
+use biosdisk as disk access module for @file{/boot}
+
+@item
+not use any additional partition maps to access @file{/boot}
+
+@item
+@file{/boot} must be on one of following filesystems:
+   AFFS, AFS, BFS, cpio, newc, odc, ext2/3/4, FAT, exFAT,
    F2FS, HFS, uncompressed HFS+, ISO9660, JFS, Minix, Minix2, Minix3, NILFS2,
    NTFS, ReiserFS, ROMFS, SFS, tar, UDF, UFS1, UFS2, XFS
+@end itemize
 
 MBR gap has few technical problems.  There is no way to reserve space in
 the embedding area with complete safety, and some proprietary software is
 known to use it to make it difficult for users to work around licensing
-restrictions. GRUB works it around by detecting sectors by other software and
+restrictions. GRUB works around it by detecting sectors by other software and
 avoiding them and protecting its own sectors using Reed-Solomon encoding.
 
-GRUB team recommends having MBR gap of at least 1000 KiB
+GRUB team recommends having MBR gap of at least 1000 KiB.
 
-Should it be not possible GRUB has support for a fallback solution which is
+Should it not be possible, GRUB has support for a fallback solution which is
 heavily recommended against. Installing to a filesystem means that GRUB is
 vulnerable to its blocks being moved around by filesystem features such as
 tail packing, or even by aggressive fsck implementations, so this approach
