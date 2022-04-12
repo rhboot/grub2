@@ -1781,18 +1781,20 @@ of the last command that executes.  If the expansion of the items following
 status is 0.
 
 @item if @var{list}; then @var{list}; [elif @var{list}; then @var{list};] @dots{} [else @var{list};] fi
-The @code{if} @var{list} is executed.  If its exit status is zero, the
-@code{then} @var{list} is executed.  Otherwise, each @code{elif} @var{list}
-is executed in turn, and if its exit status is zero, the corresponding
-@code{then} @var{list} is executed and the command completes.  Otherwise,
-the @code{else} @var{list} is executed, if present.  The exit status is the
-exit status of the last command executed, or zero if no condition tested
-true.
+The @code{if} @var{list} is executed, where @var{list} is a series of
+@dfn{simple command}s separated by a ";".  If its exit status of the last
+command is zero, the @code{then} @var{list} is executed.  Otherwise, each
+@code{elif} @var{list} is executed in turn, and if its last command's exit
+status is zero, the corresponding @code{then} @var{list} is executed and the
+command completes. Otherwise, the @code{else} @var{list} is executed, if
+present.  The exit status is the exit status of the last command executed, or
+zero if no condition tested true.
 
 @item while @var{cond}; do @var{list}; done
 @itemx until @var{cond}; do @var{list}; done
 The @code{while} command continuously executes the @code{do} @var{list} as
-long as the last command in @var{cond} returns an exit status of zero.  The
+long as the last command in @var{cond} returns an exit status of zero, where
+@var{cond} is a list of @dfn{simple command}s separated by a ";".  The
 @code{until} command is identical to the @code{while} command, except that
 the test is negated; the @code{do} @var{list} is executed as long as the
 last command in @var{cond} returns a non-zero exit status.  The exit status
