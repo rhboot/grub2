@@ -4448,6 +4448,8 @@ For example:
 @example
 drivemap -s (hd0) (hd1)
 @end example
+
+NOTE: Only available on i386-pc.
 @end deffn
 
 
