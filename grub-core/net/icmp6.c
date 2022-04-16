@@ -477,7 +477,7 @@ grub_net_recv_icmp6_packet (struct grub_net_buff *nb,
 
 	    /* May not have gotten slaac info, find a global address on this
 	      card.  */
-	    if (route_inf == NULL)
+	    if (route_inf == NULL && orig_inf != NULL)
 	      {
 		FOR_NET_NETWORK_LEVEL_INTERFACES (inf)
 		{
