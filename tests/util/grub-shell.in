@@ -376,7 +376,11 @@ if test -z "$debug"; then
   # workaround unfortunately causes qemu to issue a warning 'externally
   # provided fw_cfg item names should be prefixed with "opt/"', but there
   # doesn't seem to be a better option.
-  qemuopts="${qemuopts} -fw_cfg name=etc/sercon-port,string=0"
+  #
+  # SeaBIOS is used for i386, except on EFI.
+  if [ ${grub_modinfo_target_cpu} == 'i386' ] && [ ${grub_modinfo_platform} != 'efi' ]; then
+    qemuopts="${qemuopts} -fw_cfg name=etc/sercon-port,string=0"
+  fi
 fi
 
 if [ x$boot != xnet ] && [ x$boot != xemu ]; then
