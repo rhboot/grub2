@@ -998,23 +998,3 @@ grub_dl_unload (grub_dl_t mod)
   grub_free (mod);
   return 1;
 }
-
-/* Unload unneeded modules.  */
-void
-grub_dl_unload_unneeded (void)
-{
-  /* Because grub_dl_remove modifies the list of modules, this
-     implementation is tricky.  */
-  grub_dl_t p = grub_dl_head;
-
-  while (p)
-    {
-      if (grub_dl_unload (p))
-	{
-	  p = grub_dl_head;
-	  continue;
-	}
-
-      p = p->next;
-    }
-}
