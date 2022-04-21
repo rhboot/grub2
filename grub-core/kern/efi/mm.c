@@ -667,8 +667,8 @@ grub_nx_init (void)
     }
 }
 
-void
-grub_efi_mm_init (void)
+static grub_err_t
+grub_efi_mm_add_regions (grub_size_t required_bytes)
 {
   grub_efi_memory_descriptor_t *memory_map;
   grub_efi_memory_descriptor_t *memory_map_end;
@@ -683,7 +683,7 @@ grub_efi_mm_init (void)
   /* Prepare a memory region to store two memory maps.  */
   memory_map = grub_efi_allocate_any_pages (2 * BYTES_TO_PAGES (MEMORY_MAP_SIZE));
   if (! memory_map)
-    grub_fatal ("cannot allocate memory");
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, "cannot allocate memory for memory map");
 
   /* Obtain descriptors for available memory.  */
   map_size = MEMORY_MAP_SIZE;
@@ -701,14 +701,14 @@ grub_efi_mm_init (void)
 
       memory_map = grub_efi_allocate_any_pages (2 * BYTES_TO_PAGES (map_size));
       if (! memory_map)
-	grub_fatal ("cannot allocate memory");
+	return grub_error (GRUB_ERR_OUT_OF_MEMORY, "cannot allocate memory for new memory map");
 
       mm_status = grub_efi_get_memory_map (&map_size, memory_map, 0,
 					   &desc_size, 0);
     }
 
   if (mm_status < 0)
-    grub_fatal ("cannot get memory map");
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, "error fetching memory map from EFI");
 
   memory_map_end = NEXT_MEMORY_DESCRIPTOR (memory_map, map_size);
 
@@ -723,7 +723,7 @@ grub_efi_mm_init (void)
 
   /* Allocate memory regions for GRUB's memory management.  */
   add_memory_regions (filtered_memory_map, desc_size,
-		      filtered_memory_map_end, BYTES_TO_PAGES (DEFAULT_HEAP_SIZE));
+		      filtered_memory_map_end, BYTES_TO_PAGES (required_bytes));
 
 #if 0
   /* For debug.  */
@@ -741,6 +741,15 @@ grub_efi_mm_init (void)
   /* Release the memory maps.  */
   grub_efi_free_pages ((grub_addr_t) memory_map,
 		       2 * BYTES_TO_PAGES (MEMORY_MAP_SIZE));
+
+  return GRUB_ERR_NONE;
+}
+
+void
+grub_efi_mm_init (void)
+{
+  if (grub_efi_mm_add_regions (DEFAULT_HEAP_SIZE) != GRUB_ERR_NONE)
+    grub_fatal ("%s", grub_errmsg);
 }
 
 #if defined (__aarch64__) || defined (__arm__) || defined (__riscv)
