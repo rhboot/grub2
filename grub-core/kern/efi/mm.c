@@ -514,7 +514,7 @@ filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
 }
 
 /* Add memory regions.  */
-static void
+static grub_err_t
 add_memory_regions (grub_efi_memory_descriptor_t *memory_map,
 		    grub_efi_uintn_t desc_size,
 		    grub_efi_memory_descriptor_t *memory_map_end,
@@ -542,9 +542,9 @@ add_memory_regions (grub_efi_memory_descriptor_t *memory_map,
 					   GRUB_EFI_ALLOCATE_ADDRESS,
 					   GRUB_EFI_LOADER_CODE);      
       if (! addr)
-	grub_fatal ("cannot allocate conventional memory %p with %u pages",
-		    (void *) ((grub_addr_t) start),
-		    (unsigned) pages);
+	return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+			    "Memory starting at %p (%u pages) marked as free, but EFI would not allocate",
+			    (void *) ((grub_addr_t) start), (unsigned) pages);
 
       grub_mm_init_region (addr, PAGES_TO_BYTES (pages));
 
@@ -554,7 +554,11 @@ add_memory_regions (grub_efi_memory_descriptor_t *memory_map,
     }
 
   if (required_pages > 0)
-    grub_fatal ("too little memory");
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "could not allocate all requested memory: %" PRIuGRUB_UINT64_T " pages still required after iterating EFI memory map",
+                       required_pages);
+
+  return GRUB_ERR_NONE;
 }
 
 void
@@ -676,6 +680,7 @@ grub_efi_mm_add_regions (grub_size_t required_bytes)
   grub_efi_memory_descriptor_t *filtered_memory_map_end;
   grub_efi_uintn_t map_size;
   grub_efi_uintn_t desc_size;
+  grub_err_t err;
   int mm_status;
 
   grub_nx_init ();
@@ -722,8 +727,11 @@ grub_efi_mm_add_regions (grub_size_t required_bytes)
   sort_memory_map (filtered_memory_map, desc_size, filtered_memory_map_end);
 
   /* Allocate memory regions for GRUB's memory management.  */
-  add_memory_regions (filtered_memory_map, desc_size,
-		      filtered_memory_map_end, BYTES_TO_PAGES (required_bytes));
+  err = add_memory_regions (filtered_memory_map, desc_size,
+			    filtered_memory_map_end,
+			    BYTES_TO_PAGES (required_bytes));
+  if (err != GRUB_ERR_NONE)
+    return err;
 
 #if 0
   /* For debug.  */
