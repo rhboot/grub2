@@ -28,6 +28,9 @@
   - multiple regions may be used as free space. They may not be
   contiguous.
 
+  - if existing regions are insufficient to satisfy an allocation, a new
+  region can be requested from firmware.
+
   Regions are managed by a singly linked list, and the meta information is
   stored in the beginning of each region. Space after the meta information
   is used to allocate memory.
@@ -81,6 +84,7 @@
 
 
 grub_mm_region_t grub_mm_base;
+grub_mm_add_region_func_t grub_mm_add_region_fn;
 
 /* Get a header from the pointer PTR, and set *P and *R to a pointer
    to the header and a pointer to its region, respectively. PTR must
@@ -443,6 +447,32 @@ grub_memalign (grub_size_t align, grub_size_t size)
       grub_disk_cache_invalidate_all ();
       count++;
       goto again;
+
+    case 1:
+      /* Request additional pages, contiguous */
+      count++;
+
+      if (grub_mm_add_region_fn != NULL &&
+          grub_mm_add_region_fn (size, GRUB_MM_ADD_REGION_CONSECUTIVE) == GRUB_ERR_NONE)
+	goto again;
+
+      /* fallthrough  */
+
+    case 2:
+      /* Request additional pages, anything at all */
+      count++;
+
+      if (grub_mm_add_region_fn != NULL)
+        {
+          /*
+           * Try again even if this fails, in case it was able to partially
+           * satisfy the request
+           */
+          grub_mm_add_region_fn (size, GRUB_MM_ADD_REGION_NONE);
+          goto again;
+        }
+
+      /* fallthrough */
 
     default:
       break;
