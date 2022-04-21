@@ -482,7 +482,8 @@ static grub_err_t
 add_memory_regions (grub_efi_memory_descriptor_t *memory_map,
 		    grub_efi_uintn_t desc_size,
 		    grub_efi_memory_descriptor_t *memory_map_end,
-		    grub_efi_uint64_t required_pages)
+		    grub_efi_uint64_t required_pages,
+		    unsigned int flags)
 {
   grub_efi_memory_descriptor_t *desc;
 
@@ -496,6 +497,10 @@ add_memory_regions (grub_efi_memory_descriptor_t *memory_map,
 
       start = desc->physical_start;
       pages = desc->num_pages;
+
+      if (pages < required_pages && (flags & GRUB_MM_ADD_REGION_CONSECUTIVE))
+	continue;
+
       if (pages > required_pages)
 	{
 	  start += PAGES_TO_BYTES (pages - required_pages);
@@ -561,7 +566,7 @@ print_memory_map (grub_efi_memory_descriptor_t *memory_map,
 #endif
 
 static grub_err_t
-grub_efi_mm_add_regions (grub_size_t required_bytes)
+grub_efi_mm_add_regions (grub_size_t required_bytes, unsigned int flags)
 {
   grub_efi_memory_descriptor_t *memory_map;
   grub_efi_memory_descriptor_t *memory_map_end;
@@ -616,7 +621,8 @@ grub_efi_mm_add_regions (grub_size_t required_bytes)
   /* Allocate memory regions for GRUB's memory management.  */
   err = add_memory_regions (filtered_memory_map, desc_size,
 			    filtered_memory_map_end,
-			    BYTES_TO_PAGES (required_bytes));
+			    BYTES_TO_PAGES (required_bytes),
+			    flags);
   if (err != GRUB_ERR_NONE)
     return err;
 
@@ -643,8 +649,9 @@ grub_efi_mm_add_regions (grub_size_t required_bytes)
 void
 grub_efi_mm_init (void)
 {
-  if (grub_efi_mm_add_regions (DEFAULT_HEAP_SIZE) != GRUB_ERR_NONE)
+  if (grub_efi_mm_add_regions (DEFAULT_HEAP_SIZE, GRUB_MM_ADD_REGION_NONE) != GRUB_ERR_NONE)
     grub_fatal ("%s", grub_errmsg);
+  grub_mm_add_region_fn = grub_efi_mm_add_regions;
 }
 
 #if defined (__aarch64__) || defined (__arm__) || defined (__riscv)
