@@ -81,8 +81,17 @@ typedef struct grub_mm_region
    */
   grub_size_t pre_size;
 
+  /*
+   * Likewise, the post-size is the number of bytes we wasted at the end
+   * of the allocation because it wasn't a multiple of GRUB_MM_ALIGN
+   */
+  grub_size_t post_size;
+
   /* How many bytes are in this region? (free and allocated) */
   grub_size_t size;
+
+  /* pad to a multiple of cell size */
+  char padding[3 * GRUB_CPU_SIZEOF_VOID_P];
 }
 *grub_mm_region_t;
 
