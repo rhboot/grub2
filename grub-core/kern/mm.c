@@ -115,9 +115,8 @@ grub_mm_init_region (void *addr, grub_size_t size)
   grub_mm_header_t h;
   grub_mm_region_t r, *p, q;
 
-#if 0
-  grub_printf ("Using memory for heap: start=%p, end=%p\n", addr, addr + (unsigned int) size);
-#endif
+  grub_dprintf ("regions", "Using memory for heap: start=%p, end=%p\n",
+                addr, (char *) addr + (unsigned int) size);
 
   /* Exclude last 4K to avoid overflows. */
   /* If addr + 0x1000 overflows then whole region is in excluded zone.  */
@@ -142,8 +141,14 @@ grub_mm_init_region (void *addr, grub_size_t size)
        * addr                          q
        *   |----size-----|-q->pre_size-|<q region>|
        */
+      grub_dprintf ("regions", "Can we extend into region above?"
+		    " %p + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " ?=? %p\n",
+		    (grub_uint8_t *) addr, size, q->pre_size, (grub_uint8_t *) q);
       if ((grub_uint8_t *) addr + size + q->pre_size == (grub_uint8_t *) q)
         {
+	  grub_dprintf ("regions", "Yes: extending a region: (%p -> %p) -> (%p -> %p)\n",
+			q, (grub_uint8_t *) q + sizeof (*q) + q->size,
+			addr, (grub_uint8_t *) q + sizeof (*q) + q->size);
           /*
            * Yes, we can merge the memory starting at addr into the
            * existing region from below. Align up addr to GRUB_MM_ALIGN
@@ -185,9 +190,15 @@ grub_mm_init_region (void *addr, grub_size_t size)
        *   q                       addr
        *   |<q region>|-q->post_size-|----size-----|
        */
+      grub_dprintf ("regions", "Can we extend into region below?"
+                    " %p + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " ?=? %p\n",
+                    (grub_uint8_t *) q, sizeof(*q), q->size, q->post_size, (grub_uint8_t *) addr);
       if ((grub_uint8_t *) q + sizeof (*q) + q->size + q->post_size ==
 	  (grub_uint8_t *) addr)
 	{
+	  grub_dprintf ("regions", "Yes: extending a region: (%p -> %p) -> (%p -> %p)\n",
+			q, (grub_uint8_t *) q + sizeof (*q) + q->size,
+			q, (grub_uint8_t *) addr + size);
 	  /*
 	   * Yes! Follow a similar pattern to above, but simpler.
 	   * Our header starts at address - post_size, which should align us
@@ -213,6 +224,8 @@ grub_mm_init_region (void *addr, grub_size_t size)
 	}
     }
 
+  grub_dprintf ("regions", "No: considering a new region at %p of size %" PRIxGRUB_SIZE "\n",
+		addr, size);
   /* Allocate a region from the head.  */
   r = (grub_mm_region_t) ALIGN_UP ((grub_addr_t) addr, GRUB_MM_ALIGN);
 
