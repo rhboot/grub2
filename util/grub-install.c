@@ -1092,7 +1092,12 @@ main (int argc, char *argv[])
 	efidir_is_mac = 1;
 
       if (!efidir_is_mac && grub_strcmp (fs->name, "fat") != 0)
-	grub_util_error (_("%s doesn't look like an EFI partition"), efidir);
+	{
+	  if (force)
+	    grub_util_warn (_("%s doesn't look like an EFI partition, system may not boot"), efidir);
+	  else
+	    grub_util_error (_("%s doesn't look like an EFI partition"), efidir);
+	}
 
       /* The EFI specification requires that an EFI System Partition must
 	 contain an "EFI" subdirectory, and that OS loaders are stored in
