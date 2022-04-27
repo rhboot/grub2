@@ -1631,7 +1631,7 @@ translate_relocation_pe (struct translate_context *ctx,
 	}
       break;
     case EM_AARCH64:
-#if defined(MKIMAGE_ELF64) && defined(__arm__)
+#if defined(MKIMAGE_ELF64)
       switch (ELF_R_TYPE (info))
 	{
 	case R_AARCH64_ABS64:
@@ -1667,8 +1667,7 @@ translate_relocation_pe (struct translate_context *ctx,
 			   (unsigned int) ELF_R_TYPE (info));
 	  break;
 	}
-#endif /* defined(MKIMAGE_ELF64) && define(__arm__) */
-      break;
+#endif /* defined(MKIMAGE_ELF64) */
       break;
 #if defined(MKIMAGE_ELF32)
     case EM_ARM:
