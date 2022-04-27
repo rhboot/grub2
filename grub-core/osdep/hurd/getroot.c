@@ -112,9 +112,23 @@ grub_util_find_hurd_root_device (const char *path)
   if (strncmp (name, "device:", sizeof ("device:") - 1) == 0)
     {
       char *dev_name = name + sizeof ("device:") - 1;
-      size_t size = sizeof ("/dev/") - 1 + strlen (dev_name) + 1;
+      size_t size;
       char *next;
-      ret = malloc (size);
+
+      if (dev_name[0] == '@')
+        {
+	  /*
+	   * Non-bootstrap disk driver, the /dev/ entry is normally set up with
+	   * the same @.
+	   */
+          char *next_name = strchr (dev_name, ':');
+
+          if (next_name)
+            dev_name = next_name + 1;
+        }
+
+      size = sizeof ("/dev/") - 1 + strlen (dev_name) + 1;
+      ret = xmalloc (size);
       next = stpncpy (ret, "/dev/", size);
       stpncpy (next, dev_name, size - (next - ret));
     }

@@ -87,6 +87,23 @@ grub_util_hurd_get_disk_info (const char *dev, grub_uint32_t *secsize, grub_disk
 	  *parent = xmalloc (len+1);
 	  memcpy (*parent, data, len);
 	  (*parent)[len] = '\0';
+
+	  if ((*parent)[0] == '@')
+	    {
+	      /*
+	       * Non-bootstrap disk driver, the /dev/ entry is normally set up with
+	       * the same @.
+	       */
+	      char *next_path = strchr (*parent, ':');
+
+	      if (next_path)
+		{
+		  char *n = xstrdup (next_path + 1);
+
+		  free (*parent);
+		  *parent = n;
+		}
+	    }
 	}
     }
   if (offset)
