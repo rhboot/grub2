@@ -841,7 +841,7 @@ grub_secureboot_chainloader_unload (void)
 }
 
 static grub_err_t
-grub_load_and_start_image(void *boot_image)
+grub_load_image(void *boot_image)
 {
   grub_efi_boot_services_t *b;
   grub_efi_status_t status;
@@ -883,12 +883,22 @@ grub_load_and_start_image(void *boot_image)
 static grub_err_t
 grub_secureboot_chainloader_boot (void)
 {
+  grub_efi_boot_services_t *b;
   int rc;
+
   rc = handle_image ((void *)(unsigned long)address, fsize);
   if (rc == 0)
     {
-      grub_load_and_start_image((void *)(unsigned long)address);
+      /* We weren't able to attempt to execute the image, so fall back
+       * to LoadImage / StartImage.
+       */
+      rc = grub_load_image((void *)(unsigned long)address);
+      if (rc == 0)
+        grub_chainloader_boot ();
     }
+
+  b = grub_efi_system_table->boot_services;
+  efi_call_1 (b->unload_image, image_handle);
 
   grub_loader_unset ();
   return grub_errno;
@@ -1094,7 +1104,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
   else if (rc == 0)
     {
-      grub_load_and_start_image(boot_image);
+      grub_load_image(boot_image);
       grub_file_close (file);
       grub_device_close (dev);
       grub_loader_set (grub_chainloader_boot, grub_chainloader_unload, 0);
