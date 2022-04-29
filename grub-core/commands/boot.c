@@ -27,9 +27,19 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static grub_err_t (*grub_loader_boot_func) (void);
-static grub_err_t (*grub_loader_unload_func) (void);
+static grub_err_t (*grub_loader_boot_func) (void *);
+static grub_err_t (*grub_loader_unload_func) (void *);
+static void *grub_loader_context;
 static int grub_loader_flags;
+
+struct grub_simple_loader_hooks
+{
+  grub_err_t (*boot) (void);
+  grub_err_t (*unload) (void);
+};
+
+/* Don't heap allocate this to avoid making grub_loader_set fallible. */
+static struct grub_simple_loader_hooks simple_loader_hooks;
 
 struct grub_preboot
 {
@@ -43,6 +53,29 @@ struct grub_preboot
 static int grub_loader_loaded;
 static struct grub_preboot *preboots_head = 0,
   *preboots_tail = 0;
+
+static grub_err_t
+grub_simple_boot_hook (void *context)
+{
+  struct grub_simple_loader_hooks *hooks;
+
+  hooks = (struct grub_simple_loader_hooks *) context;
+  return hooks->boot ();
+}
+
+static grub_err_t
+grub_simple_unload_hook (void *context)
+{
+  struct grub_simple_loader_hooks *hooks;
+  grub_err_t ret;
+
+  hooks = (struct grub_simple_loader_hooks *) context;
+
+  ret = hooks->unload ();
+  grub_memset (hooks, 0, sizeof (*hooks));
+
+  return ret;
+}
 
 int
 grub_loader_is_loaded (void)
@@ -110,28 +143,45 @@ grub_loader_unregister_preboot_hook (struct grub_preboot *hnd)
 }
 
 void
-grub_loader_set (grub_err_t (*boot) (void),
-		 grub_err_t (*unload) (void),
-		 int flags)
+grub_loader_set_ex (grub_err_t (*boot) (void *),
+		    grub_err_t (*unload) (void *),
+		    void *context,
+		    int flags)
 {
   if (grub_loader_loaded && grub_loader_unload_func)
-    grub_loader_unload_func ();
+    grub_loader_unload_func (grub_loader_context);
 
   grub_loader_boot_func = boot;
   grub_loader_unload_func = unload;
+  grub_loader_context = context;
   grub_loader_flags = flags;
 
   grub_loader_loaded = 1;
 }
 
 void
+grub_loader_set (grub_err_t (*boot) (void),
+		 grub_err_t (*unload) (void),
+		 int flags)
+{
+  grub_loader_set_ex (grub_simple_boot_hook,
+		      grub_simple_unload_hook,
+		      &simple_loader_hooks,
+		      flags);
+
+  simple_loader_hooks.boot = boot;
+  simple_loader_hooks.unload = unload;
+}
+
+void
 grub_loader_unset(void)
 {
   if (grub_loader_loaded && grub_loader_unload_func)
-    grub_loader_unload_func ();
+    grub_loader_unload_func (grub_loader_context);
 
   grub_loader_boot_func = 0;
   grub_loader_unload_func = 0;
+  grub_loader_context = 0;
 
   grub_loader_loaded = 0;
 }
@@ -158,7 +208,7 @@ grub_loader_boot (void)
 	  return err;
 	}
     }
-  err = (grub_loader_boot_func) ();
+  err = (grub_loader_boot_func) (grub_loader_context);
 
   for (cur = preboots_tail; cur; cur = cur->prev)
     if (! err)
