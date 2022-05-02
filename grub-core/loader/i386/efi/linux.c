@@ -478,9 +478,6 @@ fail:
   if (file)
     grub_file_close (file);
 
-  if (kernel)
-    grub_free (kernel);
-
   if (grub_errno != GRUB_ERR_NONE)
     {
       grub_dl_unref (my_mod);
@@ -495,6 +492,8 @@ fail:
       kernel_free (kernel_mem, kernel_size);
       kernel_free (params, sizeof(*params));
     }
+
+  grub_free (kernel);
 
   return grub_errno;
 }
