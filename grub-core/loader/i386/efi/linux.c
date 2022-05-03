@@ -209,6 +209,7 @@ grub_cmd_initrd (grub_command_t cmd, int argc, char *argv[])
   grub_uint8_t *ptr;
   struct grub_linuxefi_context *context = (struct grub_linuxefi_context *) cmd->data;
   struct linux_kernel_params *params;
+  void *initrd_mem = 0;
 
   if (argc == 0)
     {
@@ -242,19 +243,19 @@ grub_cmd_initrd (grub_command_t cmd, int argc, char *argv[])
 	}
     }
 
-  context->initrd_mem = kernel_alloc(size, N_("can't allocate initrd"));
-  if (context->initrd_mem == NULL)
+  initrd_mem = kernel_alloc(size, N_("can't allocate initrd"));
+  if (initrd_mem == NULL)
     goto fail;
-  grub_dprintf ("linux", "initrd_mem = %p\n", context->initrd_mem);
+  grub_dprintf ("linux", "initrd_mem = %p\n", initrd_mem);
 
   params->ramdisk_size = LOW_U32(size);
-  params->ramdisk_image = LOW_U32(context->initrd_mem);
+  params->ramdisk_image = LOW_U32(initrd_mem);
 #if defined(__x86_64__)
   params->ext_ramdisk_size = HIGH_U32(size);
-  params->ext_ramdisk_image = HIGH_U32(context->initrd_mem);
+  params->ext_ramdisk_image = HIGH_U32(initrd_mem);
 #endif
 
-  ptr = context->initrd_mem;
+  ptr = initrd_mem;
 
   for (i = 0; i < nfiles; i++)
     {
@@ -273,6 +274,9 @@ grub_cmd_initrd (grub_command_t cmd, int argc, char *argv[])
       ptr += ALIGN_UP_OVERHEAD (cursize, 4);
     }
 
+  kernel_free(context->initrd_mem, params->ramdisk_size);
+
+  context->initrd_mem = initrd_mem;
   params->ramdisk_size = size;
 
  fail:
@@ -280,9 +284,8 @@ grub_cmd_initrd (grub_command_t cmd, int argc, char *argv[])
     grub_file_close (files[i]);
   grub_free (files);
 
-  if (context->initrd_mem && grub_errno)
-    grub_efi_free_pages ((grub_efi_physical_address_t)(grub_addr_t)context->initrd_mem,
-			 BYTES_TO_PAGES(size));
+  if (initrd_mem && grub_errno)
+    kernel_free (initrd_mem, size);
 
   return grub_errno;
 }
