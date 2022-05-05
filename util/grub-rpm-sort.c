@@ -1,13 +1,17 @@
+#define _GNU_SOURCE 1
+
 #include <config.h>
+
+#include <argp.h>
+#include <assert.h>
+#include <errno.h>
 #include <grub/types.h>
 #include <grub/util/misc.h>
+#include <rpm/rpmlib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <assert.h>
-#include <argp.h>
-#include <rpm/rpmlib.h>
 
 static size_t
 read_file (const char *input, char **ret)
