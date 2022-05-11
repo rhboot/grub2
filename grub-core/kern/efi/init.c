@@ -104,8 +104,8 @@ grub_efi_env_init (void)
   struct grub_envblk envblk_s = { NULL, 0 };
   grub_envblk_t envblk = &envblk_s;
 
-  envblk_s.buf = grub_efi_get_variable ("GRUB_ENV", &efi_grub_guid,
-					&envblk_s.size);
+  grub_efi_get_variable ("GRUB_ENV", &efi_grub_guid, &envblk_s.size,
+                         &envblk_s.buf);
   if (!envblk_s.buf || envblk_s.size < 1)
     return;
 
