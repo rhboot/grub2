@@ -3834,6 +3834,7 @@ shell}.
 * General commands::
 * Command-line and menu entry commands::
 * Networking commands::
+* Undocumented commands::
 @end menu
 
 
@@ -5813,6 +5814,106 @@ The VLAN identifier can be removed by setting it to @samp{0}:
 net_set_vlan efinet1 0
 @end example
 @end deffn
+
+
+@node Undocumented commands
+@section The list of commands currently undocumented
+Unfortunately, not all GRUB commands are documented at this time due to
+developer resource constraints. One way to contribute back to the GRUB
+project would be to help document these commands, and submit patches or
+ideas to the mailing list. The following is a (most likely incomplete)
+list of undocumented or poorly documented commands and not all of them
+are allowed for all platforms. Running the command help from within the
+GRUB shell may provide more information on parameters and usage.
+
+@itemize @bullet
+@item @command{all_functional_test} - Run all functional tests.
+@item @command{backtrace} - Print backtrace.
+@item @command{boottime} - Show boot time statistics.
+@item @command{cacheinfo} - Get disk cache info.
+@item @command{cbmemc} - Show CBMEM console content.
+@item @command{cmosset} -  Set bit at BYTE:BIT in CMOS.
+@item @command{coreboot_boottime} - Show coreboot boot time statistics.
+@item @command{dump} - Show memory contents.
+@item @command{efiemu_loadcore} - Load and initialize EFI emulator.
+@item @command{efiemu_prepare} - Finalize loading of EFI emulator.
+@item @command{efiemu_unload} - Unload EFI emulator.
+@item @command{exit} - Exit from GRUB.
+@item @command{extract_entries_configfile} - Load another config file but take only menu entries.
+@item @command{extract_entries_source} - Load another config file without changing context but take only menu entries.
+@item @command{extract_legacy_entries_configfile} - Parse legacy config in new context taking only menu entries
+@item @command{extract_legacy_entries_source} - Parse legacy config in same context taking only menu entries
+@item @command{extract_syslinux_entries_configfile} - Execute syslinux config in new context taking only menu entries
+@item @command{extract_syslinux_entries_source} - Execute syslinux config in same context taking only menu entries
+@item @command{fakebios} - Create BIOS-like structures for backward compatibility with existing OS.
+@item @command{file} - Check if FILE is of specified type.
+@item @command{fix_video} - Fix video problem.
+@item @command{fpswa} - Display FPSWA version.
+@item @command{functional_test} - Run all loaded functional tests.
+@item @command{fwsetup} - Reboot into firmware setup menu.
+@item @command{gdbstub_break} - Break into GDB
+@item @command{gdbstub} -  Start GDB stub on given port
+@item @command{gdbstub_stop} - Stop GDB stub
+@item @command{hdparm} - Get/set ATA disk parameters.
+@item @command{hexdump} - Show raw contents of a file or memory.
+@item @command{hexdump_random} - Hexdump random data.
+@item @command{inb} - Read 8-bit value from PORT.
+@item @command{inl} - Read 32-bit value from PORT.
+@item @command{inw} - Read 16-bit value from PORT.
+@item @command{jpegtest} - Tests loading of JPEG bitmap.
+@item @command{keymap} - Load a keyboard layout.
+@item @command{legacy_check_password} - Simulate grub-legacy `password' command in menu entry mode
+@item @command{legacy_configfile} - Parse legacy config in new context
+@item @command{legacy_password} - Simulate grub-legacy `password' command
+@item @command{legacy_source} -  Parse legacy config in same context
+@item @command{loadbios} - Load BIOS dump.
+@item @command{lsacpi} - Show ACPI information.
+@item @command{lsapm} - Show APM information.
+@item @command{lscoreboot} - List coreboot tables.
+@item @command{lsdev} - List devices.
+@item @command{lsefi} - Display EFI handles.
+@item @command{lsefimmap} - Display EFI memory map.
+@item @command{lsefisystab} - Display EFI system tables.
+@item @command{lsmmap} - List memory map provided by firmware.
+@item @command{lspci} - List PCI devices.
+@item @command{lssal} - Display SAL system table.
+@item @command{lsspd} - Print Memory information.
+@item @command{macppcbless} - Bless DIR of HFS or HFS+ partition for PPC macs.
+@item @command{mactelbless} - Bless FILE of HFS or HFS+ partition for intel macs.
+@item @command{net_set_vlan} - Set an interface's vlan id.
+@item @command{outb} - Write 8-bit VALUE to PORT.
+@item @command{outl} - Write 32-bit VALUE to PORT.
+@item @command{outw} - Write 16-bit VALUE to PORT.
+@item @command{pcidump} - Show raw dump of the PCI configuration space.
+@item @command{pngtest} - Tests loading of PNG bitmap.
+@item @command{read_byte} - Read 8-bit value from ADDR.
+@item @command{read_dword} - Read 32-bit value from ADDR.
+@item @command{read_word} - Read 16-bit value from ADDR.
+@item @command{setpci} - Manipulate PCI devices.
+@item @command{suspend} - Return to IEEE1275 prompt.
+@item @command{syslinux_configfile} - Execute syslinux config in new context
+@item @command{syslinux_source} - Execute syslinux config in same context
+@item @command{test_blockarg} - Print and execute block argument., 0
+@item @command{testload} - Load the same file in multiple ways.
+@item @command{testspeed} - Test file read speed.
+@item @command{tgatest} - Tests loading of TGA bitmap.
+@item @command{time} - Measure time used by COMMAND
+@item @command{tr} - Translate SET1 characters to SET2 in STRING.
+@item @command{usb} - Test USB support.
+@item @command{vbeinfo} - List available video modes. If resolution is given show only modes matching it.
+@item @command{vbetest} - Test video subsystem.
+@item @command{videotest} - Test video subsystem in mode WxH.
+@item @command{write_byte} - Write 8-bit VALUE to ADDR.
+@item @command{write_dword} - Write 32-bit VALUE to ADDR.
+@item @command{write_word} - Write 16-bit VALUE to ADDR.
+@item @command{xen_cat} - List Xen storage.
+@item @command{xen_ls} - List Xen storage.
+@item @command{xnu_devprop_load} - Load `device-properties' dump.
+@item @command{xnu_uuid} - Transform 64-bit UUID to format suitable for XNU. If -l is given keep it lowercase as done by blkid.
+@item @command{zfs-bootfs} - Print ZFS-BOOTFSOBJ or store it into VARIABLE
+@item @command{zfsinfo} - Print ZFS info about DEVICE.
+@item @command{zfskey} - Import ZFS wrapping key stored in FILE.
+@end itemize
 
 
 @node Internationalisation
