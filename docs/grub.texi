@@ -1005,13 +1005,14 @@ kopenbsd payload this is disabled by default. Aditionally behaviour of
 initial ramdisk depends on command line options. Several distributors provide
 the image for this purpose or it's integrated in their standard ramdisk and
 activated by special option. Consult your kernel and distribution manual for
-more details. Other loaders like appleloader, chainloader (BIOS, EFI, coreboot),
-freedos, ntldr and plan9 provide no possibility of loading initial ramdisk and
+more details. Other loaders like @command{appleloader}, @command{chainloader}
+(BIOS, EFI, coreboot), @command{freedos}, @command{ntldr}, @command{plan9}
+and @command{truecrypt} provide no possibility of loading initial ramdisk and
 as far as author is aware the payloads in question don't support either initial
 ramdisk or discovering loopback boot in other way and as such not bootable this
 way. Please consider alternative boot methods like copying all files
 from the image to actual partition. Consult your OS documentation for
-more details
+more details.
 
 @node LVM cache booting
 @section Booting from LVM cache logical volume
