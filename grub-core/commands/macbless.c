@@ -220,12 +220,10 @@ GRUB_MOD_INIT(macbless)
 {
   cmd = grub_register_command ("mactelbless", grub_cmd_macbless,
 			       N_("FILE"),
-			       N_
-			       ("Bless FILE of HFS or HFS+ partition for intel macs."));
+			       N_("Bless FILE of HFS or HFS+ partition for intel macs."));
   cmd_ppc =
     grub_register_command ("macppcbless", grub_cmd_macbless, N_("DIR"),
-			   N_
-			   ("Bless DIR of HFS or HFS+ partition for PPC macs."));
+			   N_("Bless DIR of HFS or HFS+ partition for PPC macs."));
 }
 
 GRUB_MOD_FINI(macbless)
