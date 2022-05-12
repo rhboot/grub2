@@ -19,6 +19,8 @@ set -e
 parted=parted
 grubshell=@builddir@/grub-shell
 
+PATH="$PATH:/sbin:/usr/sbin"
+
 . "@builddir@/grub-core/modinfo.sh"
 
 create_disk_image () {
