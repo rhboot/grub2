@@ -5100,7 +5100,9 @@ Insert keystrokes into the keyboard buffer when booting.  Sometimes an
 operating system or chainloaded boot loader requires particular keys to be
 pressed: for example, one might need to press a particular key to enter
 "safe mode", or when chainloading another boot loader one might send
-keystrokes to it to navigate its menu.  
+keystrokes to it to navigate its menu.
+
+Note: This command is currently only available on the i386-pc target.
 
 You may provide up to 16 keystrokes (the length of the BIOS keyboard
 buffer).  Keystroke names may be upper-case or lower-case letters, digits,
