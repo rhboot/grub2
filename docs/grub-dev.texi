@@ -818,13 +818,13 @@ If it works next stage is to have heap, console and timer.
 
 To have the heap working you need to determine which regions are suitable for
 heap usage, allocate them from firmware and map (if applicable). Then call
-grub_mm_init_region (vois *start, grub_size_t s) for every of this region.
+grub_mm_init_region (void *start, grub_size_t s) for every of this region.
 As a shortcut for early port you can allocate right after _end or have
 a big static array for heap. If you do you'll probably need to come back to
 this later. As for output console you should distinguish between an array of
 text, terminfo or graphics-based console. Many of real-world examples don't
 fit perfectly into any of these categories but one of the models is easier
-to be used as base. In second and third case you should add your platform to 
+to be used as base. In second and third case you should add your platform to
 terminfokernel respectively videoinkernel group. A good example of array of
 text is i386-pc (kern/i386/pc/init.c and term/i386/pc/console.c).
 Of terminfo is ieee1275 (kern/ieee1275/init.c and term/ieee1275/console.c).
@@ -1781,7 +1781,7 @@ use in GRUB at this time:
 @item BDF 
 Inefficient storage; uses ASCII to describe properties and 
 hexadecimal numbers in ASCII for the bitmap rows.
-@item PCF  
+@item PCF
 Many format variations such as byte order and bitmap padding (rows
 padded to byte, word, etc.) would result in more complex code to
 handle the font format.
@@ -1902,8 +1902,8 @@ bit in the byte.  For the sake of compact storage, rows are not padded
 to byte boundaries (i.e., a single byte may contain bits belonging to
 multiple rows).  The last byte of the bitmap @strong{is} padded with zero
 bits in the bits positions to the right of the last used bit if the
-bitmap data does not fill the last byte.  
-         
+bitmap data does not fill the last byte.
+
 The length of the @strong{bitmap data} field is (@var{width} * @var{height} + 7) / 8
 using integer arithmetic, which is equivalent to ceil(@var{width} *
 @var{height} / 8) using real number arithmetic.
