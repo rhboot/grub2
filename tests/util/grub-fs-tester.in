@@ -1353,6 +1353,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			:
 		    else
 			echo UUID FAIL
+			echo "$FSUUID"
 			echo "$LSOUT"
 			echo "$GRUBUUID"
 			for lodev in $LODEVICES; do
