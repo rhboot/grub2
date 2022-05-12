@@ -3922,6 +3922,42 @@ All options are the same as in the @command{menuentry} command
 @section The list of various loader commands
 
 These commands are used to load necessary components to boot desired OS.
+Many of the loader commands are not sufficiently documented. The following is
+a list of commands that could use more documentation:
+
+@itemize @bullet
+@item @command{appleloader} -  Boot BIOS-based system.
+@item @command{freedos} - Load FreeDOS kernel.sys.
+@item @command{kfreebsd_loadenv} - Load FreeBSD env.
+@item @command{kfreebsd_module_elf} - Load FreeBSD kernel module (ELF).
+@item @command{kfreebsd_module} - Load FreeBSD kernel module.
+@item @command{kfreebsd} - Load kernel of FreeBSD.
+@item @command{knetbsd_module_elf} - Load NetBSD kernel module (ELF).
+@item @command{knetbsd_module} - Load NetBSD kernel module.
+@item @command{knetbsd} - Load kernel of NetBSD.
+@item @command{kopenbsd} - Load kernel of OpenBSD.
+@item @command{kopenbsd_ramdisk} -  Load kOpenBSD ramdisk.
+@item @command{legacy_initrd_nounzip} - Simulate grub-legacy `modulenounzip' command
+@item @command{legacy_initrd} - Simulate grub-legacy `initrd' command
+@item @command{legacy_kernel} - Simulate grub-legacy `kernel' command
+@item @command{module2} - Load a multiboot 2 module.
+@item @command{module} - Load a multiboot module.
+@item @command{multiboot2} - Load a multiboot 2 kernel.
+@item @command{multiboot} - Load a multiboot kernel.
+@item @command{ntldr} - Load NTLDR or BootMGR.
+@item @command{plan9} - Load Plan9 kernel.
+@item @command{pxechainloader} - Load a PXE image.
+@item @command{truecrypt} - Load Truecrypt ISO.
+@item @command{xnu_kernel64} - Load 64-bit XNU image.
+@item @command{xnu_kernel} - Load XNU image.
+@item @command{xnu_kextdir} -  Load XNU extension directory.
+@item @command{xnu_kext} - Load XNU extension.
+@item @command{xnu_mkext} - Load XNU extension package.
+@item @command{xnu_ramdisk} -  Load XNU ramdisk. It will be available in OS as md0.
+@item @command{xnu_resume} - Load an image of hibernated XNU.
+@item @command{xnu_splash} - Load a splash image for XNU.
+@end itemize
+
 
 @menu
 * chainloader::                 Chain-load another boot loader
