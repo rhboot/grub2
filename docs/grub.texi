@@ -3830,6 +3830,7 @@ shell}.
 
 @menu
 * Menu-specific commands::
+* Loader commands::
 * General commands::
 * Command-line and menu entry commands::
 * Networking commands::
@@ -3914,6 +3915,121 @@ the entries within this submenu.
 
 All options are the same as in the @command{menuentry} command
 (@pxref{menuentry}).
+@end deffn
+
+
+@node Loader commands
+@section The list of various loader commands
+
+These commands are used to load necessary components to boot desired OS.
+
+@menu
+* chainloader::                 Chain-load another boot loader
+* initrd::                      Load a Linux initrd
+* initrd16::                    Load a Linux initrd (16-bit mode)
+* linux::                       Load a Linux kernel
+* linux16::                     Load a Linux kernel (16-bit mode)
+@comment * xen_*::              Xen boot commands for AArch64
+* xen_hypervisor::              Load xen hypervisor binary (only on AArch64)
+* xen_module::                  Load xen modules for xen hypervisor (only on AArch64)
+@end menu
+
+
+@node chainloader
+@subsection chainloader
+
+@deffn Command chainloader [@option{--force}] file
+Load @var{file} as a chain-loader. Like any other file loaded by the
+filesystem code, it can use the blocklist notation (@pxref{Block list
+syntax}) to grab the first sector of the current partition with @samp{+1}.
+If you specify the option @option{--force}, then load @var{file} forcibly,
+whether it has a correct signature or not. This is required when you want to
+load a defective boot loader, such as SCO UnixWare 7.1.
+@end deffn
+
+
+@node initrd
+@subsection initrd
+
+@deffn Command initrd file [file @dots{}]
+Load, in order, all initial ramdisks for a Linux kernel image, and set
+the appropriate parameters in the Linux setup area in memory.  This may only
+be used after the @command{linux} command (@pxref{linux}) has been run.  See
+also @ref{GNU/Linux}.
+@end deffn
+
+
+@node initrd16
+@subsection initrd16
+
+@deffn Command initrd16 file [file @dots{}]
+Load, in order, all initial ramdisks for a Linux kernel image to be booted in
+16-bit mode, and set the appropriate parameters in the Linux setup area in
+memory.  This may only be used after the @command{linux16} command
+(@pxref{linux16}) has been run.  See also @ref{GNU/Linux}.
+
+This command is only available on x86 systems.
+@end deffn
+
+
+@node linux
+@subsection linux
+
+@deffn Command linux file @dots{}
+Load a Linux kernel image from @var{file}.  The rest of the line is passed
+verbatim as the @dfn{kernel command-line}.  Any initrd must be reloaded
+after using this command (@pxref{initrd}).
+
+On x86 systems, the kernel will be booted using the 32-bit boot protocol.
+Note that this means that the @samp{vga=} boot option will not work; if you
+want to set a special video mode, you will need to use GRUB commands such as
+@samp{set gfxpayload=1024x768} or @samp{set gfxpayload=keep} (to keep the
+same mode as used in GRUB) instead.  GRUB can automatically detect some uses
+of @samp{vga=} and translate them to appropriate settings of
+@samp{gfxpayload}.  The @command{linux16} command (@pxref{linux16}) avoids
+this restriction.
+@end deffn
+
+
+@node linux16
+@subsection linux16
+
+@deffn Command linux16 file @dots{}
+Load a Linux kernel image from @var{file} in 16-bit mode.  The rest of the
+line is passed verbatim as the @dfn{kernel command-line}.  Any initrd must
+be reloaded after using this command (@pxref{initrd16}).
+
+The kernel will be booted using the traditional 16-bit boot protocol.  As
+well as bypassing problems with @samp{vga=} described in @ref{linux}, this
+permits booting some other programs that implement the Linux boot protocol
+for the sake of convenience.
+
+This command is only available on x86 systems.
+@end deffn
+
+
+@node xen_hypervisor
+@subsection xen_hypervisor
+
+@deffn Command xen_hypervisor file  [arguments] @dots{}
+Load a Xen hypervisor binary from @var{file}. The rest of the line is passed
+verbatim as the @dfn{kernel command-line}. Any other binaries must be
+reloaded after using this command.
+This command is only available on AArch64 systems.
+@end deffn
+
+
+@node xen_module
+@subsection xen_module
+
+@deffn Command xen_module [--nounzip] file [arguments]
+Load a module for xen hypervisor at the booting process of xen.
+The rest of the line is passed verbatim as the module command line.
+Modules should be loaded in the following order:
+ - dom0 kernel image
+ - dom0 ramdisk if present
+ - XSM policy if present
+This command is only available on AArch64 systems.
 @end deffn
 
 
@@ -4034,7 +4150,6 @@ you forget a command, you can run the command @command{help}
 * blocklist::                   Print a block list
 * boot::                        Start up your operating system
 * cat::                         Show the contents of a file
-* chainloader::                 Chain-load another boot loader
 * clear::                       Clear the screen
 * cmosclean::                   Clear bit in CMOS
 * cmosdump::                    Dump CMOS contents
@@ -4058,12 +4173,8 @@ you forget a command, you can run the command @command{help}
 * halt::                        Shut down your computer
 * hashsum::                     Compute or check hash checksum
 * help::                        Show help messages
-* initrd::                      Load a Linux initrd
-* initrd16::                    Load a Linux initrd (16-bit mode)
 * insmod::                      Insert a module
 * keystatus::                   Check key modifier status
-* linux::                       Load a Linux kernel
-* linux16::                     Load a Linux kernel (16-bit mode)
 * list_env::                    List variables in environment block
 * list_trusted::                List trusted public keys
 * load_env::                    Load variables from environment block
@@ -4105,10 +4216,7 @@ you forget a command, you can run the command @command{help}
 @comment * vbeinfo::                     List available video modes
 * verify_detached::             Verify detached digital signature
 * videoinfo::                   List available video modes
-@comment * xen_*::              Xen boot commands for AArch64
 * wrmsr::                       Write values to model-specific registers
-* xen_hypervisor::              Load xen hypervisor binary (only on AArch64)
-* xen_module::                  Load xen modules for xen hypervisor (only on AArch64)
 @end menu
 
 
@@ -4243,19 +4351,6 @@ will be displayed as a simple new line.  Otherwise, the carriage return will
 be displayed as a control character (@samp{<d>}) to make it easier to see
 when boot problems are caused by a file formatted using DOS-style line
 endings.
-@end deffn
-
-
-@node chainloader
-@subsection chainloader
-
-@deffn Command chainloader [@option{--force}] file
-Load @var{file} as a chain-loader. Like any other file loaded by the
-filesystem code, it can use the blocklist notation (@pxref{Block list
-syntax}) to grab the first sector of the current partition with @samp{+1}.
-If you specify the option @option{--force}, then load @var{file} forcibly,
-whether it has a correct signature or not. This is required when you want to
-load a defective boot loader, such as SCO UnixWare 7.1.
 @end deffn
 
 
@@ -4612,30 +4707,6 @@ about each of the commands whose names begin with those @var{patterns}.
 @end deffn
 
 
-@node initrd
-@subsection initrd
-
-@deffn Command initrd file [file @dots{}]
-Load, in order, all initial ramdisks for a Linux kernel image, and set
-the appropriate parameters in the Linux setup area in memory.  This may only
-be used after the @command{linux} command (@pxref{linux}) has been run.  See
-also @ref{GNU/Linux}.
-@end deffn
-
-
-@node initrd16
-@subsection initrd16
-
-@deffn Command initrd16 file [file @dots{}]
-Load, in order, all initial ramdisks for a Linux kernel image to be booted in
-16-bit mode, and set the appropriate parameters in the Linux setup area in
-memory.  This may only be used after the @command{linux16} command
-(@pxref{linux16}) has been run.  See also @ref{GNU/Linux}.
-
-This command is only available on x86 systems.
-@end deffn
-
-
 @node insmod
 @subsection insmod
 
@@ -4655,42 +4726,6 @@ control over behaviour without having to wait for a keypress.
 Checking key modifier status is only supported on some platforms. If invoked
 without any options, the @command{keystatus} command returns true if and
 only if checking key modifier status is supported.
-@end deffn
-
-
-@node linux
-@subsection linux
-
-@deffn Command linux file @dots{}
-Load a Linux kernel image from @var{file}.  The rest of the line is passed
-verbatim as the @dfn{kernel command-line}.  Any initrd must be reloaded
-after using this command (@pxref{initrd}).
-
-On x86 systems, the kernel will be booted using the 32-bit boot protocol.
-Note that this means that the @samp{vga=} boot option will not work; if you
-want to set a special video mode, you will need to use GRUB commands such as
-@samp{set gfxpayload=1024x768} or @samp{set gfxpayload=keep} (to keep the
-same mode as used in GRUB) instead.  GRUB can automatically detect some uses
-of @samp{vga=} and translate them to appropriate settings of
-@samp{gfxpayload}.  The @command{linux16} command (@pxref{linux16}) avoids
-this restriction.
-@end deffn
-
-
-@node linux16
-@subsection linux16
-
-@deffn Command linux16 file @dots{}
-Load a Linux kernel image from @var{file} in 16-bit mode.  The rest of the
-line is passed verbatim as the @dfn{kernel command-line}.  Any initrd must
-be reloaded after using this command (@pxref{initrd16}).
-
-The kernel will be booted using the traditional 16-bit boot protocol.  As
-well as bypassing problems with @samp{vga=} described in @ref{linux}, this
-permits booting some other programs that implement the Linux boot protocol
-for the sake of convenience.
-
-This command is only available on x86 systems.
 @end deffn
 
 
@@ -5527,29 +5562,6 @@ and the system will reboot.
 
 Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
       This is done to prevent subverting various security mechanisms.
-@end deffn
-
-@node xen_hypervisor
-@subsection xen_hypervisor
-
-@deffn Command xen_hypervisor file  [arguments] @dots{}
-Load a Xen hypervisor binary from @var{file}. The rest of the line is passed
-verbatim as the @dfn{kernel command-line}. Any other binaries must be
-reloaded after using this command.
-This command is only available on AArch64 systems.
-@end deffn
-
-@node xen_module
-@subsection xen_module
-
-@deffn Command xen_module [--nounzip] file [arguments]
-Load a module for xen hypervisor at the booting process of xen.
-The rest of the line is passed verbatim as the module command line.
-Modules should be loaded in the following order:
- - dom0 kernel image
- - dom0 ramdisk if present
- - XSM policy if present
-This command is only available on AArch64 systems.
 @end deffn
 
 @node Networking commands
