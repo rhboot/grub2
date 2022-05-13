@@ -2614,6 +2614,12 @@ The network interface's IP address.  Read-only.
 @item net_@var{<interface>}_mac
 The network interface's MAC address.  Read-only.
 
+@item net_@var{<interface>}_clientid
+The client id provided by DHCP.  Read-only.
+
+@item net_@var{<interface>}_clientuuid
+The client uuid provided by DHCP.  Read-only.
+
 @item net_@var{<interface>}_hostname
 The client host name provided by DHCP.  Read-only.
 
@@ -3279,9 +3285,12 @@ These variables have special meaning to GRUB.
 * icondir::
 * lang::
 * locale_dir::
+* lockdown::
 * menu_color_highlight::
 * menu_color_normal::
 * net_@var{<interface>}_boot_file::
+* net_@var{<interface>}_clientid::
+* net_@var{<interface>}_clientuuid::
 * net_@var{<interface>}_dhcp_server_name::
 * net_@var{<interface>}_domain::
 * net_@var{<interface>}_extensionspath::
@@ -3300,6 +3309,7 @@ These variables have special meaning to GRUB.
 * pxe_default_gateway::
 * pxe_default_server::
 * root::
+* shim_lock::
 * superusers::
 * theme::
 * timeout::
@@ -3594,6 +3604,13 @@ default for this variable if internationalization is needed and any
 translation files are available.
 
 
+@node lockdown
+@subsection lockdown
+
+If this variable is set to @samp{y}, it means that GRUB has entered
+@pxref{Lockdown} mode.
+
+
 @node menu_color_highlight
 @subsection menu_color_highlight
 
@@ -3619,6 +3636,18 @@ The default is the value of @samp{color_normal} (@pxref{color_normal}).
 
 @node net_@var{<interface>}_boot_file
 @subsection net_@var{<interface>}_boot_file
+
+@xref{Network}.
+
+
+@node net_@var{<interface>}_clientid
+@subsection net_@var{<interface>}_clientid
+
+@xref{Network}.
+
+
+@node net_@var{<interface>}_clientuuid
+@subsection net_@var{<interface>}_clientuuid
 
 @xref{Network}.
 
@@ -3741,6 +3770,13 @@ normally set by GRUB at startup based on the value of @samp{prefix}
 For example, if GRUB was installed to the first partition of the first hard
 disk, then @samp{prefix} might be set to @samp{(hd0,msdos1)/boot/grub} and
 @samp{root} to @samp{hd0,msdos1}.
+
+
+@node shim_lock
+@subsection shim_lock
+
+If this variable is set to @samp{y}, it means that the shim_lock verifier
+is registered (see @pxref{UEFI secure boot and shim}).
 
 
 @node superusers
