@@ -61,6 +61,8 @@ typedef enum
 #define GRUB_CRYPTODISK_MAX_KEYLEN 128
 #define GRUB_CRYPTODISK_MAX_PASSPHRASE 256
 
+#define GRUB_CRYPTODISK_MAX_KEYFILE_SIZE 8192
+
 struct grub_cryptodisk;
 
 typedef gcry_err_code_t
