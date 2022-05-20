@@ -92,6 +92,8 @@ enum grub_file_type
     GRUB_FILE_TYPE_FONT,
     /* File holding encryption key for encrypted ZFS.  */
     GRUB_FILE_TYPE_ZFS_ENCRYPTION_KEY,
+    /* File holding the encryption key. */
+    GRUB_FILE_TYPE_CRYPTODISK_ENCRYPTION_KEY,
     /* File we open n grub-fstest.  */
     GRUB_FILE_TYPE_FSTEST,
     /* File we open n grub-mount.  */
