@@ -240,7 +240,7 @@ grub_util_get_geli_uuid (const char *dev)
 #endif
 
 static grub_cryptodisk_t
-configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
+geli_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t newdev;
   struct grub_geli_phdr header;
@@ -395,7 +395,7 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
 }
 
 static grub_err_t
-recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t cargs)
+geli_recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t cargs)
 {
   grub_size_t keysize;
   grub_uint8_t digest[GRUB_CRYPTO_MAX_MDLEN];
@@ -567,8 +567,8 @@ recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_args_t 
 }
 
 struct grub_cryptodisk_dev geli_crypto = {
-  .scan = configure_ciphers,
-  .recover_key = recover_key
+  .scan = geli_scan,
+  .recover_key = geli_recover_key
 };
 
 GRUB_MOD_INIT (geli)
