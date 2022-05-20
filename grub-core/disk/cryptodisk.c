@@ -35,6 +35,17 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 grub_cryptodisk_dev_t grub_cryptodisk_list;
 
+enum
+  {
+    OPTION_UUID,
+    OPTION_ALL,
+    OPTION_BOOT,
+    OPTION_PASSWORD,
+    OPTION_KEYFILE,
+    OPTION_KEYFILE_OFFSET,
+    OPTION_KEYFILE_SIZE
+  };
+
 static const struct grub_arg_option options[] =
   {
     {"uuid", 'u', 0, N_("Mount by UUID."), 0, 0},
@@ -1163,44 +1174,44 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
   struct grub_arg_list *state = ctxt->state;
   struct grub_cryptomount_args cargs = {0};
 
-  if (argc < 1 && !state[1].set && !state[2].set)
+  if (argc < 1 && !state[OPTION_ALL].set && !state[OPTION_BOOT].set)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "device name required");
 
   if (grub_cryptodisk_list == NULL)
     return grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk modules loaded");
 
-  if (state[3].set) /* password */
+  if (state[OPTION_PASSWORD].set) /* password */
     {
-      cargs.key_data = (grub_uint8_t *) state[3].arg;
-      cargs.key_len = grub_strlen (state[3].arg);
+      cargs.key_data = (grub_uint8_t *) state[OPTION_PASSWORD].arg;
+      cargs.key_len = grub_strlen (state[OPTION_PASSWORD].arg);
     }
 
-  if (state[4].set) /* keyfile */
+  if (state[OPTION_KEYFILE].set) /* keyfile */
     {
       const char *p = NULL;
       grub_file_t keyfile;
       unsigned long long keyfile_offset = 0, keyfile_size = 0;
 
-      if (state[5].set) /* keyfile-offset */
+      if (state[OPTION_KEYFILE_OFFSET].set) /* keyfile-offset */
 	{
 	  grub_errno = GRUB_ERR_NONE;
-	  keyfile_offset = grub_strtoull (state[5].arg, &p, 0);
+	  keyfile_offset = grub_strtoull (state[OPTION_KEYFILE_OFFSET].arg, &p, 0);
 
-	  if (state[5].arg[0] == '\0' || *p != '\0')
+	  if (state[OPTION_KEYFILE_OFFSET].arg[0] == '\0' || *p != '\0')
 	    return grub_error (grub_errno,
 			       N_("non-numeric or invalid keyfile offset `%s'"),
-			       state[5].arg);
+			       state[OPTION_KEYFILE_OFFSET].arg);
 	}
 
-      if (state[6].set) /* keyfile-size */
+      if (state[OPTION_KEYFILE_SIZE].set) /* keyfile-size */
 	{
 	  grub_errno = GRUB_ERR_NONE;
-	  keyfile_size = grub_strtoull (state[6].arg, &p, 0);
+	  keyfile_size = grub_strtoull (state[OPTION_KEYFILE_SIZE].arg, &p, 0);
 
-	  if (state[6].arg[0] == '\0' || *p != '\0')
+	  if (state[OPTION_KEYFILE_SIZE].arg[0] == '\0' || *p != '\0')
 	    return grub_error (grub_errno,
 			       N_("non-numeric or invalid keyfile size `%s'"),
-			       state[6].arg);
+			       state[OPTION_KEYFILE_SIZE].arg);
 
 	  if (keyfile_size == 0)
 	    return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("key file size is 0"));
@@ -1211,7 +1222,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 			       GRUB_CRYPTODISK_MAX_KEYFILE_SIZE);
 	}
 
-      keyfile = grub_file_open (state[4].arg,
+      keyfile = grub_file_open (state[OPTION_KEYFILE].arg,
 				GRUB_FILE_TYPE_CRYPTODISK_ENCRYPTION_KEY);
       if (keyfile == NULL)
 	return grub_errno;
@@ -1249,7 +1260,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	return grub_error (GRUB_ERR_FILE_READ_ERROR, (N_("failed to read key file")));
     }
 
-  if (state[0].set) /* uuid */
+  if (state[OPTION_UUID].set) /* uuid */
     {
       int found_uuid;
       grub_cryptodisk_t dev;
@@ -1262,7 +1273,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	  return GRUB_ERR_NONE;
 	}
 
-      cargs.check_boot = state[2].set;
+      cargs.check_boot = state[OPTION_BOOT].set;
       cargs.search_uuid = args[0];
       found_uuid = grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
 
@@ -1280,9 +1291,9 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	}
       return grub_errno;
     }
-  else if (state[1].set || (argc == 0 && state[2].set)) /* -a|-b */
+  else if (state[OPTION_ALL].set || (argc == 0 && state[OPTION_BOOT].set)) /* -a|-b */
     {
-      cargs.check_boot = state[2].set;
+      cargs.check_boot = state[OPTION_BOOT].set;
       grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
       return GRUB_ERR_NONE;
     }
@@ -1294,7 +1305,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       char *disklast = NULL;
       grub_size_t len;
 
-      cargs.check_boot = state[2].set;
+      cargs.check_boot = state[OPTION_BOOT].set;
       diskname = args[0];
       len = grub_strlen (diskname);
       if (len && diskname[0] == '(' && diskname[len - 1] == ')')
