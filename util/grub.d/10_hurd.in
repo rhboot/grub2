@@ -128,9 +128,11 @@ EOF
   else
       opts=
   fi
+  device=device:${GRUB_DEVICE#/dev/}
+  device=$(echo "$device" | sed -e 's/^device:\(.*[0-9]\+\)s\([0-9]\+\)$/part:\2:device:\1'/)
   sed "s/^/$submenu_indentation/" << EOF
 	echo		'$(echo "$message" | grub_quote)'
-	multiboot	${kernel} root=device:${GRUB_DEVICE#/dev/} $opts ${GRUB_CMDLINE_GNUMACH}
+	multiboot	${kernel} root=$device $opts ${GRUB_CMDLINE_GNUMACH}
 EOF
 
   if [ x$type != xrecovery ] ; then
