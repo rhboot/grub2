@@ -134,6 +134,9 @@ grub_target_to_host_real (const struct grub_module_verifier_arch *arch, grub_uin
 static Elf_Shdr *
 get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word index)
 {
+  if (grub_target_to_host (e->e_shoff) == 0)
+    grub_util_error ("Invalid section header offset");
+
   return (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) +
 		       index * grub_target_to_host16 (e->e_shentsize));
 }
