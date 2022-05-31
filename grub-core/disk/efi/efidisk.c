@@ -553,8 +553,19 @@ grub_efidisk_readwrite (struct grub_disk *disk, grub_disk_addr_t sector,
   d = disk->data;
   bio = d->block_io;
 
-  /* Set alignment to 1 if 0 specified */
-  io_align = bio->media->io_align ? bio->media->io_align : 1;
+  /*
+   * If IoAlign is > 1, it should represent the required alignment. However,
+   * some UEFI implementations seem to report IoAlign=2 but require 2^IoAlign.
+   * Some implementation seem to require alignment despite not reporting any
+   * specific requirements.
+   *
+   * Make sure to use buffers which are at least aligned to block size.
+   */
+  if (bio->media->io_align < bio->media->block_size)
+    io_align = bio->media->block_size;
+  else
+    io_align = bio->media->io_align;
+
   num_bytes = size << disk->log_sector_size;
 
   if ((grub_addr_t) buf & (io_align - 1))
