@@ -3643,7 +3643,7 @@ zfs_mount (grub_device_t dev)
 {
   struct grub_zfs_data *data = 0;
   grub_err_t err;
-  void *osp = 0;
+  objset_phys_t *osp = 0;
   grub_size_t ospsize;
   grub_zfs_endian_t ub_endian = GRUB_ZFS_UNKNOWN_ENDIAN;
   uberblock_t *ub;
@@ -3681,7 +3681,7 @@ zfs_mount (grub_device_t dev)
 	       ? GRUB_ZFS_LITTLE_ENDIAN : GRUB_ZFS_BIG_ENDIAN);
 
   err = zio_read (&ub->ub_rootbp, ub_endian,
-		  &osp, &ospsize, data);
+		  (void **) &osp, &ospsize, data);
   if (err)
     {
       zfs_unmount (data);
@@ -3697,8 +3697,7 @@ zfs_mount (grub_device_t dev)
     }
 
   if (ub->ub_version >= SPA_VERSION_FEATURES &&
-      check_mos_features(&((objset_phys_t *) osp)->os_meta_dnode,ub_endian,
-			 data) != 0)
+      check_mos_features(&osp->os_meta_dnode, ub_endian, data) != 0)
     {
       grub_error (GRUB_ERR_BAD_FS, "Unsupported features in pool");
       grub_free (osp);
@@ -3707,8 +3706,7 @@ zfs_mount (grub_device_t dev)
     }
 
   /* Got the MOS. Save it at the memory addr MOS. */
-  grub_memmove (&(data->mos.dn), &((objset_phys_t *) osp)->os_meta_dnode,
-		DNODE_SIZE);
+  grub_memmove (&(data->mos.dn), &osp->os_meta_dnode, DNODE_SIZE);
   data->mos.endian = (grub_zfs_to_cpu64 (ub->ub_rootbp.blk_prop,
 					 ub_endian) >> 63) & 1;
   grub_free (osp);
