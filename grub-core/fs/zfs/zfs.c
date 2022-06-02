@@ -3156,7 +3156,7 @@ get_filesystem_dnode (dnode_end_t * mosmdn, char *fsname,
 static grub_err_t
 make_mdn (dnode_end_t * mdn, struct grub_zfs_data *data)
 {
-  void *osp;
+  objset_phys_t *osp;
   blkptr_t *bp;
   grub_size_t ospsize = 0;
   grub_err_t err;
@@ -3164,7 +3164,7 @@ make_mdn (dnode_end_t * mdn, struct grub_zfs_data *data)
   grub_dprintf ("zfs", "endian = %d\n", mdn->endian);
 
   bp = &(((dsl_dataset_phys_t *) DN_BONUS (&mdn->dn))->ds_bp);
-  err = zio_read (bp, mdn->endian, &osp, &ospsize, data);
+  err = zio_read (bp, mdn->endian, (void **) &osp, &ospsize, data);
   if (err)
     return err;
   if (ospsize < OBJSET_PHYS_SIZE_V14)
@@ -3175,7 +3175,7 @@ make_mdn (dnode_end_t * mdn, struct grub_zfs_data *data)
 
   mdn->endian = (grub_zfs_to_cpu64 (bp->blk_prop, mdn->endian)>>63) & 1;
   grub_memmove ((char *) &(mdn->dn),
-		(char *) &((objset_phys_t *) osp)->os_meta_dnode, DNODE_SIZE);
+		(char *) &(osp)->os_meta_dnode, DNODE_SIZE);
   grub_free (osp);
   return GRUB_ERR_NONE;
 }
