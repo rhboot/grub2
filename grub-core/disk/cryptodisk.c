@@ -43,7 +43,8 @@ enum
     OPTION_PASSWORD,
     OPTION_KEYFILE,
     OPTION_KEYFILE_OFFSET,
-    OPTION_KEYFILE_SIZE
+    OPTION_KEYFILE_SIZE,
+    OPTION_HEADER
   };
 
 static const struct grub_arg_option options[] =
@@ -56,8 +57,15 @@ static const struct grub_arg_option options[] =
     {"key-file", 'k', 0, N_("Key file"), 0, ARG_TYPE_STRING},
     {"keyfile-offset", 'O', 0, N_("Key file offset (bytes)"), 0, ARG_TYPE_INT},
     {"keyfile-size", 'S', 0, N_("Key file data size (bytes)"), 0, ARG_TYPE_INT},
+    {"header", 'H', 0, N_("Read header from file"), 0, ARG_TYPE_STRING},
     {0, 0, 0, 0, 0, 0}
   };
+
+struct cryptodisk_read_hook_ctx
+{
+  grub_file_t hdr_file;
+};
+typedef struct cryptodisk_read_hook_ctx *cryptodisk_read_hook_ctx_t;
 
 /* Our irreducible polynom is x^128+x^7+x^2+x+1. Lowest byte of it is:  */
 #define GF_POLYNOM 0x87
@@ -1004,6 +1012,30 @@ cryptodisk_close (grub_cryptodisk_t dev)
   grub_free (dev);
 }
 
+static grub_err_t
+cryptodisk_read_hook (grub_disk_addr_t sector, unsigned offset,
+		      unsigned length, char *buf, void *data)
+{
+  cryptodisk_read_hook_ctx_t ctx = data;
+
+  if (ctx->hdr_file == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("header file not found"));
+
+  if (grub_file_seek (ctx->hdr_file,
+		      (sector * GRUB_DISK_SECTOR_SIZE) + offset)
+      == (grub_off_t) -1)
+    return grub_errno;
+
+  if (grub_file_read (ctx->hdr_file, buf, length) != (grub_ssize_t) length)
+    {
+      if (grub_errno == GRUB_ERR_NONE)
+	grub_error (GRUB_ERR_OUT_OF_RANGE, N_("header file too small"));
+      return grub_errno;
+    }
+
+  return GRUB_ERR_NONE;
+}
+
 static grub_cryptodisk_t
 grub_cryptodisk_scan_device_real (const char *name,
 				  grub_disk_t source,
@@ -1012,6 +1044,7 @@ grub_cryptodisk_scan_device_real (const char *name,
   grub_err_t ret = GRUB_ERR_NONE;
   grub_cryptodisk_t dev;
   grub_cryptodisk_dev_t cr;
+  struct cryptodisk_read_hook_ctx read_hook_data = {0};
   int askpass = 0;
   char *part = NULL;
 
@@ -1020,11 +1053,46 @@ grub_cryptodisk_scan_device_real (const char *name,
   if (dev)
     return dev;
 
+  if (cargs->hdr_file != NULL)
+    {
+      /*
+       * Set read hook to read header from a file instead of the source disk.
+       * Disk read hooks are executed after the data has been read from the
+       * disk. This is okay, because the read hook is given the read buffer
+       * before its sent back to the caller. In this case, the hook can then
+       * overwrite the data read from the disk device with data from the
+       * header file sent in as the read hook data. This is transparent to the
+       * read caller. Since the callers of this function have just opened the
+       * source disk, there are no current read hooks, so there's no need to
+       * save/restore them nor consider if they should be called or not.
+       *
+       * This hook assumes that the header is at the start of the volume, which
+       * is not the case for some formats (eg. GELI). It also can only be used
+       * with formats where the detached header file can be written to the
+       * first blocks of the volume and the volume could still be unlocked.
+       * So the header file can not be formatted differently from the on-disk
+       * header. If these assumpts are not met, detached header file processing
+       * must be specially handled in the cryptodisk backend module.
+       *
+       * This hook needs only be set once and will be called potentially many
+       * times by a backend. This is fine because of the assumptions mentioned
+       * and the read hook reads from absolute offsets and is stateless.
+       */
+      read_hook_data.hdr_file = cargs->hdr_file;
+      source->read_hook = cryptodisk_read_hook;
+      source->read_hook_data = (void *) &read_hook_data;
+    }
+
   FOR_CRYPTODISK_DEVS (cr)
   {
+    /*
+     * Loop through each cryptodisk backend that is registered (ie. loaded).
+     * If the scan returns NULL, then the backend being tested does not
+     * recognize the source disk, so move on to the next backend.
+     */
     dev = cr->scan (source, cargs);
     if (grub_errno)
-      return NULL;
+      goto error_no_close;
     if (!dev)
       continue;
 
@@ -1041,7 +1109,7 @@ grub_cryptodisk_scan_device_real (const char *name,
 
 	cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
 	if (cargs->key_data == NULL)
-	  return NULL;
+	  goto error_no_close;
 
 	if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
 	  {
@@ -1066,9 +1134,13 @@ grub_cryptodisk_scan_device_real (const char *name,
 
  error:
   cryptodisk_close (dev);
+ error_no_close:
   dev = NULL;
 
  cleanup:
+  if (cargs->hdr_file != NULL)
+    source->read_hook = NULL;
+
   if (askpass)
     {
       cargs->key_len = 0;
@@ -1258,6 +1330,18 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 
       if (grub_file_read (keyfile, cargs.key_data, cargs.key_len) != (grub_ssize_t) cargs.key_len)
 	return grub_error (GRUB_ERR_FILE_READ_ERROR, (N_("failed to read key file")));
+    }
+
+  if (state[OPTION_HEADER].set) /* header */
+    {
+      if (state[OPTION_UUID].set)
+	return grub_error (GRUB_ERR_BAD_ARGUMENT,
+			   N_("cannot use UUID lookup with detached header"));
+
+      cargs.hdr_file = grub_file_open (state[OPTION_HEADER].arg,
+			    GRUB_FILE_TYPE_CRYPTODISK_DETACHED_HEADER);
+      if (cargs.hdr_file == NULL)
+	return grub_errno;
     }
 
   if (state[OPTION_UUID].set) /* uuid */
@@ -1473,7 +1557,7 @@ GRUB_MOD_INIT (cryptodisk)
   grub_disk_dev_register (&grub_cryptodisk_dev);
   cmd = grub_register_extcmd ("cryptomount", grub_cmd_cryptomount, 0,
 			      N_("[ [-p password] | [-k keyfile"
-				 " [-O keyoffset] [-S keysize] ] ]"
+				 " [-O keyoffset] [-S keysize] ] ] [-H file]"
 				 " <SOURCE|-u UUID|-a|-b>"),
 			      N_("Mount a crypto device."), options);
   grub_procfs_register ("luks_script", &luks_script);

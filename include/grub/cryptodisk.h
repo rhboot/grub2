@@ -20,6 +20,7 @@
 #define GRUB_CRYPTODISK_HEADER	1
 
 #include <grub/disk.h>
+#include <grub/file.h>
 #include <grub/crypto.h>
 #include <grub/list.h>
 #ifdef GRUB_UTIL
@@ -79,6 +80,7 @@ struct grub_cryptomount_args
   grub_uint8_t *key_data;
   /* recover_key: Length of key_data */
   grub_size_t key_len;
+  grub_file_t hdr_file;
 };
 typedef struct grub_cryptomount_args *grub_cryptomount_args_t;
 
