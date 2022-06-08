@@ -4525,18 +4525,25 @@ Alias for @code{hashsum --hash crc32 arg @dots{}}. See command @command{hashsum}
 @node cryptomount
 @subsection cryptomount
 
-@deffn Command cryptomount [ [@option{-p} password] | [@option{-k} keyfile [@option{-O} keyoffset] [@option{-S} keysize] ] ] device|@option{-u} uuid|@option{-a}|@option{-b}
+@deffn Command cryptomount [ [@option{-p} password] | [@option{-k} keyfile [@option{-O} keyoffset] [@option{-S} keysize] ] ] [@option{-H} file] device|@option{-u} uuid|@option{-a}|@option{-b}
 Setup access to encrypted device. A passphrase will be requested interactively,
 if neither the @option{-p} nor @option{-k} options are given. The option
 @option{-p} can be used to supply a passphrase (useful for scripts).
 Alternatively the @option{-k} option can be used to supply a keyfile with
 options @option{-O} and @option{-S} optionally supplying the offset and size,
-respectively, of the key data in the given key file.
-
+respectively, of the key data in the given key file. The @option{-H} options can
+be used to supply cryptomount backends with an alternative header file (aka
+detached header). Not all backends have headers nor support alternative header
+files (currently only LUKS1 and LUKS2 support them).
 Argument @var{device} configures specific grub device
 (@pxref{Naming convention}); option @option{-u} @var{uuid} configures device
 with specified @var{uuid}; option @option{-a} configures all detected encrypted
 devices; option @option{-b} configures all geli containers that have boot flag set.
+
+Devices are not allowed to be given as key files nor as detached header files.
+However, this limitation can be worked around by using blocklist syntax. So
+for instance, @code{(hd1,gpt2)} can not be used, but @code{(hd1,gpt2)0+} will
+achieve the desired result.
 
 GRUB suports devices encrypted using LUKS, LUKS2 and geli. Note that necessary
 modules (@var{luks}, @var{luks2} and @var{geli}) have to be loaded manually
