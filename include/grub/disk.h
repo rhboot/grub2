@@ -110,9 +110,9 @@ extern grub_disk_dev_t EXPORT_VAR (grub_disk_dev_list);
 
 struct grub_partition;
 
-typedef void (*grub_disk_read_hook_t) (grub_disk_addr_t sector,
-				       unsigned offset, unsigned length,
-				       void *data);
+typedef grub_err_t (*grub_disk_read_hook_t) (grub_disk_addr_t sector,
+					     unsigned offset, unsigned length,
+					     char *buf, void *data);
 
 /* Disk.  */
 struct grub_disk

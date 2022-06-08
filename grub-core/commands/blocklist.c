@@ -53,9 +53,9 @@ print_blocklist (grub_disk_addr_t sector, unsigned num,
 }
 
 /* Helper for grub_cmd_blocklist.  */
-static void
+static grub_err_t
 read_blocklist (grub_disk_addr_t sector, unsigned offset, unsigned length,
-		void *data)
+		char *buf __attribute__ ((unused)), void *data)
 {
   struct blocklist_ctx *ctx = data;
 
@@ -70,7 +70,7 @@ read_blocklist (grub_disk_addr_t sector, unsigned offset, unsigned length,
 	}
 
       if (!length)
-	return;
+	return GRUB_ERR_NONE;
       print_blocklist (ctx->start_sector, ctx->num_sectors, 0, 0, ctx);
       ctx->num_sectors = 0;
     }
@@ -87,7 +87,7 @@ read_blocklist (grub_disk_addr_t sector, unsigned offset, unsigned length,
     }
 
   if (!length)
-    return;
+    return GRUB_ERR_NONE;
 
   if (length & (GRUB_DISK_SECTOR_SIZE - 1))
     {
@@ -103,6 +103,8 @@ read_blocklist (grub_disk_addr_t sector, unsigned offset, unsigned length,
       ctx->start_sector = sector;
       ctx->num_sectors = length >> GRUB_DISK_SECTOR_BITS;
     }
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t

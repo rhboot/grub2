@@ -352,16 +352,16 @@ struct grub_cmd_save_env_ctx
 };
 
 /* Store blocklists in a linked list.  */
-static void
+static grub_err_t
 save_env_read_hook (grub_disk_addr_t sector, unsigned offset, unsigned length,
-		    void *data)
+		    char *buf __attribute__ ((unused)), void *data)
 {
   struct grub_cmd_save_env_ctx *ctx = data;
   struct blocklist *block;
 
   block = grub_malloc (sizeof (*block));
   if (! block)
-    return;
+    return GRUB_ERR_NONE;
 
   block->sector = sector;
   block->offset = offset;
@@ -374,6 +374,8 @@ save_env_read_hook (grub_disk_addr_t sector, unsigned offset, unsigned length,
   ctx->tail = block;
   if (! ctx->head)
     ctx->head = block;
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t

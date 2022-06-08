@@ -29,10 +29,11 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 #define UPDATE_INTERVAL 800
 
-static void
+static grub_err_t
 grub_file_progress_hook_real (grub_disk_addr_t sector __attribute__ ((unused)),
                               unsigned offset __attribute__ ((unused)),
-                              unsigned length, void *data)
+                              unsigned length,
+			      char *buf __attribute__ ((unused)), void *data)
 {
   static int call_depth = 0;
   grub_uint64_t now;
@@ -42,11 +43,11 @@ grub_file_progress_hook_real (grub_disk_addr_t sector __attribute__ ((unused)),
   file->progress_offset += length;
 
   if (call_depth)
-    return;
+    return GRUB_ERR_NONE;
 
   e = grub_env_get ("enable_progress_indicator");
   if (e && e[0] == '0') {
-    return;
+    return GRUB_ERR_NONE;
   }
 
   call_depth = 1;
@@ -132,6 +133,8 @@ grub_file_progress_hook_real (grub_disk_addr_t sector __attribute__ ((unused)),
       last_progress_update_time = now;
     }
   call_depth = 0;
+
+  return GRUB_ERR_NONE;
 }
 
 GRUB_MOD_INIT(progress)

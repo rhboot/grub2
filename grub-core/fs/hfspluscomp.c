@@ -123,7 +123,7 @@ hfsplus_read_compressed_real (struct grub_hfsplus_file *node,
     {
       grub_memcpy (buf, node->cbuf + pos, len);
       if (grub_file_progress_hook && node->file)
-	grub_file_progress_hook (0, 0, len, node->file);
+	grub_file_progress_hook (0, 0, len, NULL, node->file);
       return len;
     }
 
@@ -170,7 +170,7 @@ hfsplus_read_compressed_real (struct grub_hfsplus_file *node,
       grub_memcpy (buf, node->cbuf + (pos % HFSPLUS_COMPRESS_BLOCK_SIZE),
 		   curlen);
       if (grub_file_progress_hook && node->file)
-	grub_file_progress_hook (0, 0, curlen, node->file);
+	grub_file_progress_hook (0, 0, curlen, NULL, node->file);
       buf += curlen;
       pos += curlen;
       len -= curlen;

@@ -32,10 +32,11 @@
 GRUB_MOD_LICENSE ("GPLv3+");
 
 /* Helper for grub_cmd_testload.  */
-static void
+static grub_err_t
 read_progress (grub_disk_addr_t sector __attribute__ ((unused)),
 	       unsigned offset __attribute__ ((unused)),
 	       unsigned len,
+	       char *buf __attribute__ ((unused)),
 	       void *data __attribute__ ((unused)))
 {
   for (; len >= GRUB_DISK_SECTOR_SIZE; len -= GRUB_DISK_SECTOR_SIZE)
@@ -43,6 +44,7 @@ read_progress (grub_disk_addr_t sector __attribute__ ((unused)),
   if (len)
     grub_xputs (".");
   grub_refresh ();
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
