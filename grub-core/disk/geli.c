@@ -252,6 +252,10 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
   grub_disk_addr_t sector;
   grub_err_t err;
 
+  /* Detached headers are not implemented yet */
+  if (cargs->hdr_file != NULL)
+    return NULL;
+
   if (2 * GRUB_MD_SHA256->mdlen + 1 > GRUB_CRYPTODISK_MAX_UUID_LENGTH)
     return NULL;
 
