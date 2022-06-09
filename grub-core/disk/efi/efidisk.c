@@ -523,9 +523,7 @@ grub_efidisk_open (const char *name, struct grub_disk *disk)
   if (m->block_size & (m->block_size - 1) || !m->block_size)
     return grub_error (GRUB_ERR_IO, "invalid sector size %d",
 		       m->block_size);
-  for (disk->log_sector_size = 0;
-       (1U << disk->log_sector_size) < m->block_size;
-       disk->log_sector_size++);
+  disk->log_sector_size = grub_log2ull (m->block_size);
   disk->data = d;
 
   grub_dprintf ("efidisk", "opening %s succeeded\n", name);

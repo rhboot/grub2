@@ -113,9 +113,7 @@ grub_virtdisk_open (const char *name, grub_disk_t disk)
       || secsize > GRUB_XEN_PAGE_SIZE)
     return grub_error (GRUB_ERR_IO, "unsupported sector size %d", secsize);
 
-  for (disk->log_sector_size = 0;
-       (1U << disk->log_sector_size) < secsize; disk->log_sector_size++);
-
+  disk->log_sector_size = grub_log2ull (secsize);
   disk->total_sectors >>= disk->log_sector_size - 9;
 
   return GRUB_ERR_NONE;

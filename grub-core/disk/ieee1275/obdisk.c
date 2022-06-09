@@ -1023,11 +1023,7 @@ grub_obdisk_open (const char *name, grub_disk_t disk)
         dev->num_blocks = GRUB_DISK_SIZE_UNKNOWN;
 
       if (dev->block_size != 0)
-        {
-          for (dev->log_sector_size = 0;
-               (1U << dev->log_sector_size) < dev->block_size;
-               dev->log_sector_size++);
-        }
+        dev->log_sector_size = grub_log2ull (dev->block_size);
       else
         dev->log_sector_size = 9;
 

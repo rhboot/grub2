@@ -186,9 +186,7 @@ uboot_disk_open (const char *name, struct grub_disk *disk)
   if (d->block_size == 0)
     return grub_error (GRUB_ERR_IO, "no block size");
 
-  for (disk->log_sector_size = 0;
-       (1U << disk->log_sector_size) < d->block_size;
-       disk->log_sector_size++);
+  disk->log_sector_size = grub_log2ull (d->block_size);
 
   grub_dprintf ("ubootdisk", "(%s) blocksize=%d, log_sector_size=%d\n",
 		disk->name, d->block_size, disk->log_sector_size);

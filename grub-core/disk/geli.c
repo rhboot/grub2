@@ -380,9 +380,7 @@ geli_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
   newdev->hash = GRUB_MD_SHA512;
   newdev->iv_hash = GRUB_MD_SHA256;
 
-  for (newdev->log_sector_size = 0;
-       (1U << newdev->log_sector_size) < grub_le_to_cpu32 (header.sector_size);
-       newdev->log_sector_size++);
+  newdev->log_sector_size = grub_log2ull (grub_le_to_cpu32 (header.sector_size));
 
   if (grub_le_to_cpu32 (header.version) >= 5)
     {

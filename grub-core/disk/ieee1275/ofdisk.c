@@ -516,11 +516,7 @@ grub_ofdisk_open (const char *name, grub_disk_t disk)
         return err;
       }
     if (block_size != 0)
-      {
-	for (disk->log_sector_size = 0;
-	     (1U << disk->log_sector_size) < block_size;
-	     disk->log_sector_size++);
-      }
+      disk->log_sector_size = grub_log2ull (block_size);
     else
       disk->log_sector_size = 9;
   }

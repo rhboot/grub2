@@ -114,9 +114,7 @@ grub_util_get_fd_size_os (grub_util_fd_t fd, const char *name, unsigned *log_sec
   sector_size = label.d_secsize;
   if (sector_size & (sector_size - 1) || !sector_size)
     return -1;
-  for (log_sector_size = 0;
-       (1 << log_sector_size) < sector_size;
-       log_sector_size++);
+  log_sector_size = grub_log2ull (sector_size);
 
   if (log_secsize)
     *log_secsize = log_sector_size;

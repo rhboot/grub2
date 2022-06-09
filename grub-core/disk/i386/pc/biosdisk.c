@@ -388,11 +388,7 @@ grub_biosdisk_open (const char *name, grub_disk_t disk)
 		  && !(drp->bytes_per_sector & (drp->bytes_per_sector - 1))
 		  && drp->bytes_per_sector >= 512
 		  && drp->bytes_per_sector <= 16384)
-		{
-		  for (disk->log_sector_size = 0;
-		       (1 << disk->log_sector_size) < drp->bytes_per_sector;
-		       disk->log_sector_size++);
-		}
+		disk->log_sector_size = grub_log2ull (drp->bytes_per_sector);
 	    }
 	}
     }

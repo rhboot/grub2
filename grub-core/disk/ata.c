@@ -181,10 +181,7 @@ grub_ata_identify (struct grub_ata *dev)
       if (secsize & (secsize - 1) || !secsize
 	  || secsize > 1048576)
 	secsize = 256;
-      for (dev->log_sector_size = 0;
-	   (1U << dev->log_sector_size) < secsize;
-	   dev->log_sector_size++);
-      dev->log_sector_size++;
+      dev->log_sector_size = grub_log2ull (secsize) + 1;
     }
   else
     dev->log_sector_size = 9;

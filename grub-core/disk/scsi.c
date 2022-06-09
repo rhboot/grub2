@@ -620,9 +620,7 @@ grub_scsi_open (const char *name, grub_disk_t disk)
 	  grub_free (scsi);
 	  return grub_errno;
 	}
-      for (disk->log_sector_size = 0;
-	   (1U << disk->log_sector_size) < scsi->blocksize;
-	   disk->log_sector_size++);
+      disk->log_sector_size = grub_log2ull (scsi->blocksize);
 
       grub_dprintf ("scsi", "last_block=%" PRIuGRUB_UINT64_T ", blocksize=%u\n",
 		    scsi->last_block, scsi->blocksize);

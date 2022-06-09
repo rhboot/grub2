@@ -185,9 +185,7 @@ grub_util_get_fd_size (grub_util_fd_t hd, const char *name_in,
       size = g.Cylinders.QuadPart;
       size *= g.TracksPerCylinder * g.SectorsPerTrack * g.BytesPerSector;
 
-      for (log_sector_size = 0;
-	   (1 << log_sector_size) < g.BytesPerSector;
-	   log_sector_size++);
+      log_sector_size = grub_log2ull (g.BytesPerSector);
     }
   else
     {
