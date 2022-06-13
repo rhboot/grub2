@@ -197,11 +197,17 @@ title_correction_code=
 # Extra indentation to add to menu entries in a submenu. We're not in a submenu
 # yet, so it's empty. In a submenu it will be equal to '\t' (one tab).
 submenu_indentation=""
+
+# Perform a reverse version sort on the entire kernels list.
+# Temporarily replace the '.old' suffix by ' 1' and append ' 2' for all
+# other files to order the '.old' files after their non-old counterpart
+# in reverse-sorted order.
+
+reverse_sorted_kernels=$(echo ${kernels} | tr ' ' '\n' | sed -e 's/\.old$/ 1/; / 1$/! s/$/ 2/' | version_sort -r | sed -e 's/ 1$/.old/; s/ 2$//')
+
 is_top_level=true
 
-while [ "x$kernels" != "x" ] ; do
-  kernel=`version_find_latest $kernels`
-
+for kernel in ${reverse_sorted_kernels}; do
   # The GRUB_DISABLE_SUBMENU option used to be different than others since it was
   # mentioned in the documentation that has to be set to 'y' instead of 'true' to
   # enable it. This caused a lot of confusion to users that set the option to 'y',
@@ -221,8 +227,6 @@ while [ "x$kernels" != "x" ] ; do
 
   hurd_entry "$kernel" advanced
   hurd_entry "$kernel" recovery
-
-  kernels=`echo $kernels | tr ' ' '\n' | fgrep -vx "$kernel" | tr '\n' ' '`
 done
 
 # If at least one kernel was found, then we need to
