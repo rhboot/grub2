@@ -204,16 +204,16 @@ version_sort ()
 {
   case $version_sort_sort_has_v in
     yes)
-      LC_ALL=C sort -V;;
+      LC_ALL=C sort -V "$@";;
     no)
-      LC_ALL=C sort -n;;
+      LC_ALL=C sort -n "$@";;
     *)
       if sort -V </dev/null > /dev/null 2>&1; then
         version_sort_sort_has_v=yes
-	LC_ALL=C sort -V
+	LC_ALL=C sort -V "$@"
       else
         version_sort_sort_has_v=no
-        LC_ALL=C sort -n
+        LC_ALL=C sort -n "$@"
       fi;;
    esac
 }
