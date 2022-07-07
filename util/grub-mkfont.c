@@ -67,6 +67,11 @@
 
 #define GRUB_FONT_RANGE_BLOCK		1024
 
+#define GSUB_PTR_VALID(x, end)	assert ((grub_uint8_t *) (x) <= (end))
+
+#define GSUB_ARRAY_SIZE_VALID(a, sz, end) \
+    assert ((sz) >= 0 && ((sz) <= ((end) - (grub_uint8_t *) (a)) / sizeof (*(a))))
+
 struct grub_glyph_info
 {
   struct grub_glyph_info *next;
@@ -487,16 +492,22 @@ subst (const struct gsub_substitution *sub, grub_uint32_t glyph,
 static void
 process_cursive (struct gsub_feature *feature,
 		 struct gsub_lookup_list *lookups,
-		 grub_uint32_t feattag)
+		 grub_uint32_t feattag,
+		 grub_uint32_t num_glyphs,
+		 grub_uint8_t *gsub_end)
 {
   int j, k;
   int i;
+  int lookup_count = grub_be_to_cpu16 (feature->lookupcount);
   struct glyph_replace **target = NULL;
   struct gsub_substitution *sub;
 
-  for (j = 0; j < grub_be_to_cpu16 (feature->lookupcount); j++)
+  GSUB_ARRAY_SIZE_VALID (feature->lookupindices, lookup_count, gsub_end);
+
+  for (j = 0; j < lookup_count; j++)
     {
       int lookup_index = grub_be_to_cpu16 (feature->lookupindices[j]);
+      int sub_count;
       struct gsub_lookup *lookup;
       if (lookup_index >= grub_be_to_cpu16 (lookups->count))
 	{
@@ -538,7 +549,12 @@ process_cursive (struct gsub_feature *feature,
 	  target = &subst_medijoin;
 	  break;
 	}
-      for (k = 0; k < grub_be_to_cpu16 (lookup->subtablecount); k++)
+
+      sub_count = grub_be_to_cpu16 (lookup->subtablecount);
+
+      GSUB_ARRAY_SIZE_VALID (lookup->subtables, sub_count, gsub_end);
+
+      for (k = 0; k < sub_count; k++)
 	{
 	  sub = (struct gsub_substitution *)
 	    ((grub_uint8_t *) lookup + grub_be_to_cpu16 (lookup->subtables[k]));
@@ -559,18 +575,33 @@ process_cursive (struct gsub_feature *feature,
 	  if (covertype == GSUB_COVERAGE_LIST)
 	    {
 	      struct gsub_coverage_list *cover = coverage;
+	      int count = grub_be_to_cpu16 (cover->count);
 	      int l;
-	      for (l = 0; l < grub_be_to_cpu16 (cover->count); l++)
+
+	      GSUB_ARRAY_SIZE_VALID (cover->glyphs, count, gsub_end);
+
+	      for (l = 0; l < count; l++)
 		subst (sub, grub_be_to_cpu16 (cover->glyphs[l]), target, &i);
 	    }
 	  else if (covertype == GSUB_COVERAGE_RANGE)
 	    {
 	      struct gsub_coverage_ranges *cover = coverage;
+	      int count = grub_be_to_cpu16 (cover->count);
 	      int l, m;
-	      for (l = 0; l < grub_be_to_cpu16 (cover->count); l++)
-		for (m = grub_be_to_cpu16 (cover->ranges[l].start);
-		     m <= grub_be_to_cpu16 (cover->ranges[l].end); m++)
-		  subst (sub, m, target, &i);
+
+	      GSUB_ARRAY_SIZE_VALID (cover->ranges, count, gsub_end);
+
+	      for (l = 0; l < count; l++)
+		{
+		  grub_uint16_t start = grub_be_to_cpu16 (cover->ranges[l].start);
+		  grub_uint16_t end = grub_be_to_cpu16 (cover->ranges[l].end);
+
+		  if (start > end || end > num_glyphs)
+		    grub_util_error ("%s", _("invalid font range"));
+
+		  for (m = start; m <= end; m++)
+		    subst (sub, m, target, &i);
+		}
 	    }
 	  else
 	    /* TRANSLATORS: most font transformations apply only to
@@ -589,6 +620,7 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 {
   struct gsub_header *gsub = NULL;
   FT_ULong gsub_len = 0;
+  grub_uint8_t *gsub_end = NULL;
 
   if (!FT_Load_Sfnt_Table (face, TTAG_GSUB, 0, NULL, &gsub_len))
     {
@@ -600,6 +632,9 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 	  gsub_len = 0;
 	}
     }
+
+  gsub_end = (grub_uint8_t *) gsub + gsub_len;
+
   if (gsub)
     {
       struct gsub_features *features
@@ -610,6 +645,11 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 				       + grub_be_to_cpu16 (gsub->lookups_off));
       int i;
       int nfeatures = grub_be_to_cpu16 (features->count);
+
+      GSUB_PTR_VALID (features, gsub_end);
+      GSUB_PTR_VALID (lookups, gsub_end);
+      GSUB_ARRAY_SIZE_VALID (features->features, nfeatures, gsub_end);
+
       for (i = 0; i < nfeatures; i++)
 	{
 	  struct gsub_feature *feature = (struct gsub_feature *)
@@ -617,6 +657,9 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 	     + grub_be_to_cpu16 (features->features[i].offset));
 	  grub_uint32_t feattag
 	    = grub_be_to_cpu32 (features->features[i].feature_tag);
+
+	  GSUB_PTR_VALID (feature, gsub_end);
+
 	  if (feature->params)
 	    fprintf (stderr,
 		     _("WARNING: unsupported font feature parameters: %x\n"),
@@ -636,7 +679,8 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 	    case FEATURE_FINA:
 	    case FEATURE_INIT:
 	    case FEATURE_MEDI:
-	      process_cursive (feature, lookups, feattag);
+	      process_cursive (feature, lookups, feattag,
+			       face->num_glyphs, gsub_end);
 	      break;
 
 	    default:
