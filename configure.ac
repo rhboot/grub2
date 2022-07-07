@@ -36,6 +36,10 @@ dnl description of the relationships between them.
 
 AC_INIT([GRUB],[2.11],[bug-grub@gnu.org])
 
+AS_CASE(["$ERROR_PLATFORM_NOT_SUPPORT_SSP"],
+  [n | no | nO | N | No | NO], [ERROR_PLATFORM_NOT_SUPPORT_SSP=no],
+  [ERROR_PLATFORM_NOT_SUPPORT_SSP=yes])
+
 # We don't want -g -O2 by default in CFLAGS
 : ${CFLAGS=""}
 
@@ -1349,7 +1353,12 @@ if test "x$enable_stack_protector" = xno; then
     TARGET_CFLAGS="$TARGET_CFLAGS -fno-stack-protector"
   fi
 elif test "x$platform" != xefi; then
-  AC_MSG_ERROR([--enable-stack-protector is only supported on EFI platforms])
+  if test "$ERROR_PLATFORM_NOT_SUPPORT_SSP" = "yes"; then
+    AC_MSG_ERROR([--enable-stack-protector is only supported on EFI platforms])
+  else
+    AC_MSG_WARN([--enable-stack-protector is only supported on EFI platforms])
+  fi
+  enable_stack_protector=no
 elif test "x$ssp_global_possible" != xyes; then
   AC_MSG_ERROR([--enable-stack-protector is not supported (compiler doesn't support -mstack-protector-guard=global)])
 else
