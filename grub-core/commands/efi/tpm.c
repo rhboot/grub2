@@ -175,7 +175,7 @@ grub_tpm1_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
   event->PCRIndex = pcr;
   event->EventType = EV_IPL;
   event->EventSize = grub_strlen (description) + 1;
-  grub_memcpy (event->Event, description, event->EventSize);
+  grub_strcpy ((char *) event->Event, description);
 
   algorithm = TCG_ALG_SHA;
   status = efi_call_7 (tpm->log_extend_event, tpm, (grub_addr_t) buf, (grub_uint64_t) size,
@@ -212,7 +212,7 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
   event->Header.EventType = EV_IPL;
   event->Size =
     sizeof (*event) - sizeof (event->Event) + grub_strlen (description) + 1;
-  grub_memcpy (event->Event, description, grub_strlen (description) + 1);
+  grub_strcpy ((char *) event->Event, description);
 
   status = efi_call_5 (tpm->hash_log_extend_event, tpm, 0, (grub_addr_t) buf,
 		       (grub_uint64_t) size, event);
