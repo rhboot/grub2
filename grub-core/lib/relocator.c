@@ -989,7 +989,7 @@ malloc_in_range (struct grub_relocator *rel,
 	if (j != 0 && events[j - 1].pos != events[j].pos)
 	  {
 	    grub_addr_t alloc_start, alloc_end;
-	    struct grub_relocator_subchunk tofree;
+	    struct grub_relocator_subchunk tofree = {0};
 	    struct grub_relocator_subchunk *curschu = &tofree;
 	    if (!oom)
 	      curschu = &res->subchunks[cural];
