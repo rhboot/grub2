@@ -1027,9 +1027,6 @@ grub_fat_dir (grub_device_t device, const char *path, grub_fs_dir_hook_t hook,
 					  grub_le_to_cpu16 (ctxt.dir.w_date),
 					  &info.mtime);
 #endif
-      if (info.mtimeset == 0)
-	grub_error (GRUB_ERR_OUT_OF_RANGE,
-		    "invalid modification timestamp for %s", path);
 
       if (hook (ctxt.filename, &info, hook_data))
 	break;
