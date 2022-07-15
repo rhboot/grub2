@@ -74,6 +74,7 @@ grub_fs_probe (grub_device_t device)
 	  if (grub_errno == GRUB_ERR_NONE)
 	    return p;
 
+	  grub_dprintf ("fs", _("error: %s.\n"), grub_errmsg);
 	  grub_error_push ();
 	  /* The grub_error_push() does not touch grub_errmsg. */
 	  grub_dprintf ("fs", _("error: %s.\n"), grub_errmsg);
