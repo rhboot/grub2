@@ -732,7 +732,8 @@ static struct argp_option options[] = {
   {"device-map",  'm', N_("FILE"), 0,
    N_("use FILE as the device map [default=%s]"), 0},
   {"target",  't', N_("TARGET"), 0, 0, 0},
-  {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
+  {"verbose",     'v', 0,      0,
+   N_("print verbose messages (pass twice to enable debug printing)."), 0},
   {0, '0', 0, 0, N_("separate items in output using ASCII NUL characters"), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
