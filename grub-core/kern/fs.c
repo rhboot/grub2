@@ -75,6 +75,8 @@ grub_fs_probe (grub_device_t device)
 	    return p;
 
 	  grub_error_push ();
+	  /* The grub_error_push() does not touch grub_errmsg. */
+	  grub_dprintf ("fs", _("error: %s.\n"), grub_errmsg);
 	  grub_dprintf ("fs", "%s detection failed.\n", p->name);
 	  grub_error_pop ();
 
