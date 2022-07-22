@@ -610,7 +610,15 @@ luks2_recover_key (grub_disk_t source,
       grub_errno = GRUB_ERR_NONE;
       ret = luks2_get_keyslot (&keyslot, &digest, &segment, json, json_idx);
       if (ret)
-	goto err;
+	{
+	  /*
+	   * luks2_get_keyslot() can fail for a variety of reasons that do not
+	   * necessarily mean the next keyslot should not be tried (e.g. a new
+	   * kdf type). So always try the next slot.
+	   */
+	  grub_dprintf ("luks2", "Failed to get keyslot %" PRIuGRUB_UINT64_T "\n", keyslot.idx);
+	  continue;
+	}
       if (grub_errno != GRUB_ERR_NONE)
 	  grub_dprintf ("luks2", "Ignoring unhandled error %d from luks2_get_keyslot\n", grub_errno);
 
