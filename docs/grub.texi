@@ -4021,6 +4021,7 @@ you forget a command, you can run the command @command{help}
 * distrusted_signature::        Add a binary hash to the distrusted list
 * drivemap::                    Map a drive to another
 * echo::                        Display a line of text
+* efitextmode::                 Set/Get text output mode resolution
 * eval::                        Evaluate agruments as GRUB commands
 * export::                      Export an environment variable
 * false::                       Do nothing, unsuccessfully
@@ -4524,6 +4525,47 @@ vertical tab
 
 When interpreting backslash escapes, backslash followed by any other
 character will print that character.
+@end deffn
+
+
+@node efitextmode
+@subsection efitextmode
+
+@deffn Command efitextmode [min | max | <mode_num> | <cols> <rows>]
+When used with no arguments displays all available text output modes. The
+set mode determines the columns and rows of the text display when in
+text mode. An asterisk, @samp{*}, will be at the end of the line of the
+currently set mode.
+
+If given a single parameter, it must be @samp{min}, @samp{max}, or a mode
+number given by the listing when run with no arguments. These arguments set
+the mode to the minimum, maximum, and particular mode respectively.
+
+Otherwise, the command must be given two numerical arguments specifying the
+columns and rows of the desired mode. Specifying a columns and rows
+combination that corresponds to no supported mode, will return error, but
+otherwise have no effect.
+
+By default GRUB will start in whatever mode the EFI firmware defaults to.
+There are firmwares known to set up the default mode such that output
+behaves strangely, for example the cursor in the GRUB shell never reaches
+the bottom of the screen or, when typing characters at the prompt,
+characters from previous command output are overwritten. Setting the mode
+may fix this.
+
+The EFI specification says that mode 0 must be available and have
+columns and rows of 80 and 25 respectively. Mode 1 may be defined and if
+so must have columns and rows of 80 and 50 respectively. Any other modes
+may have columns and rows arbitrarily defined by the firmware. This means
+that a mode with columns and rows of 100 and 31 on one firmware may be
+a different mode number on a different firmware or not exist at all.
+Likewise, mode number 2 on one firmware may have a different number of
+columns and rows than mode 2 on a different firmware. So one should not
+rely on a particular mode number or a mode of a certain number of columns
+and rows existing on all firmwares, except for mode 0.
+
+Note: This command is only available on EFI platforms and is similar to
+EFI shell "mode" command.
 @end deffn
 
 

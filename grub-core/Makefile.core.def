@@ -845,6 +845,12 @@ module = {
 };
 
 module = {
+  name = efitextmode;
+  efi = commands/efi/efitextmode.c;
+  enable = efi;
+};
+
+module = {
   name = blocklist;
   common = commands/blocklist.c;
 };

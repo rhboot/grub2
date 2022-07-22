@@ -545,9 +545,13 @@ typedef char grub_efi_boolean_t;
 #if GRUB_CPU_SIZEOF_VOID_P == 8
 typedef grub_int64_t grub_efi_intn_t;
 typedef grub_uint64_t grub_efi_uintn_t;
+#define PRIxGRUB_EFI_UINTN_T	PRIxGRUB_UINT64_T
+#define PRIuGRUB_EFI_UINTN_T	PRIuGRUB_UINT64_T
 #else
 typedef grub_int32_t grub_efi_intn_t;
 typedef grub_uint32_t grub_efi_uintn_t;
+#define PRIxGRUB_EFI_UINTN_T	PRIxGRUB_UINT32_T
+#define PRIuGRUB_EFI_UINTN_T	PRIuGRUB_UINT32_T
 #endif
 typedef grub_int8_t grub_efi_int8_t;
 typedef grub_uint8_t grub_efi_uint8_t;
@@ -555,6 +559,8 @@ typedef grub_int16_t grub_efi_int16_t;
 typedef grub_uint16_t grub_efi_uint16_t;
 typedef grub_int32_t grub_efi_int32_t;
 typedef grub_uint32_t grub_efi_uint32_t;
+#define PRIxGRUB_EFI_UINT32_T	PRIxGRUB_UINT32_T
+#define PRIuGRUB_EFI_UINT32_T	PRIuGRUB_UINT32_T
 typedef grub_int64_t grub_efi_int64_t;
 typedef grub_uint64_t grub_efi_uint64_t;
 typedef grub_uint8_t grub_efi_char8_t;
