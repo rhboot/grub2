@@ -30,6 +30,14 @@ void (*EXPORT_VAR (grub_grubnet_fini)) (void);
 
 grub_file_filter_t grub_file_filters[GRUB_FILE_FILTER_MAX];
 
+static char *filter_names[] = {
+    [GRUB_FILE_FILTER_VERIFY] = "GRUB_FILE_FILTER_VERIFY",
+    [GRUB_FILE_FILTER_GZIO] = "GRUB_FILE_FILTER_GZIO",
+    [GRUB_FILE_FILTER_XZIO] = "GRUB_FILE_FILTER_XZIO",
+    [GRUB_FILE_FILTER_LZOPIO] = "GRUB_FILE_FILTER_LZOPIO",
+    [GRUB_FILE_FILTER_MAX] = "GRUB_FILE_FILTER_MAX"
+};
+
 /* Get the device part of the filename NAME. It is enclosed by parentheses.  */
 char *
 grub_file_get_device_name (const char *name)
@@ -121,6 +129,9 @@ grub_file_open (const char *name, enum grub_file_type type)
     if (grub_file_filters[filter])
       {
 	last_file = file;
+	if (filter < GRUB_FILE_FILTER_MAX)
+	  grub_dprintf ("file", "Running %s file filter\n",
+			filter_names[filter]);
 	file = grub_file_filters[filter] (file, type);
 	if (file && file != last_file)
 	  {
