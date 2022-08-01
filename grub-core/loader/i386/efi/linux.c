@@ -191,6 +191,8 @@ grub_linuxefi_unload (void *data)
   cmd_initrdefi->data = 0;
   grub_free (context);
 
+  max_addresses[INITRD_MAX_ADDRESS].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
+
   return GRUB_ERR_NONE;
 }
 
@@ -439,11 +441,13 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
+  max_addresses[INITRD_MAX_ADDRESS].addr = lh->initrd_addr_max;
 #if defined(__x86_64__)
   if (lh->xloadflags & LINUX_XLF_CAN_BE_LOADED_ABOVE_4G)
     {
       grub_dprintf ("linux", "Loading kernel above 4GB is supported; enabling.\n");
       max_addresses[KERNEL_NO_LIMIT].addr = GRUB_EFI_MAX_USABLE_ADDRESS;
+      max_addresses[INITRD_MAX_ADDRESS].addr = GRUB_EFI_MAX_USABLE_ADDRESS;
     }
   else
     {
@@ -572,6 +576,8 @@ fail:
     grub_file_close (file);
 
   grub_dl_unref (my_mod);
+
+  max_addresses[INITRD_MAX_ADDRESS].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
 
   if (lh)
     kernel_free (cmdline, lh->cmdline_size + 1);
