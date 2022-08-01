@@ -271,7 +271,7 @@ grub_cmd_initrd (grub_command_t cmd, int argc, char *argv[])
     }
 
   grub_dprintf ("linux", "Trying to allocate initrd mem\n");
-  initrd_mem = kernel_alloc(INITRD_MEM, size, GRUB_EFI_RUNTIME_SERVICES_DATA,
+  initrd_mem = kernel_alloc(INITRD_MEM, size, GRUB_EFI_LOADER_DATA,
 			    N_("can't allocate initrd"));
   if (initrd_mem == NULL)
     goto fail;
@@ -426,7 +426,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 #endif
 
   params = kernel_alloc (KERNEL_MEM, sizeof(*params),
-			 GRUB_EFI_RUNTIME_SERVICES_DATA,
+			 GRUB_EFI_LOADER_DATA,
 			 "cannot allocate kernel parameters");
   if (!params)
     goto fail;
@@ -450,7 +450,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   grub_dprintf ("linux", "setting up cmdline\n");
   cmdline = kernel_alloc (KERNEL_MEM, lh->cmdline_size + 1,
-			  GRUB_EFI_RUNTIME_SERVICES_DATA,
+			  GRUB_EFI_LOADER_DATA,
 			  N_("can't allocate cmdline"));
   if (!cmdline)
     goto fail;
@@ -499,7 +499,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   kernel_size = lh->init_size;
   grub_dprintf ("linux", "Trying to allocate kernel mem\n");
   kernel_mem = kernel_alloc (KERNEL_MEM, kernel_size,
-			     GRUB_EFI_RUNTIME_SERVICES_CODE,
+			     GRUB_EFI_LOADER_CODE,
 			     N_("can't allocate kernel"));
   restore_addresses();
   if (!kernel_mem)
