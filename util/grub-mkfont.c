@@ -699,6 +699,7 @@ add_font (struct grub_font_info *font_info, FT_Face face, int nocut)
 	      }
 	    }
 	}
+      free (gsub);
     }
 
   if (font_info->num_range)
@@ -1322,11 +1323,15 @@ main (int argc, char *argv[])
   if (font_verbosity > 1)
     print_glyphs (&arguments.font_info);
 
+  free (arguments.font_info.glyphs_sorted);
+
   {
     size_t i;
     for (i = 0; i < arguments.nfiles; i++)
       free (arguments.files[i]);
   }
+
+  free (arguments.files);
 
   return 0;
 }
