@@ -60,17 +60,26 @@ struct allocation_choice {
     grub_efi_allocate_type_t alloc_type;
 };
 
-static struct allocation_choice max_addresses[4] =
+enum {
+    KERNEL_PREF_ADDRESS,
+    KERNEL_4G_LIMIT,
+    KERNEL_NO_LIMIT,
+};
+
+static struct allocation_choice max_addresses[] =
   {
     /* the kernel overrides this one with pref_address and
      * GRUB_EFI_ALLOCATE_ADDRESS */
-    { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
+    [KERNEL_PREF_ADDRESS] =
+      { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
+    /* If the flag in params is set, this one gets changed to be above 4GB. */
+    [KERNEL_4G_LIMIT] =
+      { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
     /* this one is always below 4GB, which we still *prefer* even if the flag
      * is set. */
-    { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
-    /* If the flag in params is set, this one gets changed to be above 4GB. */
-    { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
-    { 0, 0 }
+    [KERNEL_NO_LIMIT] =
+      { GRUB_EFI_MAX_ALLOCATION_ADDRESS, GRUB_EFI_ALLOCATE_MAX_ADDRESS },
+    { NO_MEM, 0, 0 }
   };
 static struct allocation_choice saved_addresses[4];
 
@@ -423,7 +432,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   if (lh->xloadflags & LINUX_XLF_CAN_BE_LOADED_ABOVE_4G)
     {
       grub_dprintf ("linux", "Loading kernel above 4GB is supported; enabling.\n");
-      max_addresses[2].addr = GRUB_EFI_MAX_USABLE_ADDRESS;
+      max_addresses[KERNEL_NO_LIMIT].addr = GRUB_EFI_MAX_USABLE_ADDRESS;
     }
   else
     {
@@ -495,11 +504,11 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_dprintf ("linux", "lh->pref_address: %p\n", (void *)(grub_addr_t)lh->pref_address);
   if (lh->pref_address < (grub_uint64_t)GRUB_EFI_MAX_ALLOCATION_ADDRESS)
     {
-      max_addresses[0].addr = lh->pref_address;
-      max_addresses[0].alloc_type = GRUB_EFI_ALLOCATE_ADDRESS;
+      max_addresses[KERNEL_PREF_ADDRESS].addr = lh->pref_address;
+      max_addresses[KERNEL_PREF_ADDRESS].alloc_type = GRUB_EFI_ALLOCATE_ADDRESS;
     }
-  max_addresses[1].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
-  max_addresses[2].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
+  max_addresses[KERNEL_4G_LIMIT].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
+  max_addresses[KERNEL_NO_LIMIT].addr = GRUB_EFI_MAX_ALLOCATION_ADDRESS;
   kernel_size = lh->init_size;
   kernel_mem = kernel_alloc (kernel_size, GRUB_EFI_RUNTIME_SERVICES_CODE,
 			     N_("can't allocate kernel"));
