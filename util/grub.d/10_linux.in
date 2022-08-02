@@ -161,6 +161,12 @@ update_bls_cmdline()
     local cmdline="root=${LINUX_ROOT_DEVICE} ro ${GRUB_CMDLINE_LINUX} ${GRUB_CMDLINE_LINUX_DEFAULT}"
     local -a files=($(get_sorted_bls))
 
+    if [[ ! -f /etc/kernel/cmdline ]]; then
+	# anaconda has the correct information to do this during install;
+	# afterward, grubby will take care of syncing on updates.
+	echo "$cmdline rhgb quiet" > /etc/kernel/cmdline
+    fi
+
     for bls in "${files[@]}"; do
         local options="${cmdline}"
         if [ -z "${bls##*debug*}" ]; then
