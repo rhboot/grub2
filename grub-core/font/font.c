@@ -760,7 +760,9 @@ grub_font_get_glyph_internal (grub_font_t font, grub_uint32_t code)
 	  || read_be_uint16 (font->file, &height) != 0
 	  || read_be_int16 (font->file, &xoff) != 0
 	  || read_be_int16 (font->file, &yoff) != 0
-	  || read_be_int16 (font->file, &dwidth) != 0)
+	  || read_be_int16 (font->file, &dwidth) != 0
+	  || width > font->max_char_width
+	  || height > font->max_char_height)
 	{
 	  remove_font (font);
 	  return 0;
