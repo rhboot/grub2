@@ -23,6 +23,7 @@
 #include <grub/symbol.h>
 #include <grub/types.h>
 #include <grub/video.h>
+#include <grub/safemath.h>
 
 #define IMAGE_HW_MAX_PX		16384
 
@@ -80,6 +81,23 @@ grub_video_bitmap_get_height (struct grub_video_bitmap *bitmap)
 
   return bitmap->mode_info.height;
 }
+
+/*
+ * Calculate and store the size of data buffer of 1bit bitmap in result.
+ * Equivalent to "*result = (width * height + 7) / 8" if no overflow occurs.
+ * Return true when overflow occurs or false if there is no overflow.
+ * This function is intentionally implemented as a macro instead of
+ * an inline function. Although a bit awkward, it preserves data types for
+ * safemath macros and reduces macro side effects as much as possible.
+ *
+ * XXX: Will report false overflow if width * height > UINT64_MAX.
+ */
+#define grub_video_bitmap_calc_1bpp_bufsz(width, height, result) \
+({ \
+  grub_uint64_t _bitmap_pixels; \
+  grub_mul ((width), (height), &_bitmap_pixels) ? 1 : \
+    grub_cast (_bitmap_pixels / GRUB_CHAR_BIT + !!(_bitmap_pixels % GRUB_CHAR_BIT), (result)); \
+})
 
 void EXPORT_FUNC (grub_video_bitmap_get_mode_info) (struct grub_video_bitmap *bitmap,
 						    struct grub_video_mode_info *mode_info);
