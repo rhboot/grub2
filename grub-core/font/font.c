@@ -1055,20 +1055,6 @@ grub_font_get_glyph_with_fallback (grub_font_t font, grub_uint32_t code)
   return best_glyph;
 }
 
-#if 0
-static struct grub_font_glyph *
-grub_font_dup_glyph (struct grub_font_glyph *glyph)
-{
-  static struct grub_font_glyph *ret;
-  ret = grub_malloc (sizeof (*ret) + (glyph->width * glyph->height + 7) / 8);
-  if (!ret)
-    return NULL;
-  grub_memcpy (ret, glyph, sizeof (*ret)
-	       + (glyph->width * glyph->height + 7) / 8);
-  return ret;
-}
-#endif
-
 /* FIXME: suboptimal.  */
 static void
 grub_font_blit_glyph (struct grub_font_glyph *target,
