@@ -1468,14 +1468,18 @@ ensure_comb_space (const struct grub_unicode_glyph *glyph_id)
   if (glyph_id->ncomb <= render_max_comb_glyphs)
     return;
 
-  render_max_comb_glyphs = 2 * glyph_id->ncomb;
-  if (render_max_comb_glyphs < 8)
+  if (grub_mul (glyph_id->ncomb, 2, &render_max_comb_glyphs))
+    render_max_comb_glyphs = 0;
+  if (render_max_comb_glyphs > 0 && render_max_comb_glyphs < 8)
     render_max_comb_glyphs = 8;
   grub_free (render_combining_glyphs);
-  render_combining_glyphs = grub_malloc (render_max_comb_glyphs
-					 * sizeof (render_combining_glyphs[0]));
+  render_combining_glyphs = (render_max_comb_glyphs > 0) ?
+    grub_calloc (render_max_comb_glyphs, sizeof (render_combining_glyphs[0])) : NULL;
   if (!render_combining_glyphs)
-    grub_errno = 0;
+    {
+      render_max_comb_glyphs = 0;
+      grub_errno = GRUB_ERR_NONE;
+    }
 }
 
 int
