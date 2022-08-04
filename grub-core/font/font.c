@@ -739,7 +739,8 @@ grub_font_get_glyph_internal (grub_font_t font, grub_uint32_t code)
       grub_int16_t xoff;
       grub_int16_t yoff;
       grub_int16_t dwidth;
-      int len;
+      grub_ssize_t len;
+      grub_size_t sz;
 
       if (index_entry->glyph)
 	/* Return cached glyph.  */
@@ -768,9 +769,17 @@ grub_font_get_glyph_internal (grub_font_t font, grub_uint32_t code)
 	  return 0;
 	}
 
-      len = (width * height + 7) / 8;
-      glyph = grub_malloc (sizeof (struct grub_font_glyph) + len);
-      if (!glyph)
+      /* Calculate real struct size of current glyph. */
+      if (grub_video_bitmap_calc_1bpp_bufsz (width, height, &len) ||
+	  grub_add (sizeof (struct grub_font_glyph), len, &sz))
+	{
+	  remove_font (font);
+	  return 0;
+	}
+
+      /* Allocate and initialize the glyph struct. */
+      glyph = grub_malloc (sz);
+      if (glyph == NULL)
 	{
 	  remove_font (font);
 	  return 0;
