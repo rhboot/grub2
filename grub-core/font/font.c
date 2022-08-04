@@ -1517,6 +1517,7 @@ grub_font_construct_glyph (grub_font_t hinted_font,
   struct grub_video_signed_rect bounds;
   static struct grub_font_glyph *glyph = 0;
   static grub_size_t max_glyph_size = 0;
+  grub_size_t cur_glyph_size;
 
   ensure_comb_space (glyph_id);
 
@@ -1533,29 +1534,33 @@ grub_font_construct_glyph (grub_font_t hinted_font,
   if (!glyph_id->ncomb && !glyph_id->attributes)
     return main_glyph;
 
-  if (max_glyph_size < sizeof (*glyph) + (bounds.width * bounds.height + GRUB_CHAR_BIT - 1) / GRUB_CHAR_BIT)
+  if (grub_video_bitmap_calc_1bpp_bufsz (bounds.width, bounds.height, &cur_glyph_size) ||
+      grub_add (sizeof (*glyph), cur_glyph_size, &cur_glyph_size))
+    return main_glyph;
+
+  if (max_glyph_size < cur_glyph_size)
     {
       grub_free (glyph);
-      max_glyph_size = (sizeof (*glyph) + (bounds.width * bounds.height + GRUB_CHAR_BIT - 1) / GRUB_CHAR_BIT) * 2;
-      if (max_glyph_size < 8)
-	max_glyph_size = 8;
-      glyph = grub_malloc (max_glyph_size);
+      if (grub_mul (cur_glyph_size, 2, &max_glyph_size))
+	max_glyph_size = 0;
+      glyph = max_glyph_size > 0 ? grub_malloc (max_glyph_size) : NULL;
     }
   if (!glyph)
     {
+      max_glyph_size = 0;
       grub_errno = GRUB_ERR_NONE;
       return main_glyph;
     }
 
-  grub_memset (glyph, 0, sizeof (*glyph)
-	       + (bounds.width * bounds.height
-		  + GRUB_CHAR_BIT - 1) / GRUB_CHAR_BIT);
+  grub_memset (glyph, 0, cur_glyph_size);
 
   glyph->font = main_glyph->font;
-  glyph->width = bounds.width;
-  glyph->height = bounds.height;
-  glyph->offset_x = bounds.x;
-  glyph->offset_y = bounds.y;
+  if (bounds.width == 0 || bounds.height == 0 ||
+      grub_cast (bounds.width, &glyph->width) ||
+      grub_cast (bounds.height, &glyph->height) ||
+      grub_cast (bounds.x, &glyph->offset_x) ||
+      grub_cast (bounds.y, &glyph->offset_y))
+    return main_glyph;
 
   if (glyph_id->attributes & GRUB_UNICODE_GLYPH_ATTRIBUTE_MIRROR)
     grub_font_blit_glyph_mirror (glyph, main_glyph,
