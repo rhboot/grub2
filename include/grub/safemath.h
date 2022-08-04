@@ -30,6 +30,8 @@
 #define grub_sub(a, b, res)	__builtin_sub_overflow(a, b, res)
 #define grub_mul(a, b, res)	__builtin_mul_overflow(a, b, res)
 
+#define grub_cast(a, res)	grub_add ((a), 0, (res))
+
 #else
 /*
  * Copyright 2020 Rasmus Villemoes
