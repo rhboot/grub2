@@ -384,10 +384,10 @@ if test -z "$debug"; then
 fi
 
 if [ x$boot != xnet ] && [ x$boot != xemu ]; then
-    pkgdatadir="@builddir@" "@builddir@/grub-mkrescue" "--output=${isofile}" "--override-directory=${builddir}/grub-core" \
+    pkgdatadir="${builddir}" "${builddir}/grub-mkrescue" "--output=${isofile}" "--override-directory=${builddir}/grub-core" \
 	--rom-directory="${rom_directory}" \
-	--locale-directory="@srcdir@/po" \
-	--themes-directory="@srcdir@/themes" \
+	--locale-directory="${srcdir}/po" \
+	--themes-directory="${srcdir}/themes" \
 	$mkimage_extra_arg ${mkrescue_args} \
 	"/boot/grub/grub.cfg=${cfgfile}" "/boot/grub/testcase.cfg=${source}" \
 	${files} >/dev/null 2>&1
@@ -482,7 +482,7 @@ copy_extra_files() {
 
 if [ x$boot = xnet ]; then
     netdir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
-    pkgdatadir="@builddir@" "@builddir@/grub-mknetdir" "--grub-mkimage=${builddir}/grub-mkimage" "--directory=${builddir}/grub-core" "--net-directory=$netdir" ${mkrescue_args} > /dev/null
+    pkgdatadir="${builddir}" "${builddir}/grub-mknetdir" "--grub-mkimage=${builddir}/grub-mkimage" "--directory=${builddir}/grub-core" "--net-directory=$netdir" ${mkrescue_args} > /dev/null
     cp "${cfgfile}" "$netdir/boot/grub/grub.cfg"
     cp "${source}" "$netdir/boot/grub/testcase.cfg"
     [ -z "$files" ] || copy_extra_files "$netdir" $files
@@ -493,9 +493,9 @@ elif [ x$boot = xemu ]; then
     mkdir -p "$grubdir/fonts"
     mkdir -p "$grubdir/themes"
     mkdir -p "$grubdir/locale"
-    test -f "@builddir@/"unicode.pf2 && cp "@builddir@/"unicode.pf2 "$grubdir/fonts/unicode.pf2"
-    cp -R "@srcdir@/themes/starfield" "$grubdir/themes/starfield"
-    for file in "@srcdir@/po/"*.gmo; do
+    test -f "${builddir}/"unicode.pf2 && cp "${builddir}/"unicode.pf2 "$grubdir/fonts/unicode.pf2"
+    cp -R "${srcdir}/themes/starfield" "$grubdir/themes/starfield"
+    for file in "${srcdir}/po/"*.gmo; do
 	if [ -f "$file" ]; then
 	    cp "$file" "$grubdir/locale/"
 	fi
@@ -505,7 +505,7 @@ elif [ x$boot = xemu ]; then
     [ -z "$files" ] || copy_extra_files "$rootdir" $files
     roottar="$(mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX")"
     (cd "$rootdir"; tar cf "$roottar" .)
-    @builddir@/grub-core/grub-emu -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" | tr -d "\r" | do_trim
+    "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" | tr -d "\r" | do_trim
     test -n "$debug" || rm -rf "$rootdir"
     test -n "$debug" || rm -f "$roottar"
 else
