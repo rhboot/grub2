@@ -64,6 +64,7 @@ static const struct grub_arg_option options[] =
 struct cryptodisk_read_hook_ctx
 {
   grub_file_t hdr_file;
+  grub_disk_addr_t part_start;
 };
 typedef struct cryptodisk_read_hook_ctx *cryptodisk_read_hook_ctx_t;
 
@@ -1022,7 +1023,7 @@ cryptodisk_read_hook (grub_disk_addr_t sector, unsigned offset,
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("header file not found"));
 
   if (grub_file_seek (ctx->hdr_file,
-		      (sector * GRUB_DISK_SECTOR_SIZE) + offset)
+		      ((sector - ctx->part_start) * GRUB_DISK_SECTOR_SIZE) + offset)
       == (grub_off_t) -1)
     return grub_errno;
 
@@ -1078,6 +1079,7 @@ grub_cryptodisk_scan_device_real (const char *name,
        * times by a backend. This is fine because of the assumptions mentioned
        * and the read hook reads from absolute offsets and is stateless.
        */
+      read_hook_data.part_start = grub_partition_get_start (source->partition);
       read_hook_data.hdr_file = cargs->hdr_file;
       source->read_hook = cryptodisk_read_hook;
       source->read_hook_data = (void *) &read_hook_data;
