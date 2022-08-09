@@ -77,7 +77,7 @@ grub_util_readlink (const char *name, char *buf, size_t bufsize)
   return readlink(name, buf, bufsize);
 }
 
-#define grub_util_mkdir(a) mkdir ((a), 0755)
+#define grub_util_mkdir(a) (void) mkdir ((a), 0755)
 
 #if defined (__NetBSD__)
 /* NetBSD uses /boot for its boot block.  */
