@@ -173,15 +173,20 @@ grub_install_mkdir_p (const char *dst)
   char *p;
   for (p = t; *p; p++)
     {
-      if (is_path_separator (*p))
+      if (is_path_separator (*p) && p != t)
 	{
 	  char s = *p;
 	  *p = '\0';
 	  grub_util_mkdir (t);
+	  if (!grub_util_is_directory (t))
+	    grub_util_error (_("failed to make directory: '%s'"), t);
+
 	  *p = s;
 	}
     }
   grub_util_mkdir (t);
+  if (!grub_util_is_directory (t))
+    grub_util_error (_("failed to make directory: '%s'"), t);
   free (t);
 }
 
