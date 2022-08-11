@@ -162,12 +162,12 @@ EOF
     message="$(gettext_printf "Loading initial ramdisk ...")"
     initrd_path=
     for i in ${initrd}; do
-       initrd_path="${initrd_path} ${rel_dirname}/${i}"
-    done
-    sed "s/^/$submenu_indentation/" << EOF
+       initrd_path="${rel_dirname}/${i}"
+       sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$message" | grub_quote)'
 	${module_loader}	--nounzip   $(echo $initrd_path)
 EOF
+    done
   fi
   if test -n "${xenpolicy}" ; then
     message="$(gettext_printf "Loading XSM policy ...")"
