@@ -51,9 +51,6 @@ static grub_addr_t initrd_end;
 grub_err_t
 grub_arch_efi_linux_check_image (struct linux_arch_kernel_header * lh)
 {
-  if (lh->magic != GRUB_LINUX_ARMXX_MAGIC_SIGNATURE)
-    return grub_error(GRUB_ERR_BAD_OS, "invalid magic number");
-
   if ((lh->code0 & 0xffff) != GRUB_PE32_MAGIC)
     return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
 		       N_("plain image kernel not supported - rebuild with CONFIG_(U)EFI_STUB enabled"));
