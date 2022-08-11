@@ -59,6 +59,17 @@ Report bugs to <bug-grub@gnu.org>.
 EOF
 }
 
+# Exec given argv and only show its output on STDERR if it returns an
+# error status.
+exec_show_error () {
+    v=`$@ 2>&1`
+    ret=$?
+    if [ "$ret" != 0 ]; then
+        echo "$v" >&2
+        exit $ret
+    fi
+}
+
 . "${builddir}/grub-core/modinfo.sh"
 qemuopts="${GRUB_QEMU_OPTS}"
 serial_port=com0
@@ -384,13 +395,15 @@ if test -z "$debug"; then
 fi
 
 if [ x$boot != xnet ] && [ x$boot != xemu ]; then
-    pkgdatadir="${builddir}" "${builddir}/grub-mkrescue" "--output=${isofile}" "--override-directory=${builddir}/grub-core" \
+    pkgdatadir="${builddir}" \
+    exec_show_error "${builddir}/grub-mkrescue" "--output=${isofile}" \
+	"--override-directory=${builddir}/grub-core" \
 	--rom-directory="${rom_directory}" \
 	--locale-directory="${srcdir}/po" \
 	--themes-directory="${srcdir}/themes" \
 	$mkimage_extra_arg ${mkrescue_args} \
 	"/boot/grub/grub.cfg=${cfgfile}" "/boot/grub/testcase.cfg=${source}" \
-	${files} >/dev/null 2>&1
+	${files} || exit $?
 fi
 if [ x$boot = xhd ]; then
     if [ "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" = arm64-efi ] || [ "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" = arm-efi ]; then
