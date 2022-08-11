@@ -232,7 +232,8 @@ grub_strncasecmp (const char *s1, const char *s2, grub_size_t n)
 
   while (*s1 && *s2 && --n)
     {
-      if (grub_tolower (*s1) != grub_tolower (*s2))
+      if (grub_tolower ((grub_uint8_t) *s1)
+	  != grub_tolower ((grub_uint8_t) *s2))
 	break;
 
       s1++;
