@@ -18,6 +18,7 @@
 # define Elf_Rel        Elf32_Rel
 # define Elf_Word       Elf32_Word
 # define Elf_Half       Elf32_Half
+# define Elf_Shnum      Elf32_Shnum
 # define Elf_Section    Elf32_Section
 # define ELF_R_SYM(val)		ELF32_R_SYM(val)
 # define ELF_R_TYPE(val)		ELF32_R_TYPE(val)
@@ -36,6 +37,7 @@
 # define Elf_Rel        Elf64_Rel
 # define Elf_Word       Elf64_Word
 # define Elf_Half       Elf64_Half
+# define Elf_Shnum      Elf64_Shnum
 # define Elf_Section    Elf64_Section
 # define ELF_R_SYM(val)		ELF64_R_SYM(val)
 # define ELF_R_TYPE(val)		ELF64_R_TYPE(val)
@@ -141,11 +143,11 @@ get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word in
 		       index * grub_target_to_host16 (e->e_shentsize));
 }
 
-static Elf_Word
+static Elf_Shnum
 get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
 {
   Elf_Shdr *s;
-  Elf_Word shnum;
+  Elf_Shnum shnum;
 
   shnum = grub_target_to_host16 (e->e_shnum);
   if (shnum == SHN_UNDEF)
@@ -153,12 +155,12 @@ get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
       s = get_shdr (arch, e, 0);
       shnum = grub_target_to_host (s->sh_size);
       if (shnum < SHN_LORESERVE)
-	grub_util_error ("Invalid number of section header table entries in sh_size: %d", shnum);
+	grub_util_error ("Invalid number of section header table entries in sh_size: %" PRIuGRUB_UINT64_T, (grub_uint64_t) shnum);
     }
   else
     {
       if (shnum >= SHN_LORESERVE)
-	grub_util_error ("Invalid number of section header table entries in e_shnum: %d", shnum);
+	grub_util_error ("Invalid number of section header table entries in e_shnum: %" PRIuGRUB_UINT64_T, (grub_uint64_t) shnum);
     }
 
   return shnum;
