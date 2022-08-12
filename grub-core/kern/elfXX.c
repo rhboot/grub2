@@ -205,3 +205,37 @@ grub_elfXX_check_endianess_and_bswap_ehdr (grub_elf_t elf)
 
   return 0;
 }
+
+grub_err_t
+grub_elfXX_get_shnum (ElfXX_Ehdr *e, ElfXX_Shnum *shnum)
+{
+  ElfXX_Shdr *s;
+
+  if (shnum == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("NULL pointer passed for shnum"));
+
+  /* Set *shnum to 0 so that shnum doesn't return junk on error */
+  *shnum = 0;
+
+  if (e == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("NULL pointer passed for elf header"));
+
+  *shnum = e->e_shnum;
+  if (*shnum == SHN_UNDEF)
+    {
+      if (e->e_shoff == 0)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid section header table offset in e_shoff"));
+
+      s = (ElfXX_Shdr *) ((grub_uint8_t *) e + e->e_shoff);
+      *shnum = s->sh_size;
+      if (*shnum < SHN_LORESERVE)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid number of section header table entries in sh_size: %" PRIuGRUB_UINT64_T), (grub_uint64_t) *shnum);
+    }
+  else
+    {
+      if (*shnum >= SHN_LORESERVE)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid number of section header table entries in e_shnum: %" PRIuGRUB_UINT64_T), (grub_uint64_t) *shnum);
+    }
+
+  return GRUB_ERR_NONE;
+}

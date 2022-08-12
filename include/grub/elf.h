@@ -23,6 +23,7 @@
 /* Standard ELF types.  */
 
 #include <grub/types.h>
+#include <grub/err.h>
 
 /* Type for a 16-bit quantity.  */
 typedef grub_uint16_t Elf32_Half;
@@ -56,6 +57,9 @@ typedef grub_uint16_t Elf64_Section;
 typedef Elf32_Half Elf32_Versym;
 typedef Elf64_Half Elf64_Versym;
 
+/* Type for number of section header table entries */
+typedef Elf32_Word Elf32_Shnum;
+typedef Elf64_Xword Elf64_Shnum;
 
 /* The ELF file header.  This appears at the start of every ELF file.  */
 
@@ -2531,6 +2535,10 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_RISCV_SET32           56
 #define R_RISCV_32_PCREL        57
 
+extern grub_err_t grub_elf32_get_shnum (Elf32_Ehdr *e, Elf32_Shnum *shnum);
+
+extern grub_err_t grub_elf64_get_shnum (Elf64_Ehdr *e, Elf64_Shnum *shnum);
+
 #ifdef GRUB_TARGET_WORDSIZE
 #if GRUB_TARGET_WORDSIZE == 32
 
@@ -2548,6 +2556,7 @@ typedef Elf32_Sword Elf_Sword;
 typedef Elf32_Sym Elf_Sym;
 typedef Elf32_Word Elf_Word;
 typedef Elf32_Xword Elf_Xword;
+typedef Elf32_Shnum Elf_Shnum;
 
 #define ELF_ST_BIND(val)	ELF32_ST_BIND(val)
 #define ELF_ST_TYPE(val)	ELF32_ST_TYPE(val)
@@ -2556,6 +2565,8 @@ typedef Elf32_Xword Elf_Xword;
 #define ELF_R_SYM(val)		ELF32_R_SYM(val)
 #define ELF_R_TYPE(val)		ELF32_R_TYPE(val)
 #define ELF_R_INFO(sym, type)	ELF32_R_INFO(sym, type)
+
+#define grub_elf_get_shnum	grub_elf32_get_shnum
 
 #elif GRUB_TARGET_WORDSIZE == 64
 
@@ -2573,6 +2584,7 @@ typedef Elf64_Sword Elf_Sword;
 typedef Elf64_Sym Elf_Sym;
 typedef Elf64_Word Elf_Word;
 typedef Elf64_Xword Elf_Xword;
+typedef Elf64_Shnum Elf_Shnum;
 
 #define ELF_ST_BIND(val)	ELF64_ST_BIND (val)
 #define ELF_ST_TYPE(val)	ELF64_ST_TYPE (val)
@@ -2580,6 +2592,8 @@ typedef Elf64_Xword Elf_Xword;
 #define ELF_R_SYM(val)		ELF64_R_SYM(val)
 #define ELF_R_TYPE(val)		ELF64_R_TYPE(val)
 #define ELF_R_INFO(sym, type)	ELF64_R_INFO(sym, type)
+
+#define grub_elf_get_shnum	grub_elf64_get_shnum
 
 #endif /* GRUB_TARGET_WORDSIZE == 64 */
 #endif

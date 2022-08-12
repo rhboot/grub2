@@ -167,11 +167,15 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #define grub_elfXX_load_phdrs grub_elf32_load_phdrs
 #define ElfXX_Phdr Elf32_Phdr
 #define ElfXX_Ehdr Elf32_Ehdr
+#define ElfXX_Shdr Elf32_Shdr
+#define ElfXX_Word Elf32_Word
+#define ElfXX_Shnum Elf32_Shnum
 #define grub_uintXX_t grub_uint32_t
 #define grub_swap_bytes_addrXX grub_swap_bytes32
 #define grub_swap_bytes_offXX grub_swap_bytes32
 #define grub_swap_bytes_XwordXX grub_swap_bytes32
 #define grub_elfXX_check_endianess_and_bswap_ehdr grub_elf32_check_endianess_and_bswap_ehdr
+#define grub_elfXX_get_shnum grub_elf32_get_shnum
 
 #include "elfXX.c"
 
@@ -185,11 +189,15 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #undef grub_elfXX_load_phdrs
 #undef ElfXX_Phdr
 #undef ElfXX_Ehdr
+#undef ElfXX_Shdr
+#undef ElfXX_Word
+#undef ElfXX_Shnum
 #undef grub_uintXX_t
 #undef grub_swap_bytes_addrXX
 #undef grub_swap_bytes_offXX
 #undef grub_swap_bytes_XwordXX
 #undef grub_elfXX_check_endianess_and_bswap_ehdr
+#undef grub_elfXX_get_shnum
 
 
 /* 64-bit */
@@ -203,10 +211,14 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #define grub_elfXX_load_phdrs grub_elf64_load_phdrs
 #define ElfXX_Phdr Elf64_Phdr
 #define ElfXX_Ehdr Elf64_Ehdr
+#define ElfXX_Shdr Elf64_Shdr
+#define ElfXX_Word Elf64_Word
+#define ElfXX_Shnum Elf64_Shnum
 #define grub_uintXX_t grub_uint64_t
 #define grub_swap_bytes_addrXX grub_swap_bytes64
 #define grub_swap_bytes_offXX grub_swap_bytes64
 #define grub_swap_bytes_XwordXX grub_swap_bytes64
 #define grub_elfXX_check_endianess_and_bswap_ehdr grub_elf64_check_endianess_and_bswap_ehdr
+#define grub_elfXX_get_shnum grub_elf64_get_shnum
 
 #include "elfXX.c"
