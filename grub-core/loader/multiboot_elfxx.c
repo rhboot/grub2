@@ -23,8 +23,10 @@
 # define Elf_Ehdr		Elf32_Ehdr
 # define Elf_Phdr		Elf32_Phdr
 # define Elf_Shdr		Elf32_Shdr
+# define Elf_Word		Elf32_Word
 # define Elf_Shnum		Elf32_Shnum
 # define grub_multiboot_elf_get_shnum		grub_elf32_get_shnum
+# define grub_multiboot_elf_get_shstrndx	grub_elf32_get_shstrndx
 #elif defined(MULTIBOOT_LOAD_ELF64)
 # define XX			64
 # define E_MACHINE		MULTIBOOT_ELF64_MACHINE
@@ -32,8 +34,10 @@
 # define Elf_Ehdr		Elf64_Ehdr
 # define Elf_Phdr		Elf64_Phdr
 # define Elf_Shdr		Elf64_Shdr
+# define Elf_Word		Elf64_Word
 # define Elf_Shnum		Elf64_Shnum
 # define grub_multiboot_elf_get_shnum		grub_elf64_get_shnum
+# define grub_multiboot_elf_get_shstrndx	grub_elf64_get_shstrndx
 #else
 #error "I'm confused"
 #endif
@@ -63,6 +67,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
   grub_relocator_chunk_t ch;
   grub_uint32_t load_offset = 0, load_size;
   Elf_Shnum shnum;
+  Elf_Word shstrndx;
   unsigned int i;
   void *source = NULL;
 
@@ -81,6 +86,10 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
     return grub_error (GRUB_ERR_UNKNOWN_OS, N_("this ELF file is not of the right type"));
 
   err = grub_multiboot_elf_get_shnum (ehdr, &shnum);
+  if (err != GRUB_ERR_NONE)
+    return err;
+
+  err = grub_multiboot_elf_get_shstrndx (ehdr, &shstrndx);
   if (err != GRUB_ERR_NONE)
     return err;
 
@@ -291,7 +300,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	  sh->sh_addr = target;
 	}
       GRUB_MULTIBOOT (add_elfsyms) (shnum, ehdr->e_shentsize,
-				    ehdr->e_shstrndx, shdr);
+				    shstrndx, shdr);
     }
 
 #undef phdr
@@ -305,5 +314,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 #undef Elf_Ehdr
 #undef Elf_Phdr
 #undef Elf_Shdr
+#undef Elf_Word
 #undef Elf_Shnum
 #undef grub_multiboot_elf_get_shnum
+#undef grub_multiboot_elf_get_shstrndx

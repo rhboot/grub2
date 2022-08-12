@@ -2536,8 +2536,10 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_RISCV_32_PCREL        57
 
 extern grub_err_t grub_elf32_get_shnum (Elf32_Ehdr *e, Elf32_Shnum *shnum);
+extern grub_err_t grub_elf32_get_shstrndx (Elf32_Ehdr *e, Elf32_Word *shstrndx);
 
 extern grub_err_t grub_elf64_get_shnum (Elf64_Ehdr *e, Elf64_Shnum *shnum);
+extern grub_err_t grub_elf64_get_shstrndx (Elf64_Ehdr *e, Elf64_Word *shstrndx);
 
 #ifdef GRUB_TARGET_WORDSIZE
 #if GRUB_TARGET_WORDSIZE == 32
@@ -2567,6 +2569,7 @@ typedef Elf32_Shnum Elf_Shnum;
 #define ELF_R_INFO(sym, type)	ELF32_R_INFO(sym, type)
 
 #define grub_elf_get_shnum	grub_elf32_get_shnum
+#define grub_elf_get_shstrndx	grub_elf32_get_shstrndx
 
 #elif GRUB_TARGET_WORDSIZE == 64
 
@@ -2594,6 +2597,7 @@ typedef Elf64_Shnum Elf_Shnum;
 #define ELF_R_INFO(sym, type)	ELF64_R_INFO(sym, type)
 
 #define grub_elf_get_shnum	grub_elf64_get_shnum
+#define grub_elf_get_shstrndx	grub_elf64_get_shstrndx
 
 #endif /* GRUB_TARGET_WORDSIZE == 64 */
 #endif

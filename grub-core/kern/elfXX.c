@@ -239,3 +239,36 @@ grub_elfXX_get_shnum (ElfXX_Ehdr *e, ElfXX_Shnum *shnum)
 
   return GRUB_ERR_NONE;
 }
+
+grub_err_t
+grub_elfXX_get_shstrndx (ElfXX_Ehdr *e, ElfXX_Word *shstrndx)
+{
+  ElfXX_Shdr *s;
+
+  if (shstrndx == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("NULL pointer passed for shstrndx"));
+
+  /* Set *shstrndx to 0 so that shstrndx doesn't return junk on error */
+  *shstrndx = 0;
+
+  if (e == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("NULL pointer passed for elf header"));
+
+  *shstrndx = e->e_shstrndx;
+  if (*shstrndx == SHN_XINDEX)
+    {
+      if (e->e_shoff == 0)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid section header table offset in e_shoff"));
+
+      s = (ElfXX_Shdr *) ((grub_uint8_t *) e + e->e_shoff);
+      *shstrndx = s->sh_link;
+      if (*shstrndx < SHN_LORESERVE)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid section header table index in sh_link: %d"), *shstrndx);
+    }
+  else
+    {
+      if (*shstrndx >= SHN_LORESERVE)
+	return grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid section header table index in e_shstrndx: %d"), *shstrndx);
+    }
+  return GRUB_ERR_NONE;
+}
