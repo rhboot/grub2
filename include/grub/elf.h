@@ -570,6 +570,7 @@ typedef struct
 #define PT_HIOS		0x6fffffff	/* End of OS-specific */
 #define PT_LOPROC	0x70000000	/* Start of processor-specific */
 #define PT_HIPROC	0x7fffffff	/* End of processor-specific */
+#define PN_XNUM		0xffff
 
 /* Legal values for p_flags (segment flags).  */
 
@@ -2537,9 +2538,11 @@ typedef Elf32_Addr Elf32_Conflict;
 
 extern grub_err_t grub_elf32_get_shnum (Elf32_Ehdr *e, Elf32_Shnum *shnum);
 extern grub_err_t grub_elf32_get_shstrndx (Elf32_Ehdr *e, Elf32_Word *shstrndx);
+extern grub_err_t grub_elf32_get_phnum (Elf32_Ehdr *e, Elf32_Word *phnum);
 
 extern grub_err_t grub_elf64_get_shnum (Elf64_Ehdr *e, Elf64_Shnum *shnum);
 extern grub_err_t grub_elf64_get_shstrndx (Elf64_Ehdr *e, Elf64_Word *shstrndx);
+extern grub_err_t grub_elf64_get_phnum (Elf64_Ehdr *e, Elf64_Word *phnum);
 
 #ifdef GRUB_TARGET_WORDSIZE
 #if GRUB_TARGET_WORDSIZE == 32
@@ -2570,6 +2573,7 @@ typedef Elf32_Shnum Elf_Shnum;
 
 #define grub_elf_get_shnum	grub_elf32_get_shnum
 #define grub_elf_get_shstrndx	grub_elf32_get_shstrndx
+#define grub_elf_get_phnum	grub_elf32_get_phnum
 
 #elif GRUB_TARGET_WORDSIZE == 64
 
@@ -2598,6 +2602,7 @@ typedef Elf64_Shnum Elf_Shnum;
 
 #define grub_elf_get_shnum	grub_elf64_get_shnum
 #define grub_elf_get_shstrndx	grub_elf64_get_shstrndx
+#define grub_elf_get_phnum	grub_elf64_get_phnum
 
 #endif /* GRUB_TARGET_WORDSIZE == 64 */
 #endif

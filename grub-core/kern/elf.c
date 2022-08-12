@@ -177,6 +177,7 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #define grub_elfXX_check_endianess_and_bswap_ehdr grub_elf32_check_endianess_and_bswap_ehdr
 #define grub_elfXX_get_shnum grub_elf32_get_shnum
 #define grub_elfXX_get_shstrndx grub_elf32_get_shstrndx
+#define grub_elfXX_get_phnum grub_elf32_get_phnum
 
 #include "elfXX.c"
 
@@ -200,6 +201,7 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #undef grub_elfXX_check_endianess_and_bswap_ehdr
 #undef grub_elfXX_get_shnum
 #undef grub_elfXX_get_shstrndx
+#undef grub_elfXX_get_phnum
 
 
 /* 64-bit */
@@ -223,5 +225,6 @@ grub_elf_open (const char *name, enum grub_file_type type)
 #define grub_elfXX_check_endianess_and_bswap_ehdr grub_elf64_check_endianess_and_bswap_ehdr
 #define grub_elfXX_get_shnum grub_elf64_get_shnum
 #define grub_elfXX_get_shstrndx grub_elf64_get_shstrndx
+#define grub_elfXX_get_phnum grub_elf64_get_phnum
 
 #include "elfXX.c"

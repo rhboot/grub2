@@ -183,6 +183,7 @@ SUFFIX (grub_freebsd_load_elfmodule) (struct grub_relocator *relocator,
   Elf_Ehdr e;
   Elf_Shdr *s, *shdr = NULL;
   Elf_Shnum shnum;
+  Elf_Word phnum;
   grub_addr_t curload, module;
   grub_err_t err;
   grub_size_t chunk_size = 0;
@@ -195,6 +196,10 @@ SUFFIX (grub_freebsd_load_elfmodule) (struct grub_relocator *relocator,
     goto out;
 
   err = grub_elf_get_shnum (&e, &shnum);
+  if (err != GRUB_ERR_NONE)
+    goto out;
+
+  err = grub_elf_get_phnum (&e, &phnum);
   if (err != GRUB_ERR_NONE)
     goto out;
 
@@ -212,7 +217,7 @@ SUFFIX (grub_freebsd_load_elfmodule) (struct grub_relocator *relocator,
 
   if (chunk_size < sizeof (e))
     chunk_size = sizeof (e);
-  chunk_size += (grub_uint32_t) e.e_phnum * e.e_phentsize;
+  chunk_size += (grub_size_t) phnum * e.e_phentsize;
   chunk_size += (grub_size_t) shnum * e.e_shentsize;
 
   {
@@ -269,9 +274,9 @@ SUFFIX (grub_freebsd_load_elfmodule) (struct grub_relocator *relocator,
   curload += (grub_addr_t) shnum * e.e_shentsize;
 
   load (file, argv[0], (grub_uint8_t *) chunk_src + curload - *kern_end, e.e_phoff,
-	(grub_uint32_t) e.e_phnum * e.e_phentsize);
+	(grub_size_t) phnum * e.e_phentsize);
   e.e_phoff = curload - module;
-  curload +=  (grub_uint32_t) e.e_phnum * e.e_phentsize;
+  curload += (grub_addr_t) phnum * e.e_phentsize;
 
   *kern_end = curload;
 

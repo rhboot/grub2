@@ -27,6 +27,7 @@
 # define Elf_Shnum		Elf32_Shnum
 # define grub_multiboot_elf_get_shnum		grub_elf32_get_shnum
 # define grub_multiboot_elf_get_shstrndx	grub_elf32_get_shstrndx
+# define grub_multiboot_elf_get_phnum		grub_elf32_get_phnum
 #elif defined(MULTIBOOT_LOAD_ELF64)
 # define XX			64
 # define E_MACHINE		MULTIBOOT_ELF64_MACHINE
@@ -38,6 +39,7 @@
 # define Elf_Shnum		Elf64_Shnum
 # define grub_multiboot_elf_get_shnum		grub_elf64_get_shnum
 # define grub_multiboot_elf_get_shstrndx	grub_elf64_get_shstrndx
+# define grub_multiboot_elf_get_phnum		grub_elf64_get_phnum
 #else
 #error "I'm confused"
 #endif
@@ -67,7 +69,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
   grub_relocator_chunk_t ch;
   grub_uint32_t load_offset = 0, load_size;
   Elf_Shnum shnum;
-  Elf_Word shstrndx;
+  Elf_Word shstrndx, phnum;
   unsigned int i;
   void *source = NULL;
 
@@ -93,8 +95,12 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
   if (err != GRUB_ERR_NONE)
     return err;
 
+  err = grub_multiboot_elf_get_phnum (ehdr, &phnum);
+  if (err != GRUB_ERR_NONE)
+    return err;
+
   /* FIXME: Should we support program headers at strange locations?  */
-  if (ehdr->e_phoff + (grub_uint32_t) ehdr->e_phnum * ehdr->e_phentsize > MULTIBOOT_SEARCH)
+  if (ehdr->e_phoff + phnum * ehdr->e_phentsize > MULTIBOOT_SEARCH)
     return grub_error (GRUB_ERR_BAD_OS, "program header at a too high offset");
 
   phdr_base = (char *) mld->buffer + ehdr->e_phoff;
@@ -103,7 +109,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
   mld->link_base_addr = ~0;
 
   /* Calculate lowest and highest load address.  */
-  for (i = 0; i < ehdr->e_phnum; i++)
+  for (i = 0; i < phnum; i++)
     if (phdr(i)->p_type == PT_LOAD)
       {
 	mld->link_base_addr = grub_min (mld->link_base_addr, phdr(i)->p_paddr);
@@ -149,7 +155,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 		mld->link_base_addr, mld->load_base_addr);
 
   /* Load every loadable segment in memory.  */
-  for (i = 0; i < ehdr->e_phnum; i++)
+  for (i = 0; i < phnum; i++)
     {
       if (phdr(i)->p_type == PT_LOAD)
         {
@@ -198,7 +204,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
         }
     }
 
-  for (i = 0; i < ehdr->e_phnum; i++)
+  for (i = 0; i < phnum; i++)
     if (phdr(i)->p_vaddr <= ehdr->e_entry
 	&& phdr(i)->p_vaddr + phdr(i)->p_memsz > ehdr->e_entry)
       {
@@ -220,7 +226,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	break;
       }
 
-  if (i == ehdr->e_phnum)
+  if (i == phnum)
     return grub_error (GRUB_ERR_BAD_OS, "entry point isn't in a segment");
 
 #if defined (__i386__) || defined (__x86_64__)
@@ -318,3 +324,4 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 #undef Elf_Shnum
 #undef grub_multiboot_elf_get_shnum
 #undef grub_multiboot_elf_get_shstrndx
+#undef grub_multiboot_elf_get_phnum
