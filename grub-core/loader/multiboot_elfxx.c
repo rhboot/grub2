@@ -138,7 +138,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 						   load_size, mld->align ? mld->align : 1,
 						   mld->preference, mld->avoid_efi_boot_services);
 
-      if (err)
+      if (err != GRUB_ERR_NONE)
         {
           grub_dprintf ("multiboot_loader", "Cannot allocate memory for OS image\n");
           return err;
@@ -173,7 +173,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	      err = grub_relocator_alloc_chunk_addr (GRUB_MULTIBOOT (relocator), &ch,
 	                                             phdr(i)->p_paddr, phdr(i)->p_memsz);
 
-	      if (err)
+	      if (err != GRUB_ERR_NONE)
 		{
 		  grub_dprintf ("multiboot_loader", "Cannot allocate memory for OS image\n");
 		  return err;
@@ -284,7 +284,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 						  sh->sh_size, sh->sh_addralign,
 						  GRUB_RELOCATOR_PREFERENCE_NONE,
 						  mld->avoid_efi_boot_services);
-	  if (err)
+	  if (err != GRUB_ERR_NONE)
 	    {
 	      grub_dprintf ("multiboot_loader", "Error loading shdr %d\n", i);
 	      return err;
