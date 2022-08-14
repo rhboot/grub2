@@ -688,12 +688,12 @@ read_be_int16 (grub_file_t file, grub_int16_t * value)
 static inline struct char_index_entry *
 find_glyph (const grub_font_t font, grub_uint32_t code)
 {
-  struct char_index_entry *table;
-  grub_size_t lo;
-  grub_size_t hi;
-  grub_size_t mid;
+  struct char_index_entry *table, *first, *end;
+  grub_size_t len;
 
   table = font->char_index;
+  if (table == NULL)
+    return NULL;
 
   /* Use BMP index if possible.  */
   if (code < 0x10000 && font->bmp_idx)
@@ -706,25 +706,29 @@ find_glyph (const grub_font_t font, grub_uint32_t code)
        */
     }
 
-  /* Do a binary search in `char_index', which is ordered by code point.  */
-  lo = 0;
-  hi = font->num_chars - 1;
+  /*
+   * Do a binary search in char_index which is ordered by code point.
+   * The code below is the same as libstdc++'s std::lower_bound().
+   */
+  first = table;
+  len = font->num_chars;
+  end = first + len;
 
-  if (!table)
-    return 0;
-
-  while (lo <= hi)
+  while (len > 0)
     {
-      mid = lo + (hi - lo) / 2;
-      if (code < table[mid].code)
-	hi = mid - 1;
-      else if (code > table[mid].code)
-	lo = mid + 1;
+      grub_size_t half = len >> 1;
+      struct char_index_entry *middle = first + half;
+
+      if (middle->code < code)
+	{
+	  first = middle + 1;
+	  len = len - half - 1;
+	}
       else
-	return &table[mid];
+	len = half;
     }
 
-  return 0;
+  return (first < end && first->code == code) ? first : NULL;
 }
 
 /* Get a glyph for the Unicode character CODE in FONT.  The glyph is loaded
