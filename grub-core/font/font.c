@@ -300,6 +300,8 @@ load_font_index (grub_file_t file, grub_uint32_t sect_length, struct
   font->bmp_idx = grub_malloc (0x10000 * sizeof (grub_uint16_t));
   if (!font->bmp_idx)
     return 1;
+
+  /* Init the BMP index array to 0xffff. */
   grub_memset (font->bmp_idx, 0xff, 0x10000 * sizeof (grub_uint16_t));
 
 
@@ -328,7 +330,7 @@ load_font_index (grub_file_t file, grub_uint32_t sect_length, struct
 	  return 1;
 	}
 
-      if (entry->code < 0x10000)
+      if (entry->code < 0x10000 && i < 0xffff)
 	font->bmp_idx[entry->code] = i;
 
       last_code = entry->code;
@@ -696,9 +698,12 @@ find_glyph (const grub_font_t font, grub_uint32_t code)
   /* Use BMP index if possible.  */
   if (code < 0x10000 && font->bmp_idx)
     {
-      if (font->bmp_idx[code] == 0xffff)
-	return 0;
-      return &table[font->bmp_idx[code]];
+      if (font->bmp_idx[code] < 0xffff)
+	return &table[font->bmp_idx[code]];
+      /*
+       * When we are here then lookup in BMP index result in miss,
+       * fallthough to binary-search.
+       */
     }
 
   /* Do a binary search in `char_index', which is ordered by code point.  */
