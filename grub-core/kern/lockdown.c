@@ -51,6 +51,7 @@ lockdown_verifier_init (grub_file_t io __attribute__ ((unused)),
     case GRUB_FILE_TYPE_EFI_CHAINLOADED_IMAGE:
     case GRUB_FILE_TYPE_ACPI_TABLE:
     case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
+    case GRUB_FILE_TYPE_FONT:
       *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
 
       /* Fall through. */
