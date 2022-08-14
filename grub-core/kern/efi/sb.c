@@ -145,7 +145,6 @@ shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
     case GRUB_FILE_TYPE_PRINT_BLOCKLIST:
     case GRUB_FILE_TYPE_TESTLOAD:
     case GRUB_FILE_TYPE_GET_SIZE:
-    case GRUB_FILE_TYPE_FONT:
     case GRUB_FILE_TYPE_ZFS_ENCRYPTION_KEY:
     case GRUB_FILE_TYPE_CAT:
     case GRUB_FILE_TYPE_HEXCAT:
