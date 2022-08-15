@@ -385,6 +385,24 @@ luks2_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
 }
 
 static grub_err_t
+luks2_base64_decode (const char *in, grub_size_t inlen, grub_uint8_t *decoded, idx_t *decodedlen)
+{
+  grub_size_t unescaped_len = 0;
+  char *unescaped = NULL;
+  bool successful;
+
+  if (grub_json_unescape (&unescaped, &unescaped_len, in, inlen) != GRUB_ERR_NONE)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("could not unescape Base64 string"));
+
+  successful = base64_decode (unescaped, unescaped_len, (char *) decoded, decodedlen);
+  grub_free (unescaped);
+  if (!successful)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("could not decode Base64 string"));
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
 luks2_verify_key (grub_luks2_digest_t *d, grub_uint8_t *candidate_key,
 		  grub_size_t candidate_key_len)
 {
@@ -395,9 +413,11 @@ luks2_verify_key (grub_luks2_digest_t *d, grub_uint8_t *candidate_key,
   gcry_err_code_t gcry_ret;
 
   /* Decode both digest and salt */
-  if (!base64_decode (d->digest, grub_strlen (d->digest), (char *)digest, &digestlen))
+  if (luks2_base64_decode (d->digest, grub_strlen (d->digest),
+			   digest, &digestlen) != GRUB_ERR_NONE)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Invalid digest");
-  if (!base64_decode (d->salt, grub_strlen (d->salt), (char *)salt, &saltlen))
+  if (luks2_base64_decode (d->salt, grub_strlen (d->salt),
+			   salt, &saltlen) != GRUB_ERR_NONE)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Invalid digest salt");
 
   /* Configure the hash used for the digest. */
@@ -435,8 +455,8 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   gcry_err_code_t gcry_ret;
   grub_err_t ret;
 
-  if (!base64_decode (k->kdf.salt, grub_strlen (k->kdf.salt),
-		     (char *)salt, &saltlen))
+  if (luks2_base64_decode (k->kdf.salt, grub_strlen (k->kdf.salt),
+			   salt, &saltlen) != GRUB_ERR_NONE)
     {
       ret = grub_error (GRUB_ERR_BAD_ARGUMENT, "Invalid keyslot salt");
       goto err;
