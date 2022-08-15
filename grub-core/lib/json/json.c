@@ -262,3 +262,121 @@ grub_json_getint64 (grub_int64_t *out, const grub_json_t *parent, const char *ke
 
   return GRUB_ERR_NONE;
 }
+
+grub_err_t
+grub_json_unescape (char **out, grub_size_t *outlen, const char *in, grub_size_t inlen)
+{
+  grub_err_t ret = GRUB_ERR_NONE;
+  grub_size_t inpos, resultpos;
+  char *result;
+
+  if (out == NULL || outlen == NULL)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("output parameters are not set"));
+
+  result = grub_calloc (1, inlen + 1);
+  if (result == NULL)
+    return GRUB_ERR_OUT_OF_MEMORY;
+
+  for (inpos = resultpos = 0; inpos < inlen; inpos++)
+    {
+      if (in[inpos] == '\\')
+	{
+	  inpos++;
+	  if (inpos >= inlen)
+	    {
+	      ret = grub_error (GRUB_ERR_BAD_ARGUMENT, N_("expected escaped character"));
+	      goto err;
+	    }
+
+	  switch (in[inpos])
+	    {
+	      case '"':
+		result[resultpos++] = '"';
+		break;
+
+	      case '/':
+		result[resultpos++] = '/';
+		break;
+
+	      case '\\':
+		result[resultpos++] = '\\';
+		break;
+
+	      case 'b':
+		result[resultpos++] = '\b';
+		break;
+
+	      case 'f':
+		result[resultpos++] = '\f';
+		break;
+
+	      case 'r':
+		result[resultpos++] = '\r';
+		break;
+
+	      case 'n':
+		result[resultpos++] = '\n';
+		break;
+
+	      case 't':
+		result[resultpos++] = '\t';
+		break;
+
+	      case 'u':
+		{
+		  char values[4] = {0};
+		  unsigned i;
+
+		  inpos++;
+		  if (inpos + ARRAY_SIZE(values) > inlen)
+		    {
+		      ret = grub_error (GRUB_ERR_BAD_ARGUMENT, N_("unicode sequence too short"));
+		      goto err;
+		    }
+
+		  for (i = 0; i < ARRAY_SIZE(values); i++)
+		    {
+		      char c = in[inpos++];
+
+		      if (c >= '0' && c <= '9')
+			values[i] = c - '0';
+		      else if (c >= 'A' && c <= 'F')
+			values[i] = c - 'A' + 10;
+		      else if (c >= 'a' && c <= 'f')
+			values[i] = c - 'a' + 10;
+		      else
+			{
+			  ret = grub_error (GRUB_ERR_BAD_ARGUMENT,
+					    N_("unicode sequence with invalid character '%c'"), c);
+			  goto err;
+			}
+		    }
+
+		  if (values[0] != 0 || values[1] != 0)
+		    result[resultpos++] = values[0] << 4 | values[1];
+		  result[resultpos++] = values[2] << 4 | values[3];
+
+		  /* Offset the increment that's coming in via the loop increment. */
+		  inpos--;
+
+		  break;
+		}
+
+	      default:
+		ret = grub_error (GRUB_ERR_BAD_ARGUMENT, N_("unrecognized escaped character '%c'"), in[inpos]);
+		goto err;
+	    }
+	}
+      else
+	  result[resultpos++] = in[inpos];
+    }
+
+  *out = result;
+  *outlen = resultpos;
+
+ err:
+  if (ret != GRUB_ERR_NONE)
+    grub_free (result);
+
+  return ret;
+}

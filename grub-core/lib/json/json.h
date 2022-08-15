@@ -125,4 +125,16 @@ extern grub_err_t EXPORT_FUNC(grub_json_getint64) (grub_int64_t *out,
 						   const grub_json_t *parent,
 						   const char *key);
 
+/*
+ * Unescape escaped characters and Unicode sequences in the
+ * given JSON-encoded string. Returns a newly allocated string
+ * passed back via the `out` parameter that has a length of
+ * `*outlen`.
+ *
+ * See https://datatracker.ietf.org/doc/html/rfc8259#section-7 for more
+ * information on escaping in JSON.
+ */
+extern grub_err_t EXPORT_FUNC(grub_json_unescape) (char **out, grub_size_t *outlen,
+						   const char *in, grub_size_t inlen);
+
 #endif
