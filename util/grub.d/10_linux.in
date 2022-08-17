@@ -168,10 +168,6 @@ update_bls_cmdline()
 	# anaconda has the correct information to create this during install;
 	# afterward, grubby will take care of syncing on updates.  If the user
 	# has modified /etc/default/grub, try to cope.
-	if [[ ! "$cmdline" =~ "rhgb quiet" ]]; then
-	    # ensure these only show up once
-	    cmdline="$cmdline rhgb quiet"
-	fi
 	echo "$cmdline" > /etc/kernel/cmdline
     fi
 
