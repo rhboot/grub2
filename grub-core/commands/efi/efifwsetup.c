@@ -36,7 +36,7 @@ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
   grub_efi_uint64_t os_indications = GRUB_EFI_OS_INDICATIONS_BOOT_TO_FW_UI;
   grub_err_t status;
   grub_size_t oi_size;
-  grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+  static grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
 
   grub_efi_get_variable ("OsIndications", &global, &oi_size,
 			 (void **) &old_os_indications);
@@ -63,7 +63,7 @@ efifwsetup_is_supported (void)
 {
   grub_efi_uint64_t *os_indications_supported = NULL;
   grub_size_t oi_size = 0;
-  grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+  static grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
   grub_efi_boolean_t ret = 0;
 
   grub_efi_get_variable ("OsIndicationsSupported", &global, &oi_size,
