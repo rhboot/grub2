@@ -40,6 +40,9 @@ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
   grub_size_t oi_size;
   static grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
 
+  if (argc >= 1 && grub_strcmp(args[0], "--is-supported") == 0)
+    return !efifwsetup_is_supported ();
+
   if (!efifwsetup_is_supported ())
 	  return grub_error (GRUB_ERR_INVALID_COMMAND,
 			     N_("reboot to firmware setup is not supported by the current firmware"));
