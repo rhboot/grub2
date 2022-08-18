@@ -27,6 +27,8 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+static grub_efi_boolean_t efifwsetup_is_supported (void);
+
 static grub_err_t
 grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
 		  int argc __attribute__ ((unused)),
@@ -37,6 +39,10 @@ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
   grub_err_t status;
   grub_size_t oi_size;
   static grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+
+  if (!efifwsetup_is_supported ())
+	  return grub_error (GRUB_ERR_INVALID_COMMAND,
+			     N_("reboot to firmware setup is not supported by the current firmware"));
 
   grub_efi_get_variable ("OsIndications", &global, &oi_size,
 			 (void **) &old_os_indications);
@@ -82,10 +88,8 @@ efifwsetup_is_supported (void)
 
 GRUB_MOD_INIT (efifwsetup)
 {
-  if (efifwsetup_is_supported ())
-    cmd = grub_register_command ("fwsetup", grub_cmd_fwsetup, NULL,
-				 N_("Reboot into firmware setup menu."));
-
+  cmd = grub_register_command ("fwsetup", grub_cmd_fwsetup, NULL,
+                               N_("Reboot into firmware setup menu."));
 }
 
 GRUB_MOD_FINI (efifwsetup)
