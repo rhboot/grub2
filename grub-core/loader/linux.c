@@ -271,7 +271,7 @@ grub_initrd_close (struct grub_linux_initrd_context *initrd_ctx)
 
 grub_err_t
 grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
-		  char *argv[], void *target)
+		  void *target)
 {
   grub_uint8_t *ptr = target;
   int i;
@@ -317,7 +317,7 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
 	{
 	  if (!grub_errno)
 	    grub_error (GRUB_ERR_FILE_READ_ERROR, N_("premature end of file %s"),
-			argv[i]);
+			initrd_ctx->components[i].file->name);
 	  grub_initrd_close (initrd_ctx);
 	  return grub_errno;
 	}
