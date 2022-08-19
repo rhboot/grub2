@@ -4242,6 +4242,7 @@ you forget a command, you can run the command @command{help}
 * eval::                        Evaluate agruments as GRUB commands
 * export::                      Export an environment variable
 * false::                       Do nothing, unsuccessfully
+* fwsetup::                     Reboot into the firmware setup menu
 * gettext::                     Translate a string
 * gptsync::                     Fill an MBR based on GPT entries
 * halt::                        Shut down your computer
@@ -4751,6 +4752,16 @@ to subsidiary configuration files loaded using @command{configfile}.
 @deffn Command false
 Do nothing, unsuccessfully.  This is mainly useful in control constructs
 such as @code{if} and @code{while} (@pxref{Shell-like scripting}).
+@end deffn
+
+
+@node fwsetup
+@subsection fwsetup
+
+@deffn Command fwsetup [@option{--is-supported}]
+Reboot into the firmware setup menu. If @option{--is-supported} option is
+specified, instead check whether the firmware supports a setup menu and
+exit successfully if so.
 @end deffn
 
 
@@ -5939,7 +5950,6 @@ GRUB shell may provide more information on parameters and usage.
 @item @command{fix_video} - Fix video problem.
 @item @command{fpswa} - Display FPSWA version.
 @item @command{functional_test} - Run all loaded functional tests.
-@item @command{fwsetup} - Reboot into firmware setup menu.
 @item @command{gdbstub_break} - Break into GDB
 @item @command{gdbstub} -  Start GDB stub on given port
 @item @command{gdbstub_stop} - Stop GDB stub
