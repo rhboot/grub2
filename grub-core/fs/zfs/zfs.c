@@ -3983,14 +3983,23 @@ grub_zfs_getmdnobj (grub_device_t dev, const char *fsfilename,
   return err;
 }
 
+/*
+ * Note: fill_fs_info() uses functions such as make_mdn() that modify
+ * the input dnode_end_t parameter. However, we should not allow it.
+ * Therefore, we are making mdn_in constant - fill_fs_info() makes
+ * a local copy of it.
+ */
 static grub_err_t
 fill_fs_info (struct grub_dirhook_info *info,
-	      dnode_end_t mdn, struct grub_zfs_data *data)
+	      const dnode_end_t *mdn_in, struct grub_zfs_data *data)
 {
   grub_err_t err;
   dnode_end_t dn;
   grub_uint64_t objnum;
   grub_uint64_t headobj;
+  dnode_end_t mdn;
+
+  grub_memcpy (&mdn, mdn_in, sizeof (*mdn_in));
 
   grub_memset (info, 0, sizeof (*info));
 
@@ -4148,7 +4157,7 @@ iterate_zap_fs (const char *name, grub_uint64_t val,
   if (mdn.dn.dn_type != DMU_OT_DSL_DIR)
     return 0;
 
-  err = fill_fs_info (&info, mdn, ctx->data);
+  err = fill_fs_info (&info, &mdn, ctx->data);
   if (err)
     {
       grub_errno = 0;
@@ -4179,7 +4188,7 @@ iterate_zap_snap (const char *name, grub_uint64_t val,
   if (mdn.dn.dn_type != DMU_OT_DSL_DATASET)
     return 0;
 
-  err = fill_fs_info (&info, mdn, ctx->data);
+  err = fill_fs_info (&info, &mdn, ctx->data);
   if (err)
     {
       grub_errno = 0;
@@ -4224,7 +4233,7 @@ grub_zfs_dir (grub_device_t device, const char *path,
       dnode_end_t dn;
       struct grub_dirhook_info info;
 
-      err = fill_fs_info (&info, data->dnode, data);
+      err = fill_fs_info (&info, &data->dnode, data);
       if (err)
 	{
 	  zfs_unmount (data);
