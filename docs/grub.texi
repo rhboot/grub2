@@ -4800,7 +4800,7 @@ type are omitted, then the partition will be inactive.
 @node halt
 @subsection halt
 
-@deffn Command halt [@option{--no-apm}[
+@deffn Command halt [@option{--no-apm}]
 The command halts the computer. On the i386-pc target, the @option{--no-apm}
 option, or short @option{-n}, is specified, no APM BIOS call is performed.
 Otherwise, the computer is shut down using APM on that target.
