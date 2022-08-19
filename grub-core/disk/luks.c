@@ -66,10 +66,7 @@ static grub_cryptodisk_t
 configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t newdev;
-  const char *iptr;
   struct grub_luks_phdr header;
-  char *optr;
-  char uuid[sizeof (header.uuid) + 1];
   char ciphername[sizeof (header.cipherName) + 1];
   char ciphermode[sizeof (header.cipherMode) + 1];
   char hashspec[sizeof (header.hashSpec) + 1];
@@ -92,19 +89,9 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
       || grub_be_to_cpu16 (header.version) != 1)
     return NULL;
 
-  grub_memset (uuid, 0, sizeof (uuid));
-  optr = uuid;
-  for (iptr = header.uuid; iptr < &header.uuid[ARRAY_SIZE (header.uuid)];
-       iptr++)
+  if (cargs->search_uuid != NULL && grub_uuidcasecmp (cargs->search_uuid, header.uuid, sizeof (header.uuid)) != 0)
     {
-      if (*iptr != '-')
-	*optr++ = *iptr;
-    }
-  *optr = 0;
-
-  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
-    {
-      grub_dprintf ("luks", "%s != %s\n", uuid, cargs->search_uuid);
+      grub_dprintf ("luks", "%s != %s\n", header.uuid, cargs->search_uuid);
       return NULL;
     }
 
@@ -123,7 +110,7 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
   newdev->source_disk = NULL;
   newdev->log_sector_size = GRUB_LUKS1_LOG_SECTOR_SIZE;
   newdev->total_sectors = grub_disk_native_sectors (disk) - newdev->offset_sectors;
-  grub_memcpy (newdev->uuid, uuid, sizeof (uuid));
+  grub_memcpy (newdev->uuid, header.uuid, sizeof (header.uuid));
   newdev->modname = "luks";
 
   /* Configure the hash used for the AF splitter and HMAC.  */
@@ -143,7 +130,7 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
       return NULL;
     }
 
-  COMPILE_TIME_ASSERT (sizeof (newdev->uuid) >= sizeof (uuid));
+  COMPILE_TIME_ASSERT (sizeof (newdev->uuid) >= sizeof (header.uuid));
   return newdev;
 }
 

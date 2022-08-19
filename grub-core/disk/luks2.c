@@ -350,8 +350,6 @@ luks2_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
 {
   grub_cryptodisk_t cryptodisk;
   grub_luks2_header_t header;
-  char uuid[sizeof (header.uuid) + 1];
-  grub_size_t i, j;
 
   if (cargs->check_boot)
     return NULL;
@@ -362,14 +360,9 @@ luks2_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
       return NULL;
     }
 
-  for (i = 0, j = 0; i < sizeof (header.uuid); i++)
-    if (header.uuid[i] != '-')
-      uuid[j++] = header.uuid[i];
-  uuid[j] = '\0';
-
-  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
+  if (cargs->search_uuid != NULL && grub_uuidcasecmp (cargs->search_uuid, header.uuid, sizeof (header.uuid)) != 0)
     {
-      grub_dprintf ("luks2", "%s != %s\n", uuid, cargs->search_uuid);
+      grub_dprintf ("luks2", "%s != %s\n", header.uuid, cargs->search_uuid);
       return NULL;
     }
 
@@ -377,8 +370,8 @@ luks2_scan (grub_disk_t disk, grub_cryptomount_args_t cargs)
   if (!cryptodisk)
     return NULL;
 
-  COMPILE_TIME_ASSERT (sizeof (cryptodisk->uuid) >= sizeof (uuid));
-  grub_memcpy (cryptodisk->uuid, uuid, sizeof (uuid));
+  COMPILE_TIME_ASSERT (sizeof (cryptodisk->uuid) >= sizeof (header.uuid));
+  grub_memcpy (cryptodisk->uuid, header.uuid, sizeof (header.uuid));
 
   cryptodisk->modname = "luks2";
   return cryptodisk;

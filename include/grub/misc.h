@@ -291,6 +291,36 @@ grub_strncasecmp (const char *s1, const char *s2, grub_size_t n)
 }
 
 /*
+ * Do a case insensitive compare of two UUID strings by ignoring all dashes.
+ * Note that the parameter n, is the number of significant characters to
+ * compare, where significant characters are any except the dash.
+ */
+static inline int
+grub_uuidcasecmp (const char *uuid1, const char *uuid2, grub_size_t n)
+{
+  if (n == 0)
+    return 0;
+
+  while (*uuid1 && *uuid2 && --n)
+    {
+      /* Skip forward to non-dash on both UUIDs. */
+      while ('-' == *uuid1)
+        ++uuid1;
+
+      while ('-' == *uuid2)
+        ++uuid2;
+
+      if (grub_tolower ((grub_uint8_t) *uuid1) != grub_tolower ((grub_uint8_t) *uuid2))
+	break;
+
+      uuid1++;
+      uuid2++;
+    }
+
+  return (int) grub_tolower ((grub_uint8_t) *uuid1) - (int) grub_tolower ((grub_uint8_t) *uuid2);
+}
+
+/*
  * Note that these differ from the C standard's definitions of strtol,
  * strtoul(), and strtoull() by the addition of two const qualifiers on the end
  * pointer, which make the declaration match the *semantic* requirements of

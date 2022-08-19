@@ -305,7 +305,7 @@ configure_ciphers (grub_disk_t disk, grub_cryptomount_args_t cargs)
       return NULL;
     }
 
-  if (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, uuid) != 0)
+  if (cargs->search_uuid != NULL && grub_uuidcasecmp (cargs->search_uuid, uuid, sizeof (uuid)) != 0)
     {
       grub_dprintf ("geli", "%s != %s\n", uuid, cargs->search_uuid);
       return NULL;
