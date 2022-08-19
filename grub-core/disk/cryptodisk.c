@@ -702,7 +702,7 @@ grub_cryptodisk_open (const char *name, grub_disk_t disk)
   if (grub_memcmp (name, "cryptouuid/", sizeof ("cryptouuid/") - 1) == 0)
     {
       for (dev = cryptodisk_list; dev != NULL; dev = dev->next)
-	if (grub_strcasecmp (name + sizeof ("cryptouuid/") - 1, dev->uuid) == 0)
+	if (grub_uuidcasecmp (name + sizeof ("cryptouuid/") - 1, dev->uuid, sizeof (dev->uuid)) == 0)
 	  break;
     }
   else
@@ -929,7 +929,7 @@ grub_cryptodisk_get_by_uuid (const char *uuid)
 {
   grub_cryptodisk_t dev;
   for (dev = cryptodisk_list; dev != NULL; dev = dev->next)
-    if (grub_strcasecmp (dev->uuid, uuid) == 0)
+    if (grub_uuidcasecmp (dev->uuid, uuid, sizeof (dev->uuid)) == 0)
       return dev;
   return NULL;
 }
