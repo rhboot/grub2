@@ -1163,6 +1163,9 @@ grub_diskfilter_make_raid (grub_size_t uuidlen, char *uuid, int nmemb,
   array->lvs->segments->raid_member_size = disk_size;
   array->lvs->segments->nodes
     = grub_calloc (nmemb, sizeof (array->lvs->segments->nodes[0]));
+  if (array->lvs->segments->nodes == NULL)
+    goto fail;
+
   array->lvs->segments->stripe_size = stripe_size;
   for (i = 0; i < nmemb; i++)
     {
