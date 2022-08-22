@@ -70,6 +70,8 @@ exec_show_error () {
     fi
 }
 
+work_directory=${WORKDIR:-`mktemp -d "${TMPDIR:-/tmp}/grub-shell.XXXXXXXXXX"`} || exit 1
+
 . "${builddir}/grub-core/modinfo.sh"
 qemuopts="${GRUB_QEMU_OPTS}"
 serial_port=com0
@@ -79,7 +81,7 @@ pseries=n
 disk="hda "
 case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     *-emu)
-	device_map=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+	device_map="$work_directory/device.map"
 	boot=emu
 	console=console
 	disk=0
@@ -313,14 +315,14 @@ for option in "$@"; do
 done
 
 if [ "x${source}" = x ] ; then
-    tmpfile=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+    tmpfile="$work_directory/testcase.cfg"
     while read REPLY; do
 	echo "$REPLY" >> ${tmpfile}
     done
     source=${tmpfile}
 fi
 
-cfgfile=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+cfgfile="$work_directory/grub.cfg"
 cat <<EOF >${cfgfile}
 grubshell=yes
 enable_progress_indicator=0
@@ -354,7 +356,8 @@ if [ $trim = 1 ]; then
     echo "echo $trim_head" >>${cfgfile}
 fi
 
-rom_directory=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+rom_directory="$work_directory/rom_directory"
+mkdir -p "$rom_directory"
 
 for mod in ${modules}
 do
@@ -375,7 +378,7 @@ test -z "$debug" || echo "GRUB script: ${cfgfile}" >&2
 test -z "$debug" || echo "GRUB testcase script: ${tmpfile}" >&2
 test -z "$debug" || echo "Boot device: ${boot}" >&2
 
-isofile=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+isofile="$work_directory/grub.iso"
 test -z "$debug" || echo "GRUB ISO file: ${isofile}" >&2
 test -z "$debug" || echo "GRUB ROM directory: ${rom_directory}" >&2
 
@@ -451,7 +454,7 @@ if [ x$boot = xmips_qemu ]; then
 fi
 
 if [ x$boot = xcoreboot ]; then
-    imgfile=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+    imgfile="$work_directory/coreboot.img"
     cp "${GRUB_COREBOOT_ROM}" "${imgfile}"
     "${GRUB_CBFSTOOL}" "${imgfile}" add-payload -f "${rom_directory}/coreboot.elf" -n fallback/payload
     bootdev="-bios ${imgfile}"
@@ -494,14 +497,15 @@ copy_extra_files() {
 }
 
 if [ x$boot = xnet ]; then
-    netdir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
+    netdir="$work_directory/netdir"
+    mkdir -p "$netdir"
     pkgdatadir="${builddir}" "${builddir}/grub-mknetdir" "--grub-mkimage=${builddir}/grub-mkimage" "--directory=${builddir}/grub-core" "--net-directory=$netdir" ${mkrescue_args} > /dev/null
     cp "${cfgfile}" "$netdir/boot/grub/grub.cfg"
     cp "${source}" "$netdir/boot/grub/testcase.cfg"
     [ -z "$files" ] || copy_extra_files "$netdir" $files
     timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic  | cat | tr -d "\r" | do_trim
 elif [ x$boot = xemu ]; then
-    rootdir="$(mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX")"
+    rootdir="$work_directory/rootdir"
     grubdir="$rootdir/boot/grub"
     mkdir -p "$grubdir/fonts"
     mkdir -p "$grubdir/themes"
@@ -516,7 +520,7 @@ elif [ x$boot = xemu ]; then
     cp "${cfgfile}" "$grubdir/grub.cfg"
     cp "${source}" "$grubdir/testcase.cfg"
     [ -z "$files" ] || copy_extra_files "$rootdir" $files
-    roottar="$(mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX")"
+    roottar="$work_directory/root.tar"
     (cd "$rootdir"; tar cf "$roottar" .)
     "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" | tr -d "\r" | do_trim
     test -n "$debug" || rm -rf "$rootdir"
