@@ -728,7 +728,7 @@ grub_freebsd_boot (void)
 
   if (is_64bit)
     {
-      struct grub_relocator64_state state;
+      struct grub_relocator64_state state = {0};
       grub_uint8_t *pagetable;
       grub_uint32_t *stack;
       grub_addr_t stack_target;
@@ -767,7 +767,7 @@ grub_freebsd_boot (void)
     }
   else
     {
-      struct grub_relocator32_state state;
+      struct grub_relocator32_state state = {0};
       grub_uint32_t *stack;
       grub_addr_t stack_target;
 
