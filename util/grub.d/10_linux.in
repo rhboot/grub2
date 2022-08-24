@@ -43,13 +43,11 @@ case ${GRUB_DEVICE} in
   ;;
 esac
 
-if [ "x${GRUB_CMDLINE_LINUX_RECOVERY}" = "x" ] ; then
-  GRUB_CMDLINE_LINUX_RECOVERY=single
-fi
+: ${GRUB_CMDLINE_LINUX_RECOVERY:=single}
 
 # Default to disabling partition uuid support to maintian compatibility with
 # older kernels.
-GRUB_DISABLE_LINUX_PARTUUID=${GRUB_DISABLE_LINUX_PARTUUID-true}
+: ${GRUB_DISABLE_LINUX_PARTUUID=true}
 
 # btrfs may reside on multiple devices. We cannot pass them as value of root= parameter
 # and mounting btrfs requires user space scanning, so force UUID in this case.
