@@ -1835,6 +1835,7 @@ main (int argc, char *argv[])
 	    {
 	      if (write_to_disk (ins_dev, imgfile))
 		grub_util_error ("%s", _("failed to copy Grub to the PReP partition"));
+	      grub_set_install_backup_ponr ();
 	    }
 	  else
 	    {
