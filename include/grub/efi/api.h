@@ -1442,7 +1442,8 @@ struct grub_efi_simple_text_input_ex_interface
 	grub_efi_status_t
 	(*register_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
 				grub_efi_key_data_t *key_data,
-				grub_efi_key_notify_function_t key_notification_function);
+				grub_efi_key_notify_function_t key_notification_function,
+				void **notify_handle);
 
 	grub_efi_status_t
 	(*unregister_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
