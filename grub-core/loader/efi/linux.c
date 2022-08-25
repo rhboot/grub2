@@ -16,6 +16,7 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <grub/cache.h>
 #include <grub/charset.h>
 #include <grub/command.h>
 #include <grub/err.h>
@@ -280,6 +281,9 @@ grub_efi_linux_boot (grub_addr_t k_address, grub_size_t k_size,
 #if defined(__i386__) || defined(__x86_64__)
   asm volatile ("cli");
 #endif
+
+  /* Invalidate the instruction cache */
+  grub_arch_sync_caches((void *)kernel_addr, kernel_size);
 
   hf = (handover_func)((char *)k_address + h_offset + offset);
   hf (grub_efi_image_handle, grub_efi_system_table, k_params);
