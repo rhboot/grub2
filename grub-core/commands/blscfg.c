@@ -41,7 +41,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
 #ifdef GRUB_MACHINE_EMU
-#define GRUB_BOOT_DEVICE "/boot"
+#define GRUB_BOOT_DEVICE ""
 #else
 #define GRUB_BOOT_DEVICE "($root)"
 #endif
