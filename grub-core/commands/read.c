@@ -40,7 +40,7 @@ grub_getline (int silent)
   int i;
   char *line;
   char *tmp;
-  char c;
+  int c;
 
   i = 0;
   line = grub_malloc (1 + i + sizeof('\0'));
@@ -53,8 +53,11 @@ grub_getline (int silent)
       if ((c == '\n') || (c == '\r'))
 	break;
 
-      line[i] = c;
-      if (!silent && grub_isprint (c))
+      if (!grub_isprint (c))
+	continue;
+
+      line[i] = (char) c;
+      if (!silent)
 	grub_printf ("%c", c);
       i++;
       tmp = grub_realloc (line, 1 + i + sizeof('\0'));
