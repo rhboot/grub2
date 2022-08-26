@@ -20,6 +20,9 @@ endif
 if COND_powerpc_ieee1275
   CFLAGS_PLATFORM += -mcpu=powerpc
 endif
+if COND_HAVE_PCI
+  CFLAGS_PLATFORM += -DGRUB_HAS_PCI
+endif
 
 # Other options
 

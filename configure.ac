@@ -375,6 +375,11 @@ AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.18.3])
 AC_SYS_LARGEFILE
 
+PLATFORMS_PCI=" $(PYTHONPATH="${srcdir}" $PYTHON -c 'import gentpl; print(" ".join(gentpl.GROUPS[["pci"]]))') "
+if test x"${PLATFORMS_PCI##* ${target_cpu}_${platform} *}" = x ; then
+  have_pci=y
+fi
+
 # Identify characteristics of the host architecture.
 unset ac_cv_c_bigendian
 
@@ -2042,6 +2047,7 @@ AM_CONDITIONAL([COND_HAVE_CXX], [test x$HAVE_CXX = xyes])
 AM_CONDITIONAL([COND_HAVE_ASM_USCORE], [test x$HAVE_ASM_USCORE = x1])
 AM_CONDITIONAL([COND_STARFIELD], [test "x$starfield_excuse" = x])
 AM_CONDITIONAL([COND_HAVE_EXEC], [test "x$have_exec" = xy])
+AM_CONDITIONAL([COND_HAVE_PCI], [test "x$have_pci" = xy])
 
 test "x$prefix" = xNONE && prefix="$ac_default_prefix"
 test "x$exec_prefix" = xNONE && exec_prefix="${prefix}"
