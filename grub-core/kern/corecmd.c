@@ -40,7 +40,10 @@ grub_core_cmd_set (struct grub_command *cmd __attribute__ ((unused)),
     {
       struct grub_env_var *env;
       FOR_SORTED_ENV (env)
-	grub_printf ("%s=%s\n", env->name, grub_env_get (env->name));
+	{
+	  val = (char *) grub_env_get (env->name);
+	  grub_printf ("%s='%s'\n", env->name, val == NULL ? "" : val);
+	}
       return 0;
     }
 
