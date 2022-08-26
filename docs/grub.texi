@@ -4938,7 +4938,7 @@ suffix @samp{.pf2} appended. @xref{Theme file format,,Fonts}.
 @node loopback
 @subsection loopback
 
-@deffn Command loopback [@option{-d}] device file
+@deffn Command loopback [@option{-d}] [@option{-D}] device file
 Make the device named @var{device} correspond to the contents of the
 filesystem image in @var{file}.  For example:
 
@@ -4946,6 +4946,9 @@ filesystem image in @var{file}.  For example:
 loopback loop0 /path/to/image
 ls (loop0)/
 @end example
+
+Specifying the @option{-D} option allows the loopback file to be tranparently
+decompressed if there is an appropriate decompressor loaded.
 
 With the @option{-d} option, delete a device previously created using this
 command.
