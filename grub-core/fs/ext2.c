@@ -104,6 +104,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define EXT4_FEATURE_INCOMPAT_MMP		0x0100
 #define EXT4_FEATURE_INCOMPAT_FLEX_BG		0x0200
 #define EXT4_FEATURE_INCOMPAT_CSUM_SEED		0x2000
+#define EXT4_FEATURE_INCOMPAT_LARGEDIR		0x4000 /* >2GB or 3 level htree */
 #define EXT4_FEATURE_INCOMPAT_ENCRYPT          0x10000
 
 /* The set of back-incompatible features this driver DOES support. Add (OR)
@@ -129,10 +130,17 @@ GRUB_MOD_LICENSE ("GPLv3+");
  *                 checksummed filesystem. Safe to ignore for now since the
  *                 driver doesn't support checksum verification. However, it
  *                 has to be removed from this list if the support is added later.
+ * large_dir:      Not back-incompatible given that the GRUB ext2 driver does
+ *                 not implement EXT2_FEATURE_COMPAT_DIR_INDEX. If the GRUB
+ *                 eventually supports the htree feature (aka dir_index)
+ *                 it should support 3 level htrees and then move
+ *                 EXT4_FEATURE_INCOMPAT_LARGEDIR to
+ *                 EXT2_DRIVER_SUPPORTED_INCOMPAT.
  */
 #define EXT2_DRIVER_IGNORED_INCOMPAT ( EXT3_FEATURE_INCOMPAT_RECOVER \
 				     | EXT4_FEATURE_INCOMPAT_MMP \
-				     | EXT4_FEATURE_INCOMPAT_CSUM_SEED)
+				     | EXT4_FEATURE_INCOMPAT_CSUM_SEED \
+				     | EXT4_FEATURE_INCOMPAT_LARGEDIR)
 
 #define EXT3_JOURNAL_MAGIC_NUMBER	0xc03b3998U
 
