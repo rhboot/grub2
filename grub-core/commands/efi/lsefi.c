@@ -19,7 +19,6 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/efi/api.h>
-#include <grub/efi/disk.h>
 #include <grub/efi/edid.h>
 #include <grub/efi/pci.h>
 #include <grub/efi/efi.h>
