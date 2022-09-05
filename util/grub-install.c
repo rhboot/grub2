@@ -827,6 +827,19 @@ fill_core_services (const char *core_services)
   free (sysv_plist);
 }
 
+#ifdef __linux__
+static void
+try_open (const char *path)
+{
+  FILE *f;
+
+  f = grub_util_fopen (path, "r+");
+  if (f == NULL)
+    grub_util_error (_("Unable to open %s: %s"), path, strerror (errno));
+  fclose (f);
+}
+#endif
+
 int
 main (int argc, char *argv[])
 {
@@ -1023,6 +1036,20 @@ main (int argc, char *argv[])
 
       /* pacify warning.  */
     case GRUB_INSTALL_PLATFORM_MAX:
+      break;
+    }
+
+  switch (platform)
+    {
+    case GRUB_INSTALL_PLATFORM_I386_IEEE1275:
+    case GRUB_INSTALL_PLATFORM_POWERPC_IEEE1275:
+#ifdef __linux__
+      /* On Linux, ensure /dev/nvram is _functional_. */
+      if (update_nvram)
+        try_open ("/dev/nvram");
+#endif
+      break;
+    default:
       break;
     }
 
