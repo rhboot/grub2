@@ -67,7 +67,7 @@ get_pixel (struct grub_video_fbblit_info *source,
     case 1:
       if (source->mode_info->blit_format == GRUB_VIDEO_BLIT_FORMAT_1BIT_PACKED)
         {
-          int bit_index = y * source->mode_info->width + x;
+          grub_uint64_t bit_index = (grub_uint64_t) y * source->mode_info->width + x;
           grub_uint8_t *ptr = source->data + bit_index / 8;
           int bit_pos = 7 - bit_index % 8;
           color = (*ptr >> bit_pos) & 0x01;
@@ -138,7 +138,7 @@ set_pixel (struct grub_video_fbblit_info *source,
     case 1:
       if (source->mode_info->blit_format == GRUB_VIDEO_BLIT_FORMAT_1BIT_PACKED)
         {
-          int bit_index = y * source->mode_info->width + x;
+          grub_uint64_t bit_index = (grub_uint64_t) y * source->mode_info->width + x;
           grub_uint8_t *ptr = source->data + bit_index / 8;
           int bit_pos = 7 - bit_index % 8;
           *ptr = (*ptr & ~(1 << bit_pos)) | ((color & 0x01) << bit_pos);
