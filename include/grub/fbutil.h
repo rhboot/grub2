@@ -31,14 +31,19 @@ struct grub_video_fbblit_info
   grub_uint8_t *data;
 };
 
-/* Don't use for 1-bit bitmaps, addressing needs to be done at the bit level
-   and it doesn't make sense, in general, to ask for a pointer
-   to a particular pixel's data.  */
+/*
+ * Don't use for 1-bit bitmaps, addressing needs to be done at the bit level
+ * and it doesn't make sense, in general, to ask for a pointer
+ * to a particular pixel's data.
+ *
+ * This function assumes that bounds checking has been done in previous phase
+ * and they are opted out in here.
+ */
 static inline void *
 grub_video_fb_get_video_ptr (struct grub_video_fbblit_info *source,
               unsigned int x, unsigned int y)
 {
-  return source->data + y * source->mode_info->pitch + x * source->mode_info->bytes_per_pixel;
+  return source->data + (grub_addr_t) y * source->mode_info->pitch + (grub_addr_t) x * source->mode_info->bytes_per_pixel;
 }
 
 /* Advance pointer by VAL bytes. If there is no unaligned access available,
