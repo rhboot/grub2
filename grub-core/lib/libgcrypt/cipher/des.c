@@ -973,7 +973,7 @@ selftest (void)
 
         tripledes_ecb_decrypt (des3, testdata[i].cipher, result);
         if (memcmp (testdata[i].plain, result, 8))
-          return  "Triple-DES SSLeay test failed on decryption.";;
+          return  "Triple-DES SSLeay test failed on decryption.";
       }
   }
 
