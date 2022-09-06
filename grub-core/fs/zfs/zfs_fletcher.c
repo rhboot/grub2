@@ -70,7 +70,7 @@ fletcher_4 (const void *buf, grub_uint64_t size, grub_zfs_endian_t endian,
   
   for (a = b = c = d = 0; ip < ipend; ip++) 
     {
-      a += grub_zfs_to_cpu32 (ip[0], endian);;
+      a += grub_zfs_to_cpu32 (ip[0], endian);
       b += a;
       c += b;
       d += c;
