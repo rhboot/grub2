@@ -405,7 +405,7 @@ adjust_file (const char *in, grub_size_t len)
       if (!ret)
 	return NULL;
 
-      outptr = grub_stpcpy (ret, "(tftp)");;
+      outptr = grub_stpcpy (ret, "(tftp)");
       for (ptr = rest; ptr < in + len; ptr++)
 	{
 	  if (*ptr == '\'' || *ptr == '\\')
