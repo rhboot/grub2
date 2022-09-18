@@ -3,6 +3,9 @@
 set -e
 export BLKID_FILE=/dev/null
 
+# We can't have this set, or filesystem tests will fail.
+unset SOURCE_DATE_EPOCH
+
 fs="$1"
 
 GRUBFSTEST="@builddir@/grub-fstest"
