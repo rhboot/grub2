@@ -39,7 +39,7 @@
 #define MEMORY_MAP_SIZE	0x3000
 
 /* The default heap size for GRUB itself in bytes.  */
-#define DEFAULT_HEAP_SIZE	0x100000
+#define DEFAULT_HEAP_SIZE	0x2000000
 
 static void *finish_mmap_buf = 0;
 static grub_efi_uintn_t finish_mmap_size = 0;
