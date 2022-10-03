@@ -431,7 +431,7 @@ __clzsi2 (grub_uint32_t val)
 
   for (; j; j >>= 1)
     {
-      if ((temp = val) >> j)
+      if ((temp = val >> j))
         {
           if (j == 1)
             {
