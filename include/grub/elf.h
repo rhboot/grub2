@@ -2593,8 +2593,8 @@ typedef Elf64_Word Elf_Word;
 typedef Elf64_Xword Elf_Xword;
 typedef Elf64_Shnum Elf_Shnum;
 
-#define ELF_ST_BIND(val)	ELF64_ST_BIND (val)
-#define ELF_ST_TYPE(val)	ELF64_ST_TYPE (val)
+#define ELF_ST_BIND(val)	ELF64_ST_BIND(val)
+#define ELF_ST_TYPE(val)	ELF64_ST_TYPE(val)
 #define ELF_ST_INFO(a,b)	ELF64_ST_INFO(a,b)
 #define ELF_R_SYM(val)		ELF64_R_SYM(val)
 #define ELF_R_TYPE(val)		ELF64_R_TYPE(val)
