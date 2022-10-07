@@ -3222,6 +3222,9 @@ If you protect the menu interface with a password (@pxref{Security}),
 all you can do is choose an entry by pressing @key{RET}, or press
 @key{p} to enter the password.
 
+Pressing @key{Ctrl-l} will refresh the menu, which can be useful when
+connecting via serial after the menu has been drawn.
+
 
 @node Menu entry editor
 @section Editing a menu entry

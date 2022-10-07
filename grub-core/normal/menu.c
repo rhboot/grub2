@@ -788,6 +788,10 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 		}
 	      goto refresh;
 
+	    case GRUB_TERM_CTRL | 'l':
+	      menu_fini ();
+	      goto refresh;
+
 	    default:
 	      {
 		int entry;
