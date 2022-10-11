@@ -483,7 +483,7 @@ subst (const struct gsub_substitution *sub, grub_uint32_t glyph,
   if (substtype == GSUB_SUBSTITUTION_DELTA)
     add_subst (glyph, glyph + grub_be_to_cpu16 (sub->delta), target);
   else if (*i >= grub_be_to_cpu16 (sub->count))
-    printf (_("Out of range substitution (%d, %d)\n"), *i,
+    printf (_("Out of range substitution (%d, %u)\n"), *i,
 	    grub_be_to_cpu16 (sub->count));
   else
     add_subst (glyph, grub_be_to_cpu16 (sub->repl[(*i)++]), target);
@@ -563,7 +563,7 @@ process_cursive (struct gsub_feature *feature,
 	  if (substtype != GSUB_SUBSTITUTION_MAP
 	      && substtype != GSUB_SUBSTITUTION_DELTA)
 	    {
-	      printf (_("Unsupported substitution specification: %d\n"),
+	      printf (_("Unsupported substitution specification: %u\n"),
 		      substtype);
 	      continue;
 	    }
@@ -610,7 +610,7 @@ process_cursive (struct gsub_feature *feature,
 	       This warning is thrown when another coverage specification
 	       is detected.  */
 	    fprintf (stderr,
-		     _("Unsupported coverage specification: %d\n"), covertype);
+		     _("Unsupported coverage specification: %u\n"), covertype);
 	}
     }
 }
