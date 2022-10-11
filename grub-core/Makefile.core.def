@@ -61,15 +61,19 @@ kernel = {
   ia64_efi_ldflags = '-Wl,-r';
   ia64_efi_stripflags = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
+  arm_efi_cflags           = '-fshort-wchar';
   arm_efi_ldflags          = '-Wl,-r';
   arm_efi_stripflags       = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version';
 
+  arm64_efi_cflags           = '-fshort-wchar';
   arm64_efi_ldflags          = '-Wl,-r';
   arm64_efi_stripflags       = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
+  riscv32_efi_cflags       = '-fshort-wchar';
   riscv32_efi_ldflags      = '-Wl,-r';
   riscv32_efi_stripflags   = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
+  riscv64_efi_cflags       = '-fshort-wchar';
   riscv64_efi_ldflags      = '-Wl,-r';
   riscv64_efi_stripflags   = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
