@@ -262,7 +262,7 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
     return (do_encrypt ? grub_crypto_ecb_encrypt (dev->cipher, data, data, len)
 	    : grub_crypto_ecb_decrypt (dev->cipher, data, data, len));
 
-  for (i = 0; i < len; i += (1U << log_sector_size))
+  for (i = 0; i < len; i += ((grub_size_t) 1 << log_sector_size))
     {
       grub_size_t sz = ((dev->cipher->cipher->blocksize
 			 + sizeof (grub_uint32_t) - 1)
