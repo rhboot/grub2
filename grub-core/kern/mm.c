@@ -443,12 +443,6 @@ grub_memalign (grub_size_t align, grub_size_t size)
   switch (count)
     {
     case 0:
-      /* Invalidate disk caches.  */
-      grub_disk_cache_invalidate_all ();
-      count++;
-      goto again;
-
-    case 1:
       /* Request additional pages, contiguous */
       count++;
 
@@ -458,7 +452,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
 
       /* fallthrough  */
 
-    case 2:
+    case 1:
       /* Request additional pages, anything at all */
       count++;
 
@@ -473,6 +467,12 @@ grub_memalign (grub_size_t align, grub_size_t size)
         }
 
       /* fallthrough */
+
+    case 2:
+      /* Invalidate disk caches.  */
+      grub_disk_cache_invalidate_all ();
+      count++;
+      goto again;
 
     default:
       break;
