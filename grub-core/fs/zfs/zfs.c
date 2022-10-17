@@ -2936,6 +2936,8 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 		       grub_strlen (oldpath) + 1);
 
 	  grub_free (oldpathbuf);
+
+	  /* Restart dnode walk using path of symlink. */
 	  if (path[0] != '/')
 	    {
 	      dn_new = dnode_path;
@@ -2948,6 +2950,7 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 		   dnode_path = dn_new->next;
 		   grub_free (dn_new);
 		 }
+	  dn_new = dnode_path;
 	}
       if (dnode_path->dn.dn.dn_bonustype == DMU_OT_SA)
 	{
@@ -2999,6 +3002,8 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 			   grub_strlen (oldpath) + 1);
 
 	      grub_free (oldpathbuf);
+
+	      /* Restart dnode walk using path of symlink. */
 	      if (path[0] != '/')
 		{
 		  dn_new = dnode_path;
@@ -3011,6 +3016,7 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 		       dnode_path = dn_new->next;
 		       grub_free (dn_new);
 		     }
+	      dn_new = dnode_path;
 	    }
 	}
     }
