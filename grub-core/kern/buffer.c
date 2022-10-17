@@ -49,8 +49,11 @@ grub_buffer_new (grub_size_t sz)
 void
 grub_buffer_free (grub_buffer_t buf)
 {
-  grub_free (buf->data);
-  grub_free (buf);
+  if (buf != NULL)
+    {
+	grub_free (buf->data);
+	grub_free (buf);
+    }
 }
 
 grub_err_t
