@@ -277,7 +277,9 @@ if grep '^GRUB_ENABLE_BLSCFG=.*' "${etcdefaultgrub}" \
     fi
     GENERATE=1
 elif ! grep -q '^GRUB_ENABLE_BLSCFG=.*' "${etcdefaultgrub}" ; then
-    if ! echo 'GRUB_ENABLE_BLSCFG=true' >> "${etcdefaultgrub}" ; then
+    # prepend in case admins have been bad at newlines
+    sed -i '1iGRUB_ENABLE_BLSCFG=true' "${etcdefaultgrub}"
+    if ! grep -q '^GRUB_ENABLE_BLSCFG=true' "${etcdefaultgrub}" ; then
         gettext_printf "Updating %s failed\n" "${etcdefaultgrub}"
         exit 1
     fi
