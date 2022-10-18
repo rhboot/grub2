@@ -33,6 +33,7 @@
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 #include <grub/verify.h>
+#include <stdbool.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -47,6 +48,39 @@ static grub_uint32_t cmdline_size;
 
 static grub_addr_t initrd_start;
 static grub_addr_t initrd_end;
+
+static struct grub_linux_initrd_context initrd_ctx = {0, 0, 0};
+static grub_efi_handle_t initrd_lf2_handle = NULL;
+static bool initrd_use_loadfile2 = false;
+
+static grub_efi_guid_t load_file2_guid = GRUB_EFI_LOAD_FILE2_PROTOCOL_GUID;
+static grub_efi_guid_t device_path_guid = GRUB_EFI_DEVICE_PATH_GUID;
+
+static initrd_media_device_path_t initrd_lf2_device_path = {
+  {
+    {
+      GRUB_EFI_MEDIA_DEVICE_PATH_TYPE,
+      GRUB_EFI_VENDOR_MEDIA_DEVICE_PATH_SUBTYPE,
+      sizeof(grub_efi_vendor_media_device_path_t),
+    },
+    LINUX_EFI_INITRD_MEDIA_GUID
+  }, {
+    GRUB_EFI_END_DEVICE_PATH_TYPE,
+    GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE,
+    sizeof(grub_efi_device_path_t)
+  }
+};
+
+static grub_efi_status_t __grub_efi_api
+grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
+                            grub_efi_device_path_t *device_path,
+                            grub_efi_boolean_t boot_policy,
+                            grub_efi_uintn_t *buffer_size,
+                            void *buffer);
+
+static grub_efi_load_file2_t initrd_lf2 = {
+  grub_efi_initrd_load_file2
+};
 
 grub_err_t
 grub_arch_efi_linux_load_image_header (grub_file_t file,
@@ -77,6 +111,18 @@ grub_arch_efi_linux_load_image_header (grub_file_t file,
              != sizeof (struct grub_pe_image_header))
         return grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read COFF image header");
     }
+
+  /*
+   * Linux kernels built for any architecture are guaranteed to support the
+   * LoadFile2 based initrd loading protocol if the image version is >= 1.
+   */
+  if (lh->pe_image_header.optional_header.major_image_version >= 1)
+    initrd_use_loadfile2 = true;
+  else
+    initrd_use_loadfile2 = false;
+
+  grub_dprintf ("linux", "LoadFile2 initrd loading %sabled\n",
+                initrd_use_loadfile2 ? "en" : "dis");
 
   return GRUB_ERR_NONE;
 }
@@ -197,6 +243,8 @@ grub_linux_boot (void)
 static grub_err_t
 grub_linux_unload (void)
 {
+  grub_efi_boot_services_t *b = grub_efi_system_table->boot_services;
+
   grub_dl_unref (my_mod);
   loaded = 0;
   if (initrd_start)
@@ -208,6 +256,18 @@ grub_linux_unload (void)
     grub_efi_free_pages ((grub_addr_t) kernel_addr,
 			 GRUB_EFI_BYTES_TO_PAGES (kernel_size));
   grub_fdt_unload ();
+
+  if (initrd_lf2_handle != NULL)
+    {
+      b->uninstall_multiple_protocol_interfaces (initrd_lf2_handle,
+                                                 &load_file2_guid,
+                                                 &initrd_lf2,
+                                                 &device_path_guid,
+                                                 &initrd_lf2_device_path,
+                                                 NULL);
+      initrd_lf2_handle = NULL;
+      initrd_use_loadfile2 = false;
+    }
   return GRUB_ERR_NONE;
 }
 
@@ -247,13 +307,50 @@ allocate_initrd_mem (int initrd_pages)
 				       GRUB_EFI_LOADER_DATA);
 }
 
+static grub_efi_status_t __grub_efi_api
+grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
+                            grub_efi_device_path_t *device_path,
+                            grub_efi_boolean_t boot_policy,
+                            grub_efi_uintn_t *buffer_size,
+                            void *buffer)
+{
+  grub_efi_status_t status = GRUB_EFI_SUCCESS;
+  grub_efi_uintn_t initrd_size;
+
+  if (this != &initrd_lf2 || buffer_size == NULL)
+    return GRUB_EFI_INVALID_PARAMETER;
+
+  if (device_path->type != GRUB_EFI_END_DEVICE_PATH_TYPE ||
+      device_path->subtype != GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE)
+    return GRUB_EFI_NOT_FOUND;
+
+  if (boot_policy)
+    return GRUB_EFI_UNSUPPORTED;
+
+  initrd_size = grub_get_initrd_size (&initrd_ctx);
+  if (buffer == NULL || *buffer_size < initrd_size)
+    {
+      *buffer_size = initrd_size;
+      return GRUB_EFI_BUFFER_TOO_SMALL;
+    }
+
+  grub_dprintf ("linux", "Providing initrd via EFI_LOAD_FILE2_PROTOCOL\n");
+
+  if (grub_initrd_load (&initrd_ctx, buffer))
+    status = GRUB_EFI_DEVICE_ERROR;
+
+  grub_initrd_close (&initrd_ctx);
+  return status;
+}
+
 static grub_err_t
 grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 		 int argc, char *argv[])
 {
-  struct grub_linux_initrd_context initrd_ctx = { 0, 0, 0 };
   int initrd_size, initrd_pages;
   void *initrd_mem = NULL;
+  grub_efi_boot_services_t *b = grub_efi_system_table->boot_services;
+  grub_efi_status_t status;
 
   if (argc == 0)
     {
@@ -270,6 +367,31 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 
   if (grub_initrd_init (argc, argv, &initrd_ctx))
     goto fail;
+
+  if (initrd_use_loadfile2)
+    {
+      if (initrd_lf2_handle == NULL)
+        {
+          status = b->install_multiple_protocol_interfaces (&initrd_lf2_handle,
+                                                            &load_file2_guid,
+                                                            &initrd_lf2,
+                                                            &device_path_guid,
+                                                            &initrd_lf2_device_path,
+                                                            NULL);
+          if (status == GRUB_EFI_OUT_OF_RESOURCES)
+            {
+              grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+              goto fail;
+            }
+          else if (status != GRUB_EFI_SUCCESS)
+            {
+              grub_error (GRUB_ERR_BAD_ARGUMENT, N_("failed to install protocols"));
+              goto fail;
+            }
+        }
+      grub_dprintf ("linux", "Using LoadFile2 initrd loading protocol\n");
+      return GRUB_ERR_NONE;
+    }
 
   initrd_size = grub_get_initrd_size (&initrd_ctx);
   grub_dprintf ("linux", "Loading initrd\n");

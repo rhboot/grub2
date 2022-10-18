@@ -55,6 +55,7 @@ struct known_protocol
     { GRUB_EFI_ABSOLUTE_POINTER_PROTOCOL_GUID, "absolute pointer" },
     { GRUB_EFI_DRIVER_BINDING_PROTOCOL_GUID, "EFI driver binding" },
     { GRUB_EFI_LOAD_FILE_PROTOCOL_GUID, "load file" },
+    { GRUB_EFI_LOAD_FILE2_PROTOCOL_GUID, "load file2" },
     { GRUB_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, "simple FS" },
     { GRUB_EFI_TAPE_IO_PROTOCOL_GUID, "tape I/O" },
     { GRUB_EFI_UNICODE_COLLATION_PROTOCOL_GUID, "unicode collation" },
