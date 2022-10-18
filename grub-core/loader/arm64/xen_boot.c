@@ -31,7 +31,6 @@
 #include <grub/efi/efi.h>
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
-#include <grub/efi/pe32.h>	/* required by struct xen_hypervisor_header */
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 
@@ -64,18 +63,6 @@ enum module_type
   MODULE_CUSTOM
 };
 typedef enum module_type module_type_t;
-
-struct xen_hypervisor_header
-{
-  struct linux_arm64_kernel_header efi_head;
-
-  /* This is always PE\0\0.  */
-  grub_uint8_t signature[GRUB_PE32_SIGNATURE_SIZE];
-  /* The COFF file header.  */
-  struct grub_pe32_coff_header coff_header;
-  /* The Optional header.  */
-  struct grub_pe64_optional_header optional_header;
-};
 
 struct xen_boot_binary
 {
@@ -452,7 +439,7 @@ static grub_err_t
 grub_cmd_xen_hypervisor (grub_command_t cmd __attribute__ ((unused)),
 			 int argc, char *argv[])
 {
-  struct xen_hypervisor_header sh;
+  struct linux_arm64_kernel_header lh;
   grub_file_t file = NULL;
 
   grub_dl_ref (my_mod);
@@ -467,10 +454,7 @@ grub_cmd_xen_hypervisor (grub_command_t cmd __attribute__ ((unused)),
   if (!file)
     goto fail;
 
-  if (grub_file_read (file, &sh, sizeof (sh)) != (long) sizeof (sh))
-    goto fail;
-  if (grub_arch_efi_linux_check_image
-      ((struct linux_arch_kernel_header *) &sh) != GRUB_ERR_NONE)
+  if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
     goto fail;
   grub_file_seek (file, 0);
 
@@ -484,7 +468,8 @@ grub_cmd_xen_hypervisor (grub_command_t cmd __attribute__ ((unused)),
     return grub_errno;
 
   xen_hypervisor->is_hypervisor = 1;
-  xen_hypervisor->align = (grub_size_t) sh.optional_header.section_alignment;
+  xen_hypervisor->align
+    = (grub_size_t) lh.pe_image_header.optional_header.section_alignment;
 
   xen_boot_binary_load (xen_hypervisor, file, argc, argv);
   if (grub_errno == GRUB_ERR_NONE)

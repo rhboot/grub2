@@ -22,6 +22,8 @@
 
 #include "system.h"
 
+#include <grub/efi/pe32.h>
+
 #define GRUB_LINUX_ARM_MAGIC_SIGNATURE 0x016f2818
 
 struct linux_arm_kernel_header {
@@ -32,6 +34,9 @@ struct linux_arm_kernel_header {
   grub_uint32_t end;   /* _edata */
   grub_uint32_t reserved2[3];
   grub_uint32_t hdr_offset;
+#if defined GRUB_MACHINE_EFI
+  struct grub_pe_image_header pe_image_header;
+#endif
 };
 
 #if defined(__arm__)

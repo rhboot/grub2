@@ -49,8 +49,13 @@ static grub_addr_t initrd_start;
 static grub_addr_t initrd_end;
 
 grub_err_t
-grub_arch_efi_linux_check_image (struct linux_arch_kernel_header * lh)
+grub_arch_efi_linux_load_image_header (grub_file_t file,
+                                      struct linux_arch_kernel_header * lh)
 {
+  grub_file_seek (file, 0);
+  if (grub_file_read (file, lh, sizeof (*lh)) < (grub_ssize_t) sizeof (*lh))
+    return grub_error(GRUB_ERR_FILE_READ_ERROR, "failed to read Linux image header");
+
   if ((lh->code0 & 0xffff) != GRUB_PE32_MAGIC)
     return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
 		       N_("plain image kernel not supported - rebuild with CONFIG_(U)EFI_STUB enabled"));
@@ -301,10 +306,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   kernel_size = grub_file_size (file);
 
-  if (grub_file_read (file, &lh, sizeof (lh)) < (long) sizeof (lh))
-    return grub_errno;
-
-  if (grub_arch_efi_linux_check_image (&lh) != GRUB_ERR_NONE)
+  if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
     goto fail;
 
   grub_loader_unset();
