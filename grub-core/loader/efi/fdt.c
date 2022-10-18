@@ -89,13 +89,16 @@ grub_fdt_install (void)
   static grub_efi_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
   grub_efi_status_t status;
 
+  if (fdt == NULL && loaded_fdt == NULL)
+    return GRUB_ERR_NONE;
+
   b = grub_efi_system_table->boot_services;
-  status = b->install_configuration_table (&fdt_guid, fdt);
+  status = b->install_configuration_table (&fdt_guid, fdt ? fdt : loaded_fdt);
   if (status != GRUB_EFI_SUCCESS)
     return grub_error (GRUB_ERR_IO, "failed to install FDT");
 
   grub_dprintf ("fdt", "Installed/updated FDT configuration table @ %p\n",
-		fdt);
+		fdt ? fdt : loaded_fdt);
   return GRUB_ERR_NONE;
 }
 
