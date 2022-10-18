@@ -1787,7 +1787,7 @@ grub_net_fini_hw (int noreturn __attribute__ ((unused)))
 {
   struct grub_net_card *card;
   FOR_NET_CARDS (card)
-    if (card->opened)
+    if (card->opened && !(card->flags & GRUB_NET_CARD_NO_CLOSE_ON_FINI_HW))
       {
 	if (card->driver->close)
 	  card->driver->close (card);

@@ -64,7 +64,8 @@ typedef enum grub_net_interface_flags
 typedef enum grub_net_card_flags
   {
     GRUB_NET_CARD_HWADDRESS_IMMUTABLE = 1,
-    GRUB_NET_CARD_NO_MANUAL_INTERFACES = 2
+    GRUB_NET_CARD_NO_MANUAL_INTERFACES = 2,
+    GRUB_NET_CARD_NO_CLOSE_ON_FINI_HW = 4
   } grub_net_card_flags_t;
 
 struct grub_net_card;

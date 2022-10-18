@@ -320,7 +320,15 @@ grub_efinet_findcards (void)
 
       card->name = grub_xasprintf ("efinet%d", i++);
       card->driver = &efidriver;
-      card->flags = 0;
+      /*
+       * EFI network devices are abstract SNP protocol instances, and the
+       * firmware is in charge of ensuring that they will be torn down when the
+       * OS loader hands off to the OS proper. Closing them as part of the
+       * preboot cleanup is therefore unnecessary, and undesirable, as it
+       * prevents us from using the network connection in a protocal callback
+       * such as LoadFile2 for initrd loading.
+       */
+      card->flags = GRUB_NET_CARD_NO_CLOSE_ON_FINI_HW;
       card->default_address.type = GRUB_NET_LINK_LEVEL_PROTOCOL_ETHERNET;
       grub_memcpy (card->default_address.mac,
 		   net->mode->current_address,
