@@ -63,6 +63,21 @@ grub_arch_efi_linux_load_image_header (grub_file_t file,
   grub_dprintf ("linux", "UEFI stub kernel:\n");
   grub_dprintf ("linux", "PE/COFF header @ %08x\n", lh->hdr_offset);
 
+  /*
+   * The PE/COFF spec permits the COFF header to appear anywhere in the file, so
+   * we need to double check whether it was where we expected it, and if not, we
+   * must load it from the correct offset into the pe_image_header field of
+   * struct linux_arch_kernel_header.
+   */
+  if ((grub_uint8_t *) lh + lh->hdr_offset != (grub_uint8_t *) &lh->pe_image_header)
+    {
+      if (grub_file_seek (file, lh->hdr_offset) == (grub_off_t) -1
+          || grub_file_read (file, &lh->pe_image_header,
+                             sizeof (struct grub_pe_image_header))
+             != sizeof (struct grub_pe_image_header))
+        return grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read COFF image header");
+    }
+
   return GRUB_ERR_NONE;
 }
 
