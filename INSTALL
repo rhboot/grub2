@@ -16,7 +16,7 @@ you don't have any of them, please obtain and install them before
 configuring the GRUB.
 
 * GCC 5.1.0 or later
-  Experimental support for clang 3.8.0 or later (results in much bigger binaries)
+  Experimental support for clang 8.0.0 or later (results in much bigger binaries)
   for i386, x86_64, arm (including thumb), arm64, mips(el), powerpc, sparc64
 * GNU Make
 * GNU Bison 2.3 or later
