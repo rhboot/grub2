@@ -1939,6 +1939,10 @@ AC_ARG_ENABLE([werror],
 if test x"$enable_werror" != xno ; then
   TARGET_CFLAGS="$TARGET_CFLAGS -Werror"
   HOST_CFLAGS="$HOST_CFLAGS -Werror"
+  if test "x$grub_cv_cc_target_clang" = xyes; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -Wno-error=vla"
+    HOST_CFLAGS="$HOST_CFLAGS -Wno-error=vla"
+  fi
 fi
 
 TARGET_CPP="$TARGET_CC -E"
