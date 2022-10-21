@@ -1249,7 +1249,7 @@ grub_printf_fmt_check (const char *fmt, const char *fmt_expected)
 
 
 /* Abort GRUB. This function does not return.  */
-static void __attribute__ ((noreturn))
+void __attribute__ ((noreturn))
 grub_abort (void)
 {
   grub_printf ("\nAborted.");

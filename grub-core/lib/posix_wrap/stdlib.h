@@ -58,4 +58,10 @@ abs (int c)
   return (c >= 0) ? c : -c;
 }
 
+static inline void __attribute__ ((noreturn))
+abort (void)
+{
+  grub_abort ();
+}
+
 #endif

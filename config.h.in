@@ -137,16 +137,6 @@ typedef __UINT_FAST32_TYPE__ uint_fast32_t;
     void *								\
     reallocarray (void *ptr, unsigned int nmemb, unsigned int size);
 #    define _GL_INLINE_HEADER_END   _Pragma ("GCC diagnostic pop")
-
-/*
- * We don't have an abort() for gnulib to call in regexp.  Because gnulib is
- * built as a separate object that is then linked with, it doesn't have any
- * of our headers or functions around to use - so we unfortunately can't
- * print anything.  Builds of emu include the system's stdlib, which includes
- * a prototype for abort(), so leave this as a macro that doesn't take
- * arguments.
- */
-#    define abort __builtin_trap
 #  endif /* !_GL_INLINE_HEADER_BEGIN */
 
 /* gnulib doesn't build cleanly with older compilers. */
