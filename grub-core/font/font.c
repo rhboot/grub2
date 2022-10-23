@@ -1069,8 +1069,15 @@ static void
 grub_font_blit_glyph (struct grub_font_glyph *target,
 		      struct grub_font_glyph *src, unsigned dx, unsigned dy)
 {
+  grub_uint16_t max_x, max_y;
   unsigned src_bit, tgt_bit, src_byte, tgt_byte;
   unsigned i, j;
+
+  /* Harden against out-of-bound writes. */
+  if ((grub_add (dx, src->width, &max_x) || max_x > target->width) ||
+      (grub_add (dy, src->height, &max_y) || max_y > target->height))
+    return;
+
   for (i = 0; i < src->height; i++)
     {
       src_bit = (src->width * i) % 8;
@@ -1102,9 +1109,16 @@ grub_font_blit_glyph_mirror (struct grub_font_glyph *target,
 			     struct grub_font_glyph *src,
 			     unsigned dx, unsigned dy)
 {
+  grub_uint16_t max_x, max_y;
   unsigned tgt_bit, src_byte, tgt_byte;
   signed src_bit;
   unsigned i, j;
+
+  /* Harden against out-of-bound writes. */
+  if ((grub_add (dx, src->width, &max_x) || max_x > target->width) ||
+      (grub_add (dy, src->height, &max_y) || max_y > target->height))
+    return;
+
   for (i = 0; i < src->height; i++)
     {
       src_bit = (src->width * i + src->width - 1) % 8;
