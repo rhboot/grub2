@@ -1864,11 +1864,8 @@ module = {
   riscv32 = loader/riscv/linux.c;
   riscv64 = loader/riscv/linux.c;
   emu = loader/emu/linux.c;
-
   common = loader/linux.c;
   common = lib/cmdline.c;
-  enable = noemu;
-
   efi = loader/efi/linux.c;
 };
 
