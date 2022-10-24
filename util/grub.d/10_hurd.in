@@ -229,6 +229,10 @@ submenu_indentation=""
 
 reverse_sorted_kernels=$(echo ${kernels} | tr ' ' '\n' | sed -e 's/\.old$/ 1/; / 1$/! s/$/ 2/' | version_sort -r | sed -e 's/ 1$/.old/; s/ 2$//')
 
+if [ "x$GRUB_TOP_LEVEL" != x ]; then
+  reverse_sorted_kernels=$(grub_move_to_front "$GRUB_TOP_LEVEL" ${reverse_sorted_kernels})
+fi
+
 is_top_level=true
 
 for kernel in ${reverse_sorted_kernels}; do

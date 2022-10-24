@@ -146,8 +146,14 @@ pattern="^ELF[^,]*executable.*statically linked"
 # yet, so it's empty. In a submenu it will be equal to '\t' (one tab).
 submenu_indentation=""
 
+list="/netbsd $(ls -t /netbsd?* 2>/dev/null)"
+
+if [ "x$GRUB_TOP_LEVEL" != x ]; then
+  list=$(grub_move_to_front "$GRUB_TOP_LEVEL" ${list})
+fi
+
 is_top_level=true
-for k in /netbsd $(ls -t /netbsd?* 2>/dev/null) ; do
+for k in ${list}; do
   if ! grub_file_is_not_garbage "$k" ; then
     continue
   fi

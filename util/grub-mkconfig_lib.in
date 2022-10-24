@@ -218,6 +218,32 @@ version_sort ()
    esac
 }
 
+# Given an item as the first argument and a list as the subsequent arguments,
+# returns the list with the first argument moved to the front if it exists in
+# the list.
+grub_move_to_front ()
+{
+  item="$1"
+  shift
+
+  item_found=false
+  for i in "$@"; do
+    if [ "x$i" = "x$item" ]; then
+      item_found=true
+    fi
+  done
+
+  if [ "x$item_found" = xtrue ]; then
+    echo "$item"
+  fi
+  for i in "$@"; do
+    if [ "x$i" = "x$item" ]; then
+      continue
+    fi
+    echo "$i"
+  done
+}
+
 # One layer of quotation is eaten by "" and the second by sed; so this turns
 # ' into \'.
 grub_quote () {

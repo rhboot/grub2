@@ -1444,6 +1444,16 @@ for all respectively normal entries.
 The values of these options replace the values of @samp{GRUB_CMDLINE_LINUX}
 and @samp{GRUB_CMDLINE_LINUX_DEFAULT} for Linux and Xen menu entries.
 
+@item GRUB_TOP_LEVEL
+@item GRUB_TOP_LEVEL_XEN
+This option should be an absolute path to a kernel image. If provided, the
+image specified will be made the top-level entry if it is found in the scan.
+
+@item GRUB_TOP_LEVEL_OS_PROBER
+This option should be a line of output from @command{os-prober}. As
+@samp{GRUB_TOP_LEVEL}, if provided, the image specified will be made the
+top-level entry if it is found in the scan.
+
 @item GRUB_EARLY_INITRD_LINUX_CUSTOM
 @itemx GRUB_EARLY_INITRD_LINUX_STOCK
 List of space-separated early initrd images to be loaded from @samp{/boot}.
