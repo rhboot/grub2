@@ -923,17 +923,17 @@ magic.
 @node General boot methods
 @section How to boot operating systems
 
-GRUB has two distinct boot methods. One of the two is to load an
-operating system directly, and the other is to chain-load another boot
-loader which then will load an operating system actually. Generally
-speaking, the former is more desirable, because you don't need to
-install or maintain other boot loaders and GRUB is flexible enough to
-load an operating system from an arbitrary disk/partition. However,
-the latter is sometimes required, since GRUB doesn't support all the
-existing operating systems natively.
+GRUB has three distinct boot methods: loading an operating system
+directly, using kexec from userspace, and chainloading another
+bootloader. Generally speaking, the first two are more desirable
+because you don't need to install or maintain other boot loaders and
+GRUB is flexible enough to load an operating system from an arbitrary
+disk/partition. However, chainloading is sometimes required, as GRUB
+doesn't support all existing operating systems natively.
 
 @menu
 * Loading an operating system directly::
+* Kexec::
 * Chain-loading::
 @end menu
 
@@ -957,6 +957,20 @@ Run the command @command{boot} (@pxref{boot}).
 However, DOS and Windows have some deficiencies, so you might have to
 use more complicated instructions. @xref{DOS/Windows}, for more
 information.
+
+
+@node Kexec
+@subsection Kexec with grub2-emu
+
+GRUB can be run in userspace by invoking the grub2-emu tool. It will
+read all configuration scripts as if booting directly (see @xref{Loading
+an operating system directly}). With the @code{--kexec} flag, and
+kexec(8) support from the operating system, the @command{linux} command
+will directly boot the target image. For systems that lack working
+systemctl(1) support for kexec, passing the @code{--kexec} flag twice
+will fallback to invoking kexec(8) directly; note however that this
+fallback may be unsafe outside read-only environments, as it does not
+invoke shutdown machinery.
 
 
 @node Chain-loading
