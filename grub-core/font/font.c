@@ -1203,12 +1203,12 @@ blit_comb (const struct grub_unicode_glyph *glyph_id,
   ctx.bounds.height = main_glyph->height;
 
   above_rightx = main_glyph->offset_x + main_glyph->width;
-  above_righty = ctx.bounds.y + ctx.bounds.height;
+  above_righty = ctx.bounds.y + (int) ctx.bounds.height;
 
   above_leftx = main_glyph->offset_x;
-  above_lefty = ctx.bounds.y + ctx.bounds.height;
+  above_lefty = ctx.bounds.y + (int) ctx.bounds.height;
 
-  below_rightx = ctx.bounds.x + ctx.bounds.width;
+  below_rightx = ctx.bounds.x + (int) ctx.bounds.width;
   below_righty = ctx.bounds.y;
 
   comb = grub_unicode_get_comb (glyph_id);
@@ -1221,7 +1221,7 @@ blit_comb (const struct grub_unicode_glyph *glyph_id,
 
       if (!combining_glyphs[i])
 	continue;
-      targetx = (ctx.bounds.width - combining_glyphs[i]->width) / 2 + ctx.bounds.x;
+      targetx = ((int) ctx.bounds.width - combining_glyphs[i]->width) / 2 + ctx.bounds.x;
       /* CGJ is to avoid diacritics reordering. */
       if (comb[i].code
 	  == GRUB_UNICODE_COMBINING_GRAPHEME_JOINER)
@@ -1231,8 +1231,8 @@ blit_comb (const struct grub_unicode_glyph *glyph_id,
 	case GRUB_UNICODE_COMB_OVERLAY:
 	  do_blit (combining_glyphs[i],
 		   targetx,
-		   (ctx.bounds.height - combining_glyphs[i]->height) / 2
-		   - (ctx.bounds.height + ctx.bounds.y), &ctx);
+		   ((int) ctx.bounds.height - combining_glyphs[i]->height) / 2
+		   - ((int) ctx.bounds.height + ctx.bounds.y), &ctx);
 	  if (min_devwidth < combining_glyphs[i]->width)
 	    min_devwidth = combining_glyphs[i]->width;
 	  break;
@@ -1305,7 +1305,7 @@ blit_comb (const struct grub_unicode_glyph *glyph_id,
 	  /* Fallthrough.  */
 	case GRUB_UNICODE_STACK_ATTACHED_ABOVE:
 	  do_blit (combining_glyphs[i], targetx,
-		   -(ctx.bounds.height + ctx.bounds.y + space
+		   -((int) ctx.bounds.height + ctx.bounds.y + space
 		     + combining_glyphs[i]->height), &ctx);
 	  if (min_devwidth < combining_glyphs[i]->width)
 	    min_devwidth = combining_glyphs[i]->width;
@@ -1313,7 +1313,7 @@ blit_comb (const struct grub_unicode_glyph *glyph_id,
 
 	case GRUB_UNICODE_COMB_HEBREW_DAGESH:
 	  do_blit (combining_glyphs[i], targetx,
-		   -(ctx.bounds.height / 2 + ctx.bounds.y
+		   -((int) ctx.bounds.height / 2 + ctx.bounds.y
 		     + combining_glyphs[i]->height / 2), &ctx);
 	  if (min_devwidth < combining_glyphs[i]->width)
 	    min_devwidth = combining_glyphs[i]->width;
