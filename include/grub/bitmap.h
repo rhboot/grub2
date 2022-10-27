@@ -24,6 +24,8 @@
 #include <grub/types.h>
 #include <grub/video.h>
 
+#define IMAGE_HW_MAX_PX		16384
+
 struct grub_video_bitmap
 {
   /* Bitmap format description.  */

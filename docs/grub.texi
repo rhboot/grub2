@@ -1515,7 +1515,8 @@ resolution.  @xref{gfxmode}.
 Set a background image for use with the @samp{gfxterm} graphical terminal.
 The value of this option must be a file readable by GRUB at boot time, and
 it must end with @file{.png}, @file{.tga}, @file{.jpg}, or @file{.jpeg}.
-The image will be scaled if necessary to fit the screen.
+The image will be scaled if necessary to fit the screen. Image height and
+width will be restricted by an artificial limit of 16384.
 
 @item GRUB_THEME
 Set a theme for use with the @samp{gfxterm} graphical terminal.

@@ -346,7 +346,11 @@ grub_jpeg_decode_sof (struct grub_jpeg_data *data)
   data->image_height = grub_jpeg_get_word (data);
   data->image_width = grub_jpeg_get_word (data);
 
-  if ((!data->image_height) || (!data->image_width))
+  grub_dprintf ("jpeg", "image height: %d\n", data->image_height);
+  grub_dprintf ("jpeg", "image width: %d\n", data->image_width);
+
+  if ((!data->image_height) || (!data->image_width) ||
+      (data->image_height > IMAGE_HW_MAX_PX) || (data->image_width > IMAGE_HW_MAX_PX))
     return grub_error (GRUB_ERR_BAD_FILE_TYPE, "jpeg: invalid image size");
 
   cc = grub_jpeg_get_byte (data);

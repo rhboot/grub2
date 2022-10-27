@@ -264,7 +264,11 @@ grub_png_decode_image_header (struct grub_png_data *data)
   data->image_width = grub_png_get_dword (data);
   data->image_height = grub_png_get_dword (data);
 
-  if ((!data->image_height) || (!data->image_width))
+  grub_dprintf ("png", "image height: %d\n", data->image_height);
+  grub_dprintf ("png", "image width: %d\n", data->image_width);
+
+  if ((!data->image_height) || (!data->image_width) ||
+      (data->image_height > IMAGE_HW_MAX_PX) || (data->image_width > IMAGE_HW_MAX_PX))
     return grub_error (GRUB_ERR_BAD_FILE_TYPE, "png: invalid image size");
 
   color_bits = grub_png_get_byte (data);
