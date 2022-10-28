@@ -472,6 +472,9 @@ grub_unicode_aglomerate_comb (const grub_uint32_t *in, grub_size_t inlen,
 	  if (!haveout)
 	    continue;
 
+	  if (out->ncomb == GRUB_UNICODE_NCOMB_MAX)
+	    continue;
+
 	  if (comb_type == GRUB_UNICODE_COMB_MC
 	      || comb_type == GRUB_UNICODE_COMB_ME
 	      || comb_type == GRUB_UNICODE_COMB_MN)
