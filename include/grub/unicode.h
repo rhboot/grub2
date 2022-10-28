@@ -147,7 +147,9 @@ struct grub_unicode_glyph
   grub_uint8_t bidi_level:6; /* minimum: 6 */
   enum grub_bidi_type bidi_type:5; /* minimum: :5 */
 
+#define GRUB_UNICODE_NCOMB_MAX ((1 << 8) - 1)
   unsigned ncomb:8;
+
   /* Hint by unicode subsystem how wide this character usually is.
      Real width is determined by font. Set only in UTF-8 stream.  */
   int estimated_width:8;
