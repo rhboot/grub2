@@ -32,7 +32,7 @@ struct grub_parttool_args
   int set;
   union
   {
-    int bool;
+    int b;
     char *str;
   };
 };

@@ -20,6 +20,7 @@
 #define GRUB_TYPES_HEADER	1
 
 #include <config.h>
+#include <stdbool.h>
 #ifndef GRUB_UTIL
 #include <grub/cpu/types.h>
 #endif

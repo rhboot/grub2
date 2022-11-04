@@ -315,7 +315,7 @@ grub_cmd_parttool (grub_command_t cmd __attribute__ ((unused)),
 		    switch (curarg->type)
 		      {
 		      case GRUB_PARTTOOL_ARG_BOOL:
-			pargs[curarg - ptool->args].bool
+			pargs[curarg - ptool->args].b
 			  = (args[j][grub_strlen (curarg->name)] != '-');
 			break;
 
