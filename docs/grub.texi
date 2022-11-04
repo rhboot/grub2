@@ -3342,6 +3342,7 @@ These variables have special meaning to GRUB.
 * theme::
 * timeout::
 * timeout_style::
+* tpm_fail_fatal::
 @end menu
 
 
@@ -3847,6 +3848,15 @@ This variable may be set to @samp{menu}, @samp{countdown}, or @samp{hidden}
 to control the way in which the timeout (@pxref{timeout}) interacts with
 displaying the menu.  See the documentation of @samp{GRUB_TIMEOUT_STYLE}
 (@pxref{Simple configuration}) for details.
+
+
+@node tpm_fail_fatal
+@subsection tpm_fail_fatal
+
+If this variable is set and true (i.e., not set to ``0'', ``false'',
+``disable'', or ``no''), TPM measurements that fail will be treated as
+fatal. Otherwise, they will merely be debug-logged and boot will
+continue.
 
 
 @node Environment block

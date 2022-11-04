@@ -18,6 +18,7 @@
  *  Core TPM support code.
  */
 
+#include <grub/env.h>
 #include <grub/err.h>
 #include <grub/i18n.h>
 #include <grub/misc.h>
@@ -39,10 +40,22 @@ grub_tpm_verify_init (grub_file_t io,
   return GRUB_ERR_NONE;
 }
 
+static inline bool
+is_tpm_fail_fatal (void)
+{
+  return grub_env_get_bool ("tpm_fail_fatal", false);
+}
+
 static grub_err_t
 grub_tpm_verify_write (void *context, void *buf, grub_size_t size)
 {
-  return grub_tpm_measure (buf, size, GRUB_BINARY_PCR, context);
+  grub_err_t status = grub_tpm_measure (buf, size, GRUB_BINARY_PCR, context);
+
+  if (status == GRUB_ERR_NONE)
+    return GRUB_ERR_NONE;
+
+  grub_dprintf ("tpm", "Measuring buffer failed: %d\n", status);
+  return is_tpm_fail_fatal () ? status : GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -74,7 +87,11 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
     grub_tpm_measure ((unsigned char *) str, grub_strlen (str),
 		      GRUB_STRING_PCR, description);
   grub_free (description);
-  return status;
+  if (status == GRUB_ERR_NONE)
+    return GRUB_ERR_NONE;
+
+  grub_dprintf ("tpm", "Measuring string %s failed: %d\n", str, status);
+  return is_tpm_fail_fatal () ? status : GRUB_ERR_NONE;
 }
 
 struct grub_file_verifier grub_tpm_verifier = {
