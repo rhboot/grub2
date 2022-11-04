@@ -144,6 +144,19 @@ grub_env_get (const char *name)
   return var->value;
 }
 
+bool
+grub_env_get_bool (const char *name, bool if_unset)
+{
+  const char *val = grub_env_get (name);
+
+  if (val == NULL || grub_strlen (val) < 1)
+    return if_unset;
+  if (grub_strcmp (val, "0") == 0 || grub_strcmp (val, "false") == 0 ||
+      grub_strcmp (val, "disable") == 0 || grub_strcmp (val, "no") == 0)
+    return false;
+  return true;
+}
+
 void
 grub_env_unset (const char *name)
 {

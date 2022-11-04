@@ -45,6 +45,7 @@ struct grub_env_var
 
 grub_err_t EXPORT_FUNC(grub_env_set) (const char *name, const char *val);
 const char *EXPORT_FUNC(grub_env_get) (const char *name);
+bool EXPORT_FUNC(grub_env_get_bool) (const char *name, bool if_unset);
 void EXPORT_FUNC(grub_env_unset) (const char *name);
 struct grub_env_var *EXPORT_FUNC(grub_env_update_get_sorted) (void);
 
