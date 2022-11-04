@@ -380,7 +380,8 @@ grub_normal_reader_init (int nested)
 
   msg_formatted = grub_xasprintf (_("Minimal BASH-like line editing is supported. For "
 				    "the first word, TAB lists possible command completions. Anywhere "
-				    "else TAB lists possible device or file completions. %s"),
+				    "else TAB lists possible device or file completions. To enable "
+				    "less(1)-like paging, \"set pager=1\". %s"),
 				  nested ? msg_esc : "");
   if (!msg_formatted)
     return grub_errno;

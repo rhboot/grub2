@@ -135,6 +135,8 @@ grub_cmd_help (grub_extcmd_context_t ctxt __attribute__ ((unused)), int argc,
 	}
     }
 
+  grub_printf ("\n\nTo enable less(1)-like paging, \"set pager=1\".\n");
+
   return 0;
 }
 
