@@ -229,14 +229,15 @@ grub_util_find_root_devices_from_poolname (char *poolname)
   char name[PATH_MAX + 1], state[257], readlen[257], writelen[257];
   char cksum[257], notes[257];
   unsigned int dummy;
-  const char *argv[4];
+  const char *argv[5];
   pid_t pid;
   int fd;
 
   argv[0] = "zpool";
   argv[1] = "status";
-  argv[2] = poolname;
-  argv[3] = NULL;
+  argv[2] = "-P";
+  argv[3] = poolname;
+  argv[4] = NULL;
 
   pid = grub_util_exec_pipe (argv, &fd);
   if (!pid)
