@@ -246,10 +246,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	return grub_errno;
 
       if (grub_file_seek (mld->file, ehdr->e_shoff) == (grub_off_t) -1)
-	{
-	  grub_free (shdr);
-	  return grub_errno;
-	}
+	goto fail;
 
       if (grub_file_read (mld->file, shdr, shnum * ehdr->e_shentsize)
               != (grub_ssize_t) shnum * ehdr->e_shentsize)
@@ -257,7 +254,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	  if (!grub_errno)
 	    grub_error (GRUB_ERR_FILE_READ_ERROR, N_("premature end of file %s"),
 			mld->filename);
-	  return grub_errno;
+	  goto fail;
 	}
 
       for (shdrptr = shdr, i = 0; i < shnum;
@@ -268,7 +265,10 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	  grub_addr_t target;
 
 	  if (mld->mbi_ver >= 2 && (sh->sh_type == SHT_REL || sh->sh_type == SHT_RELA))
-	    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "ELF files with relocs are not supported yet");
+	    {
+	      grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "ELF files with relocs are not supported yet");
+	      goto fail;
+	    }
 
 	  /* This section is a loaded section,
 	     so we don't care.  */
@@ -287,13 +287,14 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	  if (err != GRUB_ERR_NONE)
 	    {
 	      grub_dprintf ("multiboot_loader", "Error loading shdr %d\n", i);
-	      return err;
+	      grub_errno = err;
+	      goto fail;
 	    }
 	  src = get_virtual_current_address (ch);
 	  target = get_physical_target_address (ch);
 
 	  if (grub_file_seek (mld->file, sh->sh_offset) == (grub_off_t) -1)
-	    return grub_errno;
+	    goto fail;
 
           if (grub_file_read (mld->file, src, sh->sh_size)
               != (grub_ssize_t) sh->sh_size)
@@ -301,12 +302,16 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	      if (!grub_errno)
 		grub_error (GRUB_ERR_FILE_READ_ERROR, N_("premature end of file %s"),
 			    mld->filename);
-	      return grub_errno;
+	      goto fail;
 	    }
 	  sh->sh_addr = target;
 	}
       GRUB_MULTIBOOT (add_elfsyms) (shnum, ehdr->e_shentsize,
 				    shstrndx, shdr);
+      return GRUB_ERR_NONE;
+
+ fail:
+      grub_free (shdr);
     }
 
 #undef phdr
