@@ -1695,7 +1695,8 @@ command.
 @end multitable
 
 Remember, @samp{GRUB_DISABLE_LINUX_PARTUUID} and @samp{GRUB_DISABLE_LINUX_UUID}
-are also considered to be set to @samp{false} when they are unset.
+are also considered to be set to @samp{true} and @samp{false}, respectively,
+when they are unset.
 
 @node Shell-like scripting
 @section Writing full configuration files directly
