@@ -510,6 +510,20 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 		}
 
 	      len = U32 (extension->ae_len);
+              /*
+               * Ensure AE length is less than block size
+               * per UDF spec v2.01 section 2.3.11.
+               *
+               * node->data->lbshift is initialized by
+               * grub_udf_mount(). lbshift has a maximum value
+               * of 3 and it does not cause an overflow here.
+               */
+              if (len < 0 || len > ((grub_ssize_t) 1 << node->data->lbshift))
+                {
+                  grub_error (GRUB_ERR_BAD_FS, "invalid ae length");
+                  goto fail;
+                }
+
 	      ad = (struct grub_udf_short_ad *)
 		    (buf + sizeof (struct grub_udf_aed));
 	      continue;
@@ -563,6 +577,20 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 		}
 
 	      len = U32 (extension->ae_len);
+              /*
+               * Ensure AE length is less than block size
+               * per UDF spec v2.01 section 2.3.11.
+               *
+               * node->data->lbshift is initialized by
+               * grub_udf_mount(). lbshift has a maximum value
+               * of 3 and it does not cause an overflow here.
+               */
+              if (len < 0 || len > ((grub_ssize_t) 1 << node->data->lbshift))
+                {
+                  grub_error (GRUB_ERR_BAD_FS, "invalid ae length");
+                  goto fail;
+                }
+
 	      ad = (struct grub_udf_long_ad *)
 		    (buf + sizeof (struct grub_udf_aed));
 	      continue;
