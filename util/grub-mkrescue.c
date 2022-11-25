@@ -745,9 +745,8 @@ main (int argc, char *argv[])
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV32_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV64_EFI])
     {
-      char *efidir = grub_util_make_temporary_dir ();
-      char *efidir_efi = grub_util_path_concat (2, efidir, "efi");
-      char *efidir_efi_boot = grub_util_path_concat (3, efidir, "efi", "boot");
+      char *efidir_efi = grub_util_path_concat (2, iso9660_dir, "efi");
+      char *efidir_efi_boot = grub_util_path_concat (3, iso9660_dir, "efi", "boot");
       char *imgname, *img32, *img64, *img_mac = NULL;
       char *efiimgfat;
       grub_install_mkdir_p (efidir_efi_boot);
@@ -828,10 +827,9 @@ main (int argc, char *argv[])
       xorriso_push ("-efi-boot-part");
       xorriso_push ("--efi-boot-image");
 
-      grub_util_unlink_recursive (efidir);
+      /* Don't unlink the efidir_efi_boot directory so that we have a duplicate on the ISO 9660 file system. */
       free (efiimgfat);
       free (efidir_efi);
-      free (efidir);
       grub_install_pop_module ();
       grub_install_pop_module ();
       grub_install_pop_module ();
