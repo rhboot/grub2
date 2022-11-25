@@ -261,7 +261,26 @@ make_image_abs (enum grub_install_plat plat,
   load_cfg = grub_util_make_temporary_file ();
 
   load_cfg_f = grub_util_fopen (load_cfg, "wb");
-  fprintf (load_cfg_f, "search --fs-uuid --set=root %s\n", iso_uuid);
+  /*
+   * A UEFI bootable media should support file system transposition (e.g. extracting
+   * an ISO 9660 content to a FAT32 media that was formatted by the user). Therefore,
+   * for EFI platforms, we search for a specific UUID file rather than a partition UUID.
+   */
+  switch (plat)
+    {
+      case GRUB_INSTALL_PLATFORM_I386_EFI:
+      case GRUB_INSTALL_PLATFORM_X86_64_EFI:
+      case GRUB_INSTALL_PLATFORM_IA64_EFI:
+      case GRUB_INSTALL_PLATFORM_ARM_EFI:
+      case GRUB_INSTALL_PLATFORM_ARM64_EFI:
+      case GRUB_INSTALL_PLATFORM_RISCV32_EFI:
+      case GRUB_INSTALL_PLATFORM_RISCV64_EFI:
+	fprintf (load_cfg_f, "search --set=root --file /.disk/%s.uuid\n", iso_uuid);
+	break;
+      default:
+	fprintf (load_cfg_f, "search --set=root --fs-uuid %s\n", iso_uuid);
+	break;
+    }
   fprintf (load_cfg_f, "set prefix=(${root})/boot/grub\n");
 
   write_part (load_cfg_f, source_dirs[plat]);
@@ -745,10 +764,11 @@ main (int argc, char *argv[])
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV32_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV64_EFI])
     {
+      FILE *f;
       char *efidir_efi = grub_util_path_concat (2, iso9660_dir, "efi");
       char *efidir_efi_boot = grub_util_path_concat (3, iso9660_dir, "efi", "boot");
       char *imgname, *img32, *img64, *img_mac = NULL;
-      char *efiimgfat;
+      char *efiimgfat, *iso_uuid_file, *diskdir, *diskdir_uuid;
       grub_install_mkdir_p (efidir_efi_boot);
 
       grub_install_push_module ("part_gpt");
@@ -757,37 +777,45 @@ main (int argc, char *argv[])
       /* Many modern UEFI systems also have native support for NTFS. */
       grub_install_push_module ("ntfs");
 
+      /* Create a '.disk/<TIMEBASED_UUID>.uuid' file that can be used to locate the boot media. */
+      diskdir = grub_util_path_concat (2, iso9660_dir, ".disk");
+      grub_install_mkdir_p (diskdir);
+      iso_uuid_file = xasprintf ("%s.uuid", iso_uuid);
+      diskdir_uuid = grub_util_path_concat (2, diskdir, iso_uuid_file);
+      f = grub_util_fopen (diskdir_uuid, "wb");
+      fclose (f);
+      free (iso_uuid_file);
+      free (diskdir_uuid);
+      free (diskdir);
+
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootia64.efi");
       make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_IA64_EFI, "ia64-efi", imgname);
       free (imgname);
 
       grub_install_push_module ("part_apple");
       img64 = grub_util_path_concat (2, efidir_efi_boot, "bootx64.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_X86_64_EFI, "x86_64-efi", img64);
+      make_image_abs (GRUB_INSTALL_PLATFORM_X86_64_EFI, "x86_64-efi", img64);
       grub_install_pop_module ();
 
       grub_install_push_module ("part_apple");
       img32 = grub_util_path_concat (2, efidir_efi_boot, "bootia32.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_I386_EFI, "i386-efi", img32);
+      make_image_abs (GRUB_INSTALL_PLATFORM_I386_EFI, "i386-efi", img32);
       grub_install_pop_module ();
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootarm.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_ARM_EFI, "arm-efi", imgname);
+      make_image_abs (GRUB_INSTALL_PLATFORM_ARM_EFI, "arm-efi", imgname);
       free (imgname);
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootaa64.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_ARM64_EFI, "arm64-efi",
-			     imgname);
+      make_image_abs (GRUB_INSTALL_PLATFORM_ARM64_EFI, "arm64-efi", imgname);
       free (imgname);
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootriscv32.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_RISCV32_EFI, "riscv32-efi",
-			     imgname);
+      make_image_abs (GRUB_INSTALL_PLATFORM_RISCV32_EFI, "riscv32-efi", imgname);
       free (imgname);
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootriscv64.efi");
-      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_RISCV64_EFI, "riscv64-efi",
-			     imgname);
+      make_image_abs (GRUB_INSTALL_PLATFORM_RISCV64_EFI, "riscv64-efi", imgname);
       free (imgname);
 
       if (source_dirs[GRUB_INSTALL_PLATFORM_I386_EFI])
