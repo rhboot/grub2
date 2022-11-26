@@ -63,7 +63,8 @@ static grub_uint8_t cur_color = 0x7;
 static void
 screen_write_char (int x, int y, short c)
 {
-  VGA_TEXT_SCREEN[y * COLS + x] = grub_cpu_to_le16 (c);
+  if (x < COLS && y < ROWS && x >= 0 && y >= 0)
+    VGA_TEXT_SCREEN[y * COLS + x] = grub_cpu_to_le16 (c);
 }
 
 static short
