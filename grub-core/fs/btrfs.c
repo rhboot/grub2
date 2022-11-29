@@ -1982,7 +1982,12 @@ find_path (struct grub_btrfs_data *data,
 	    {
 	      err = get_root (data, key, tree, type);
 	      if (err)
-		return err;
+		{
+		  grub_free (direl);
+		  grub_free (path_alloc);
+		  grub_free (origpath);
+		  return err;
+		}
 	    }
 	  continue;
 	}
