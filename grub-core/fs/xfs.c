@@ -598,7 +598,10 @@ grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
           if (grub_disk_read (node->data->disk,
                               GRUB_XFS_FSB_TO_BLOCK (node->data, get_fsb (keys, i - 1 + recoffset)) << (node->data->sblock.log2_bsize - GRUB_DISK_SECTOR_BITS),
                               0, node->data->bsize, leaf))
-            return 0;
+            {
+              grub_free (leaf);
+              return 0;
+            }
 
 	  if ((!node->data->hascrc &&
 	       grub_strncmp ((char *) leaf->magic, "BMAP", 4)) ||
@@ -789,6 +792,7 @@ static int iterate_dir_call_hook (grub_uint64_t ino, const char *filename,
   if (err)
     {
       grub_print_error ();
+      grub_free (fdiro);
       return 0;
     }
 
@@ -906,7 +910,10 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 					  blk << dirblk_log2,
 					  dirblk_size, dirblock, 0);
 	    if (numread != dirblk_size)
-	      return 0;
+	      {
+	        grub_free (dirblock);
+	        return 0;
+	      }
 
 	    entries = (grub_be_to_cpu32 (tail->leaf_count)
 		       - grub_be_to_cpu32 (tail->leaf_stale));
