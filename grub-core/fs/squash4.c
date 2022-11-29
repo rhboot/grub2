@@ -550,7 +550,10 @@ grub_squash_iterate_dir (grub_fshelp_node_t dir,
 			  + node->stack[node->stsize - 1].ino_chunk,
 			  node->stack[node->stsize - 1].ino_offset);
 	if (err)
-	  return 0;
+	  {
+	    grub_free (node);
+	    return 0;
+	  }
 
 	if (hook ("..", GRUB_FSHELP_DIR, node, hook_data))
 	  return 1;
@@ -600,7 +603,10 @@ grub_squash_iterate_dir (grub_fshelp_node_t dir,
 			    grub_le_to_cpu64 (dir->data->sb.diroffset)
 			    + chunk, off);
 	  if (err)
-	    return 0;
+	    {
+	      grub_free (buf);
+	      return 0;
+	    }
 
 	  off += grub_le_to_cpu16 (di.namelen) + 1;
 	  buf[grub_le_to_cpu16 (di.namelen) + 1] = 0;
@@ -612,11 +618,17 @@ grub_squash_iterate_dir (grub_fshelp_node_t dir,
 	  if (grub_add (dir->stsize, 1, &sz) ||
 	      grub_mul (sz, sizeof (dir->stack[0]), &sz) ||
 	      grub_add (sz, sizeof (*node), &sz))
-	    return 0;
+	    {
+	      grub_free (buf);
+	      return 0;
+	    }
 
 	  node = grub_malloc (sz);
 	  if (! node)
-	    return 0;
+	    {
+	      grub_free (buf);
+	      return 0;
+	    }
 
 	  grub_memcpy (node, dir, sz - sizeof(dir->stack[0]));
 
