@@ -279,7 +279,10 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
   /* Load a part of the System Usage Area.  */
   err = read_node (node, off, sua_size, sua);
   if (err)
-    return err;
+    {
+      grub_free (sua);
+      return err;
+    }
 
   for (entry = (struct grub_iso9660_susp_entry *) sua; (char *) entry < (char *) sua + sua_size - 1 && entry->len > 0;
        entry = (struct grub_iso9660_susp_entry *)
@@ -309,7 +312,10 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 	  err = grub_disk_read (node->data->disk, ce_block, off,
 				sua_size, sua);
 	  if (err)
-	    return err;
+	    {
+	      grub_free (sua);
+	      return err;
+	    }
 
 	  entry = (struct grub_iso9660_susp_entry *) sua;
 	}
