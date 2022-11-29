@@ -321,7 +321,6 @@ static int
 grub_affs_create_node (grub_fshelp_node_t dir,
 		       grub_fshelp_iterate_dir_hook_t hook, void *hook_data,
 		       struct grub_fshelp_node **node,
-		       grub_uint32_t **hashtable,
 		       grub_uint32_t block, const struct grub_affs_file *fil)
 {
   struct grub_affs_data *data = dir->data;
@@ -332,10 +331,7 @@ grub_affs_create_node (grub_fshelp_node_t dir,
 
   *node = grub_zalloc (sizeof (**node));
   if (!*node)
-    {
-      grub_free (*hashtable);
-      return 1;
-    }
+    return 1;
 
   (*node)->data = data;
   (*node)->block = block;
@@ -395,7 +391,6 @@ grub_affs_create_node (grub_fshelp_node_t dir,
 
   if (hook ((char *) name_u8, type, *node, hook_data))
     {
-      grub_free (*hashtable);
       *node = 0;
       return 1;
     }
@@ -460,11 +455,11 @@ grub_affs_iterate_dir (grub_fshelp_node_t dir,
 	  if (grub_errno)
 	    goto fail;
 
-	  if (grub_affs_create_node (dir, hook, hook_data, &node, &hashtable,
-				     next, &file))
+	  if (grub_affs_create_node (dir, hook, hook_data, &node, next, &file))
 	    {
 	      /* Node has been replaced in function. */
 	      grub_free (orig_node);
+	      grub_free (hashtable);
 	      return 1;
 	    }
 
