@@ -374,7 +374,7 @@ grub_minix_lookup_symlink (struct grub_minix_data *data, grub_minix_ino_t ino)
   if (!symlink)
     return grub_errno;
   if (grub_minix_read_file (data, 0, 0, 0, sz, symlink) < 0)
-    return grub_errno;
+    goto fail;
 
   symlink[sz] = '\0';
 
@@ -384,10 +384,12 @@ grub_minix_lookup_symlink (struct grub_minix_data *data, grub_minix_ino_t ino)
 
   /* Now load in the old inode.  */
   if (grub_minix_read_inode (data, ino))
-    return grub_errno;
+    goto fail;
 
   grub_minix_find_file (data, symlink);
 
+ fail:
+  grub_free(symlink);
   return grub_errno;
 }
 
