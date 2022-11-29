@@ -416,6 +416,8 @@ read_bfs_file (grub_disk_t disk,
 	len -= read_size;
 	buf = (char *) buf + read_size;
       }
+    grub_free (l1_entries);
+    grub_free (l2_entries);
     return GRUB_ERR_NONE;
   }
 }
