@@ -1085,8 +1085,21 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 
   addr_min = (grub_addr_t) prot_mode_target + prot_init_space;
 
+  /* Make sure the maximum address is able to store the initrd. */
+  if (addr_max < aligned_size)
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE,
+                  N_("the size of initrd is bigger than addr_max"));
+      goto fail;
+    }
+
   /* Put the initrd as high as possible, 4KiB aligned.  */
   addr = (addr_max - aligned_size) & ~0xFFF;
+
+  grub_dprintf ("linux",
+                "Initrd at addr 0x%" PRIxGRUB_ADDR " which is expected in"
+                " ranger 0x%" PRIxGRUB_ADDR " ~ 0x%" PRIxGRUB_ADDR "\n",
+                addr, addr_min, addr_max);
 
   if (addr < addr_min)
     {
