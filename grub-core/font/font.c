@@ -644,8 +644,8 @@ grub_font_load (const char *filename)
 	       font->max_char_width, font->max_char_height, font->num_chars);
 #endif
 
-  if (font->max_char_width == 0
-      || font->max_char_height == 0
+  if (font->max_char_width <= 0
+      || font->max_char_height <= 0
       || font->num_chars == 0
       || font->char_index == 0 || font->ascent == 0 || font->descent == 0)
     {
