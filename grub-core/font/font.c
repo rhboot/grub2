@@ -131,6 +131,11 @@ ascii_glyph_lookup (grub_uint32_t code)
 	{
 	  ascii_font_glyph[current] =
 	    grub_malloc (sizeof (struct grub_font_glyph) + ASCII_BITMAP_SIZE);
+	  if (ascii_font_glyph[current] == NULL)
+	    {
+	      ascii_font_glyph[current] = unknown_glyph;
+	      continue;
+	    }
 
 	  ascii_font_glyph[current]->width = 8;
 	  ascii_font_glyph[current]->height = 16;
