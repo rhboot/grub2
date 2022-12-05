@@ -177,6 +177,7 @@ grub_font_loader_init (void)
   unknown_glyph->offset_x = 0;
   unknown_glyph->offset_y = -3;
   unknown_glyph->device_width = 8;
+  unknown_glyph->font = &null_font;
   grub_memcpy (unknown_glyph->bitmap,
 	       unknown_glyph_bitmap, sizeof (unknown_glyph_bitmap));
 
