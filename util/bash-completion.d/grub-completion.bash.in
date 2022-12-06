@@ -127,7 +127,7 @@ __grub_list_modules () {
     local IFS=$'\n'
     COMPREPLY=( $( compgen -f -X '!*/*.mod' -- "${grub_dir}/$cur" | {
          while read -r tmp; do
-             [ -n $tmp ] && {
+             [ -n "$tmp" ] && {
                  tmp=${tmp##*/}
                  printf '%s\n' ${tmp%.mod}
              }
