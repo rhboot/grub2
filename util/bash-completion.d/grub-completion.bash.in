@@ -52,8 +52,11 @@ __grubcomp () {
         COMPREPLY=()
         ;;
     *)
-        local IFS=' '$'\t'$'\n'
-        COMPREPLY=($(compgen -P "${2-}" -W "${1-}" -S "${4-}" -- "$cur"))
+        local line IFS=' '$'\t'$'\n'
+        COMPREPLY=()
+        while read -r line; do
+            COMPREPLY+=("${line}")
+        done < <(compgen -P "${2-}" -W "${1-}" -S "${4-}" -- "$cur")
         ;;
     esac
 }
@@ -115,25 +118,30 @@ __grub_list_menuentries () {
     local config_file=$(__grub_dir)/grub.cfg
 
     if [ -f "$config_file" ];then
-        local IFS=$'\n'
-        COMPREPLY=( $(compgen \
-            -W "$( awk -F "[\"']" '/menuentry/ { print $2 }' $config_file )" \
-            -- "$cur" )) #'# Help emacs syntax highlighting
+        local line IFS=$'\n'
+        COMPREPLY=()
+        while read -r line; do
+            COMPREPLY+=("${line}")
+        done < <(compgen \
+                -W "$( awk -F "[\"']" '/menuentry/ { print $2 }' $config_file )" \
+                -- "$cur" ) #'# Help emacs syntax highlighting
     fi
 }
 
 __grub_list_modules () {
     local grub_dir=$(__grub_dir)
-    local IFS=$'\n'
-    COMPREPLY=( $( compgen -f -X '!*/*.mod' -- "${grub_dir}/$cur" | {
-         while read -r tmp; do
-             [ -n "$tmp" ] && {
-                 tmp=${tmp##*/}
-                 printf '%s\n' ${tmp%.mod}
-             }
-         done
-         }
-        ))
+    local line tmp IFS=$'\n'
+    COMPREPLY=()
+    while read -r line; do
+        COMPREPLY+=("${line}")
+    done < <(compgen -f -X '!*/*.mod' -- "${grub_dir}/$cur" | {
+        while read -r tmp; do
+            [ -n "$tmp" ] && {
+                tmp=${tmp##*/}
+                printf '%s\n' ${tmp%.mod}
+            }
+        done
+    })
 }
 
 #
