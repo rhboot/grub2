@@ -63,6 +63,7 @@ __grubcomp () {
 
 # Function that return long options from the help of the command
 # - arg: $1 (optional) command to get the long options from
+# shellcheck disable=SC2120
 __grub_get_options_from_help () {
      local prog
 
