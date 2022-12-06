@@ -115,7 +115,8 @@ __grub_get_last_option () {
 
 __grub_list_menuentries () {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local config_file=$(__grub_dir)/grub.cfg
+    local config_file
+    config_file=$(__grub_dir)/grub.cfg
 
     if [ -f "$config_file" ];then
         local line IFS=$'\n'
@@ -129,7 +130,8 @@ __grub_list_menuentries () {
 }
 
 __grub_list_modules () {
-    local grub_dir=$(__grub_dir)
+    local grub_dir
+    grub_dir=$(__grub_dir)
     local line tmp IFS=$'\n'
     COMPREPLY=()
     while read -r line; do
