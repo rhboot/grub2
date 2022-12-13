@@ -105,6 +105,7 @@ linux_entry_xsm ()
   xsm="$7"
   # If user wants to enable XSM support, make sure there's
   # corresponding policy file.
+  xenpolicy=
   if ${xsm} ; then
       xenpolicy="xenpolicy-$xen_version"
       if test ! -e "${xen_dirname}/${xenpolicy}" ; then
