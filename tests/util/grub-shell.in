@@ -376,6 +376,9 @@ echo "${halt_cmd}" >>${cfgfile}
 
 test -z "$debug" || echo "GRUB script: ${cfgfile}" >&2
 test -z "$debug" || echo "GRUB testcase script: ${tmpfile}" >&2
+
+goutfile="$work_directory/grub-qemu.log"
+test -z "$debug" || echo "GRUB output log: ${goutfile}" >&2
 test -z "$debug" || echo "Boot device: ${boot}" >&2
 
 isofile="$work_directory/grub.iso"
@@ -503,7 +506,7 @@ if [ x$boot = xnet ]; then
     cp "${cfgfile}" "$netdir/boot/grub/grub.cfg"
     cp "${source}" "$netdir/boot/grub/testcase.cfg"
     [ -z "$files" ] || copy_extra_files "$netdir" $files
-    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic  | cat | tr -d "\r" | do_trim
+    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic  | cat | tr -d "\r" | tee "${goutfile}" | do_trim
 elif [ x$boot = xemu ]; then
     rootdir="$work_directory/rootdir"
     grubdir="$rootdir/boot/grub"
@@ -522,18 +525,19 @@ elif [ x$boot = xemu ]; then
     [ -z "$files" ] || copy_extra_files "$rootdir" $files
     roottar="$work_directory/root.tar"
     (cd "$rootdir"; tar cf "$roottar" .)
-    "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" | tr -d "\r" | do_trim
+    "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" | tr -d "\r" | tee "${goutfile}" | do_trim
     test -n "$debug" || rm -rf "$rootdir"
     test -n "$debug" || rm -f "$roottar"
 else
-    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"${isofile}" ${bootdev} | cat | tr -d "\r" | do_trim
+    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"${isofile}" ${bootdev} | cat | tr -d "\r" | tee "${goutfile}" | do_trim
 fi
 if [ x$boot = xcoreboot ]; then
     test -n "$debug" || rm -f "${imgfile}"
 fi
 test -n "$debug" || rm -f "${isofile}"
 test -n "$debug" || rm -rf "${rom_directory}"
-test -n "$debug" || rm -f "${tmpfile}" "${cfgfile}"
+test -n "$debug" || rm -f "${tmpfile}" "${cfgfile}" "${goutfile}"
+
 exit 0
 
 
