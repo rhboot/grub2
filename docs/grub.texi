@@ -4508,9 +4508,14 @@ on platforms that support CMOS.
 @node cmp
 @subsection cmp
 
-@deffn Command cmp file1 file2
-Compare the file @var{file1} with the file @var{file2}. If they differ
-in size, print the sizes like this:
+@deffn Command cmp [@option{-v}] file1 file2
+Compare the file @var{file1} with the file @var{file2}. If they are completely
+identical, @code{$?} will be set to 0. Otherwise, if the files are not identical,
+@code{$?} will be set to a nonzero value.
+
+By default nothing will be output. If the @option{-v} is used, verbose mode is
+enabled. In this mode when when the files differ in size, print the sizes like
+this:
 
 @example
 Differ in size: 0x1234 [foo], 0x4321 [bar]
@@ -4523,7 +4528,6 @@ bytes like this:
 Differ at the offset 777: 0xbe [foo], 0xef [bar]
 @end example
 
-If they are completely identical, nothing will be printed.
 @end deffn
 
 

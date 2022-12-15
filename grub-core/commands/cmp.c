@@ -22,14 +22,21 @@
 #include <grub/file.h>
 #include <grub/mm.h>
 #include <grub/command.h>
+#include <grub/extcmd.h>
 #include <grub/i18n.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
 #define BUFFER_SIZE 512
 
+static const struct grub_arg_option options[] =
+  {
+    {0, 'v', 0, N_("Enable verbose output"), 0, 0},
+    {0, 0, 0, 0, 0, 0}
+  };
+
 static grub_err_t
-grub_cmd_cmp (grub_command_t cmd __attribute__ ((unused)),
+grub_cmd_cmp (grub_extcmd_context_t ctxt,
 	      int argc, char **args)
 {
   grub_ssize_t rd1, rd2;
@@ -38,19 +45,20 @@ grub_cmd_cmp (grub_command_t cmd __attribute__ ((unused)),
   grub_file_t file2 = 0;
   char *buf1 = 0;
   char *buf2 = 0;
+  grub_err_t err = GRUB_ERR_TEST_FAILURE;
 
   if (argc != 2)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("two arguments expected"));
 
-  grub_printf_ (N_("Compare file `%s' with `%s':\n"), args[0],
-		args[1]);
+  if (ctxt->state[0].set)
+    grub_printf_ (N_("Compare file `%s' with `%s':\n"), args[0], args[1]);
 
   file1 = grub_file_open (args[0], GRUB_FILE_TYPE_CMP);
   file2 = grub_file_open (args[1], GRUB_FILE_TYPE_CMP);
   if (! file1 || ! file2)
     goto cleanup;
 
-  if (grub_file_size (file1) != grub_file_size (file2))
+  if (ctxt->state[0].set && (grub_file_size (file1) != grub_file_size (file2)))
     grub_printf_ (N_("Files differ in size: %llu [%s], %llu [%s]\n"),
 		  (unsigned long long) grub_file_size (file1), args[0],
 		  (unsigned long long) grub_file_size (file2), args[1]);
@@ -78,9 +86,10 @@ grub_cmd_cmp (grub_command_t cmd __attribute__ ((unused)),
 	    {
 	      if (buf1[i] != buf2[i])
 		{
-		  grub_printf_ (N_("Files differ at the offset %llu: 0x%x [%s], 0x%x [%s]\n"),
-				(unsigned long long) (i + pos), buf1[i],
-				args[0], buf2[i], args[1]);
+		  if (ctxt->state[0].set)
+		    grub_printf_ (N_("Files differ at the offset %llu: 0x%x [%s], 0x%x [%s]\n"),
+				  (unsigned long long) (i + pos), buf1[i],
+				  args[0], buf2[i], args[1]);
 		  goto cleanup;
 		}
 	    }
@@ -90,7 +99,9 @@ grub_cmd_cmp (grub_command_t cmd __attribute__ ((unused)),
       while (rd2);
 
       /* TRANSLATORS: it's always exactly 2 files.  */
-      grub_printf_ (N_("The files are identical.\n"));
+      if (ctxt->state[0].set)
+        grub_printf_ (N_("The files are identical.\n"));
+      err = GRUB_ERR_NONE;
     }
 
 cleanup:
@@ -102,18 +113,19 @@ cleanup:
   if (file2)
     grub_file_close (file2);
 
-  return grub_errno;
+  return err;
 }
 
-static grub_command_t cmd;
+static grub_extcmd_t cmd;
 
 GRUB_MOD_INIT(cmp)
 {
-  cmd = grub_register_command ("cmp", grub_cmd_cmp,
-			       N_("FILE1 FILE2"), N_("Compare two files."));
+  cmd = grub_register_extcmd ("cmp", grub_cmd_cmp, 0,
+			      N_("FILE1 FILE2"), N_("Compare two files."),
+			      options);
 }
 
 GRUB_MOD_FINI(cmp)
 {
-  grub_unregister_command (cmd);
+  grub_unregister_extcmd (cmd);
 }
