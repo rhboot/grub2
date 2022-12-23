@@ -244,4 +244,7 @@ enum
 struct grub_acpi_fadt *
 EXPORT_FUNC(grub_acpi_find_fadt) (void);
 
+void *
+EXPORT_FUNC(grub_acpi_find_table) (const char *sig);
+
 #endif /* ! GRUB_ACPI_HEADER */

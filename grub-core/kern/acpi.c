@@ -19,6 +19,7 @@
 #include <grub/types.h>
 #include <grub/time.h>
 #include <grub/misc.h>
+#include <grub/mm.h>
 #include <grub/acpi.h>
 
 /* Simple checksum by summing all bytes. Used by ACPI and SMBIOS. */
@@ -85,35 +86,42 @@ grub_acpi_xsdt_find_table (struct grub_acpi_table_header *xsdt, const char *sig)
   return 0;
 }
 
-struct grub_acpi_fadt *
-grub_acpi_find_fadt (void)
+void *
+grub_acpi_find_table (const char *sig)
 {
-  struct grub_acpi_fadt *fadt = 0;
+  struct grub_acpi_fadt *r = NULL;
   struct grub_acpi_rsdp_v10 *rsdpv1;
   struct grub_acpi_rsdp_v20 *rsdpv2;
+
   rsdpv1 = grub_machine_acpi_get_rsdpv1 ();
   if (rsdpv1)
-    fadt = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
-				      (grub_addr_t) rsdpv1->rsdt_addr,
-				      GRUB_ACPI_FADT_SIGNATURE);
-  if (fadt)
-    return fadt;
+    r = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
+				   (grub_addr_t) rsdpv1->rsdt_addr,
+				   sig);
+  if (r)
+    return r;
   rsdpv2 = grub_machine_acpi_get_rsdpv2 ();
   if (rsdpv2)
-    fadt = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
-				      (grub_addr_t) rsdpv2->rsdpv1.rsdt_addr,
-				      GRUB_ACPI_FADT_SIGNATURE);
-  if (fadt)
-    return fadt;
+    r = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
+				   (grub_addr_t) rsdpv2->rsdpv1.rsdt_addr,
+				   sig);
+  if (r)
+    return r;
   if (rsdpv2
 #if GRUB_CPU_SIZEOF_VOID_P != 8
       && !(rsdpv2->xsdt_addr >> 32)
 #endif
       )
-    fadt = grub_acpi_xsdt_find_table ((struct grub_acpi_table_header *)
-				      (grub_addr_t) rsdpv2->xsdt_addr,
-				      GRUB_ACPI_FADT_SIGNATURE);
-  if (fadt)
-    return fadt;
+    r = grub_acpi_xsdt_find_table ((struct grub_acpi_table_header *)
+				   (grub_addr_t) rsdpv2->xsdt_addr,
+				   sig);
+  if (r)
+    return r;
   return 0;
+}
+
+struct grub_acpi_fadt *
+grub_acpi_find_fadt (void)
+{
+  return grub_acpi_find_table (GRUB_ACPI_FADT_SIGNATURE);
 }
