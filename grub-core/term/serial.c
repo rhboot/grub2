@@ -152,7 +152,7 @@ grub_serial_find (const char *name)
       break;
 
 #if (defined(__mips__) || defined (__i386__) || defined (__x86_64__)) && !defined(GRUB_MACHINE_EMU) && !defined(GRUB_MACHINE_ARC)
-  if (!port && grub_memcmp (name, "port", sizeof ("port") - 1) == 0
+  if (!port && grub_strncmp (name, "port", sizeof ("port") - 1) == 0
       && grub_isxdigit (name [sizeof ("port") - 1]))
     {
       name = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
@@ -245,7 +245,7 @@ grub_serial_find (const char *name)
 #endif
 
 #ifdef GRUB_MACHINE_IEEE1275
-  if (!port && grub_memcmp (name, "ieee1275/", sizeof ("ieee1275/") - 1) == 0)
+  if (!port && grub_strncmp (name, "ieee1275/", sizeof ("ieee1275/") - 1) == 0)
     {
       name = grub_ofserial_add_port (&name[sizeof ("ieee1275/") - 1]);
       if (!name)
