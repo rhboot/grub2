@@ -4168,8 +4168,24 @@ Commands usable anywhere in the menu and in the command-line.
 @deffn Command serial [@option{--unit=unit}] [@option{--port=port}] [@option{--speed=speed}] [@option{--word=word}] [@option{--parity=parity}] [@option{--stop=stop}]
 Initialize a serial device. @var{unit} is a number in the range 0-3
 specifying which serial port to use; default is 0, which corresponds to
-the port often called COM1. @var{port} is the I/O port where the UART
-is to be found; if specified it takes precedence over @var{unit}.
+the port often called COM1.
+
+@var{port} is the I/O port where the UART is to be found or, if prefixed
+with @samp{mmio,}, the MMIO address of the UART. If specified it takes
+precedence over @var{unit}.
+
+Additionally, an MMIO address can be suffixed with:
+@itemize @bullet
+@item
+@samp{.b} for bytes access (default)
+@item
+@samp{.w} for 16-bit word access
+@item
+@samp{.l} for 32-bit long word access or
+@item
+@samp{.q} for 64-bit long long word access
+@end itemize
+
 @var{speed} is the transmission speed; default is 9600. @var{word} and
 @var{stop} are the number of data bits and stop bits. Data bits must
 be in the range 5-8 and stop bits must be 1 or 2. Default is 8 data
@@ -4184,6 +4200,12 @@ is not available, it will default to @var{unit} 0.
 The serial port is not used as a communication channel unless the
 @command{terminal_input} or @command{terminal_output} command is used
 (@pxref{terminal_input}, @pxref{terminal_output}).
+
+Examples:
+@example
+serial --port=3f8 --speed=9600
+serial --port=mmio,fefb0000.l --speed=115200
+@end example
 
 See also @ref{Serial terminal}.
 @end deffn
