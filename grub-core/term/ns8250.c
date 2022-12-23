@@ -43,6 +43,24 @@ static int dead_ports = 0;
 #define DEFAULT_BASE_CLOCK 115200
 #endif
 
+static grub_uint8_t
+ns8250_reg_read (struct grub_serial_port *port, grub_addr_t reg)
+{
+  asm volatile("" : : : "memory");
+  if (port->mmio == true)
+    return *((volatile grub_uint8_t *) (port->mmio_base + reg));
+  return grub_inb (port->port + reg);
+}
+
+static void
+ns8250_reg_write (struct grub_serial_port *port, grub_uint8_t value, grub_addr_t reg)
+{
+  asm volatile("" : : : "memory");
+  if (port->mmio == true)
+    *((volatile grub_uint8_t *) (port->mmio_base + reg)) = value;
+  else
+    grub_outb (value, port->port + reg);
+}
 
 /* Convert speed to divisor.  */
 static unsigned short
@@ -93,43 +111,42 @@ do_real_config (struct grub_serial_port *port)
   divisor = serial_get_divisor (port, &port->config);
 
   /* Turn off the interrupt.  */
-  grub_outb (0, port->port + UART_IER);
+  ns8250_reg_write (port, 0, UART_IER);
 
   /* Set DLAB.  */
-  grub_outb (UART_DLAB, port->port + UART_LCR);
+  ns8250_reg_write (port, UART_DLAB, UART_LCR);
 
-  /* Set the baud rate.  */
-  grub_outb (divisor & 0xFF, port->port + UART_DLL);
-  grub_outb (divisor >> 8, port->port + UART_DLH);
+  ns8250_reg_write (port, divisor & 0xFF, UART_DLL);
+  ns8250_reg_write (port, divisor >> 8, UART_DLH);
 
   /* Set the line status.  */
   status |= (parities[port->config.parity]
 	     | (port->config.word_len - 5)
 	     | stop_bits[port->config.stop_bits]);
-  grub_outb (status, port->port + UART_LCR);
+  ns8250_reg_write (port, status, UART_LCR);
 
   if (port->config.rtscts)
     {
       /* Enable the FIFO.  */
-      grub_outb (UART_ENABLE_FIFO_TRIGGER1, port->port + UART_FCR);
+      ns8250_reg_write (port, UART_ENABLE_FIFO_TRIGGER1, UART_FCR);
 
       /* Turn on DTR and RTS.  */
-      grub_outb (UART_ENABLE_DTRRTS, port->port + UART_MCR);
+      ns8250_reg_write (port, UART_ENABLE_DTRRTS, UART_MCR);
     }
   else
     {
       /* Enable the FIFO.  */
-      grub_outb (UART_ENABLE_FIFO_TRIGGER14, port->port + UART_FCR);
+      ns8250_reg_write (port, UART_ENABLE_FIFO_TRIGGER14, UART_FCR);
 
       /* Turn on DTR, RTS, and OUT2.  */
-      grub_outb (UART_ENABLE_DTRRTS | UART_ENABLE_OUT2, port->port + UART_MCR);
+      ns8250_reg_write (port, UART_ENABLE_DTRRTS | UART_ENABLE_OUT2, UART_MCR);
     }
 
   /* Drain the input buffer.  */
   endtime = grub_get_time_ms () + 1000;
-  while (grub_inb (port->port + UART_LSR) & UART_DATA_READY)
+  while (ns8250_reg_read (port, UART_LSR) & UART_DATA_READY)
     {
-      grub_inb (port->port + UART_RX);
+      ns8250_reg_read (port, UART_RX);
       if (grub_get_time_ms () > endtime)
 	{
 	  port->broken = 1;
@@ -145,8 +162,8 @@ static int
 serial_hw_fetch (struct grub_serial_port *port)
 {
   do_real_config (port);
-  if (grub_inb (port->port + UART_LSR) & UART_DATA_READY)
-    return grub_inb (port->port + UART_RX);
+  if (ns8250_reg_read (port, UART_LSR) & UART_DATA_READY)
+    return ns8250_reg_read (port, UART_RX);
 
   return -1;
 }
@@ -166,7 +183,7 @@ serial_hw_put (struct grub_serial_port *port, const int c)
   else
     endtime = grub_get_time_ms () + 200;
   /* Wait until the transmitter holding register is empty.  */
-  while ((grub_inb (port->port + UART_LSR) & UART_EMPTY_TRANSMITTER) == 0)
+  while ((ns8250_reg_read (port, UART_LSR) & UART_EMPTY_TRANSMITTER) == 0)
     {
       if (grub_get_time_ms () > endtime)
 	{
@@ -179,7 +196,7 @@ serial_hw_put (struct grub_serial_port *port, const int c)
   if (port->broken)
     port->broken--;
 
-  grub_outb (c, port->port + UART_TX);
+  ns8250_reg_write (port, c, UART_TX);
 }
 
 /* Initialize a serial device. PORT is the port number for a serial device.
@@ -262,6 +279,7 @@ grub_ns8250_init (void)
 	com_ports[i].name = com_names[i];
 	com_ports[i].driver = &grub_ns8250_driver;
 	com_ports[i].port = serial_hw_io_addr[i];
+	com_ports[i].mmio = false;
 	err = grub_serial_config_defaults (&com_ports[i]);
 	if (err)
 	  grub_print_error ();
@@ -289,6 +307,7 @@ grub_serial_ns8250_add_port (grub_port_t port)
 {
   struct grub_serial_port *p;
   unsigned i;
+
   for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
     if (com_ports[i].port == port)
       {
@@ -316,7 +335,36 @@ grub_serial_ns8250_add_port (grub_port_t port)
     }
   p->driver = &grub_ns8250_driver;
   grub_serial_config_defaults (p);
+  p->mmio = false;
   p->port = port;
+  grub_serial_register (p);
+
+  return p->name;
+}
+
+char *
+grub_serial_ns8250_add_mmio (grub_addr_t addr)
+{
+  struct grub_serial_port *p;
+  unsigned i;
+
+  for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
+    if (com_ports[i].mmio == true && com_ports[i].mmio_base == addr)
+	return com_names[i];
+
+  p = grub_malloc (sizeof (*p));
+  if (p == NULL)
+    return NULL;
+  p->name = grub_xasprintf ("mmio,%llx", (unsigned long long) addr);
+  if (p->name == NULL)
+    {
+      grub_free (p);
+      return NULL;
+    }
+  p->driver = &grub_ns8250_driver;
+  grub_serial_config_defaults (p);
+  p->mmio = true;
+  p->mmio_base = addr;
   grub_serial_register (p);
 
   return p->name;

@@ -86,9 +86,17 @@ struct grub_serial_port
    */
   union
   {
+    struct
+    {
+      bool mmio;
+      union
+      {
 #if defined(__mips__) || defined (__i386__) || defined (__x86_64__)
-    grub_port_t port;
+        grub_port_t port;
 #endif
+        grub_addr_t mmio_base;
+      };
+    };
     struct
     {
       grub_usb_device_t usbdev;
@@ -178,6 +186,7 @@ grub_serial_config_defaults (struct grub_serial_port *port)
 #if defined(__mips__) || defined (__i386__) || defined (__x86_64__)
 void grub_ns8250_init (void);
 char *grub_serial_ns8250_add_port (grub_port_t port);
+char *grub_serial_ns8250_add_mmio (grub_addr_t addr);
 #endif
 #ifdef GRUB_MACHINE_IEEE1275
 void grub_ofserial_init (void);
