@@ -217,7 +217,7 @@ dev_iterate (struct grub_ieee1275_devalias *alias)
   return 0;
 }
 
-static const char *
+static struct grub_serial_port *
 add_port (struct ofserial_hash_ent *ent)
 {
   struct grub_serial_port *port;
@@ -245,10 +245,10 @@ add_port (struct ofserial_hash_ent *ent)
 
   grub_serial_register (port);
 
-  return port->name;
+  return port;
 }
 
-const char *
+const struct grub_serial_port *
 grub_ofserial_add_port (const char *path)
 {
   struct ofserial_hash_ent *ent;

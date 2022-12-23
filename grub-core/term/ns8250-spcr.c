@@ -24,7 +24,7 @@
 #include <grub/dl.h>
 #include <grub/acpi.h>
 
-char *
+struct grub_serial_port *
 grub_ns8250_spcr_init (void)
 {
   struct grub_acpi_spcr *spcr;

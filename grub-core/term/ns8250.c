@@ -347,7 +347,7 @@ grub_ns8250_hw_get_port (const unsigned int unit)
     return 0;
 }
 
-char *
+struct grub_serial_port *
 grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config)
 {
   struct grub_serial_port *p;
@@ -361,7 +361,7 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
 	/* Give the opportunity for SPCR to configure a default com port. */
 	if (config != NULL)
 	  grub_serial_port_configure (&com_ports[i], config);
-	return com_names[i];
+	return &com_ports[i];
       }
 
   grub_outb (0x5a, port + UART_SR);
@@ -391,10 +391,10 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
     grub_serial_config_defaults (p);
   grub_serial_register (p);
 
-  return p->name;
+  return p;
 }
 
-char *
+struct grub_serial_port *
 grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
                              struct grub_serial_config *config)
 {
@@ -406,7 +406,7 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
       {
         if (config != NULL)
           grub_serial_port_configure (&com_ports[i], config);
-        return com_names[i];
+        return &com_ports[i];
       }
 
   p = grub_malloc (sizeof (*p));
@@ -428,5 +428,5 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
     grub_serial_config_defaults (p);
   grub_serial_register (p);
 
-  return p->name;
+  return p;
 }

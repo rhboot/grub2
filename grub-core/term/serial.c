@@ -155,14 +155,10 @@ grub_serial_find (const char *name)
   if (!port && grub_strncmp (name, "port", sizeof ("port") - 1) == 0
       && grub_isxdigit (name [sizeof ("port") - 1]))
     {
-      name = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
+      port = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
 							0, 16), NULL);
-      if (name == NULL)
+      if (port == NULL)
         return NULL;
-
-      FOR_SERIAL_PORTS (port)
-        if (grub_strcmp (port->name, name) == 0)
-           break;
     }
   if (!port && grub_strncmp (name, "mmio,", sizeof ("mmio,") - 1) == 0
       && grub_isxdigit (name [sizeof ("mmio,") - 1]))
@@ -219,27 +215,22 @@ grub_serial_find (const char *name)
           break;
         }
 
-      name = grub_serial_ns8250_add_mmio (addr, acc_size, NULL);
-      if (name == NULL)
+      port = grub_serial_ns8250_add_mmio (addr, acc_size, NULL);
+      if (port == NULL)
         return NULL;
-
-      FOR_SERIAL_PORTS (port)
-        if (grub_strcmp (port->name, name) == 0) {
-          break;
-        }
     }
 
 #if (defined(__i386__) || defined(__x86_64__)) && !defined(GRUB_MACHINE_IEEE1275) && !defined(GRUB_MACHINE_QEMU)
   if (!port && grub_strcmp (name, "auto") == 0)
     {
       /* Look for an SPCR if any. If not, default to com0. */
-      name = grub_ns8250_spcr_init ();
-      if (name == NULL)
-        name = "com0";
-
-      FOR_SERIAL_PORTS (port)
-        if (grub_strcmp (port->name, name) == 0)
-          break;
+      port = grub_ns8250_spcr_init ();
+      if (port == NULL)
+        {
+          FOR_SERIAL_PORTS (port)
+            if (grub_strcmp (port->name, "com0") == 0)
+              break;
+	}
     }
 #endif
 #endif
@@ -247,13 +238,9 @@ grub_serial_find (const char *name)
 #ifdef GRUB_MACHINE_IEEE1275
   if (!port && grub_strncmp (name, "ieee1275/", sizeof ("ieee1275/") - 1) == 0)
     {
-      name = grub_ofserial_add_port (&name[sizeof ("ieee1275/") - 1]);
-      if (!name)
-	return NULL;
-
-      FOR_SERIAL_PORTS (port)
-	if (grub_strcmp (port->name, name) == 0)
-	  break;
+      port = grub_ofserial_add_port (&name[sizeof ("ieee1275/") - 1]);
+      if (port == NULL)
+        return NULL;
     }
 #endif
 
