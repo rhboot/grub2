@@ -185,6 +185,7 @@ grub_serial_config_defaults (struct grub_serial_port *port)
 
 #if defined(__mips__) || defined (__i386__) || defined (__x86_64__)
 void grub_ns8250_init (void);
+char *grub_ns8250_spcr_init (void);
 char *grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config);
 char *grub_serial_ns8250_add_mmio (grub_addr_t addr, struct grub_serial_config *config);
 #endif

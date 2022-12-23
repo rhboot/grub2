@@ -157,13 +157,27 @@ grub_serial_find (const char *name)
     {
       name = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
 							0, 16), NULL);
-      if (!name)
-	return NULL;
+      if (name == NULL)
+        return NULL;
 
       FOR_SERIAL_PORTS (port)
-	if (grub_strcmp (port->name, name) == 0)
-	  break;
+        if (grub_strcmp (port->name, name) == 0)
+           break;
     }
+
+#if (defined(__i386__) || defined(__x86_64__)) && !defined(GRUB_MACHINE_IEEE1275) && !defined(GRUB_MACHINE_QEMU)
+  if (!port && grub_strcmp (name, "auto") == 0)
+    {
+      /* Look for an SPCR if any. If not, default to com0. */
+      name = grub_ns8250_spcr_init ();
+      if (name == NULL)
+        name = "com0";
+
+      FOR_SERIAL_PORTS (port)
+        if (grub_strcmp (port->name, name) == 0)
+          break;
+    }
+#endif
 #endif
 
 #ifdef GRUB_MACHINE_IEEE1275
@@ -210,7 +224,7 @@ grub_cmd_serial (grub_extcmd_context_t ctxt, int argc, char **args)
     name = args[0];
 
   if (!name)
-    name = "com0";
+    name = "auto";
 
   port = grub_serial_find (name);
   if (!port)
