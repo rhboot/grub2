@@ -179,6 +179,57 @@ enum
     GRUB_ACPI_MADT_ENTRY_SAPIC_FLAGS_ENABLED = 1
   };
 
+struct grub_acpi_genaddr {
+  grub_uint8_t space_id;
+#define GRUB_ACPI_GENADDR_MEM_SPACE 0x00
+#define GRUB_ACPI_GENADDR_IO_SPACE  0x01
+  grub_uint8_t bit_width;
+  grub_uint8_t bit_offset;
+  grub_uint8_t access_size;
+#define GRUB_ACPI_GENADDR_SIZE_LGCY  0x00
+#define GRUB_ACPI_GENADDR_SIZE_BYTE  0x01
+#define GRUB_ACPI_GENADDR_SIZE_WORD  0x02
+#define GRUB_ACPI_GENADDR_SIZE_DWORD 0x03
+#define GRUB_ACPI_GENADDR_SIZE_QWORD 0x04
+  grub_uint64_t addr;
+} GRUB_PACKED;
+
+#define GRUB_ACPI_SPCR_SIGNATURE "SPCR"
+
+struct grub_acpi_spcr {
+  struct grub_acpi_table_header hdr;
+  grub_uint8_t intf_type;
+#define GRUB_ACPI_SPCR_INTF_TYPE_16550  0x00
+#define GRUB_ACPI_SPCR_INTF_TYPE_16550X 0x01
+  grub_uint8_t reserved_0[3];
+  struct grub_acpi_genaddr base_addr;
+  grub_uint8_t interrupt_type;
+  grub_uint8_t irq;
+  grub_uint32_t gsi;
+  grub_uint8_t baud_rate;
+#define GRUB_ACPI_SPCR_BAUD_CURRENT  0x00
+#define GRUB_ACPI_SPCR_BAUD_9600     0x03
+#define GRUB_ACPI_SPCR_BAUD_19200    0x04
+#define GRUB_ACPI_SPCR_BAUD_57600    0x06
+#define GRUB_ACPI_SPCR_BAUD_115200   0x07
+  grub_uint8_t parity;
+  grub_uint8_t stop_bits;
+  grub_uint8_t flow_control;
+#define GRUB_ACPI_SPCR_FC_DCD_TX     (1 << 0)
+#define GRUB_ACPI_SPCR_FC_RTSCTS     (1 << 1)
+#define GRUB_ACPI_SPCR_FC_XONXOFF    (1 << 2)
+  grub_uint8_t terminal_type;
+  grub_uint8_t language;
+  grub_uint16_t	pci_device_id;
+  grub_uint16_t pci_vendor_id;
+  grub_uint8_t pci_bus;
+  grub_uint8_t pci_device;
+  grub_uint8_t pci_function;
+  grub_uint32_t pci_flags;
+  grub_uint8_t pci_segment;
+  grub_uint32_t reserved_1;
+} GRUB_PACKED;
+
 #ifndef GRUB_DSDT_TEST
 struct grub_acpi_rsdp_v10 *grub_acpi_get_rsdpv1 (void);
 struct grub_acpi_rsdp_v20 *grub_acpi_get_rsdpv2 (void);
