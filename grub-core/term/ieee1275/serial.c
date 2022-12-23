@@ -227,6 +227,10 @@ add_port (struct ofserial_hash_ent *ent)
   if (!ent->shortest)
     return NULL;
 
+  FOR_SERIAL_PORTS (port)
+    if (port->elem == ent)
+      return port;
+
   port = grub_zalloc (sizeof (*port));
   if (!port)
     return NULL;
@@ -248,7 +252,7 @@ add_port (struct ofserial_hash_ent *ent)
   return port;
 }
 
-const struct grub_serial_port *
+struct grub_serial_port *
 grub_ofserial_add_port (const char *path)
 {
   struct ofserial_hash_ent *ent;

@@ -37,8 +37,6 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-#define FOR_SERIAL_PORTS(var) FOR_LIST_ELEMENTS((var), (grub_serial_ports))
-
 enum
   {
     OPTION_UNIT,
@@ -65,7 +63,7 @@ static const struct grub_arg_option options[] =
   {0, 0, 0, 0, 0, 0}
 };
 
-static struct grub_serial_port *grub_serial_ports;
+struct grub_serial_port *grub_serial_ports;
 
 struct grub_serial_output_state
 {
@@ -147,26 +145,30 @@ grub_serial_find (const char *name)
 {
   struct grub_serial_port *port;
 
+  /*
+   * First look for an exact match by name, this will take care of
+   * things like "com0" which have already been created and that
+   * this function cannot re-create.
+   */
   FOR_SERIAL_PORTS (port)
     if (grub_strcmp (port->name, name) == 0)
-      break;
+      return port;
 
 #if (defined(__mips__) || defined (__i386__) || defined (__x86_64__)) && !defined(GRUB_MACHINE_EMU) && !defined(GRUB_MACHINE_ARC)
-  if (!port && grub_strncmp (name, "port", sizeof ("port") - 1) == 0
+  if (grub_strncmp (name, "port", sizeof ("port") - 1) == 0
       && grub_isxdigit (name [sizeof ("port") - 1]))
     {
       port = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
 							0, 16), NULL);
-      if (port == NULL)
-        return NULL;
+      if (port != NULL)
+        return port;
     }
-  if (!port && grub_strncmp (name, "mmio,", sizeof ("mmio,") - 1) == 0
+  if (grub_strncmp (name, "mmio,", sizeof ("mmio,") - 1) == 0
       && grub_isxdigit (name [sizeof ("mmio,") - 1]))
     {
       const char *p1, *p = &name[sizeof ("mmio,") - 1];
       grub_addr_t addr = grub_strtoul (p, &p1, 16);
       unsigned int acc_size = 1;
-      unsigned int nlen = p1 - p;
 
       /*
        * If we reach here, we know there's a digit after "mmio,", so
@@ -203,48 +205,35 @@ grub_serial_find (const char *name)
             grub_error (GRUB_ERR_BAD_ARGUMENT, N_("incorrect MMIO access size"));
           }
 
-      /*
-       * Specifying the access size is optional an grub_serial_ns8250_add_mmio()
-       * will not add it to the name. So the original loop trying to match an
-       * existing port above might have missed this one. Let's do another
-       * search ignoring the access size part of the string. At this point
-       * nlen contains the length of the name up to the end of the address.
-       */
-      FOR_SERIAL_PORTS (port)
-        if (grub_strncmp (port->name, name, nlen) == 0) {
-          break;
-        }
-
       port = grub_serial_ns8250_add_mmio (addr, acc_size, NULL);
-      if (port == NULL)
-        return NULL;
+      if (port != NULL)
+        return port;
     }
 
 #if (defined(__i386__) || defined(__x86_64__)) && !defined(GRUB_MACHINE_IEEE1275) && !defined(GRUB_MACHINE_QEMU)
-  if (!port && grub_strcmp (name, "auto") == 0)
+  if (grub_strcmp (name, "auto") == 0)
     {
       /* Look for an SPCR if any. If not, default to com0. */
       port = grub_ns8250_spcr_init ();
-      if (port == NULL)
-        {
-          FOR_SERIAL_PORTS (port)
-            if (grub_strcmp (port->name, "com0") == 0)
-              break;
-	}
+      if (port != NULL)
+        return port;
+      FOR_SERIAL_PORTS (port)
+        if (grub_strcmp (port->name, "com0") == 0)
+          return port;
     }
 #endif
 #endif
 
 #ifdef GRUB_MACHINE_IEEE1275
-  if (!port && grub_strncmp (name, "ieee1275/", sizeof ("ieee1275/") - 1) == 0)
+  if (grub_strncmp (name, "ieee1275/", sizeof ("ieee1275/") - 1) == 0)
     {
       port = grub_ofserial_add_port (&name[sizeof ("ieee1275/") - 1]);
-      if (port == NULL)
-        return NULL;
+      if (port != NULL)
+        return port;
     }
 #endif
 
-  return port;
+  return NULL;
 }
 
 static grub_err_t

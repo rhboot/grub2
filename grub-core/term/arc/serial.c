@@ -106,6 +106,10 @@ grub_arcserial_add_port (const char *path)
   struct grub_serial_port *port;
   grub_err_t err;
 
+  FOR_SERIAL_PORTS (port)
+    if (grub_strcmp(path, port->name) == 0)
+      return port;
+
   port = grub_zalloc (sizeof (*port));
   if (!port)
     return NULL;

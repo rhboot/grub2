@@ -219,4 +219,7 @@ extern void grub_serial_init (void);
 extern void grub_serial_fini (void);
 #endif
 
+extern struct grub_serial_port *grub_serial_ports;
+#define FOR_SERIAL_PORTS(var) FOR_LIST_ELEMENTS((var), (grub_serial_ports))
+
 #endif

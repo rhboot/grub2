@@ -364,6 +364,14 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
 	return &com_ports[i];
       }
 
+  FOR_SERIAL_PORTS (p)
+    if (p->mmio == false && p->port == port)
+      {
+        if (config != NULL)
+          grub_serial_port_configure (p, config);
+        return p;
+      }
+
   grub_outb (0x5a, port + UART_SR);
   if (grub_inb (port + UART_SR) != 0x5a)
     return NULL;
@@ -407,6 +415,14 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
         if (config != NULL)
           grub_serial_port_configure (&com_ports[i], config);
         return &com_ports[i];
+      }
+
+  FOR_SERIAL_PORTS (p)
+    if (p->mmio == true && p->mmio_base == addr)
+      {
+        if (config != NULL)
+          grub_serial_port_configure (p, config);
+        return p;
       }
 
   p = grub_malloc (sizeof (*p));
