@@ -304,7 +304,7 @@ grub_ns8250_hw_get_port (const unsigned int unit)
 }
 
 char *
-grub_serial_ns8250_add_port (grub_port_t port)
+grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config)
 {
   struct grub_serial_port *p;
   unsigned i;
@@ -314,6 +314,9 @@ grub_serial_ns8250_add_port (grub_port_t port)
       {
 	if (dead_ports & (1 << i))
 	  return NULL;
+	/* Give the opportunity for SPCR to configure a default com port. */
+	if (config != NULL)
+	  grub_serial_port_configure (&com_ports[i], config);
 	return com_names[i];
       }
 
@@ -326,32 +329,39 @@ grub_serial_ns8250_add_port (grub_port_t port)
     return NULL;
 
   p = grub_malloc (sizeof (*p));
-  if (!p)
+  if (p == NULL)
     return NULL;
   p->name = grub_xasprintf ("port%lx", (unsigned long) port);
-  if (!p->name)
+  if (p->name == NULL)
     {
       grub_free (p);
       return NULL;
     }
   p->driver = &grub_ns8250_driver;
-  grub_serial_config_defaults (p);
   p->mmio = false;
   p->port = port;
+  if (config != NULL)
+    grub_serial_port_configure (p, config);
+  else
+    grub_serial_config_defaults (p);
   grub_serial_register (p);
 
   return p->name;
 }
 
 char *
-grub_serial_ns8250_add_mmio (grub_addr_t addr)
+grub_serial_ns8250_add_mmio (grub_addr_t addr, struct grub_serial_config *config)
 {
   struct grub_serial_port *p;
   unsigned i;
 
   for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
     if (com_ports[i].mmio == true && com_ports[i].mmio_base == addr)
-	return com_names[i];
+      {
+        if (config != NULL)
+          grub_serial_port_configure (&com_ports[i], config);
+        return com_names[i];
+      }
 
   p = grub_malloc (sizeof (*p));
   if (p == NULL)
@@ -363,9 +373,12 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr)
       return NULL;
     }
   p->driver = &grub_ns8250_driver;
-  grub_serial_config_defaults (p);
   p->mmio = true;
   p->mmio_base = addr;
+  if (config != NULL)
+    grub_serial_port_configure (p, config);
+  else
+    grub_serial_config_defaults (p);
   grub_serial_register (p);
 
   return p->name;

@@ -156,7 +156,7 @@ grub_serial_find (const char *name)
       && grub_isxdigit (name [sizeof ("port") - 1]))
     {
       name = grub_serial_ns8250_add_port (grub_strtoul (&name[sizeof ("port") - 1],
-							0, 16));
+							0, 16), NULL);
       if (!name)
 	return NULL;
 
