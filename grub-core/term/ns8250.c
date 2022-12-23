@@ -37,12 +37,6 @@ static const grub_port_t serial_hw_io_addr[] = GRUB_MACHINE_SERIAL_PORTS;
 
 static int dead_ports = 0;
 
-#ifdef GRUB_MACHINE_MIPS_LOONGSON
-#define DEFAULT_BASE_CLOCK (2 * 115200)
-#else
-#define DEFAULT_BASE_CLOCK 115200
-#endif
-
 static grub_uint8_t
 ns8250_reg_read (struct grub_serial_port *port, grub_addr_t reg)
 {
@@ -71,7 +65,14 @@ serial_get_divisor (const struct grub_serial_port *port __attribute__ ((unused))
   grub_uint32_t divisor;
   grub_uint32_t actual_speed, error;
 
-  base_clock = config->base_clock ? (config->base_clock >> 4) : DEFAULT_BASE_CLOCK;
+  /* Get the UART input clock frequency. */
+  base_clock = config->base_clock ? config->base_clock : UART_DEFAULT_BASE_CLOCK;
+
+  /*
+   * The UART uses 16 times oversampling for the BRG, so adjust the value
+   * accordingly to calculate the divisor.
+   */
+  base_clock >>= 4;
 
   divisor = (base_clock + (config->speed / 2)) / config->speed;
   if (config->speed == 0)

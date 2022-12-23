@@ -70,6 +70,19 @@
 /* Turn on DTR, RTS, and OUT2.  */
 #define UART_ENABLE_OUT2	0x08
 
+/*
+ * Default clock input of the UART (feeds the baud rate generator).
+ *
+ * The standard value here is 1.8432 MHz, which corresponds to
+ * 115200 bauds * 16 (16 times oversampling).
+ *
+ */
+#ifdef GRUB_MACHINE_MIPS_LOONGSON
+#define UART_DEFAULT_BASE_CLOCK ((2 * 115200) << 4)
+#else
+#define UART_DEFAULT_BASE_CLOCK (115200 << 4)
+#endif
+
 #ifndef ASM_FILE
 #include <grub/cpu/io.h>
 
