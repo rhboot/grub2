@@ -76,7 +76,8 @@ grub_ns8250_spcr_init (void)
   switch (spcr->base_addr.space_id)
     {
       case GRUB_ACPI_GENADDR_MEM_SPACE:
-        return grub_serial_ns8250_add_mmio (spcr->base_addr.addr, &config);
+        return grub_serial_ns8250_add_mmio (spcr->base_addr.addr,
+                                            spcr->base_addr.access_size, &config);
       case GRUB_ACPI_GENADDR_IO_SPACE:
         return grub_serial_ns8250_add_port (spcr->base_addr.addr, &config);
       default:
