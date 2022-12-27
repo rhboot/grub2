@@ -31,10 +31,10 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 enum
   {
-    HTTP_PORT = 80,
-    HTTP_MAX_CHUNK_SIZE = 0x80000000
+    HTTP_PORT = 80
   };
 
+#define HTTP_MAX_CHUNK_SIZE 0x80000000
 
 typedef struct http_data
 {
