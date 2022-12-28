@@ -130,7 +130,7 @@ grub_fs_probe (grub_device_t device)
 struct grub_fs_block
 {
   grub_disk_addr_t offset;
-  unsigned long length;
+  grub_disk_addr_t length;
 };
 
 static grub_err_t
