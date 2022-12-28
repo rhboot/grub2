@@ -1234,6 +1234,11 @@ module = {
 };
 
 module = {
+  name = plainmount;
+  common = disk/plainmount.c;
+};
+
+module = {
   name = json;
   common = lib/json/json.c;
 };

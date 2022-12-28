@@ -4051,6 +4051,7 @@ you forget a command, you can run the command @command{help}
 * parttool::                    Modify partition table entries
 * password::                    Set a clear-text password
 * password_pbkdf2::             Set a hashed password
+* plainmount::                  Open device encrypted in plain mode
 * play::                        Play a tune
 * probe::                       Retrieve device info
 * rdmsr::                       Read values from model-specific registers
@@ -4345,6 +4346,14 @@ function is supported, as Argon2 is not yet supported.
 
 Also, note that, unlike filesystem UUIDs, UUIDs for encrypted devices must be
 specified without dash separators.
+
+Successfully decrypted disks are named as (cryptoX) and have increasing numeration
+suffix for each new decrypted disk. If the encrypted disk hosts some higher level
+of abstraction (like LVM2 or MDRAID) it will be created under a separate device
+namespace in addition to the cryptodisk namespace.
+
+Support for plain encryption mode (plain dm-crypt) is provided via separate
+@command{@pxref{plainmount}} command.
 @end deffn
 
 @node cutmem
@@ -4947,6 +4956,77 @@ Define a user named @var{user} with password @var{clear-password}.
 Define a user named @var{user} with password hash @var{hashed-password}.
 Use @command{grub2-mkpasswd-pbkdf2} (@pxref{Invoking grub2-mkpasswd-pbkdf2})
 to generate password hashes.  @xref{Security}.
+@end deffn
+
+
+@node plainmount
+@subsection plainmount
+
+@deffn Command plainmount device @option{-c} cipher @option{-s} key size [@option{-h} hash]
+[@option{-S} sector size] [@option{-p} password] [@option{-u} uuid]
+[[@option{-d} keyfile] [@option{-O} keyfile offset]]
+
+
+Setup access to the encrypted device in plain mode. Offset of the encrypted
+data at the device is specified in terms of 512 byte sectors using the blocklist
+syntax and loopback device. The following example shows how to specify 1MiB
+offset:
+
+@example
+loopback node (hd0,gpt1)2048+
+plainmount node @var{...}
+@end example
+
+The @command{plainmount} command can be used to open LUKS encrypted volume
+if its master key and parameters (key size, cipher, offset, etc) are known.
+
+There are two ways to specify a password: a keyfile and a secret passphrase.
+The keyfile path parameter has higher priority than the secret passphrase
+parameter and is specified with the option @option{-d}. Password data obtained
+from keyfiles is not hashed and is used directly as a cipher key. An optional
+offset of password data in the keyfile can be specified with the option
+@option{-O} or directly with the option @option{-d} and GRUB blocklist syntax,
+if the keyfile data can be accessed from a device and is 512 byte aligned.
+The following example shows both methods to specify password data in the
+keyfile at offset 1MiB:
+
+@example
+plainmount -d (hd0,gpt1)2048+ @var{...}
+plainmount -d (hd0,gpt1)+ -O 1048576 @var{...}
+@end example
+
+If no keyfile is specified then the password is set to the string specified
+by option @option{-p} or is requested interactively from the console. In both
+cases the provided password is hashed with the algorithm specified by the
+option @option{-h}. This option is mandatory if no keyfile is specified, but
+it can be set to @samp{plain} which means that no hashing is done and such
+password is used directly as a key.
+
+Cipher @option{-c} and keysize @option{-s} options specify the cipher algorithm
+and the key size respectively and are mandatory options. Cipher must be specified
+with the mode separated by a dash (for example, @samp{aes-xts-plain64}). Key size
+option @option{-s} is the key size of the cipher in bits, not to be confused with
+the offset of the key data in a keyfile specified with the @option{-O} option. It
+must not exceed 1024 bits, so a 32 byte key would be specified as 256 bits
+
+The optional parameter @option{-S} specifies encrypted device sector size. It
+must be at least 512 bytes long (default value) and a power of 2. @footnote{Current
+implementation of cryptsetup supports only 512/1024/2048/4096 byte sectors}.
+Disk sector size is configured when creating the encrypted volume. Attempting
+to decrypt volumes with a different sector size than it was created with will
+not result in an error, but will decrypt to random bytes and thus prevent
+accessing the volume (in some cases the filesystem driver can detect the presence
+of a filesystem, but nevertheless will refuse to mount it).
+
+By default new plainmount devices will be given a UUID starting with
+'109fea84-a6b7-34a8-4bd1-1c506305a401' where the last digits are incremented
+by one for each plainmounted device beyond the first up to 2^10 devices.
+
+All encryption arguments (cipher, hash, key size, disk offset and disk sector
+size) must match the parameters used to create the volume. If any of them does
+not match the actual arguments used during the initial encryption, plainmount
+will create virtual device with the garbage data and GRUB will report unknown
+filesystem for such device.
 @end deffn
 
 
