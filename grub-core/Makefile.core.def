@@ -2611,6 +2611,12 @@ module = {
 };
 
 module = {
+  name = boot-loader-interface;
+  efi = commands/boot-loader-interface.c;
+  enable = efi;
+};
+
+module = {
   name = asn1;
   common = lib/libtasn1/lib/decoding.c;
   common = lib/libtasn1/lib/coding.c;
