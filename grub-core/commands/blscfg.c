@@ -32,6 +32,13 @@
 #include <grub/file.h>
 #include <grub/normal.h>
 #include <grub/lib/envblk.h>
+#ifdef GRUB_MACHINE_EFI
+#include <grub/efi/api.h>
+#include <grub/efi/disk.h>
+#include <grub/efi/efi.h>
+#include <grub/gpt_partition.h>
+#include <grub/partition.h>
+#endif
 
 #include <stdbool.h>
 
@@ -1119,6 +1126,142 @@ bls_create_entries (bool show_default, bool show_non_default, char *entry_id)
   return GRUB_ERR_NONE;
 }
 
+#ifdef GRUB_MACHINE_EFI
+
+static void
+machine_get_bootdevice (char **device_name)
+{
+  grub_efi_loaded_image_t *image;
+
+  image = grub_efi_get_loaded_image (grub_efi_image_handle);
+  if (!image)
+    return;
+
+  *device_name = grub_efidisk_get_device_name (image->device_handle);
+}
+
+static char *
+get_part_uuid (grub_device_t dev)
+{
+  grub_disk_t disk;
+  struct grub_gpt_partentry entry;
+  grub_gpt_part_guid_t *guid;
+  char *uuid = NULL;
+
+  if (!dev || !dev->disk || !dev->disk->partition)
+    return NULL;
+
+  disk = grub_disk_open (dev->disk->name);
+  if (!disk)
+    {
+      grub_dprintf ("blscfg", "Error opening disk\n");
+      return NULL;
+    }
+
+  if (grub_strcmp (dev->disk->partition->partmap->name, "gpt") != 0)
+    {
+      grub_dprintf ("blscfg", "%s: Not a gpt patition table\n", dev->disk->name);
+      goto finish;
+    }
+
+  if (grub_disk_read (disk, dev->disk->partition->offset,
+                      dev->disk->partition->index, sizeof (entry), &entry))
+    {
+      grub_dprintf ("blscfg", "%s: Read error\n", dev->disk->name);
+      goto finish;
+    }
+
+  guid = &entry.guid;
+  uuid = grub_xasprintf (
+      "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+      grub_le_to_cpu32 (guid->data1), grub_le_to_cpu16 (guid->data2),
+      grub_le_to_cpu16 (guid->data3), guid->data4[0], guid->data4[1],
+      guid->data4[2], guid->data4[3], guid->data4[4], guid->data4[5],
+      guid->data4[6], guid->data4[7]);
+
+finish:
+  grub_disk_close (disk);
+
+  return uuid;
+}
+
+static grub_err_t
+bls_set_efi_str_variable (const char *name, const grub_efi_guid_t *guid,
+                          const char *value)
+{
+  grub_size_t len;
+  grub_efi_char16_t *value_16, *p16;
+  const char *p8;
+  grub_err_t status;
+
+  len = grub_strlen (value);
+
+  value_16 = grub_calloc (len + 1, sizeof (grub_efi_char16_t));
+  if (!value_16)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of memory");
+
+  p8 = value;
+  p16 = value_16;
+  while (*p8)
+    *(p16++) = *(p8++);
+  *p16 = 0;
+
+  status = grub_efi_set_variable (name, guid, (void *)value_16,
+                                  (len + 1) * sizeof (grub_efi_char16_t));
+  if (status != GRUB_ERR_NONE)
+    {
+      grub_dprintf ("blscfg",
+		    "Error setting EFI variable %s: %d\n",
+		    name, status);
+    }
+
+  grub_free (value_16);
+
+  return status;
+}
+
+static void
+bls_set_efi_variables (void)
+{
+  static const grub_efi_guid_t sd_boot_vendor_guid =
+    { 0x4a67b082, 0x0a4c, 0x41cf,
+      {0xb6, 0xc7, 0x44, 0x0b, 0x29, 0xbb, 0x8c, 0x4f} };
+
+  char *device_name = NULL;
+  grub_device_t device;
+  char *part_uuid = NULL;
+
+  machine_get_bootdevice (&device_name);
+
+  if (!device_name)
+    return;
+
+  device = grub_device_open (device_name);
+  if (!device)
+    {
+      grub_dprintf ("blscfg", "Error opening device");
+      goto err;
+    }
+
+  part_uuid = get_part_uuid (device);
+
+  grub_device_close (device);
+
+  if (part_uuid)
+    {
+      bls_set_efi_str_variable ("LoaderDevicePartUUID",
+				 &sd_boot_vendor_guid, part_uuid);
+    }
+
+  bls_set_efi_str_variable ("LoaderInfo", &sd_boot_vendor_guid,
+                            PACKAGE_STRING);
+
+err:
+  grub_free (part_uuid);
+  grub_free (device_name);
+}
+#endif // GRUB_MACHINE_EFI
+
 static grub_err_t
 grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
 		 int argc, char **args)
@@ -1142,6 +1285,10 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt UNUSED,
       show_non_default = false;
     }
   }
+
+#ifdef GRUB_MACHINE_EFI
+  bls_set_efi_variables ();
+#endif
 
   r = bls_load_entries(path);
   if (r)
