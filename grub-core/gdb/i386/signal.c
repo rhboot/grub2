@@ -1,4 +1,4 @@
-/* idt.c - routines for constructing IDT fot the GDB stub */
+/* idt.c - routines for constructing IDT for the GDB stub */
 /*
  *  Copyright (C) 2006  Lubomir Kundrak
  *
