@@ -1077,8 +1077,8 @@ typedef struct grub_efi_input_key grub_efi_input_key_t;
 typedef grub_efi_uint8_t grub_efi_key_toggle_state_t;
 struct grub_efi_key_state
 {
-	grub_efi_uint32_t key_shift_state;
-	grub_efi_key_toggle_state_t key_toggle_state;
+  grub_efi_uint32_t key_shift_state;
+  grub_efi_key_toggle_state_t key_toggle_state;
 };
 typedef struct grub_efi_key_state grub_efi_key_state_t;
 
@@ -1170,10 +1170,10 @@ struct grub_efi_boot_services
 		grub_efi_timer_delay_t type,
 		grub_efi_uint64_t trigger_time);
 
-   grub_efi_status_t
-   (*wait_for_event) (grub_efi_uintn_t num_events,
-		      grub_efi_event_t *event,
-		      grub_efi_uintn_t *index);
+  grub_efi_status_t
+  (*wait_for_event) (grub_efi_uintn_t num_events,
+		     grub_efi_event_t *event,
+		     grub_efi_uintn_t *index);
 
   grub_efi_status_t
   (*signal_event) (grub_efi_event_t event);
@@ -1184,11 +1184,11 @@ struct grub_efi_boot_services
   grub_efi_status_t
   (*check_event) (grub_efi_event_t event);
 
-   grub_efi_status_t
-   (*install_protocol_interface) (grub_efi_handle_t *handle,
-				  grub_efi_guid_t *protocol,
-				  grub_efi_interface_type_t protocol_interface_type,
-				  void *protocol_interface);
+  grub_efi_status_t
+  (*install_protocol_interface) (grub_efi_handle_t *handle,
+				 grub_efi_guid_t *protocol,
+				 grub_efi_interface_type_t protocol_interface_type,
+				 void *protocol_interface);
 
   grub_efi_status_t
   (*reinstall_protocol_interface) (grub_efi_handle_t handle,
@@ -1454,29 +1454,29 @@ typedef grub_efi_status_t (*grub_efi_key_notify_function_t) (
 
 struct grub_efi_simple_text_input_ex_interface
 {
-	grub_efi_status_t
-	(*reset) (struct grub_efi_simple_text_input_ex_interface *this,
-		  grub_efi_boolean_t extended_verification);
+  grub_efi_status_t
+  (*reset) (struct grub_efi_simple_text_input_ex_interface *this,
+	    grub_efi_boolean_t extended_verification);
 
-	grub_efi_status_t
-	(*read_key_stroke) (struct grub_efi_simple_text_input_ex_interface *this,
-			    grub_efi_key_data_t *key_data);
+  grub_efi_status_t
+  (*read_key_stroke) (struct grub_efi_simple_text_input_ex_interface *this,
+		      grub_efi_key_data_t *key_data);
 
-	grub_efi_event_t wait_for_key;
+  grub_efi_event_t wait_for_key;
 
-	grub_efi_status_t
-	(*set_state) (struct grub_efi_simple_text_input_ex_interface *this,
-		      grub_efi_key_toggle_state_t *key_toggle_state);
+  grub_efi_status_t
+  (*set_state) (struct grub_efi_simple_text_input_ex_interface *this,
+	        grub_efi_key_toggle_state_t *key_toggle_state);
 
-	grub_efi_status_t
-	(*register_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
-				grub_efi_key_data_t *key_data,
-				grub_efi_key_notify_function_t key_notification_function,
-				void **notify_handle);
+  grub_efi_status_t
+  (*register_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
+			  grub_efi_key_data_t *key_data,
+			  grub_efi_key_notify_function_t key_notification_function,
+			  void **notify_handle);
 
-	grub_efi_status_t
-	(*unregister_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
-				  void *notification_handle);
+  grub_efi_status_t
+  (*unregister_key_notify) (struct grub_efi_simple_text_input_ex_interface *this,
+			    void *notification_handle);
 };
 typedef struct grub_efi_simple_text_input_ex_interface grub_efi_simple_text_input_ex_interface_t;
 
