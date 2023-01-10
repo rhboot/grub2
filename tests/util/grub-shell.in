@@ -32,6 +32,7 @@ PATH="${builddir}:$PATH"
 export PATH
 
 trim=0
+trim_head=664cbea8-132f-4770-8aa4-1696d59ac35c
 
 # Usage: usage
 # Print the usage.
@@ -226,8 +227,13 @@ for option in "$@"; do
 	echo "$0 (GNU GRUB ${PACKAGE_VERSION})"
 	exit 0 ;;
     --trim)
-	trim=1
+	trim=1 ;;
+    --trim=*)
+	trim=2
+	trim_head=`echo "$option" | sed -e 's/--trim=//' -e 's/,/ /g'`
 	;;
+    --no-trim)
+	trim=0 ;;
     --debug)
         debug=1 ;;
     --modules=*)
@@ -349,8 +355,6 @@ terminfo -g 1024x1024 ${term} dumb
 terminal_input ${term}
 terminal_output ${term}
 EOF
-
-trim_head=664cbea8-132f-4770-8aa4-1696d59ac35c
 
 if [ $trim = 1 ]; then
     echo "echo $trim_head" >>${cfgfile}
@@ -476,8 +480,8 @@ fi
 
 do_trim ()
 {
-    if [ $trim = 1 ]; then
-	awk '{ if (have_head == 1) print $0; } /664cbea8-132f-4770-8aa4-1696d59ac35c/ { have_head=1; }'
+    if [ $trim = 1 ] || [ $trim = 2 ]; then
+	awk '{ if (have_head == 1) print $0; } /'"$trim_head"'/ { have_head=1; }'
     else
 	cat
     fi
