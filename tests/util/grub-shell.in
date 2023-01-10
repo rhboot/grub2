@@ -534,8 +534,6 @@ elif [ x$boot = xemu ]; then
     (cd "$rootdir"; tar cf "$roottar" .)
     setup_qemu_logger
     "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" > "$work_directory/qemu-pipe" || ret=$?
-    test -n "$debug" || rm -rf "$rootdir"
-    test -n "$debug" || rm -f "$roottar"
 else
     setup_qemu_logger
     timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"${isofile}" ${bootdev} > "$work_directory/qemu-pipe" || ret=$?
@@ -544,8 +542,16 @@ fi
 wait
 rm -f "$work_directory/qemu-pipe"
 
+if [ "$ret" -ne 0 ]; then
+    # If QEMU failure, keep generated files to reproduce
+    exit $ret
+fi
+
 if [ x$boot = xcoreboot ]; then
     test -n "$debug" || rm -f "${imgfile}"
+elif [ x$boot = xemu ]; then
+    test -n "$debug" || rm -rf "$rootdir"
+    test -n "$debug" || rm -f "$roottar"
 fi
 test -n "$debug" || rm -f "${isofile}"
 test -n "$debug" || rm -rf "${rom_directory}"
