@@ -1,0 +1,366 @@
+#! @BUILD_SHEBANG@ -e
+
+# Test GRUBs ability to read various LUKS containers
+# Copyright (C) 2023  Free Software Foundation, Inc.
+#
+# GRUB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GRUB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+
+# Initialize some variables.
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+datarootdir="@datarootdir@"
+builddir="@builddir@"
+PACKAGE_NAME=@PACKAGE_NAME@
+PACKAGE_TARNAME=@PACKAGE_TARNAME@
+PACKAGE_VERSION=@PACKAGE_VERSION@
+
+# Force build directory components
+PATH="${builddir}:$PATH"
+export PATH
+
+grub_shell_opts=
+disksize=20M
+detached_header=
+keyfile=
+keyfile_offset=
+keyfile_size=
+KEYFILE_SIZE_MAX=4096
+
+# Usage: usage
+# Print the usage.
+usage () {
+    cat <<EOF
+Usage: $0 [OPTION] [SOURCE]
+Create a LUKS disk with cryptsetup, then verify that it is accessible by grub
+running in a QEMU instance.
+
+  -h, --help              print this message and exit
+  -v, --version           print the version information and exit
+  --modules=MODULES       pre-load specified modules MODULES
+  --qemu-opts=OPTIONS     extra options to pass to Qemu instance
+  --cs-opts=OPTIONS       extra options to pass to cryptsetup instance
+  --cs-script=FILE        script of cryptsetup commands to be run after format
+  --luks=1|2              Use LUKS1 or LUKS2 volumes
+  --detached-header       Use a detached header
+  --keyfile[=FILE]        Use a randomly generated key file of size $KEYFILE_SIZE_MAX if not
+                          given a FILE to use as the key file.
+
+$0 creates a LUKS disk with cryptsetup, then verify that it is accessible by
+grub running in a QEMU instance.
+
+Report bugs to <bug-grub@gnu.org>.
+EOF
+}
+
+. "${builddir}/grub-core/modinfo.sh"
+
+# TODO: We should be selecting the drive based on disk id, change this once
+# grub support searching by disk id.
+disk="hd0"
+case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
+    i386-qemu)
+	disk="ata0"
+	;;
+esac
+
+# Check the arguments.
+for option in "$@"; do
+    case "$option" in
+    -h | --help)
+	usage
+	exit 0 ;;
+    -v | --version)
+	echo "$0 (GNU GRUB ${PACKAGE_VERSION})"
+	exit 0 ;;
+    -d | --debug)
+        debug=$((${debug:-0}+1)) ;;
+    --debug=*)
+        debug=$((`echo "$option" | sed -e 's/--debug=//'`)) ;;
+    --modules=*)
+	ms=`echo "$option" | sed -e 's/--modules=//'`
+	modules="$modules,$ms" ;;
+    --qemu-opts=*)
+        qs=`echo "$option" | sed -e 's/--qemu-opts=//'`
+        qemuopts="$qemuopts $qs" ;;
+    --cs-opts=*)
+        qs=`echo "$option" | sed -e 's/--cs-opts=//'`
+        csopts="$csopts $qs" ;;
+    --cs-script=*)
+        qs=`echo "$option" | sed -e 's/--cs-script=//'`
+        csscripts="$csscripts $qs" ;;
+    --luks=*)
+        qs=`echo "$option" | sed -e 's/--luks=//'`
+        csopts="$csopts --type luks$qs" ;;
+    --detached-header)
+        detached_header=1 ;;
+    --keyfile=*)
+        qs=`echo "$option" | sed -e 's/--keyfile=//'`
+        keyfile="$qs" ;;
+    --keyfile)
+        keyfile=1 ;;
+    --disksize=*)
+        qs=`echo "$option" | sed -e 's/--disksize=//'`
+        disksize="$qs" ;;
+    -*)
+	echo "Unrecognized option \`$option'" 1>&2
+	usage
+	exit 3
+	;;
+    *)
+	if [ "x${source}" != x ] ; then
+	    echo "too many parameters at the end" 1>&2
+	    usage
+	    exit 4
+	fi
+	source="${option}" ;;
+    esac
+done
+
+[ "${debug:-0}" -gt 1 ] && set -x
+
+grub_shell_opts="$grub_shell_opts --timeout=600s"
+
+if [ "${debug:-0}" -gt 2 ]; then
+    grub_shell_opts="$grub_shell_opts --qemu-opts=-nographic"
+fi
+
+# Make sure that the dm-crypto device is shutdown
+cleanup() {
+    if [ -e "$luksdev" ]; then
+        cryptsetup close "$luksdev"
+    fi
+    [ -z "$debug" ] && rm -rf "$lukstestdir" || :
+}
+trap cleanup EXIT INT TERM KILL QUIT
+
+get_random_bytes() {
+    local NUM_BYTES=$1
+    dd if=/dev/urandom bs=512 count=$((($NUM_BYTES / 512)+2)) 2>/dev/null \
+        | tr -d '\0' | dd bs=1 count=$(($NUM_BYTES)) 2>/dev/null
+}
+
+# create a random directory to be hold generated files
+lukstestdir="`mktemp -d "${TMPDIR:-/tmp}/$(basename "$0").XXXXXXXXXX"`" || exit 20
+luksfile=$lukstestdir/luks.disk
+lukshdrfile=$lukstestdir/luks.header
+lukskeyfile=$lukstestdir/luks.key
+vfile=$lukstestdir/mnt/test.verify
+vtext="TEST VERIFIED"
+testvars=$lukstestdir/testvars
+testcase=$lukstestdir/testcase.cfg
+testoutput=$lukstestdir/testoutput
+password=testpass
+
+[ -n "$debug" ] && echo "LUKS TEST directory: $lukstestdir" >&2
+
+# If testing keyfiles, create a big one.
+if [ -e "$keyfile" ]; then
+    password=`cat "$keyfile"`
+elif [ -n "$keyfile" ]; then
+    password=`get_random_bytes $KEYFILE_SIZE_MAX`
+fi
+
+if [ -n "$detached_header" ]; then
+    csopts="$csopts --header $lukshdrfile"
+fi
+
+# create the key file
+echo -n "$password" > $lukskeyfile
+
+# Create a very small LUKS container for the test
+truncate -s $disksize $luksfile || exit 21
+
+# Format the luks disk file
+cryptsetup luksFormat -q $csopts $luksfile $lukskeyfile || exit 22
+
+# Run any cryptsetup scripts
+export luksdiskfile=${detached_header:+$lukshdrfile}${detached_header:-$luksfile}
+export lukskeyfile
+for csscript in $csscripts; do
+    [ -f "$csscript" ] && . $csscript
+done
+
+# Look for --keyfile-offset and --keyfile-size options in the cryptsetup
+# options, and process them specially.
+csopen_opts=
+get_args=0
+varname=
+for option in $csopts; do
+    if [ "$get_args" -gt 0 ]; then
+        csopen_opts=" $csopen_opts $option"
+        get_args=$(($get_args - 1))
+        eval ${varname}=$option
+        continue
+    fi
+
+    case "$option" in
+    --keyfile-offset)
+        varname=keyfile_offset
+        get_args=1 ;;
+    --keyfile-offset=*)
+        keyfile_offset=`echo "$option" | sed -e 's/--keyfile-offset=//'` ;;
+    --keyfile-size | -l)
+        varname=keyfile_size
+        get_args=1 ;;
+    --keyfile-size=*)
+        keyfile_size=`echo "$option" | sed -e 's/--keyfile-size=//'` ;;
+    *)
+        continue ;;
+    esac
+
+    csopen_opts=" $csopen_opts $option"
+done
+
+# Open LUKS device
+luksdev=/dev/mapper/`basename $lukstestdir`
+cryptsetup open ${detached_header:+--header $lukshdrfile} $csopen_opts \
+    --key-file $lukskeyfile $luksfile `basename $luksdev` || exit 23
+
+# Make filesystem on the luks disk
+mkfs.vfat $luksdev >/dev/null 2>&1 || exit 24
+
+# Add verification file to filesystem
+mkdir $lukstestdir/mnt
+mount $luksdev $lukstestdir/mnt || exit 25
+echo "$vtext" > $vfile
+
+# Unmount filesystem
+umount $lukstestdir/mnt || exit 26
+
+. "@builddir@/grub-core/modinfo.sh"
+
+if [ x"${grub_modinfo_platform}" = xemu ]; then
+    grub_testvars="(host)$testvars"
+    grub_key_file="(host)$lukskeyfile"
+    grub_lukshdr_file="(host)$lukshdrfile"
+else
+    grub_testvars="/testvars"
+    grub_key_file="/keyfile"
+    grub_lukshdr_file="/luks.header"
+fi
+
+
+# Can not use --disk with a raw LUKS container because it appears qemu
+# tries to convert the image to and is failing with:
+#  "Parameter 'key-secret' is required for cipher"
+qemuopts="$qemuopts -drive file=$luksfile,index=0,media=disk,format=raw"
+
+# Add crypto modules
+modules="$modules cryptodisk luks luks2 fat"
+
+# Create randomly generated trim line
+trim_line=`mktemp -u XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
+
+# Create vars to import into grub script
+cat >$testvars <<EOF
+grub_debug="$debug"
+grub_lukshdr_file="$grub_lukshdr_file"
+grub_key_file="$grub_key_file"
+grub_keyfile_offset="$keyfile_offset"
+grub_keyfile_size="$keyfile_size"
+vfilename="`basename $vfile`"
+vtext="$vtext"
+trim_line="$trim_line"
+disk="$disk"
+EOF
+
+# If testing keyfiles, do not use password variable
+if [ -z "$keyfile" ]; then
+    echo "grub_password=\"$password\"" >>$testvars
+fi
+
+# Create testcase script
+cat >$testcase <<'EOF'
+set debug=all
+search -n -f --set=testvarsdev /testvars
+if [ "$?" -ne 0 ]; then
+    echo; echo "$trim_line"
+    echo "Could not find testvars file."
+    ${halt_cmd}
+fi
+set debug=
+
+. ($testvarsdev)/testvars
+
+# If key file exists, use it instead of password
+if [ -e "$grub_key_file" ]; then
+    cryptomount_opts="$cryptomount_opts -k $grub_key_file"
+else
+    cryptomount_opts="$cryptomount_opts -p $grub_password"
+fi
+
+if [ -n "$grub_keyfile_offset" ]; then
+    cryptomount_opts="$cryptomount_opts -O $grub_keyfile_offset"
+fi
+
+if [ -n "$grub_keyfile_size" ]; then
+    cryptomount_opts="$cryptomount_opts -S $grub_keyfile_size"
+fi
+
+if [ -e "$grub_lukshdr_file" ]; then
+    cryptomount_opts="$cryptomount_opts -H $grub_lukshdr_file"
+fi
+
+cdisk=crypto0
+
+if test -n "$grub_debug" -a "$grub_debug" -gt 0; then
+    echo cmd: cryptomount $cryptomount_opts ($disk)
+    echo -n "devices: "
+    ls
+fi
+
+if test -n "$grub_debug" -a "$grub_debug" -gt 1; then
+    set debug=all
+fi
+cryptomount $cryptomount_opts ($disk)
+ret="$?"
+if test -n "$grub_debug" -a "$grub_debug" -eq 2; then
+    set debug=
+fi
+
+echo; echo "$trim_line"
+if test $ret -eq 0; then
+    cat ($cdisk)/$vfilename
+else
+    echo "cryptomount failed: $ret"
+fi
+EOF
+
+grub_shell_opts="$grub_shell_opts --trim=${trim_line}"
+if [ -n "$keyfile" ]; then
+    grub_shell_opts="$grub_shell_opts --files=${keyfile:+${grub_key_file}=${lukskeyfile}}"
+fi
+
+if [ -n "$detached_header" ]; then
+    grub_shell_opts="$grub_shell_opts --files=${detached_header:+${grub_lukshdr_file}=${lukshdrfile}}"
+fi
+
+# Run the test in grub-shell
+@builddir@/grub-shell ${debug:+--debug} $grub_shell_opts \
+    --modules="$modules" --qemu-opts="$qemuopts" \
+    --files="${grub_testvars}=${testvars}" "$testcase" \
+    >$testoutput
+ret=$?
+
+if [ "$ret" -eq 0 ]; then
+    if ! grep -q "^${vtext}$" "$testoutput"; then
+        echo "error: test not verified [`cat $testoutput`]" >&2
+        exit 1
+    fi
+else
+    echo "grub-shell exited with error: $ret" >&2
+    exit 27
+fi
+
+exit $ret

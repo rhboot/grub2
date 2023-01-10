@@ -744,6 +744,12 @@ script = {
 };
 
 script = {
+  name = grub-shell-luks-tester;
+  common = tests/util/grub-shell-luks-tester.in;
+  installdir = noinst;
+};
+
+script = {
   name = grub-fs-tester;
   common = tests/util/grub-fs-tester.in;
   installdir = noinst;
@@ -1037,6 +1043,12 @@ script = {
   testcase = nonnative;
   name = grub_script_return;
   common = tests/grub_script_return.in;
+};
+
+script = {
+  testcase = nonnative;
+  name = grub_cmd_cryptomount;
+  common = tests/grub_cmd_cryptomount.in;
 };
 
 script = {
