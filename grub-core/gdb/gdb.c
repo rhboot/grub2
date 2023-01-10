@@ -98,6 +98,7 @@ GRUB_MOD_INIT (gdb)
 GRUB_MOD_FINI (gdb)
 {
   grub_unregister_command (cmd);
+  grub_unregister_command (cmd_break);
   grub_unregister_command (cmd_stop);
   grub_gdb_idtrestore ();
 }
