@@ -89,7 +89,7 @@ grub_cmd_loopback (grub_extcmd_context_t ctxt, int argc, char **args)
 
   /* Check if `-d' was used.  */
   if (state[0].set)
-      return delete_loopback (args[0]);
+    return delete_loopback (args[0]);
 
   if (!state[1].set)
     type |= GRUB_FILE_TYPE_NO_DECOMPRESS;
