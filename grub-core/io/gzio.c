@@ -1188,9 +1188,10 @@ initialize_tables (grub_gzio_t gzio)
 }
 
 
-/* Open a new decompressing object on the top of IO. If TRANSPARENT is true,
-   even if IO does not contain data compressed by gzip, return a valid file
-   object. Note that this function won't close IO, even if an error occurs.  */
+/*
+ * Open a new decompressing object on the top of IO.
+ * Note that this function won't close IO, even if an error occurs.
+ */
 static grub_file_t
 grub_gzio_open (grub_file_t io, enum grub_file_type type)
 {
