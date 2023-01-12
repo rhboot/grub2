@@ -1225,6 +1225,18 @@ script = {
   common = tests/syslinux_test.in;
 };
 
+script = {
+  testcase = native;
+  name = luks1_test;
+  common = tests/luks1_test.in;
+};
+
+script = {
+  testcase = native;
+  name = luks2_test;
+  common = tests/luks2_test.in;
+};
+
 program = {
   testcase = native;
   name = example_unit_test;

@@ -230,6 +230,8 @@ widthspec.bin
 /lib/libgcrypt-grub
 /libgrub_a_init.c
 /lzocompress_test
+/luks1_test
+/luks2_test
 /m4/
 /minixfs_test
 /missing

@@ -9,6 +9,7 @@ unset SOURCE_DATE_EPOCH
 fs="$1"
 
 GRUBFSTEST="@builddir@/grub-fstest"
+GRUBPROBE="@builddir@/grub-probe"
 
 tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX"` ||
 { echo "Failed to make temporary directory"; exit 99; }
@@ -16,6 +17,8 @@ tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX
 # xorriso -as mkisofs options to ignore locale when processing file names and
 # FSLABEL. This is especially needed for the conversion to Joliet UCS-2.
 XORRISOFS_CHARSET="-input-charset UTF-8 -output-charset UTF-8"
+DMNAME="${tempdir##*/}"
+PASS="${PASS:-pass}"
 
 MOUNTS=
 LODEVICES=
@@ -30,6 +33,10 @@ cleanup() {
     for i in $MOUNTS; do
 	umount "$i" || :
     done
+
+    if [ -e /dev/mapper/"$DMNAME" ]; then
+	cryptsetup close --disable-locks "$DMNAME"
+    fi
 
     for lodev in $LODEVICES; do
 	local i=600
@@ -71,7 +78,12 @@ run_grubfstest () {
 	need_images="$need_images $FSIMAGEP${i}.img";
     done
 
-    run_it -c $NEED_IMAGES_N $need_images  "$@"
+    case x"$fs" in
+	xluks*)
+	    echo -n "$PASS" | run_it -C -c $NEED_IMAGES_N $need_images  "$@";;
+	*)
+	    run_it -c $NEED_IMAGES_N $need_images  "$@";;
+    esac
 }
 
 # OS LIMITATION: GNU/Linux has no AFS support, so we use a premade image and a reference tar file. I.a. no multiblocksize test
@@ -79,6 +91,8 @@ run_grubfstest () {
 MINLOGSECSIZE=9
 MAXLOGSECSIZE=9
 case x"$fs" in
+    xluks2)
+	MAXLOGSECSIZE=12;;
     xntfs*)
 	MINLOGSECSIZE=8
 	MAXLOGSECSIZE=12;;
@@ -366,7 +380,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    #FSLABEL="g;/_é莭莽😁кит u"
 		    ;;
 		# FS LIMITATION: reiserfs, extN and jfs label is at most 16 UTF-8 characters
-		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"mdraid"* | x"jfs" | x"jfs_caseins")
+		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"luks"* | x"mdraid"* | x"jfs" | x"jfs_caseins")
 		    FSLABEL="g;/éт 莭😁";;
 		# FS LIMITATION: No underscore, space, semicolon, slash or international characters in UFS* in label. Limited to 32 UTF-8 characters
 		x"ufs1" | x"ufs1_sun" | x"ufs2")
@@ -835,6 +849,12 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    MOUNTDEVICE="/dev/mapper/grub_test-testvol"
 		    MOUNTFS=ext2
 		    "mkfs.ext2" -L "$FSLABEL" -q "${MOUNTDEVICE}"  ;;
+		x"luks"*)
+		    echo -n "$PASS" | cryptsetup luksFormat --type "$fs" --sector-size $SECSIZE --pbkdf pbkdf2 --force-password --disable-locks $LODEVICE
+		    echo -n "$PASS" | cryptsetup open --disable-locks $LODEVICE "$DMNAME"
+		    MOUNTDEVICE="/dev/mapper/${DMNAME}"
+		    MOUNTFS=ext2
+		    "mkfs.ext2" -L "$FSLABEL" -q "${MOUNTDEVICE}"  ;;
 		xf2fs)
 		    "mkfs.f2fs" -l "$FSLABEL" -q "${MOUNTDEVICE}" ;;
 		xnilfs2)
@@ -947,6 +967,22 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    GRUBDEVICE="mduuid/`mdadm --detail --export $MOUNTDEVICE | grep MD_UUID=|sed 's,MD_UUID=,,g;s,:,,g'`";;
 		xlvm*)
 		    GRUBDEVICE="lvm/grub_test-testvol";;
+		xluks*)
+		    if test x"$fs" = xluks2 && ! (cryptsetup luksDump --debug-json --disable-locks $LODEVICE | grep -q "\"sector_size\":$SECSIZE"); then
+			    echo "Unexpected sector size for $LODEVICE (expected: $SECSIZE)"
+			    exit 1
+		    fi
+
+		    UUID=$(cryptsetup luksUUID --disable-locks $LODEVICE | tr -d '-')
+		    PROBE_UUID=$("$GRUBPROBE" --device $MOUNTDEVICE --target=cryptodisk_uuid | tr -d '-')
+		    if [ x"$UUID" != x"$PROBE_UUID" ]; then
+			echo "UUID FAIL"
+			echo "$UUID"
+			echo "$PROBE_UUID"
+			exit 1
+		    fi
+		    GRUBDEVICE="cryptouuid/${UUID}"
+		    ;;
 	    esac
 	    GRUBDIR="($GRUBDEVICE)"
 	    case x"$fs" in
@@ -1105,6 +1141,15 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    vgchange -a n grub_test
 		    ;;
+		xluks*)
+		    for try in $(range 0 20 1); do
+			if umount "$MNTPOINTRW" ; then
+			    break;
+			fi
+		    done
+		    UMOUNT_TIME=$(date -u "+%Y-%m-%d %H:%M:%S")
+		    cryptsetup close --disable-locks "$DMNAME"
+		    ;;
 		xmdraid*)
 		    sleep 1
 		    for try in $(range 0 20 1); do
@@ -1152,6 +1197,11 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		xlvm*)
 		    vgchange -a y grub_test
 		    sleep 1
+		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro
+		    MOUNTS="$MOUNTS $MNTPOINTRO"
+		    ;;
+		xluks*)
+		    echo -n "$PASS" | cryptsetup open --disable-locks $LODEVICE "$DMNAME"
 		    mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRO" -o ${MOUNTOPTS}${SELINUXOPTS}ro
 		    MOUNTS="$MOUNTS $MNTPOINTRO"
 		    ;;
@@ -1602,6 +1652,9 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		xlvm*)
 		    vgchange -a n grub_test
 		    sleep 1
+		    ;;
+		xluks*)
+		    cryptsetup close --disable-locks "$DMNAME"
 		    ;;
 	    esac
 	    case x"$fs" in

@@ -1,0 +1,23 @@
+#!@BUILD_SHEBANG@
+
+set -e
+
+if [ "x$EUID" = "x" ] ; then
+  EUID=`id -u`
+fi
+
+if [ "$EUID" != 0 ] ; then
+   exit 99
+fi
+
+if ! which mkfs.ext2 >/dev/null 2>&1; then
+   echo "mkfs.ext2 not installed; cannot test luks2."
+   exit 99
+fi
+
+if ! which cryptsetup >/dev/null 2>&1; then
+   echo "cryptsetup not installed; cannot test luks2."
+   exit 99
+fi
+
+"@builddir@/grub-fs-tester" luks2
