@@ -718,16 +718,31 @@ grub_cryptodisk_open (const char *name, grub_disk_t disk)
   if (!dev)
     return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "No such device");
 
-  disk->log_sector_size = dev->log_sector_size;
-
 #ifdef GRUB_UTIL
   if (dev->cheat)
     {
+      grub_uint64_t cheat_dev_size;
+      unsigned int cheat_log_sector_size;
+
       if (!GRUB_UTIL_FD_IS_VALID (dev->cheat_fd))
 	dev->cheat_fd = grub_util_fd_open (dev->cheat, GRUB_UTIL_FD_O_RDONLY);
       if (!GRUB_UTIL_FD_IS_VALID (dev->cheat_fd))
 	return grub_error (GRUB_ERR_IO, N_("cannot open `%s': %s"),
 			   dev->cheat, grub_util_fd_strerror ());
+
+      /* Use the sector size and count of the cheat device. */
+      cheat_dev_size = grub_util_get_fd_size (dev->cheat_fd, dev->cheat, &cheat_log_sector_size);
+      if (cheat_dev_size == -1)
+        {
+          const char *errmsg = grub_util_fd_strerror ();
+          grub_util_fd_close (dev->cheat_fd);
+          dev->cheat_fd = GRUB_UTIL_FD_INVALID;
+          return grub_error (GRUB_ERR_IO, N_("failed to query size of device `%s': %s"),
+                             dev->cheat, errmsg);
+        }
+
+      dev->log_sector_size = cheat_log_sector_size;
+      dev->total_sectors = cheat_dev_size >> cheat_log_sector_size;
     }
 #endif
 
@@ -741,6 +756,7 @@ grub_cryptodisk_open (const char *name, grub_disk_t disk)
     }
 
   disk->data = dev;
+  disk->log_sector_size = dev->log_sector_size;
   disk->total_sectors = dev->total_sectors;
   disk->max_agglomerate = GRUB_DISK_MAX_MAX_AGGLOMERATE;
   disk->id = dev->id;
