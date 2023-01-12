@@ -133,6 +133,11 @@ scan_disk_partition_iter (grub_disk_t disk, grub_partition_t p, void *data)
   struct grub_diskfilter_pv_id id;
   grub_diskfilter_t diskfilter;
 
+#ifdef __powerpc__
+  if (!grub_strcmp (name, "ieee1275/cdrom"))
+    return 0;
+#endif
+
   grub_dprintf ("diskfilter", "Scanning for DISKFILTER devices on disk %s\n",
 		name);
 #ifdef GRUB_UTIL
