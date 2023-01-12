@@ -138,7 +138,8 @@ grub_util_get_dm_abstraction (const char *os_dev)
       grub_free (uuid);
       return GRUB_DEV_ABSTRACTION_LVM;
     }
-  if (strncmp (uuid, "CRYPT-LUKS1-", 12) == 0)
+  if (strncmp (uuid, "CRYPT-LUKS1-", sizeof ("CRYPT-LUKS1-") - 1) == 0
+      || strncmp (uuid, "CRYPT-LUKS2-", sizeof ("CRYPT-LUKS2-") - 1) == 0)
     {
       grub_free (uuid);
       return GRUB_DEV_ABSTRACTION_LUKS;
@@ -179,7 +180,9 @@ grub_util_pull_devmapper (const char *os_dev)
 	  grub_util_pull_device (subdev);
 	}
     }
-  if (uuid && strncmp (uuid, "CRYPT-LUKS1-", sizeof ("CRYPT-LUKS1-") - 1) == 0
+  if (uuid
+      && (strncmp (uuid, "CRYPT-LUKS1-", sizeof ("CRYPT-LUKS1-") - 1) == 0
+          || strncmp (uuid, "CRYPT-LUKS2-", sizeof ("CRYPT-LUKS2-") - 1) == 0)
       && lastsubdev)
     {
       char *grdev = grub_util_get_grub_dev (lastsubdev);
@@ -253,11 +256,11 @@ grub_util_get_devmapper_grub_dev (const char *os_dev)
       {
 	char *dash;
 
-	dash = grub_strchr (uuid + sizeof ("CRYPT-LUKS1-") - 1, '-');
+	dash = grub_strchr (uuid + sizeof ("CRYPT-LUKS*-") - 1, '-');
 	if (dash)
 	  *dash = 0;
 	grub_dev = grub_xasprintf ("cryptouuid/%s",
-				   uuid + sizeof ("CRYPT-LUKS1-") - 1);
+				   uuid + sizeof ("CRYPT-LUKS*-") - 1);
 	grub_free (uuid);
 	return grub_dev;
       }
