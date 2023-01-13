@@ -278,6 +278,23 @@ grub_set_prefix_and_root (void)
 	}
 
       grub_env_set ("root", device);
+
+#ifdef __powerpc__
+      /* When booting from a CD, if part_msdos is enabled, grub will detect
+         and create access points starting at (ieee1275/cdrom,msdos1).
+         However, the device detection and OF name transformation will produce
+         a device named (ieee1275/cdrom,0) - i.e., missing the msdos and also
+         differently indexed.  Furthermore, CHRP mandates boot/grub as prefix,
+         but our signed images are built with /grub2 to reflect installed
+         systems.  Just ignore both messes.
+       */
+      if (!grub_strncmp (device[0] == '(' ? device + 1 : device,
+                         "ieee1275/cdrom", grub_strlen ("ieee1275/cdrom")))
+        {
+          grub_env_set ("prefix", "/boot/grub");
+          grub_env_set ("root", "ieee1275/cdrom");
+        }
+#endif
     }
 
   grub_free (device);
