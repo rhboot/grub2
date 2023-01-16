@@ -12,6 +12,9 @@ New in 2.06:
 * BootHole and BootHole2 fixes.
 * ...and tons of other fixes and cleanups...
 
+* New/improved platform support:
+  * New `eficonnect' command on EFI platforms.
+
 New in 2.04:
 
 * GCC 8 and 9 support.
@@ -98,7 +101,7 @@ New in 2.02:
   * Prefer pmtimer for TSC calibration.
 
 * New/improved platform support:
-  * New `efifwsetup', `lsefi' and `connectefi` commands on EFI platforms.
+  * New `efifwsetup', `lsefi' commands on EFI platforms.
   * New `cmosdump' and `cmosset' commands on platforms with CMOS support.
   * New command `pcidump' for PCI platforms.
   * Improve opcode parsing in ACPI halt implementation.

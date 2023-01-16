@@ -834,8 +834,8 @@ module = {
 };
 
 module = {
-  name = connectefi;
-  common = commands/efi/connectefi.c;
+  name = eficonnect;
+  efi = commands/efi/eficonnect.c;
   enable = efi;
 };
 
