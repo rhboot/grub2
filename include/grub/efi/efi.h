@@ -128,6 +128,12 @@ grub_efi_status_t EXPORT_FUNC (grub_efi_get_variable) (const char *variable,
 						       grub_size_t *datasize_out,
 						       void **data_out);
 grub_err_t
+EXPORT_FUNC (grub_efi_set_variable_with_attributes) (const char *var,
+				     const grub_efi_guid_t *guid,
+				     void *data,
+				     grub_size_t datasize,
+             grub_uint32_t attribute);
+grub_err_t
 EXPORT_FUNC (grub_efi_set_variable) (const char *var,
 				     const grub_efi_guid_t *guid,
 				     void *data,

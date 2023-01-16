@@ -211,8 +211,8 @@ grub_efi_set_virtual_address_map (grub_efi_uintn_t memory_map_size,
 }
 
 grub_err_t
-grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
-		      void *data, grub_size_t datasize)
+grub_efi_set_variable_with_attributes(const char *var, const grub_efi_guid_t *guid,
+		      void *data, grub_size_t datasize, grub_uint32_t attributes)
 {
   grub_efi_status_t status;
   grub_efi_runtime_services_t *r;
@@ -229,10 +229,7 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
 
   r = grub_efi_system_table->runtime_services;
 
-  status = efi_call_5 (r->set_variable, var16, guid, 
-		       (GRUB_EFI_VARIABLE_NON_VOLATILE
-			| GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS
-			| GRUB_EFI_VARIABLE_RUNTIME_ACCESS),
+  status = efi_call_5 (r->set_variable, var16, guid, attributes,
 		       datasize, data);
   grub_free (var16);
   if (status == GRUB_EFI_SUCCESS)
@@ -242,6 +239,16 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
     return GRUB_ERR_NONE;
 
   return grub_error (GRUB_ERR_IO, "could not set EFI variable `%s'", var);
+}
+
+grub_err_t
+grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
+		      void *data, grub_size_t datasize)
+{
+  return grub_efi_set_variable_with_attributes (var, guid, data, datasize, 
+			GRUB_EFI_VARIABLE_NON_VOLATILE
+			| GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS
+			| GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
 }
 
 grub_efi_status_t
