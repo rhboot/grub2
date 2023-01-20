@@ -415,6 +415,9 @@ set_rockridge (struct grub_iso9660_data *data)
   if (!sua_size)
     return GRUB_ERR_NONE;
 
+  if (sua_size < GRUB_ISO9660_SUSP_HEADER_SZ)
+    return grub_error (GRUB_ERR_BAD_FS, "invalid rock ridge entry size");
+
   sua = grub_malloc (sua_size);
   if (! sua)
     return grub_errno;
@@ -441,8 +444,17 @@ set_rockridge (struct grub_iso9660_data *data)
       rootnode.have_symlink = 0;
       rootnode.dirents[0] = data->voldesc.rootdir;
 
-      /* The 2nd data byte stored how many bytes are skipped every time
-	 to get to the SUA (System Usage Area).  */
+      /* The size of SP (version 1) is fixed to 7. */
+      if (sua_size < 7 || entry->len < 7)
+	{
+	  grub_free (sua);
+	  return grub_error (GRUB_ERR_BAD_FS, "corrupted rock ridge entry");
+	}
+
+      /*
+       * The 2nd data byte stored how many bytes are skipped every time
+       * to get to the SUA (System Usage Area).
+       */
       data->susp_skip = entry->data[2];
       entry = (struct grub_iso9660_susp_entry *) ((char *) entry + entry->len);
 
