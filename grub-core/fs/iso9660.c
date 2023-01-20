@@ -801,6 +801,16 @@ grub_iso9660_iterate_dir (grub_fshelp_node_t dir,
 	while (dirent.flags & FLAG_MORE_EXTENTS)
 	  {
 	    offset += dirent.len;
+
+	    /* offset should within the dir's len. */
+	    if (offset > len)
+	      {
+		if (ctx.filename_alloc)
+		  grub_free (ctx.filename);
+		grub_free (node);
+		return 0;
+	      }
+
 	    if (read_node (dir, offset, sizeof (dirent), (char *) &dirent))
 	      {
 		if (ctx.filename_alloc)
@@ -808,6 +818,18 @@ grub_iso9660_iterate_dir (grub_fshelp_node_t dir,
 		grub_free (node);
 		return 0;
 	      }
+
+	    /*
+	     * It is either the end of block or zero-padded sector,
+	     * skip to the next block.
+	     */
+	    if (!dirent.len)
+	      {
+		offset = (offset / GRUB_ISO9660_BLKSZ + 1) * GRUB_ISO9660_BLKSZ;
+		dirent.flags |= FLAG_MORE_EXTENTS;
+		continue;
+	      }
+
 	    if (node->have_dirents >= node->alloc_dirents)
 	      {
 		struct grub_fshelp_node *new_node;
