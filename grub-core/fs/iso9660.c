@@ -669,10 +669,23 @@ susp_iterate_dir (struct grub_iso9660_susp_entry *entry,
   else if (grub_strncmp ("SL", (char *) entry->sig, 2) == 0)
     {
       unsigned int pos = 1;
+      unsigned int csize;
 
-      /* The symlink is not stored as a POSIX symlink, translate it.  */
-      while (pos + sizeof (*entry) < entry->len)
+      /* The symlink is not stored as a POSIX symlink, translate it. */
+      while ((pos + GRUB_ISO9660_SUSP_HEADER_SZ + 1) < entry->len)
 	{
+	  /*
+	   * entry->len is GRUB_ISO9660_SUSP_HEADER_SZ + 1 (the FLAGS) +
+	   * length of the "Component Area". The length of a component
+	   * record is 2 (pos and pos + 1) plus the "Component Content",
+	   * of which starts at pos + 2. entry->data[pos] is the
+	   * "Component Flags"; entry->data[pos + 1] is the length
+	   * of the component.
+	   */
+          csize = entry->data[pos + 1] + 2;
+          if (GRUB_ISO9660_SUSP_HEADER_SZ + 1 + csize > entry->len)
+            break;
+
 	  /* The current position is the `Component Flag'.  */
 	  switch (entry->data[pos] & 30)
 	    {
