@@ -74,7 +74,7 @@ exec_show_error () {
 work_directory=${WORKDIR:-`mktemp -d "${TMPDIR:-/tmp}/grub-shell.XXXXXXXXXX"`} || exit 1
 
 . "${builddir}/grub-core/modinfo.sh"
-qemuopts="${GRUB_QEMU_OPTS}"
+qemuopts=
 serial_port=com0
 serial_null=
 halt_cmd=halt
@@ -523,8 +523,9 @@ if [ x$boot = xnet ]; then
     [ -z "$files" ] || copy_extra_files "$netdir" $files
     cat >"$work_directory/run.sh" <<EOF
 #! @BUILD_SHEBANG@
+GRUB_QEMU_OPTS=\${GRUB_QEMU_OPTS:-"$GRUB_QEMU_OPTS"}
 qemuopts="${qemuopts}"
-exec "${qemu}" \${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic "\$@"
+exec "${qemu}" \${qemuopts} \${GRUB_QEMU_OPTS} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic "\$@"
 EOF
 elif [ x$boot = xemu ]; then
     rootdir="$work_directory/rootdir"
@@ -553,9 +554,10 @@ else
     cat >"$work_directory/run.sh" <<EOF
 #! @BUILD_SHEBANG@
 SDIR=\$(realpath -e \${0%/*})
+GRUB_QEMU_OPTS=\${GRUB_QEMU_OPTS:-"$GRUB_QEMU_OPTS"}
 qemuopts="${qemuopts}"
 cd "\$SDIR"
-exec "${qemu}" \${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"\${SDIR}/${isofile##*/}" ${bootdev} "\$@"
+exec "${qemu}" \${qemuopts} \${GRUB_QEMU_OPTS} ${serial_null} -serial file:/dev/stdout -${device}"\${SDIR}/${isofile##*/}" ${bootdev} "\$@"
 EOF
 fi
 
