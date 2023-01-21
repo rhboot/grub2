@@ -521,8 +521,11 @@ if [ x$boot = xnet ]; then
     cp "${cfgfile}" "$netdir/boot/grub/grub.cfg"
     cp "${source}" "$netdir/boot/grub/testcase.cfg"
     [ -z "$files" ] || copy_extra_files "$netdir" $files
-    setup_qemu_logger
-    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic > "$work_directory/qemu-pipe" || ret=$?
+    cat >"$work_directory/run.sh" <<EOF
+#! @BUILD_SHEBANG@
+qemuopts="${qemuopts}"
+exec "${qemu}" \${qemuopts} ${serial_null} -serial file:/dev/stdout -boot n -net "user,tftp=$netdir,bootfile=/boot/grub/${grub_modinfo_target_cpu}-${grub_modinfo_platform}/core.$netbootext"  -net nic "\$@"
+EOF
 elif [ x$boot = xemu ]; then
     rootdir="$work_directory/rootdir"
     grubdir="$rootdir/boot/grub"
@@ -541,11 +544,25 @@ elif [ x$boot = xemu ]; then
     [ -z "$files" ] || copy_extra_files "$rootdir" $files
     roottar="$work_directory/root.tar"
     (cd "$rootdir"; tar cf "$roottar" .)
-    setup_qemu_logger
-    "${builddir}/grub-core/grub-emu" -m "$device_map" --memdisk "$roottar" -r memdisk -d "/boot/grub" > "$work_directory/qemu-pipe" || ret=$?
+    cat >"$work_directory/run.sh" <<EOF
+#! @BUILD_SHEBANG@
+SDIR=\$(realpath -e \${0%/*})
+exec "$(realpath -e "${builddir}")/grub-core/grub-emu" -m "\$SDIR/${device_map##*/}" --memdisk "\$SDIR/${roottar##*/}" -r memdisk -d "/boot/grub"
+EOF
 else
+    cat >"$work_directory/run.sh" <<EOF
+#! @BUILD_SHEBANG@
+SDIR=\$(realpath -e \${0%/*})
+qemuopts="${qemuopts}"
+cd "\$SDIR"
+exec "${qemu}" \${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"\${SDIR}/${isofile##*/}" ${bootdev} "\$@"
+EOF
+fi
+
+if [ -f "$work_directory/run.sh" ]; then
     setup_qemu_logger
-    timeout -s KILL $timeout "${qemu}" ${qemuopts} ${serial_null} -serial file:/dev/stdout -${device}"${isofile}" ${bootdev} > "$work_directory/qemu-pipe" || ret=$?
+    chmod +x "$work_directory/run.sh"
+    timeout -s KILL $timeout "$work_directory/run.sh" > "$work_directory/qemu-pipe" || ret=$?
 fi
 
 wait
@@ -565,6 +582,7 @@ fi
 test -n "$debug" || rm -f "${isofile}"
 test -n "$debug" || rm -rf "${rom_directory}"
 test -n "$debug" || rm -f "${tmpfile}" "${cfgfile}" "${goutfile}"
+test -n "$debug" || rm -f "$work_directory/run.sh"
 
 exit $ret
 
