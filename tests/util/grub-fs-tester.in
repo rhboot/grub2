@@ -6,6 +6,8 @@ export BLKID_FILE=/dev/null
 # We can't have this set, or filesystem tests will fail.
 unset SOURCE_DATE_EPOCH
 
+[ "${GRUB_TEST_DEFAULT_DEBUG:-0}" -gt 1 ] && set -x
+
 fs="$1"
 
 GRUBFSTEST="@builddir@/grub-fstest"

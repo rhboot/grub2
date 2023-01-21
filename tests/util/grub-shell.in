@@ -216,6 +216,7 @@ esac
 
 timeout=60
 mkimage_extra_arg=
+debug=${GRUB_SHELL_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}
 
 # Check the arguments.
 for option in "$@"; do
@@ -235,7 +236,7 @@ for option in "$@"; do
     --no-trim)
 	trim=0 ;;
     --debug)
-        debug=1 ;;
+        debug=$((debug+1)) ;;
     --modules=*)
 	ms=`echo "$option" | sed -e 's/--modules=//' -e 's/,/ /g'`
 	modules="$modules $ms" ;;
@@ -319,6 +320,8 @@ for option in "$@"; do
 	source="${option}" ;;
     esac
 done
+
+[ "${debug:-0}" -gt 1 ] && set -x
 
 if [ "x${source}" = x ] ; then
     tmpfile="$work_directory/testcase.cfg"
