@@ -372,7 +372,7 @@ grub_ieee1275_ibm_cas (void)
     .vec4 = 0x0001, // set required minimum capacity % to the lowest value
     .vec5_size = 1 + sizeof(struct option_vector5) - 2,
     .vec5 = {
-	0, 0, 0, 0, 0, 0, 0, 0, 256
+	0, 192, 0, 128, 0, 0, 0, 0, 256
     }
   };
 
