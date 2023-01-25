@@ -499,7 +499,7 @@ grub_ieee1275_encode_devname (const char *path)
 	*optr++ ='\\';
       *optr++ = *iptr++;
     }
-  if (partition && partition[0])
+  if (partition && partition[0] >= '0' && partition[0] <= '9')
     {
       unsigned int partno = grub_strtoul (partition, 0, 0);
 
