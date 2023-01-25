@@ -129,7 +129,13 @@ grub_mdraid_detect (grub_disk_t disk,
       grub_uint32_t level;
       struct grub_diskfilter_vg *array;
       char *uuid;
-	
+
+#ifdef __powerpc__
+      /* Firmware will yell at us for reading too far. */
+      if (minor_version == 0)
+        continue;
+#endif
+
       if (size == GRUB_DISK_SIZE_UNKNOWN && minor_version == 0)
 	continue;
 	
