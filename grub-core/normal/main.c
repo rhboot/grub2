@@ -372,6 +372,7 @@ grub_try_normal_prefix (const char *prefix)
            file = grub_file_open (config, GRUB_FILE_TYPE_CONFIG);
            if (file)
              {
+               grub_env_set ("prefix", prefix);
                grub_file_close (file);
                err = GRUB_ERR_NONE;
              }
@@ -447,6 +448,10 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
       err = grub_try_normal ("fw_path");
       if (err == GRUB_ERR_FILE_NOT_FOUND)
         err = grub_try_normal ("prefix");
+#ifdef __powerpc__
+      if (err == GRUB_ERR_FILE_NOT_FOUND)
+        err = grub_try_normal_prefix ("/boot/grub");
+#endif
       if (err == GRUB_ERR_FILE_NOT_FOUND)
         err = grub_try_normal_discover ();
       if (err == GRUB_ERR_FILE_NOT_FOUND)
