@@ -189,6 +189,11 @@ grub_mdraid_detect (grub_disk_t disk,
   grub_uint32_t level;
   struct grub_diskfilter_vg *ret;
 
+#ifdef __powerpc__
+  /* Firmware will yell at us for reading too far. */
+  return NULL;
+#endif
+
   /* The sector where the mdraid 0.90 superblock is stored, if available.  */
   size = grub_disk_native_sectors (disk);
   if (size == GRUB_DISK_SIZE_UNKNOWN)
