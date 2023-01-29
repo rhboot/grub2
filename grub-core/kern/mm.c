@@ -467,20 +467,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
   if (size > ~(grub_size_t) align)
     goto fail;
 
-  /*
-   * Pre-calculate the necessary size of heap growth (if applicable),
-   * with region management overhead taken into account.
-   */
-  if (grub_add (size + align, GRUB_MM_MGMT_OVERHEAD, &grow))
-    goto fail;
-
-  /* Preallocate some extra space if heap growth is small. */
-  grow = grub_max (grow, GRUB_MM_HEAP_GROW_EXTRA);
-
-  /* Align up heap growth to make it friendly to CPU/MMU. */
-  if (grow > ~(grub_size_t) (GRUB_MM_HEAP_GROW_ALIGN - 1))
-    goto fail;
-  grow = ALIGN_UP (grow, GRUB_MM_HEAP_GROW_ALIGN);
+  grow = size + align;
 
   /* We currently assume at least a 32-bit grub_size_t,
      so limiting allocations to <adress space size> - 1MiB
@@ -509,6 +496,25 @@ grub_memalign (grub_size_t align, grub_size_t size)
     case 0:
       /* Request additional pages, contiguous */
       count++;
+
+      /*
+       * Calculate the necessary size of heap growth (if applicable),
+       * with region management overhead taken into account.
+       */
+      if (grub_add (grow, GRUB_MM_MGMT_OVERHEAD, &grow))
+	goto fail;
+
+      /* Preallocate some extra space if heap growth is small. */
+      grow = grub_max (grow, GRUB_MM_HEAP_GROW_EXTRA);
+
+      /* Align up heap growth to make it friendly to CPU/MMU. */
+      if (grow > ~(grub_size_t) (GRUB_MM_HEAP_GROW_ALIGN - 1))
+	goto fail;
+      grow = ALIGN_UP (grow, GRUB_MM_HEAP_GROW_ALIGN);
+
+      /* Do the same sanity check again. */
+      if (grow > ~(grub_size_t) 0x100000)
+	goto fail;
 
       if (grub_mm_add_region_fn != NULL &&
           grub_mm_add_region_fn (grow, GRUB_MM_ADD_REGION_CONSECUTIVE) == GRUB_ERR_NONE)
