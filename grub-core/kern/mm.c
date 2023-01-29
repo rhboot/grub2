@@ -123,6 +123,9 @@
 /* The size passed to grub_mm_add_region_fn() is aligned up by this value. */
 #define GRUB_MM_HEAP_GROW_ALIGN	4096
 
+/* Minimal heap growth granularity when existing heap space is exhausted. */
+#define GRUB_MM_HEAP_GROW_EXTRA	0x100000
+
 grub_mm_region_t grub_mm_base;
 grub_mm_add_region_func_t grub_mm_add_region_fn;
 
@@ -470,6 +473,9 @@ grub_memalign (grub_size_t align, grub_size_t size)
    */
   if (grub_add (size + align, GRUB_MM_MGMT_OVERHEAD, &grow))
     goto fail;
+
+  /* Preallocate some extra space if heap growth is small. */
+  grow = grub_max (grow, GRUB_MM_HEAP_GROW_EXTRA);
 
   /* Align up heap growth to make it friendly to CPU/MMU. */
   if (grow > ~(grub_size_t) (GRUB_MM_HEAP_GROW_ALIGN - 1))
