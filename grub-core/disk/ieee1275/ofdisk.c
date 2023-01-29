@@ -209,7 +209,116 @@ dev_iterate_real (const char *name, const char *path)
 static void
 dev_iterate (const struct grub_ieee1275_devalias *alias)
 {
-  if (grub_strcmp (alias->type, "vscsi") == 0)
+  if (grub_strcmp (alias->type, "fcp") == 0)
+    {
+      /*
+       * If we are dealing with fcp devices, we need
+       * to find the WWPNs and LUNs to iterate them
+       */
+      grub_ieee1275_ihandle_t ihandle;
+      grub_uint64_t *ptr_targets, *ptr_luns, k, l;
+      unsigned int i, j, pos;
+      char *buf, *bufptr;
+      struct set_fcp_targets_args
+      {
+        struct grub_ieee1275_common_hdr common;
+        grub_ieee1275_cell_t method;
+        grub_ieee1275_cell_t ihandle;
+        grub_ieee1275_cell_t catch_result;
+        grub_ieee1275_cell_t nentries;
+        grub_ieee1275_cell_t table;
+      } args_targets;
+
+      struct set_fcp_luns_args
+      {
+        struct grub_ieee1275_common_hdr common;
+        grub_ieee1275_cell_t method;
+        grub_ieee1275_cell_t ihandle;
+        grub_ieee1275_cell_t wwpn_h;
+        grub_ieee1275_cell_t wwpn_l;
+        grub_ieee1275_cell_t catch_result;
+        grub_ieee1275_cell_t nentries;
+        grub_ieee1275_cell_t table;
+      } args_luns;
+
+      struct args_ret
+      {
+        grub_uint64_t addr;
+        grub_uint64_t len;
+      };
+
+      if(grub_ieee1275_open (alias->path, &ihandle))
+        {
+          grub_dprintf("disk", "failed to open the disk while iterating FCP disk path=%s\n", alias->path);
+          return;
+        }
+
+      /* Setup the fcp-targets method to call via pfw*/
+      INIT_IEEE1275_COMMON (&args_targets.common, "call-method", 2, 3);
+      args_targets.method = (grub_ieee1275_cell_t) "fcp-targets";
+      args_targets.ihandle = ihandle;
+
+      /* Setup the fcp-luns method to call via pfw */
+      INIT_IEEE1275_COMMON (&args_luns.common, "call-method", 4, 3);
+      args_luns.method = (grub_ieee1275_cell_t) "fcp-luns";
+      args_luns.ihandle = ihandle;
+      if (IEEE1275_CALL_ENTRY_FN (&args_targets) == -1)
+        {
+          grub_dprintf("disk", "failed to get the targets while iterating FCP disk path=%s\n", alias->path);
+          grub_ieee1275_close(ihandle);
+          return;
+        }
+      buf = grub_malloc (grub_strlen (alias->path) + 32 + 32);
+      if (!buf)
+        {
+          grub_ieee1275_close(ihandle);
+          return;
+        }
+      bufptr = grub_stpcpy (buf, alias->path);
+
+      /*
+       * Iterate over entries returned by pfw. Each entry contains a
+       * pointer to wwpn table and his length.
+       */
+      struct args_ret *targets_table = (struct args_ret *)(args_targets.table);
+      for (i=0; i< args_targets.nentries; i++)
+        {
+          ptr_targets = (grub_uint64_t*)(grub_uint32_t) targets_table[i].addr;
+          /* Iterate over all wwpns in given table */
+          for(k=0;k<targets_table[i].len;k++)
+            {
+              args_luns.wwpn_l = (grub_ieee1275_cell_t) (*ptr_targets);
+              args_luns.wwpn_h = (grub_ieee1275_cell_t) (*ptr_targets >> 32);
+              pos = grub_snprintf (bufptr, 32, "/disk@%" PRIxGRUB_UINT64_T,
+                                  *ptr_targets++);
+              /* Get the luns for given wwpn target */
+              if (IEEE1275_CALL_ENTRY_FN (&args_luns) == -1)
+                {
+                  grub_dprintf("disk", "failed to get the LUNS while iterating FCP disk path=%s\n", buf);
+                  grub_ieee1275_close (ihandle);
+                  grub_free (buf);
+                  return;
+                }
+              struct args_ret *luns_table = (struct args_ret *)(args_luns.table);
+
+              /* Iterate over all LUNs */
+              for(j=0;j<args_luns.nentries; j++)
+                {
+                  ptr_luns = (grub_uint64_t*) (grub_uint32_t) luns_table[j].addr;
+                  for(l=0;l<luns_table[j].len;l++)
+                    {
+                      grub_snprintf (&bufptr[pos], 30, ",%" PRIxGRUB_UINT64_T,
+                                     *ptr_luns++);
+                      dev_iterate_real(buf,buf);
+                    }
+                }
+            }
+        }
+      grub_ieee1275_close (ihandle);
+      grub_free (buf);
+      return;
+    }
+  else if (grub_strcmp (alias->type, "vscsi") == 0)
     {
       static grub_ieee1275_ihandle_t ihandle;
       struct set_color_args
