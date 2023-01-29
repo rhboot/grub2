@@ -83,6 +83,46 @@
 
 
 
+/*
+ * GRUB_MM_MGMT_OVERHEAD is an upper bound of management overhead of
+ * each region, with any possible padding taken into account.
+ *
+ * The value must be large enough to make sure grub_memalign(align, size)
+ * always succeeds after a successful call to
+ * grub_mm_init_region(addr, size + align + GRUB_MM_MGMT_OVERHEAD),
+ * for any given addr, align and size (assuming no interger overflow).
+ *
+ * The worst case which has maximum overhead is shown in the figure below:
+ *
+ * +-- addr
+ * v                                           |<- size + align ->|
+ * +---------+----------------+----------------+------------------+---------+
+ * | padding | grub_mm_region | grub_mm_header |   usable bytes   | padding |
+ * +---------+----------------+----------------+------------------+---------+
+ * |<-  a  ->|<-     b      ->|<-     c      ->|<-      d       ->|<-  e  ->|
+ *                                             ^
+ *    b == sizeof (struct grub_mm_region)      | / Assuming no other suitable
+ *    c == sizeof (struct grub_mm_header)      | | block is available, then:
+ *    d == size + align                        +-| If align == 0, this will be
+ *                                               | the pointer returned by next
+ * Assuming addr % GRUB_MM_ALIGN == 1, then:     | grub_memalign(align, size).
+ *    a == GRUB_MM_ALIGN - 1                     | If align > 0, this chunk may
+ *                                               | need to be split to fulfill
+ * Assuming d % GRUB_MM_ALIGN == 1, then:        | alignment requirements, and
+ *    e == GRUB_MM_ALIGN - 1                     | the returned pointer may be
+ *                                               \ inside these usable bytes.
+ * Therefore, the maximum overhead is:
+ *    a + b + c + e == (GRUB_MM_ALIGN - 1) + sizeof (struct grub_mm_region)
+ *                     + sizeof (struct grub_mm_header) + (GRUB_MM_ALIGN - 1)
+ */
+#define GRUB_MM_MGMT_OVERHEAD	((GRUB_MM_ALIGN - 1) \
+				 + sizeof (struct grub_mm_region) \
+				 + sizeof (struct grub_mm_header) \
+				 + (GRUB_MM_ALIGN - 1))
+
+/* The size passed to grub_mm_add_region_fn() is aligned up by this value. */
+#define GRUB_MM_HEAP_GROW_ALIGN	4096
+
 grub_mm_region_t grub_mm_base;
 grub_mm_add_region_func_t grub_mm_add_region_fn;
 
@@ -230,6 +270,11 @@ grub_mm_init_region (void *addr, grub_size_t size)
 
   grub_dprintf ("regions", "No: considering a new region at %p of size %" PRIxGRUB_SIZE "\n",
 		addr, size);
+  /*
+   * If you want to modify the code below, please also take a look at
+   * GRUB_MM_MGMT_OVERHEAD and make sure it is synchronized with the code.
+   */
+
   /* Allocate a region from the head.  */
   r = (grub_mm_region_t) ALIGN_UP ((grub_addr_t) addr, GRUB_MM_ALIGN);
 
@@ -410,6 +455,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
 {
   grub_mm_region_t r;
   grub_size_t n = ((size + GRUB_MM_ALIGN - 1) >> GRUB_MM_ALIGN_LOG2) + 1;
+  grub_size_t grow;
   int count = 0;
 
   if (!grub_mm_base)
@@ -418,10 +464,22 @@ grub_memalign (grub_size_t align, grub_size_t size)
   if (size > ~(grub_size_t) align)
     goto fail;
 
+  /*
+   * Pre-calculate the necessary size of heap growth (if applicable),
+   * with region management overhead taken into account.
+   */
+  if (grub_add (size + align, GRUB_MM_MGMT_OVERHEAD, &grow))
+    goto fail;
+
+  /* Align up heap growth to make it friendly to CPU/MMU. */
+  if (grow > ~(grub_size_t) (GRUB_MM_HEAP_GROW_ALIGN - 1))
+    goto fail;
+  grow = ALIGN_UP (grow, GRUB_MM_HEAP_GROW_ALIGN);
+
   /* We currently assume at least a 32-bit grub_size_t,
      so limiting allocations to <adress space size> - 1MiB
      in name of sanity is beneficial. */
-  if ((size + align) > ~(grub_size_t) 0x100000)
+  if (grow > ~(grub_size_t) 0x100000)
     goto fail;
 
   align = (align >> GRUB_MM_ALIGN_LOG2);
@@ -447,7 +505,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
       count++;
 
       if (grub_mm_add_region_fn != NULL &&
-          grub_mm_add_region_fn (size, GRUB_MM_ADD_REGION_CONSECUTIVE) == GRUB_ERR_NONE)
+          grub_mm_add_region_fn (grow, GRUB_MM_ADD_REGION_CONSECUTIVE) == GRUB_ERR_NONE)
 	goto again;
 
       /* fallthrough  */
@@ -462,7 +520,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
            * Try again even if this fails, in case it was able to partially
            * satisfy the request
            */
-          grub_mm_add_region_fn (size, GRUB_MM_ADD_REGION_NONE);
+          grub_mm_add_region_fn (grow, GRUB_MM_ADD_REGION_NONE);
           goto again;
         }
 
