@@ -50,6 +50,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_ISO9660_VOLDESC_END	255
 
 #define GRUB_ISO9660_SUSP_HEADER_SZ	4
+#define GRUB_ISO9660_MAX_CE_HOPS	100000
 
 /* The head of a volume descriptor.  */
 struct grub_iso9660_voldesc
@@ -270,6 +271,7 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
   char *sua;
   struct grub_iso9660_susp_entry *entry;
   grub_err_t err;
+  int ce_counter = 0;
 
   if (sua_size <= 0)
     return GRUB_ERR_NONE;
@@ -307,6 +309,13 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 	  struct grub_iso9660_susp_ce *ce;
 	  grub_disk_addr_t ce_block;
 
+	  if (++ce_counter > GRUB_ISO9660_MAX_CE_HOPS)
+	    {
+	      grub_free (sua);
+	      return grub_error (GRUB_ERR_BAD_FS,
+	                         "suspecting endless CE loop");
+	    }
+
 	  ce = (struct grub_iso9660_susp_ce *) entry;
 	  sua_size = grub_le_to_cpu32 (ce->len);
 	  off = grub_le_to_cpu32 (ce->off);
@@ -337,6 +346,13 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 	    }
 
 	  entry = (struct grub_iso9660_susp_entry *) sua;
+	  /*
+	   * The hook function will not process CE or ST.
+	   * Advancing to the next entry would skip them.
+	   */
+	  if (grub_strncmp ((char *) entry->sig, "CE", 2) == 0
+	      || grub_strncmp ((char *) entry->sig, "ST", 2) == 0)
+	    continue;
 	}
 
       if (hook (entry, hook_arg))
