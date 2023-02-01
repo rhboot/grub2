@@ -49,6 +49,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_ISO9660_VOLDESC_PART	3
 #define GRUB_ISO9660_VOLDESC_END	255
 
+#define GRUB_ISO9660_SUSP_HEADER_SZ	4
+
 /* The head of a volume descriptor.  */
 struct grub_iso9660_voldesc
 {
@@ -272,6 +274,9 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
   if (sua_size <= 0)
     return GRUB_ERR_NONE;
 
+  if (sua_size < GRUB_ISO9660_SUSP_HEADER_SZ)
+    return grub_error (GRUB_ERR_BAD_FS, "invalid susp entry size");
+
   sua = grub_malloc (sua_size);
   if (!sua)
     return grub_errno;
@@ -284,10 +289,14 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
       return err;
     }
 
-  for (entry = (struct grub_iso9660_susp_entry *) sua; (char *) entry < (char *) sua + sua_size - 1 && entry->len > 0;
-       entry = (struct grub_iso9660_susp_entry *)
-	 ((char *) entry + entry->len))
+  entry = (struct grub_iso9660_susp_entry *) sua;
+
+  while (entry->len > 0)
     {
+      /* Ensure the entry is within System Use Area. */
+      if ((char *) entry + entry->len > (sua + sua_size))
+        break;
+
       /* The last entry.  */
       if (grub_strncmp ((char *) entry->sig, "ST", 2) == 0)
 	break;
@@ -302,6 +311,16 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 	  sua_size = grub_le_to_cpu32 (ce->len);
 	  off = grub_le_to_cpu32 (ce->off);
 	  ce_block = grub_le_to_cpu32 (ce->blk) << GRUB_ISO9660_LOG2_BLKSZ;
+
+	  if (sua_size <= 0)
+	    break;
+
+	  if (sua_size < GRUB_ISO9660_SUSP_HEADER_SZ)
+	    {
+	      grub_free (sua);
+	      return grub_error (GRUB_ERR_BAD_FS,
+			         "invalid continuation area in CE entry");
+	    }
 
 	  grub_free (sua);
 	  sua = grub_malloc (sua_size);
@@ -325,6 +344,11 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 	  grub_free (sua);
 	  return 0;
 	}
+
+      entry = (struct grub_iso9660_susp_entry *) ((char *) entry + entry->len);
+
+      if (((sua + sua_size) - (char *) entry) < GRUB_ISO9660_SUSP_HEADER_SZ)
+        break;
     }
 
   grub_free (sua);
