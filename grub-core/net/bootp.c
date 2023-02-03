@@ -583,7 +583,9 @@ send_dhcp_packet (struct grub_net_network_level_interface *iface)
 
   grub_memcpy (&pack->mac_addr, &iface->hwaddress.mac, 6);
 
-  grub_netbuff_push (nb, sizeof (*udph));
+  err = grub_netbuff_push (nb, sizeof (*udph));
+  if (err)
+    goto out;
 
   udph = (struct udphdr *) nb->data;
   udph->src = grub_cpu_to_be16_compile_time (68);
