@@ -21,6 +21,7 @@
 #include <grub/efi/api.h>
 #include <grub/efi/pci.h>
 #include <grub/efi/efi.h>
+#include <grub/efi/disk.h>
 #include <grub/command.h>
 #include <grub/err.h>
 #include <grub/i18n.h>
