@@ -10,6 +10,7 @@ unset SOURCE_DATE_EPOCH
 
 fs="$1"
 
+builddir="@builddir@"
 GRUBFSTEST="@builddir@/grub-fstest"
 GRUBPROBE="@builddir@/grub-probe"
 
@@ -1044,18 +1045,18 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    # OS LIMITATION: No AFS support under GNU/Linux
 	    mkdir "$MNTPOINTRW/$OSDIR/sdir"
 	    mkdir -p "$MNTPOINTRW/$OSDIR/$PDIR"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/sdir/2.img"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$BASEFILE"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$NASTYFILE"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$IFILE"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$LONGNAME"
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$PDIR/$PFIL"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/sdir/2.img"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$BASEFILE"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$NASTYFILE"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$IFILE"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$LONGNAME"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/$PDIR/$PFIL"
 	    if [ $PDIR != $PDIR2 ]; then
-		"@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/${PDIR2}/$PFIL"
+		"$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/${PDIR2}/$PFIL"
 	    fi
-	    "@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/CaSe"
+	    "$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/CaSe"
 	    if [ x$CASESENS = xy ]; then
-		"@builddir@"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/cAsE"
+		"$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/cAsE"
 	    fi
 	    if (test x$fs = xvfat12a || test x$fs = xmsdos12a) && test x$BLKSIZE = x131072; then
 		# With this config there isn't enough space for full copy.
