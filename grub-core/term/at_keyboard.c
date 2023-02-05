@@ -25,6 +25,7 @@
 #include <grub/time.h>
 #include <grub/loader.h>
 #include <grub/ps2.h>
+#include <grub/env.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
