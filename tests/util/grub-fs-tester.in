@@ -653,7 +653,6 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    PFIL="p.img"
 
 	    unset LODEVICES
-	    GENERATED=n
 	    LODEVICES=
 	    MOUNTDEVICE=
 	    
@@ -664,7 +663,6 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    | xrockridge_joliet_1999)
 		    MNTPOINTRW="$MASTER"
 		    MNTPOINTRO="$MASTER"
-		    GENERATED=y
 		    mkdir -p "$MASTER";;
 		    # No mkfs for GNU/Linux. Just unpack preformatted empty image
 		*)
