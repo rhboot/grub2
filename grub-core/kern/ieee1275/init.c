@@ -850,6 +850,19 @@ grub_claim_heap (void)
     }
 #endif
 
+#if defined(__powerpc__)
+  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY))
+    {
+      grub_uint64_t rma_size;
+      grub_err_t err;
+
+      err = grub_ieee1275_total_mem (&rma_size);
+      /* if we have an error, don't call CAS, just hope for the best */
+      if (err == GRUB_ERR_NONE && rma_size < (512 * 1024 * 1024))
+	grub_ieee1275_ibm_cas ();
+    }
+#endif
+
   grub_machine_mmap_iterate (heap_init, &total);
 }
 #endif
