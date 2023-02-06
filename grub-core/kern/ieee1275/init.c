@@ -46,12 +46,25 @@
 #endif
 #include <grub/lockdown.h>
 
-/* The maximum heap size we're going to claim */
+/* The maximum heap size we're going to claim at boot. Not used by sparc. */
 #ifdef __i386__
 #define HEAP_MAX_SIZE		(unsigned long) (64 * 1024 * 1024)
-#else
+#else /* __powerpc__ */
 #define HEAP_MAX_SIZE		(unsigned long) (32 * 1024 * 1024)
 #endif
+
+/* RMO max. address at 768 MB */
+#define RMO_ADDR_MAX		(grub_uint64_t) (768 * 1024 * 1024)
+
+/*
+ * The amount of OF space we will not claim here so as to leave space for
+ * the loader and linux to service early allocations.
+ *
+ * In 2021, Daniel Axtens claims that we should leave at least 128MB to
+ * ensure we can load a stock kernel and initrd on a pseries guest with
+ * a 512MB real memory area under PowerVM.
+ */
+#define RUNTIME_MIN_SPACE (128UL * 1024 * 1024)
 
 extern char _end[];
 
@@ -147,15 +160,51 @@ grub_claim_heap (void)
 				 + GRUB_KERNEL_MACHINE_STACK_SIZE), 0x200000);
 }
 #else
-/* Helper for grub_claim_heap.  */
+/* Helpers for mm on powerpc. */
+
+/*
+ * How much memory does OF believe exists in total?
+ *
+ * This isn't necessarily the true total. It can be the total memory
+ * accessible in real mode for a pseries guest, for example.
+ */
+static grub_uint64_t rmo_top;
+
 static int
-heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
-	   void *data)
+count_free (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
+	    void *data)
 {
-  unsigned long *total = data;
+  if (type != GRUB_MEMORY_AVAILABLE)
+    return 0;
+
+  /* Do not consider memory beyond 4GB */
+  if (addr > 0xffffffffULL)
+    return 0;
+
+  if (addr + len > 0xffffffffULL)
+    len = 0xffffffffULL - addr;
+
+  *(grub_uint32_t *) data += len;
+
+  return 0;
+}
+
+static int
+regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
+	      unsigned int flags, void *data)
+{
+  grub_uint32_t total = *(grub_uint32_t *) data;
+  grub_uint64_t linux_rmo_save;
 
   if (type != GRUB_MEMORY_AVAILABLE)
     return 0;
+
+  /* Do not consider memory beyond 4GB */
+  if (addr > 0xffffffffULL)
+    return 0;
+
+  if (addr + len > 0xffffffffULL)
+    len = 0xffffffffULL - addr;
 
   if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_NO_PRE1_5M_CLAIM))
     {
@@ -169,10 +218,6 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
 	}
     }
 
-  /* Never exceed HEAP_MAX_SIZE  */
-  if (*total + len > HEAP_MAX_SIZE)
-    len = HEAP_MAX_SIZE - *total;
-
   /* In theory, firmware should already prevent this from happening by not
      listing our own image in /memory/available.  The check below is intended
      as a safeguard in case that doesn't happen.  However, it doesn't protect
@@ -184,6 +229,108 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       len = 0;
     }
 
+  /*
+   * Linux likes to claim memory at min(RMO top, 768MB) and works down
+   * without reference to /memory/available. (See prom_init.c::alloc_down)
+   *
+   * If this block contains min(RMO top, 768MB), do not claim below that for
+   * at least a few MB (this is where RTAS, SML and potentially TCEs live).
+   *
+   * We also need to leave enough space for the DT in the RMA. (See
+   * prom_init.c::alloc_up)
+   *
+   * Finally, we also want to make sure that when grub loads the kernel,
+   * it isn't going to use up all the memory we're trying to reserve! So
+   * enforce our entire RUNTIME_MIN_SPACE here:
+   *
+   * |---------- Top of memory ----------|
+   * |                                   |
+   * |             available             |
+   * |                                   |
+   * |----------     768 MB    ----------|
+   * |                                   |
+   * |              reserved             |
+   * |                                   |
+   * |--- 768 MB - runtime min space  ---|
+   * |                                   |
+   * |             available             |
+   * |                                   |
+   * |----------      0 MB     ----------|
+   *
+   * Edge cases:
+   *
+   * - Total memory less than RUNTIME_MIN_SPACE: only claim up to HEAP_MAX_SIZE.
+   *   (enforced elsewhere)
+   *
+   * - Total memory between RUNTIME_MIN_SPACE and 768MB:
+   *
+   * |---------- Top of memory ----------|
+   * |                                   |
+   * |              reserved             |
+   * |                                   |
+   * |----  top - runtime min space  ----|
+   * |                                   |
+   * |             available             |
+   * |                                   |
+   * |----------      0 MB     ----------|
+   *
+   * This by itself would not leave us with RUNTIME_MIN_SPACE of free bytes: if
+   * rmo_top < 768MB, we will almost certainly have FW claims in the reserved
+   * region. We try to address that elsewhere: grub_ieee1275_mm_add_region will
+   * not call us if the resulting free space would be less than RUNTIME_MIN_SPACE.
+   */
+  linux_rmo_save = grub_min (RMO_ADDR_MAX, rmo_top) - RUNTIME_MIN_SPACE;
+  if (rmo_top > RUNTIME_MIN_SPACE)
+    {
+      if (rmo_top <= RMO_ADDR_MAX)
+        {
+          if (addr > linux_rmo_save)
+            {
+              grub_dprintf ("ieee1275", "rejecting region in RUNTIME_MIN_SPACE reservation (%llx)\n",
+                            addr);
+              return 0;
+            }
+          else if (addr + len > linux_rmo_save)
+            {
+              grub_dprintf ("ieee1275", "capping region: (%llx -> %llx) -> (%llx -> %llx)\n",
+                            addr, addr + len, addr, rmo_top - RUNTIME_MIN_SPACE);
+              len = linux_rmo_save - addr;
+            }
+        }
+      else
+        {
+          /*
+           * we order these cases to prefer higher addresses and avoid some
+           * splitting issues
+           */
+          if (addr < RMO_ADDR_MAX && (addr + len) > RMO_ADDR_MAX)
+            {
+              grub_dprintf ("ieee1275",
+                            "adjusting region for RUNTIME_MIN_SPACE: (%llx -> %llx) -> (%llx -> %llx)\n",
+                            addr, addr + len, RMO_ADDR_MAX, addr + len);
+              len = (addr + len) - RMO_ADDR_MAX;
+              addr = RMO_ADDR_MAX;
+            }
+          else if ((addr < linux_rmo_save) && ((addr + len) > linux_rmo_save))
+            {
+              grub_dprintf ("ieee1275", "capping region: (%llx -> %llx) -> (%llx -> %llx)\n",
+                            addr, addr + len, addr, linux_rmo_save);
+              len = linux_rmo_save - addr;
+            }
+          else if (addr >= linux_rmo_save && (addr + len) <= RMO_ADDR_MAX)
+            {
+              grub_dprintf ("ieee1275", "rejecting region in RUNTIME_MIN_SPACE reservation (%llx)\n",
+                            addr);
+              return 0;
+            }
+        }
+    }
+  if (flags & GRUB_MM_ADD_REGION_CONSECUTIVE && len < total)
+    return 0;
+
+  if (len > total)
+    len = total;
+
   if (len)
     {
       grub_err_t err;
@@ -192,13 +339,93 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       if (err)
 	return err;
       grub_mm_init_region ((void *) (grub_addr_t) addr, len);
+      total -= len;
     }
 
-  *total += len;
-  if (*total >= HEAP_MAX_SIZE)
+  *(grub_uint32_t *) data = total;
+
+  if (total == 0)
     return 1;
 
   return 0;
+}
+
+static int
+heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
+	   void *data)
+{
+  return regions_claim (addr, len, type, GRUB_MM_ADD_REGION_NONE, data);
+}
+
+static int
+region_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
+	   void *data)
+{
+  return regions_claim (addr, len, type, GRUB_MM_ADD_REGION_CONSECUTIVE, data);
+}
+
+static grub_err_t
+grub_ieee1275_mm_add_region (grub_size_t size, unsigned int flags)
+{
+  grub_uint32_t free_memory = 0;
+  grub_uint32_t avail = 0;
+  grub_uint32_t total;
+
+  grub_dprintf ("ieee1275", "mm requested region of size %x, flags %x\n",
+               size, flags);
+
+  /*
+   * Update free memory each time, which is a bit inefficient but guards us
+   * against a situation where some OF driver goes out to firmware for
+   * memory and we don't realise.
+   */
+  grub_machine_mmap_iterate (count_free, &free_memory);
+
+  /* Ensure we leave enough space to boot. */
+  if (free_memory <= RUNTIME_MIN_SPACE + size)
+    {
+      grub_dprintf ("ieee1275", "Cannot satisfy allocation and retain minimum runtime space\n");
+      return GRUB_ERR_OUT_OF_MEMORY;
+    }
+
+  if (free_memory > RUNTIME_MIN_SPACE)
+      avail = free_memory - RUNTIME_MIN_SPACE;
+
+  grub_dprintf ("ieee1275", "free = 0x%x available = 0x%x\n", free_memory, avail);
+
+  if (flags & GRUB_MM_ADD_REGION_CONSECUTIVE)
+    {
+      /* first try rounding up hard for the sake of speed */
+      total = grub_max (ALIGN_UP (size, 1024 * 1024) + 1024 * 1024, 32 * 1024 * 1024);
+      total = grub_min (avail, total);
+
+      grub_dprintf ("ieee1275", "looking for %x bytes of memory (%x requested)\n", total, size);
+
+      grub_machine_mmap_iterate (region_claim, &total);
+      grub_dprintf ("ieee1275", "get memory from fw %s\n", total == 0 ? "succeeded" : "failed");
+
+      if (total != 0)
+        {
+          total = grub_min (avail, size);
+
+          grub_dprintf ("ieee1275", "fallback for %x bytes of memory (%x requested)\n", total, size);
+
+          grub_machine_mmap_iterate (region_claim, &total);
+          grub_dprintf ("ieee1275", "fallback from fw %s\n", total == 0 ? "succeeded" : "failed");
+        }
+    }
+  else
+    {
+      /* provide padding for a grub_mm_header_t and region */
+      total = grub_min (avail, size);
+      grub_machine_mmap_iterate (heap_init, &total);
+      grub_dprintf ("ieee1275", "get noncontig memory from fw %s\n", total == 0 ? "succeeded" : "failed");
+    }
+
+  if (total == 0)
+    return GRUB_ERR_NONE;
+  else
+    return GRUB_ERR_OUT_OF_MEMORY;
 }
 
 /*
@@ -356,17 +583,24 @@ grub_ieee1275_ibm_cas (void)
 static void
 grub_claim_heap (void)
 {
-  unsigned long total = 0;
+  grub_err_t err;
+  grub_uint32_t total = HEAP_MAX_SIZE;
+
+  err = grub_ieee1275_total_mem (&rmo_top);
+
+  /*
+   * If we cannot size the available memory, we can't be sure we're leaving
+   * space for the kernel, initrd and things Linux loads early in boot. So only
+   * allow further allocations from firmware on success
+   */
+  if (err == GRUB_ERR_NONE)
+    grub_mm_add_region_fn = grub_ieee1275_mm_add_region;
 
 #if defined(__powerpc__)
   if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY))
     {
-      grub_uint64_t rma_size;
-      grub_err_t err;
-
-      err = grub_ieee1275_total_mem (&rma_size);
       /* if we have an error, don't call CAS, just hope for the best */
-      if (err == GRUB_ERR_NONE && rma_size < (512 * 1024 * 1024))
+      if (err == GRUB_ERR_NONE && rmo_top < (512 * 1024 * 1024))
 	grub_ieee1275_ibm_cas ();
     }
 #endif
