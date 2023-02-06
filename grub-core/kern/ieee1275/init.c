@@ -502,6 +502,19 @@ struct option_vector2
   grub_uint8_t max_pft_size;
 } GRUB_PACKED;
 
+struct option_vector5
+{
+  grub_uint8_t byte1;
+  grub_uint8_t byte2;
+  grub_uint8_t byte3;
+  grub_uint8_t cmo;
+  grub_uint8_t associativity;
+  grub_uint8_t bin_opts;
+  grub_uint8_t micro_checkpoint;
+  grub_uint8_t reserved0;
+  grub_uint32_t max_cpus;
+} GRUB_PACKED;
+
 struct pvr_entry
 {
   grub_uint32_t mask;
@@ -523,6 +536,8 @@ struct cas_vector
   grub_uint16_t vec3;
   grub_uint8_t vec4_size;
   grub_uint16_t vec4;
+  grub_uint8_t vec5_size;
+  struct option_vector5 vec5;
 } GRUB_PACKED;
 
 /*
@@ -547,7 +562,7 @@ grub_ieee1275_ibm_cas (void)
   struct cas_vector vector =
   {
     .pvr_list = { { 0x00000000, 0xffffffff } }, /* any processor */
-    .num_vecs = 4 - 1,
+    .num_vecs = 5 - 1,
     .vec1_size = 0,
     .vec1 = 0x80, /* ignore */
     .vec2_size = 1 + sizeof (struct option_vector2) - 2,
@@ -558,6 +573,10 @@ grub_ieee1275_ibm_cas (void)
     .vec3 = 0x00e0, /* ask for FP + VMX + DFP but don't halt if unsatisfied */
     .vec4_size = 2 - 1,
     .vec4 = 0x0001, /* set required minimum capacity % to the lowest value */
+    .vec5_size = 1 + sizeof (struct option_vector5) - 2,
+    .vec5 = {
+      0, 192, 0, 128, 0, 0, 0, 0, 256
+    }
   };
 
   INIT_IEEE1275_COMMON (&args.common, "call-method", 3, 2);
