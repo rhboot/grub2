@@ -6235,7 +6235,8 @@ tpm module is loaded. As such it is recommended that the tpm module be built
 into @file{core.img} in order to avoid a potential gap in measurement between
 @file{core.img} being loaded and the tpm module being loaded.
 
-Measured boot is currently only supported on EFI platforms.
+Measured boot is currently only supported on EFI and IBM IEEE1275 PowerPC
+platforms.
 
 @node Lockdown
 @section Lockdown when booting on a secure setup
