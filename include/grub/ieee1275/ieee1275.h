@@ -24,6 +24,9 @@
 #include <grub/types.h>
 #include <grub/machine/ieee1275.h>
 
+#define GRUB_IEEE1275_CELL_FALSE       ((grub_ieee1275_cell_t) 0)
+#define GRUB_IEEE1275_CELL_TRUE        ((grub_ieee1275_cell_t) -1)
+
 struct grub_ieee1275_mem_region
 {
   unsigned int start;
