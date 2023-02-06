@@ -168,7 +168,6 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
 	  addr = 0x180000;
 	}
     }
-  len -= 1; /* Required for some firmware.  */
 
   /* Never exceed HEAP_MAX_SIZE  */
   if (*total + len > HEAP_MAX_SIZE)
