@@ -138,7 +138,17 @@ enum grub_ieee1275_flag
 
   GRUB_IEEE1275_FLAG_RAW_DEVNAMES,
   
-  GRUB_IEEE1275_FLAG_DISABLE_VIDEO_SUPPORT
+  GRUB_IEEE1275_FLAG_DISABLE_VIDEO_SUPPORT,
+
+#if defined(__powerpc__)
+  /*
+   * On PFW, the first time we boot a Linux partition, we may only get 256MB of
+   * real memory area, even if the partition has more memory. Set this flag if
+   * we think we're running under PFW. Then, if this flag is set, and the RMA is
+   * only 256MB in size, try asking for more with CAS.
+   */
+  GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY,
+#endif
 };
 
 extern int EXPORT_FUNC(grub_ieee1275_test_flag) (enum grub_ieee1275_flag flag);
