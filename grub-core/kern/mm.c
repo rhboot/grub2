@@ -734,6 +734,8 @@ grub_mm_dump_free (void)
     {
       grub_mm_header_t p;
 
+      grub_printf ("Region %p (size %" PRIuGRUB_SIZE ")\n\n", r, r->size);
+
       /* Follow the free list.  */
       p = r->first;
       do
@@ -760,6 +762,8 @@ grub_mm_dump (unsigned lineno)
   for (r = grub_mm_base; r; r = r->next)
     {
       grub_mm_header_t p;
+
+      grub_printf ("Region %p (size %" PRIuGRUB_SIZE ")\n\n", r, r->size);
 
       for (p = (grub_mm_header_t) ALIGN_UP ((grub_addr_t) (r + 1),
 					    GRUB_MM_ALIGN);

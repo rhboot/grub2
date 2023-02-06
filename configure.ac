@@ -1520,6 +1520,7 @@ else
   MM_DEBUG=0
 fi
 AC_SUBST([MM_DEBUG])
+AM_CONDITIONAL([COND_MM_DEBUG], [test x$MM_DEBUG = x1])
 
 AC_ARG_ENABLE([cache-stats],
 	      AS_HELP_STRING([--enable-cache-stats],

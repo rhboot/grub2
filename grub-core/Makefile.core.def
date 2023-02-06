@@ -2548,3 +2548,9 @@ module = {
   common = commands/i386/wrmsr.c;
   enable = x86;
 };
+
+module = {
+  name = memtools;
+  common = commands/memtools.c;
+  condition = COND_MM_DEBUG;
+};
