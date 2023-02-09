@@ -208,6 +208,13 @@ grub_disk_from_native_sector (grub_disk_t disk, grub_disk_addr_t sector)
   return sector << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS);
 }
 
+/* Convert from GRUB native disk sized sector to disk sized sector. */
+static inline grub_disk_addr_t
+grub_disk_to_native_sector (grub_disk_t disk, grub_disk_addr_t sector)
+{
+  return sector >> (disk->log_sector_size - GRUB_DISK_SECTOR_BITS);
+}
+
 /* This is called from the memory manager.  */
 void grub_disk_cache_invalidate_all (void);
 

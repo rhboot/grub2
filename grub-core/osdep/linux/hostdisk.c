@@ -240,7 +240,8 @@ have_devfs (void)
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 static int
-grub_hostdisk_linux_find_partition (char *dev, grub_disk_addr_t sector)
+grub_hostdisk_linux_find_partition (const grub_disk_t disk, char *dev,
+                                    grub_disk_addr_t sector)
 {
   size_t len = strlen (dev);
   const char *format;
@@ -305,7 +306,7 @@ grub_hostdisk_linux_find_partition (char *dev, grub_disk_addr_t sector)
       if (fstat (fd, &st) < 0
 	  || !grub_util_device_is_mapped_stat (&st)
 	  || !grub_util_get_dm_node_linear_info (st.st_rdev, 0, 0, &start))
-	start = grub_util_find_partition_start_os (real_dev);
+	start = grub_disk_to_native_sector (disk, grub_util_find_partition_start_os (real_dev));
       /* We don't care about errors here.  */
       grub_errno = GRUB_ERR_NONE;
 
@@ -386,7 +387,7 @@ grub_util_fd_open_device (const grub_disk_t disk, grub_disk_addr_t sector, int f
 	&& strncmp (dev, "/dev/", 5) == 0)
       {
 	if (sector >= part_start)
-	  is_partition = grub_hostdisk_linux_find_partition (dev, part_start);
+	  is_partition = grub_hostdisk_linux_find_partition (disk, dev, part_start);
 	else
 	  *max = part_start - sector;
       }
