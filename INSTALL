@@ -70,6 +70,7 @@ Prerequisites for make-check:
 * xorriso 1.2.9 or later, for grub-mkrescue and grub-shell
 * wamerican, for grub-fs-tester
 * mtools, FAT tools for EFI platforms
+* xfonts-unifont, for the functional tests
 
 * If running a Linux kernel the following modules must be loaded:
   - fuse, loop
