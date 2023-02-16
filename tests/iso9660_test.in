@@ -13,3 +13,18 @@ fi
 "@builddir@/grub-fs-tester" joliet_1999
 "@builddir@/grub-fs-tester" rockridge_1999
 "@builddir@/grub-fs-tester" rockridge_joliet_1999
+
+echo "Testing for proper recognition of CE loops ... "
+for fs in iso9660_ce_loop iso9660_ce_loop2; do
+  tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX"` ||
+    { echo "Failed to make temporary directory"; exit 99; }
+  gunzip <"$srcdir"/tests/${fs}.iso.gz >"${tempdir}/${fs}.iso" || exit 99
+  output=$(LC_ALL=C timeout -s KILL "60" \
+    "@builddir@/grub-fstest" "${tempdir}/${fs}.iso" ls / ) || ret=$?
+  rm -rf "$tempdir"
+  if [ "${ret:-0}" -ne 0 -o -n "$output" ]; then
+    echo "FAIL ($fs)"
+    exit 1
+  fi
+done
+echo "PASS"
