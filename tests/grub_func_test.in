@@ -3,6 +3,11 @@ set -e
 
 . "@builddir@/grub-core/modinfo.sh"
 
+if [ ! -e "@builddir@/"unicode.pf2 ]; then
+  echo "Functional test requires grub-mkfont support"
+  exit 99
+fi
+
 case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     # PLATFORM: Max RAM is 256M
     mips-qemu_mips | mipsel-qemu_mips)
