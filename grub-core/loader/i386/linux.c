@@ -1123,8 +1123,8 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   if (grub_initrd_load (&initrd_ctx, initrd_mem))
     goto fail;
 
-  grub_dprintf ("linux", "Initrd, addr=0x%x, size=0x%x\n",
-		(unsigned) addr, (unsigned) size);
+  grub_dprintf ("linux", "Initrd (%p) at 0x%" PRIxGRUB_ADDR ", size=0x%" PRIxGRUB_SIZE "\n",
+		initrd_mem, initrd_mem_target, size);
 
   linux_params.ramdisk_image = initrd_mem_target;
   linux_params.ramdisk_size = size;
