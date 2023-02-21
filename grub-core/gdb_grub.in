@@ -63,7 +63,9 @@ define load_all_modules
 		dump_module_sections $this
 		set $this = $this->next
 	end
-	match_and_load_symbols
+	if (grub_dl_head != 0)
+		match_and_load_symbols
+	end
 end
 document load_all_modules
 	Load debugging information for all loaded modules.
