@@ -276,6 +276,7 @@ EOF
 
 insmod blscfg
 blscfg
+blscfg_uki
 EOF
   fi
 
