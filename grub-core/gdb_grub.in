@@ -22,6 +22,10 @@ define dump_module_sections_helper
 end
 
 define dump_module_sections
+	# Set unlimited width so that lines don't get wrapped writing
+	# to .segments.tmp
+	with width 0 -- \
+	with trace-commands off -- \
 	pipe dump_module_sections_helper $arg0 | sh -c 'cat >>.segments.tmp'
 end
 document dump_module_sections
