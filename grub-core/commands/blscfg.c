@@ -99,7 +99,7 @@ static char *frob_boot_device(char *tmp)
   return grub_stpcpy (tmp, " " GRUB_BOOT_DEVICE);
 }
 
-static int bls_add_keyval(struct bls_entry *entry, char *key, char *val)
+static int bls_add_keyval(struct bls_entry *entry, const char *key, const char *val)
 {
   char *k, *v;
   struct keyval **kvs, *kv;
