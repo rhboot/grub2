@@ -10,15 +10,8 @@
 ###
 
 # Add section numbers and addresses to .segments.tmp
-define dump_module_sections
+define dump_module_sections_helper
 	set $mod = $arg0
-
-	# FIXME: save logging status
-	set logging file .segments.tmp
-	set logging redirect on
-	set logging overwrite off
-	set logging on
-
 	printf "%s", $mod->name
 	set $segment = $mod->segment
 	while ($segment)
@@ -26,9 +19,10 @@ define dump_module_sections
 		set $segment = $segment->next
 	end
 	printf "\n"
+end
 
-	set logging off
-	# FIXME: restore logging status
+define dump_module_sections
+	pipe dump_module_sections_helper $arg0 | sh -c 'cat >>.segments.tmp'
 end
 document dump_module_sections
 	Gather information about module whose mod structure was
@@ -59,6 +53,7 @@ document load_module
 end
 
 define load_all_modules
+	shell rm -f .segments.tmp
 	set $this = grub_dl_head
 	while ($this != 0)
 		dump_module_sections $this
