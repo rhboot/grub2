@@ -1799,15 +1799,15 @@ typedef struct initrd_media_device_path initrd_media_device_path_t;
   || defined (__aarch64__) || defined (__MINGW64__) || defined (__CYGWIN__) \
   || defined(__riscv)
 
-#define efi_call_0(func)		func()
-#define efi_call_1(func, a)		func(a)
-#define efi_call_2(func, a, b)		func(a, b)
-#define efi_call_3(func, a, b, c)	func(a, b, c)
-#define efi_call_4(func, a, b, c, d)	func(a, b, c, d)
-#define efi_call_5(func, a, b, c, d, e)	func(a, b, c, d, e)
-#define efi_call_6(func, a, b, c, d, e, f) func(a, b, c, d, e, f)
-#define efi_call_7(func, a, b, c, d, e, f, g) func(a, b, c, d, e, f, g)
-#define efi_call_10(func, a, b, c, d, e, f, g, h, i, j)	func(a, b, c, d, e, f, g, h, i, j)
+#define efi_call_0(func)		(func)()
+#define efi_call_1(func, a)		(func)(a)
+#define efi_call_2(func, a, b)		(func)(a, b)
+#define efi_call_3(func, a, b, c)	(func)(a, b, c)
+#define efi_call_4(func, a, b, c, d)	(func)(a, b, c, d)
+#define efi_call_5(func, a, b, c, d, e)	(func)(a, b, c, d, e)
+#define efi_call_6(func, a, b, c, d, e, f) (func)(a, b, c, d, e, f)
+#define efi_call_7(func, a, b, c, d, e, f, g) (func)(a, b, c, d, e, f, g)
+#define efi_call_10(func, a, b, c, d, e, f, g, h, i, j)	(func)(a, b, c, d, e, f, g, h, i, j)
 
 #else
 
