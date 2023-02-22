@@ -122,8 +122,6 @@ grub_util_find_hurd_root_device (const char *path)
   if (strncmp (name, "device:", sizeof ("device:") - 1) == 0)
     {
       char *dev_name = name + sizeof ("device:") - 1;
-      size_t size;
-      char *next;
 
       if (dev_name[0] == '@')
         {
