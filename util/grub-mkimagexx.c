@@ -1294,6 +1294,7 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		     }
 		     break;
 		   case R_RISCV_CALL:
+		   case R_RISCV_CALL_PLT:
 		     {
 		       grub_uint32_t hi20, lo12;
 
@@ -1726,6 +1727,7 @@ translate_relocation_pe (struct translate_context *ctx,
 	case R_RISCV_BRANCH:
 	case R_RISCV_JAL:
 	case R_RISCV_CALL:
+	case R_RISCV_CALL_PLT:
 	case R_RISCV_PCREL_HI20:
 	case R_RISCV_PCREL_LO12_I:
 	case R_RISCV_PCREL_LO12_S:

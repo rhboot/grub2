@@ -188,6 +188,7 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 	  break;
 
 	case R_RISCV_CALL:
+	case R_RISCV_CALL_PLT:
 	  {
 	    grub_uint32_t *abs_place = place;
 	    grub_ssize_t off = sym_addr - (grub_addr_t) place;
