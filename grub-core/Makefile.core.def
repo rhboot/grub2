@@ -20,8 +20,8 @@ transform_data = {
 
 transform_data = {
   installdir = platform;
-  name = gmodule.pl;
-  common = gmodule.pl.in;
+  name = gdb_helper.py;
+  common = gdb_helper.py.in;
 };
 
 transform_data = {

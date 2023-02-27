@@ -1,0 +1,82 @@
+import os
+import re
+import subprocess
+
+##### Convenience functions #####
+
+class IsUserCommand (gdb.Function):
+  """Set the second argument to true value if first argument is the name
+of a user-defined command.
+"""
+
+  def __init__ (self):
+    super (IsUserCommand, self).__init__ ("is_user_command")
+
+  def invoke (self, fmt, *args):
+    name = fmt.string () % tuple(a.string () for a in args)
+    for line in gdb.execute ("help user-defined", to_string=True).splitlines ():
+      line_parts = line.split(' -- ', 1)
+      if len (line_parts) > 1 and line_parts[0] == name:
+        return True
+    return False
+
+is_user_command = IsUserCommand ()
+
+##### Commands #####
+
+class GrubLoadModuleSymbols (gdb.Command):
+  """Load module symbols at correct locations.
+Takes one argument which is a pointer to a grub_dl_t struct."""
+
+  def __init__ (self):
+    super (GrubLoadModuleSymbols, self).__init__ ("load_module",
+						  gdb.COMMAND_USER,
+						  gdb.COMPLETE_EXPRESSION)
+
+  def invoke (self, arg, from_tty):
+    self.dont_repeat ()
+    args = gdb.string_to_argv (arg)
+    self.mod = gdb.parse_and_eval (args[0])
+    sections = self.get_section_offsets ()
+    section_names = self.get_section_names ()
+
+    sym_load_cmd_parts = ["add-symbol-file",
+			  "%s.module" % (self.mod['name'].string (),)]
+    for idx, addr in sections:
+      section_name = section_names[idx]
+      if section_name == ".text":
+        sym_load_cmd_parts.append (addr)
+      else:
+        sym_load_cmd_parts.extend (["-s", section_name, addr])
+    gdb.execute (' '.join (sym_load_cmd_parts))
+
+    if is_user_command.invoke (gdb.Value ("onload_%s"), self.mod['name']):
+      gdb.execute ("onload_%s (grub_dl_t)%s" % (self.mod['name'].string (),
+						self.mod.format_string (format='x')))
+
+  def get_section_offsets (self):
+    sections = []
+    segment = self.mod['segment']
+    while segment:
+      sections.append ((int (segment['section']), segment['addr'].format_string (format='x')))
+      segment = segment['next']
+    return sections
+
+  def get_section_names (self):
+    re_index = re.compile ("^\s+\[\s*(\d+)\] (\S*)")
+    names = {}
+    modfilename = "%s.mod" % (self.mod['name'].string (),)
+
+    if not os.path.exists (modfilename):
+      raise RuntimeError ("%s not found in current directory" % (modfilename,))
+
+    c = subprocess.run (["readelf", "-SW", modfilename], text=True, capture_output=True)
+    for line in c.stdout.splitlines ()[4:]:
+      m = re_index.match (line)
+      if not m:
+        continue
+      idx, name = m.groups ()
+      names[int (idx)] = name
+    return names
+
+grub_load_module = GrubLoadModuleSymbols ()
