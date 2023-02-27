@@ -86,7 +86,20 @@ end
 ###
 
 set confirm off
-file kernel.exec
-target remote :1234
 
-runtime_load_module
+# Note: On EFI and other platforms that load GRUB to an address that is
+# determined at runtime, the symbols in kernel.exec will be wrong.
+# However, we must start by loading some executable file or GDB will
+# fail.
+
+set $platform_efi = $_streq("@platform@", "efi")
+
+if $platform_efi
+	# Only load the executable file, not the symbols
+	exec-file kernel.exec
+else
+	file kernel.exec
+	runtime_load_module
+end
+
+target remote :1234
