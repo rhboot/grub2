@@ -1,6 +1,6 @@
 ###
 ### Load debuging information about GNU GRUB 2 modules into GDB
-### automatically. Needs readelf, Python and gdb_helper.py script
+### automatically. Needs readelf, objdump, Python and gdb_helper.py script
 ###
 ### Has to be launched from the writable and trusted
 ### directory containing *.image and *.module
@@ -11,6 +11,25 @@
 
 source gdb_helper.py
 
+
+define dynamic_load_symbols
+	dynamic_load_kernel_exec_symbols $arg0
+
+	# We may have been very late to loading the kernel.exec symbols and
+	# and modules may already be loaded. So load symbols for any already
+	# loaded.
+	load_all_modules
+
+	if $is_grub_loaded()
+		runtime_load_module
+	end
+end
+document dynamic_load_symbols
+	Load debugging symbols from kernel.exec and any loaded modules given
+	the address of the .text segment of the UEFI binary in memory. Also
+	setup session to automatically load module symbols for modules loaded
+	in the future.
+end
 
 define load_all_modules
 	set $this = grub_dl_head
