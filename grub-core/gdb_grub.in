@@ -71,16 +71,22 @@ document load_all_modules
 	Load debugging information for all loaded modules.
 end
 
+define runtime_load_module
+	break grub_dl_add
+	commands
+		silent
+		load_module mod
+		cont
+	end
+end
+document runtime_load_module
+	Load module symbols at runtime as they are loaded.
+end
+
 ###
 
 set confirm off
 file kernel.exec
 target remote :1234
 
-# inform when module is loaded
-break grub_dl_add
-commands
-	silent
-	load_module mod
-	cont
-end
+runtime_load_module
