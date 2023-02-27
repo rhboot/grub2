@@ -15,6 +15,8 @@ source gdb_helper.py
 define dynamic_load_symbols
 	dynamic_load_kernel_exec_symbols $arg0
 
+	run_on_start
+
 	# We may have been very late to loading the kernel.exec symbols and
 	# and modules may already be loaded. So load symbols for any already
 	# loaded.
@@ -54,6 +56,54 @@ document runtime_load_module
 	Load module symbols at runtime as they are loaded.
 end
 
+define run_on_start
+	# TODO: Add check to see if _start symbol is defined, if not, then
+	# the symbols have not yet been loaded and this command will not work.
+	watch *_start
+	set $break_efi_start_bpnum = $bpnum
+	commands
+		silent
+		delete $break_efi_start_bpnum
+
+		# Save the breakpoints here before the GRUB image is loaded
+		# into memory, then delete them. Later they will be reloaded
+		# once the GRUB image has been loaded. This avoids the issue
+		# where the loading of the GRUB image overwrites the software
+		# breakpoints, thus confusing GDB and effectively clearing
+		# those breakpoints.
+		save breakpoints .early-breakpoints.gdb
+		delete breakpoints
+
+		tbreak _start
+		commands
+			silent
+
+			# Reload the breakpoints now that the GRUB image has
+			# finished being loaded into memory.
+			source .early-breakpoints.gdb
+
+			runtime_load_module
+
+			if $is_user_command("onstart")
+				onstart
+			end
+			continue
+		end
+		continue
+	end
+end
+document run_on_start
+	On some targets, such as x86_64-efi, even if you know where the
+	firmware will load the GRUB image, you can not simply set a break
+	point before the image is loaded because loading the image
+	overwrites the break point in memory. So setup a hardware watch
+	point, which does not have that problem, and if that gets triggered,
+	then reset the break point. If a user-defined command named
+	"onstart" exists it will be run after the start is hit.
+	NOTE: This assumes symbols have already been correctly loaded for
+	the EFI application.
+end
+
 ###
 
 set confirm off
@@ -71,6 +121,7 @@ if ! $runonce
 		exec-file kernel.exec
 	else
 		file kernel.exec
+		run_on_start
 		runtime_load_module
 	end
 
