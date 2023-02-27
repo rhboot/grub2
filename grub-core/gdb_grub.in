@@ -94,12 +94,15 @@ set confirm off
 
 set $platform_efi = $_streq("@platform@", "efi")
 
-if $platform_efi
-	# Only load the executable file, not the symbols
-	exec-file kernel.exec
-else
-	file kernel.exec
-	runtime_load_module
-end
+if ! $runonce
+	if $platform_efi
+		# Only load the executable file, not the symbols
+		exec-file kernel.exec
+	else
+		file kernel.exec
+		runtime_load_module
+	end
 
-target remote :1234
+	target remote :1234
+	set $runonce = 1
+end
