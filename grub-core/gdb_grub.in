@@ -114,12 +114,18 @@ set confirm off
 # fail.
 
 set $platform_efi = $_streq("@platform@", "efi")
+set $target = "@target_cpu@-@platform@"
 
 if ! $runonce
 	if $platform_efi
 		# Only load the executable file, not the symbols
 		exec-file kernel.exec
 	else
+		if $_streq($target, "i386-pc")
+			add-symbol-file boot.image
+			add-symbol-file diskboot.image
+			add-symbol-file lzma_decompress.image
+		end
 		file kernel.exec
 		run_on_start
 		runtime_load_module
