@@ -2,6 +2,10 @@ import os
 import re
 import subprocess
 
+def prompt_hook (current_prompt):
+  return "(grub gdb) "
+gdb.prompt_hook = prompt_hook
+
 ##### Convenience functions #####
 
 class IsGrubLoaded (gdb.Function):
