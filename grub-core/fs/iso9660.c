@@ -272,6 +272,9 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
   struct grub_iso9660_susp_entry *entry;
   grub_err_t err;
   int ce_counter = 0;
+  grub_ssize_t ce_sua_size = 0;
+  grub_off_t ce_off;
+  grub_disk_addr_t ce_block;
 
   if (sua_size <= 0)
     return GRUB_ERR_NONE;
@@ -293,6 +296,7 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 
   entry = (struct grub_iso9660_susp_entry *) sua;
 
+ next_susp_area:
   while (entry->len > 0)
     {
       /* Ensure the entry is within System Use Area. */
@@ -307,55 +311,21 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
       if (grub_strncmp ((char *) entry->sig, "CE", 2) == 0)
 	{
 	  struct grub_iso9660_susp_ce *ce;
-	  grub_disk_addr_t ce_block;
 
-	  if (++ce_counter > GRUB_ISO9660_MAX_CE_HOPS)
+	  if (ce_sua_size > 0)
 	    {
 	      grub_free (sua);
 	      return grub_error (GRUB_ERR_BAD_FS,
-	                         "suspecting endless CE loop");
+				 "more than one CE entry in SUSP area");
 	    }
 
+	  /* Buffer CE parameters for use after the end of this loop. */
 	  ce = (struct grub_iso9660_susp_ce *) entry;
-	  sua_size = grub_le_to_cpu32 (ce->len);
-	  off = grub_le_to_cpu32 (ce->off);
+	  ce_sua_size = grub_le_to_cpu32 (ce->len);
+	  ce_off = grub_le_to_cpu32 (ce->off);
 	  ce_block = grub_le_to_cpu32 (ce->blk) << GRUB_ISO9660_LOG2_BLKSZ;
-
-	  if (sua_size <= 0)
-	    break;
-
-	  if (sua_size < GRUB_ISO9660_SUSP_HEADER_SZ)
-	    {
-	      grub_free (sua);
-	      return grub_error (GRUB_ERR_BAD_FS,
-			         "invalid continuation area in CE entry");
-	    }
-
-	  grub_free (sua);
-	  sua = grub_malloc (sua_size);
-	  if (!sua)
-	    return grub_errno;
-
-	  /* Load a part of the System Usage Area.  */
-	  err = grub_disk_read (node->data->disk, ce_block, off,
-				sua_size, sua);
-	  if (err)
-	    {
-	      grub_free (sua);
-	      return err;
-	    }
-
-	  entry = (struct grub_iso9660_susp_entry *) sua;
-	  /*
-	   * The hook function will not process CE or ST.
-	   * Advancing to the next entry would skip them.
-	   */
-	  if (grub_strncmp ((char *) entry->sig, "CE", 2) == 0
-	      || grub_strncmp ((char *) entry->sig, "ST", 2) == 0)
-	    continue;
 	}
-
-      if (hook (entry, hook_arg))
+      else if (hook (entry, hook_arg))
 	{
 	  grub_free (sua);
 	  return 0;
@@ -365,6 +335,38 @@ grub_iso9660_susp_iterate (grub_fshelp_node_t node, grub_off_t off,
 
       if (((sua + sua_size) - (char *) entry) < GRUB_ISO9660_SUSP_HEADER_SZ)
         break;
+    }
+
+  if (ce_sua_size > 0)
+    {
+      /* Load the next System Use Area by buffered CE entry parameters. */
+      if (++ce_counter > GRUB_ISO9660_MAX_CE_HOPS)
+	{
+	  grub_free (sua);
+	  return grub_error (GRUB_ERR_BAD_FS, "suspecting endless CE loop");
+	}
+      if (ce_sua_size < GRUB_ISO9660_SUSP_HEADER_SZ)
+	{
+	  grub_free (sua);
+	  return grub_error (GRUB_ERR_BAD_FS, "invalid continuation area in CE entry");
+	}
+
+      grub_free (sua);
+      sua = grub_malloc (ce_sua_size);
+      if (!sua)
+	return grub_errno;
+
+      err = grub_disk_read (node->data->disk, ce_block, ce_off, ce_sua_size, sua);
+      if (err)
+	{
+	  grub_free (sua);
+	  return err;
+	}
+      entry = (struct grub_iso9660_susp_entry *) sua;
+      sua_size = ce_sua_size;
+      ce_sua_size = 0;
+
+      goto next_susp_area;
     }
 
   grub_free (sua);
