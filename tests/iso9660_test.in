@@ -28,3 +28,26 @@ for fs in iso9660_ce_loop iso9660_ce_loop2; do
   fi
 done
 echo "PASS"
+
+echo "Testing for proper handling of early CE ... "
+fs=iso9660_early_ce
+tempdir=`mktemp -d "${TMPDIR:-/tmp}/${0##*/}.$(date '+%Y%m%d%H%M%S%N').${fs}.XXX"` ||
+  { echo "Failed to make temporary directory"; exit 99; }
+gunzip <"$srcdir"/tests/${fs}.iso.gz >"${tempdir}/${fs}.iso" || exit 99
+ret=0
+output=$(LC_ALL=C timeout -s KILL "60" \
+  "@builddir@/grub-fstest" "${tempdir}/${fs}.iso" ls / ) || ret=$?
+rm -rf "$tempdir"
+if [ "${ret:-0}" -ne 0 ]; then
+  echo "... grub-fstest returns $ret"
+  echo "FAIL ($fs)"
+  exit 1
+fi
+# Before comparing: remove trailing blank added by grub-fstest
+output=$(echo -n $output)
+if [ x"$output" != x"RockRidgeName:x" ]; then
+  echo "... found: '$output' , expected: 'RockRidgeName:x'"
+  echo "FAIL ($fs)"
+  exit 1
+fi
+echo "PASS"
