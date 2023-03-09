@@ -172,25 +172,29 @@ grub_file_read (grub_file_t file, void *buf, grub_size_t len)
   grub_disk_read_hook_t read_hook;
   void *read_hook_data;
 
-  if (file->offset > file->size)
-    {
-      grub_error (GRUB_ERR_OUT_OF_RANGE,
-		  N_("attempt to read past the end of file"));
-      return -1;
-    }
-
   if (len == 0)
     return 0;
 
-  if (len > file->size - file->offset)
-    len = file->size - file->offset;
+#ifdef GRUB_MACHINE_EMU
+  if (file->size >= 0)
+    {
+#endif
+      if (file->offset > file->size)
+        {
+          grub_error (GRUB_ERR_OUT_OF_RANGE,
+                      N_("attempt to read past the end of file"));
+          return -1;
+        }
+
+      if (len > file->size - file->offset)
+        len = file->size - file->offset;
+#ifdef GRUB_MACHINE_EMU
+    }
+#endif
 
   /* Prevent an overflow.  */
   if ((grub_ssize_t) len < 0)
     len >>= 1;
-
-  if (len == 0)
-    return 0;
 
   read_hook = file->read_hook;
   read_hook_data = file->read_hook_data;

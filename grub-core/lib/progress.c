@@ -72,7 +72,7 @@ grub_file_progress_hook_real (grub_disk_addr_t sector __attribute__ ((unused)),
 				       * 100ULL * 1000ULL,
 				       now - file->last_progress_time, 0);
 
-      if (file->size == 0)
+      if (file->size <= 0)
 	percent = 100;
       else
 	percent = grub_divmod64 (100 * file->progress_offset,
