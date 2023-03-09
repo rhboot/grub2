@@ -27,7 +27,6 @@
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/types.h>
-#include <grub/cpu/linux.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
@@ -439,7 +438,7 @@ static grub_err_t
 grub_cmd_xen_hypervisor (grub_command_t cmd __attribute__ ((unused)),
 			 int argc, char *argv[])
 {
-  struct linux_arm64_kernel_header lh;
+  struct linux_arch_kernel_header lh;
   grub_file_t file = NULL;
 
   grub_dl_ref (my_mod);

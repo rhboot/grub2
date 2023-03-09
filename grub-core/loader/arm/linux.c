@@ -26,6 +26,7 @@
 #include <grub/command.h>
 #include <grub/cache.h>
 #include <grub/cpu/linux.h>
+#include <grub/efi/efi.h>
 #include <grub/lib/cmdline.h>
 #include <grub/linux.h>
 #include <grub/verify.h>
@@ -304,7 +305,7 @@ linux_boot (void)
 static grub_err_t
 linux_load (const char *filename, grub_file_t file)
 {
-  struct linux_arm_kernel_header *lh;
+  struct linux_arch_kernel_header *lh;
   int size;
 
   size = grub_file_size (file);

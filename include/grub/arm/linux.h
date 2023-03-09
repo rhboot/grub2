@@ -24,26 +24,6 @@
 
 #include <grub/efi/pe32.h>
 
-#define GRUB_LINUX_ARM_MAGIC_SIGNATURE 0x016f2818
-
-struct linux_arm_kernel_header {
-  grub_uint32_t code0;
-  grub_uint32_t reserved1[8];
-  grub_uint32_t magic;
-  grub_uint32_t start; /* _start */
-  grub_uint32_t end;   /* _edata */
-  grub_uint32_t reserved2[3];
-  grub_uint32_t hdr_offset;
-#if defined GRUB_MACHINE_EFI
-  struct grub_pe_image_header pe_image_header;
-#endif
-};
-
-#if defined(__arm__)
-# define GRUB_LINUX_ARMXX_MAGIC_SIGNATURE GRUB_LINUX_ARM_MAGIC_SIGNATURE
-# define linux_arch_kernel_header linux_arm_kernel_header
-#endif
-
 #if defined GRUB_MACHINE_UBOOT
 # include <grub/uboot/uboot.h>
 # define LINUX_ADDRESS        (start_of_ram + 0x8000)

@@ -25,10 +25,10 @@
 #include <grub/i18n.h>
 #include <grub/file.h>
 #include <grub/elf.h>
+#include <grub/efi/efi.h>
 #include <grub/xen_file.h>
 #include <grub/efi/pe32.h>
 #include <grub/arm/linux.h>
-#include <grub/arm64/linux.h>
 #include <grub/i386/linux.h>
 #include <grub/xnu.h>
 #include <grub/machoload.h>
@@ -391,7 +391,7 @@ grub_cmd_file (grub_extcmd_context_t ctxt, int argc, char **args)
       }
     case IS_ARM_LINUX:
       {
-	struct linux_arm_kernel_header lh;
+	struct linux_arch_kernel_header lh;
 
 	if (grub_file_read (file, &lh, sizeof (lh)) != sizeof (lh))
 	  break;
@@ -412,13 +412,24 @@ grub_cmd_file (grub_extcmd_context_t ctxt, int argc, char **args)
       }
     case IS_ARM64_LINUX:
       {
-	struct linux_arm64_kernel_header lh;
+	struct linux_arch_kernel_header lh;
 
 	if (grub_file_read (file, &lh, sizeof (lh)) != sizeof (lh))
 	  break;
 
-	if (lh.magic ==
-	    grub_cpu_to_le32_compile_time (GRUB_LINUX_ARM64_MAGIC_SIGNATURE))
+	/*
+	 * The PE/COFF header can be anywhere in the file. Load it from the correct
+	 * offset if it is not where it is expected.
+	 */
+        if ((grub_uint8_t *) &lh + lh.hdr_offset != (grub_uint8_t *) &lh.pe_image_header)
+        {
+          if (grub_file_seek (file, lh.hdr_offset) == (grub_off_t) -1
+              || grub_file_read (file, &lh.pe_image_header, sizeof (struct grub_pe_image_header))
+                 != sizeof (struct grub_pe_image_header))
+            return grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read COFF image header");
+        }
+
+	if (lh.pe_image_header.coff_header.machine == grub_cpu_to_le16_compile_time (GRUB_PE32_MACHINE_ARM64))
 	  {
 	    ret = 1;
 	    break;
