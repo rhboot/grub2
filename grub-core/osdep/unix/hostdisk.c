@@ -71,6 +71,12 @@ grub_util_get_fd_size (grub_util_fd_t fd, const char *name, unsigned *log_secsiz
   if (log_secsize)
     *log_secsize = 9;
 
+#ifdef GRUB_MACHINE_EMU
+  /* /proc doesn't behave itself and gives 0 for file sizes to stat. */
+  if (st.st_size == 0 && !grub_strncmp ("/proc", name, 5))
+    return -1;
+#endif
+
   return st.st_size;
 }
 
