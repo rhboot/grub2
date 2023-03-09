@@ -143,13 +143,24 @@ grub_target_to_host_real (const struct grub_module_verifier_arch *arch, grub_uin
 }
 
 static Elf_Shdr *
-get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word index)
+get_shdr (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word index, size_t module_size)
 {
+  Elf_Shdr *s;
+
   if (grub_target_to_host (e->e_shoff) == 0)
     grub_util_error ("Invalid section header offset");
 
-  return (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) +
-		       index * grub_target_to_host16 (e->e_shentsize));
+  s = (Elf_Shdr *) ((char *) e + grub_target_to_host (e->e_shoff) +
+		    index * grub_target_to_host16 (e->e_shentsize));
+  /* Check that the header being accessed isn't outside the module size. */
+  if (grub_target_to_host32 (s->sh_type) != SHT_NULL && grub_target_to_host32 (s->sh_type) != SHT_NOBITS)
+    {
+      if (grub_target_to_host (s->sh_offset) > module_size)
+	grub_util_error ("Section %d starts after the end of the module", index);
+      if (grub_target_to_host (s->sh_offset) + grub_target_to_host (s->sh_size) > module_size)
+	grub_util_error ("Section %d ends after the end of the module", index);
+    }
+  return s;
 }
 
 static Elf_Shnum
@@ -161,7 +172,7 @@ get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
   shnum = grub_target_to_host16 (e->e_shnum);
   if (shnum == SHN_UNDEF)
     {
-      s = get_shdr (arch, e, 0);
+      s = get_shdr (arch, e, 0, 0);
       shnum = grub_target_to_host (s->sh_size);
       if (shnum < SHN_LORESERVE)
 	grub_util_error ("Invalid number of section header table entries in sh_size: %" PRIuGRUB_UINT64_T, (grub_uint64_t) shnum);
@@ -176,7 +187,7 @@ get_shnum (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
 }
 
 static Elf_Word
-get_shstrndx (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
+get_shstrndx (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, size_t module_size)
 {
   Elf_Shdr *s;
   Elf_Word shstrndx;
@@ -184,7 +195,7 @@ get_shstrndx (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
   shstrndx = grub_target_to_host16 (e->e_shstrndx);
   if (shstrndx == SHN_XINDEX)
     {
-      s = get_shdr (arch, e, 0);
+      s = get_shdr (arch, e, 0, 0);
       shstrndx = grub_target_to_host (s->sh_link);
       if (shstrndx < SHN_LORESERVE)
 	grub_util_error ("Invalid section header table index in sh_link: %d", shstrndx);
@@ -199,28 +210,30 @@ get_shstrndx (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
 }
 
 static Elf_Shdr *
-find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const char *name)
+find_section (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, const char *name, size_t module_size)
 {
   Elf_Shdr *s;
   const char *str;
   unsigned i;
 
-  s = get_shdr (arch, e, get_shstrndx (arch, e));
+  s = get_shdr (arch, e, get_shstrndx (arch, e, module_size), module_size);
   str = (char *) e + grub_target_to_host (s->sh_offset);
 
-  for (i = 0, s = get_shdr (arch, e, 0);
-       i < get_shnum (arch, e);
-       i++, s = get_shdr (arch, e, i))
-    if (strcmp (str + grub_target_to_host32 (s->sh_name), name) == 0)
-      return s;
+  for (i = 0; i < get_shnum (arch, e); i++)
+    {
+      s = get_shdr (arch, e, i, module_size);
+
+      if (strcmp (str + grub_target_to_host32 (s->sh_name), name) == 0)
+	return s;
+    }
   return NULL;
 }
 
 static void
 check_license (const char * const filename,
-	       const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
+	       const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, size_t module_size)
 {
-  Elf_Shdr *s = find_section (arch, e, ".module_license");
+  Elf_Shdr *s = find_section (arch, e, ".module_license", module_size);
   if (s && (strcmp ((char *) e + grub_target_to_host(s->sh_offset), "LICENSE=GPLv3") == 0
 	    || strcmp ((char *) e + grub_target_to_host(s->sh_offset), "LICENSE=GPLv3+") == 0
 	    || strcmp ((char *) e + grub_target_to_host(s->sh_offset), "LICENSE=GPLv2+") == 0))
@@ -229,17 +242,19 @@ check_license (const char * const filename,
 }
 
 static Elf_Sym *
-get_symtab (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word *size, Elf_Word *entsize)
+get_symtab (const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, Elf_Word *size, Elf_Word *entsize, size_t module_size)
 {
   unsigned i;
   Elf_Shdr *s;
   Elf_Sym *sym;
 
-  for (i = 0, s = get_shdr (arch, e, 0);
-       i < get_shnum (arch, e);
-       i++, s = get_shdr (arch, e, i))
-    if (grub_target_to_host32 (s->sh_type) == SHT_SYMTAB)
-      break;
+  for (i = 0; i < get_shnum (arch, e); i++)
+    {
+      s = get_shdr (arch, e, i, module_size);
+
+      if (grub_target_to_host32 (s->sh_type) == SHT_SYMTAB)
+	break;
+    }
 
   if (i == get_shnum (arch, e))
     return NULL;
@@ -267,7 +282,7 @@ is_whitelisted (const char *modname, const char **whitelist)
 static void
 check_symbols (const struct grub_module_verifier_arch *arch,
 	       Elf_Ehdr *e, const char *modname,
-	       const char **whitelist_empty)
+	       const char **whitelist_empty, size_t module_size)
 {
   Elf_Sym *sym;
   Elf_Word size, entsize;
@@ -275,7 +290,7 @@ check_symbols (const struct grub_module_verifier_arch *arch,
 
   /* Module without symbol table and without .moddeps section is useless
      at boot time, so catch it early to prevent build errors */
-  sym = get_symtab (arch, e, &size, &entsize);
+  sym = get_symtab (arch, e, &size, &entsize, module_size);
   if (!sym)
     {
       Elf_Shdr *s;
@@ -287,7 +302,7 @@ check_symbols (const struct grub_module_verifier_arch *arch,
       if (is_whitelisted (modname, whitelist_empty))
 	return;
 
-      s = find_section (arch, e, ".moddeps");
+      s = find_section (arch, e, ".moddeps", module_size);
 
       if (!s)
 	grub_util_error ("%s: no symbol table and no .moddeps section", modname);
@@ -342,13 +357,13 @@ is_symbol_local(Elf_Sym *sym)
 static void
 section_check_relocations (const char * const modname,
 			   const struct grub_module_verifier_arch *arch, void *ehdr,
-			   Elf_Shdr *s, size_t target_seg_size)
+			   Elf_Shdr *s, size_t target_seg_size, size_t module_size)
 {
   Elf_Rel *rel, *max;
   Elf_Sym *symtab;
   Elf_Word symtabsize, symtabentsize;
 
-  symtab = get_symtab (arch, ehdr, &symtabsize, &symtabentsize);
+  symtab = get_symtab (arch, ehdr, &symtabsize, &symtabentsize, module_size);
   if (!symtab)
     grub_util_error ("%s: relocation without symbol table", modname);
 
@@ -424,30 +439,32 @@ section_check_relocations (const char * const modname,
 
 static void
 check_relocations (const char * const modname,
-		   const struct grub_module_verifier_arch *arch, Elf_Ehdr *e)
+		   const struct grub_module_verifier_arch *arch, Elf_Ehdr *e, size_t module_size)
 {
   Elf_Shdr *s;
   unsigned i;
 
-  for (i = 0, s = get_shdr (arch, e, 0);
-       i < get_shnum (arch, e);
-       i++, s = get_shdr (arch, e, i))
-    if (grub_target_to_host32 (s->sh_type) == SHT_REL || grub_target_to_host32 (s->sh_type) == SHT_RELA)
-      {
-	Elf_Shdr *ts;
+  for (i = 0; i < get_shnum (arch, e); i++)
+    {
+      s = get_shdr (arch, e, i, module_size);
 
-	if (grub_target_to_host32 (s->sh_type) == SHT_REL && !(arch->flags & GRUB_MODULE_VERIFY_SUPPORTS_REL))
-	  grub_util_error ("%s: unsupported SHT_REL", modname);
-	if (grub_target_to_host32 (s->sh_type) == SHT_RELA && !(arch->flags & GRUB_MODULE_VERIFY_SUPPORTS_RELA))
-	  grub_util_error ("%s: unsupported SHT_RELA", modname);
+      if (grub_target_to_host32 (s->sh_type) == SHT_REL || grub_target_to_host32 (s->sh_type) == SHT_RELA)
+	{
+	  Elf_Shdr *ts;
 
-	/* Find the target segment.  */
-	if (grub_target_to_host32 (s->sh_info) >= get_shnum (arch, e))
-	  grub_util_error ("%s: orphaned reloc section", modname);
-	ts = get_shdr (arch, e, grub_target_to_host32 (s->sh_info));
+	  if (grub_target_to_host32 (s->sh_type) == SHT_REL && !(arch->flags & GRUB_MODULE_VERIFY_SUPPORTS_REL))
+	    grub_util_error ("%s: unsupported SHT_REL", modname);
+	  if (grub_target_to_host32 (s->sh_type) == SHT_RELA && !(arch->flags & GRUB_MODULE_VERIFY_SUPPORTS_RELA))
+	    grub_util_error ("%s: unsupported SHT_RELA", modname);
 
-	section_check_relocations (modname, arch, e, s, grub_target_to_host (ts->sh_size));
-      }
+	  /* Find the target segment. */
+	  if (grub_target_to_host32 (s->sh_info) >= get_shnum (arch, e))
+	    grub_util_error ("%s: orphaned reloc section", modname);
+	  ts = get_shdr (arch, e, grub_target_to_host32 (s->sh_info), module_size);
+
+	  section_check_relocations (modname, arch, e, s, grub_target_to_host (ts->sh_size), module_size);
+	}
+    }
 }
 
 void
@@ -488,17 +505,17 @@ SUFFIX(grub_module_verify) (const char * const filename,
       grub_util_error ("%s: ELF sections outside core", filename);
     }
 
-  check_license (filename, arch, e);
+  check_license (filename, arch, e, size);
 
   Elf_Shdr *s;
   const char *modname;
 
-  s = find_section (arch, e, ".modname");
+  s = find_section (arch, e, ".modname", size);
   if (!s)
     grub_util_error ("%s: no module name found", filename);
 
   modname = (const char *) e + grub_target_to_host (s->sh_offset);
 
-  check_symbols(arch, e, modname, whitelist_empty);
-  check_relocations(modname, arch, e);
+  check_symbols(arch, e, modname, whitelist_empty, size);
+  check_relocations(modname, arch, e, size);
 }
