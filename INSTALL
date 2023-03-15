@@ -95,6 +95,12 @@ To build the documentation you'll need:
 * texinfo, for the info and html documentation
 * texlive, for building the dvi and pdf documentation (optional)
 
+To use the gdb_grub GDB script you'll need:
+* readelf (binutils package)
+* objdump (binutils package)
+* GNU Debugger > 7, built with python support (gdb package)
+* Python >= 3.5 (python3 package)
+
 Configuring the GRUB
 ====================
 
