@@ -135,16 +135,6 @@ grub_err_t
 grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 		  const char *description)
 {
-  /*
-   * Call tpm_init() 'late' rather than from GRUB_MOD_INIT() so that device nodes
-   * can be found.
-   */
-  grub_err_t err = tpm_init ();
-
-  /* Absence of a TPM isn't a failure. */
-  if (err != GRUB_ERR_NONE)
-    return GRUB_ERR_NONE;
-
   grub_dprintf ("tpm", "log_event, pcr = %d, size = 0x%" PRIxGRUB_SIZE ", %s\n",
 		pcr, size, description);
 
@@ -152,4 +142,14 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
     return tpm2_log_event (buf, size, pcr, description);
 
   return GRUB_ERR_NONE;
+}
+
+int
+grub_tpm_present (void)
+{
+  /*
+   * Call tpm_init() "late" rather than from GRUB_MOD_INIT() so that device nodes
+   * can be found.
+   */
+  return tpm_init() == GRUB_ERR_NONE;
 }
