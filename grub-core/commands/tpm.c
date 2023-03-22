@@ -86,10 +86,20 @@ struct grub_file_verifier grub_tpm_verifier = {
 
 GRUB_MOD_INIT (tpm)
 {
+  /*
+   * Even though this now calls ibmvtpm's grub_tpm_present() from GRUB_MOD_INIT(),
+   * it does seem to call it late enough in the initialization sequence so
+   * that whatever discovered "device nodes" before this GRUB_MOD_INIT() is
+   * called, enables the ibmvtpm driver to see the device nodes.
+   */
+  if (!grub_tpm_present())
+    return;
   grub_verifier_register (&grub_tpm_verifier);
 }
 
 GRUB_MOD_FINI (tpm)
 {
+  if (!grub_tpm_present())
+    return;
   grub_verifier_unregister (&grub_tpm_verifier);
 }
