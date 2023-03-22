@@ -287,3 +287,40 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   else
     return grub_tpm2_log_event (tpm_handle, buf, size, pcr, description);
 }
+
+int
+grub_tpm_present (void)
+{
+  grub_efi_handle_t tpm_handle;
+  grub_efi_uint8_t protocol_version;
+
+  if (!grub_tpm_handle_find (&tpm_handle, &protocol_version))
+    return 0;
+
+  if (protocol_version == 1)
+    {
+      grub_efi_tpm_protocol_t *tpm;
+
+      tpm = grub_efi_open_protocol (tpm_handle, &tpm_guid,
+				    GRUB_EFI_OPEN_PROTOCOL_GET_PROTOCOL);
+      if (!tpm)
+	{
+	  grub_dprintf ("tpm", "Cannot open TPM protocol\n");
+	  return 0;
+	}
+      return grub_tpm1_present (tpm);
+    }
+  else
+    {
+      grub_efi_tpm2_protocol_t *tpm;
+
+      tpm = grub_efi_open_protocol (tpm_handle, &tpm2_guid,
+				    GRUB_EFI_OPEN_PROTOCOL_GET_PROTOCOL);
+      if (!tpm)
+	{
+	  grub_dprintf ("tpm", "Cannot open TPM protocol\n");
+	  return 0;
+	}
+      return grub_tpm2_present (tpm);
+    }
+}
