@@ -56,11 +56,41 @@ extern char _end[];
 grub_addr_t grub_ieee1275_original_stack;
 #endif
 
-#define LPAR     0x80
-#define SPLPAR   0x40
-#define BYTE2    (LPAR | SPLPAR)
-#define CMO      0x80
-#define MAX_CPU  256
+/* Options vector5 properties */
+
+#define LPAR                0x80
+#define SPLPAR              0x40
+#define DYN_RCON_MEM        0x20
+#define LARGE_PAGES         0x10
+#define DONATE_DCPU_CLS     0x02
+#define PCI_EXP             0x01
+#define BYTE2               (LPAR | SPLPAR | DYN_RCON_MEM | LARGE_PAGES | DONATE_DCPU_CLS | PCI_EXP)
+
+#define CMOC                0x80
+#define EXT_CMO             0x40
+#define CMO                 (CMOC | EXT_CMO)
+
+#define ASSOC_REF           0x80
+#define AFFINITY            0x40
+#define NUMA                0x20
+#define ASSOCIATIVITY       (ASSOC_REF | AFFINITY | NUMA)
+
+#define HOTPLUG_INTRPT      0x04
+#define HPT_RESIZE          0x01
+#define BIN_OPTS            (HOTPLUG_INTRPT | HPT_RESIZE)
+
+#define MAX_CPU             256
+
+#define PFO_HWRNG           0x80000000
+#define PFO_HW_COMP         0x40000000
+#define PFO_ENCRYPT         0x20000000
+#define PLATFORM_FACILITIES (PFO_HWRNG | PFO_HW_COMP | PFO_ENCRYPT)
+
+#define SUB_PROCESSORS      1
+
+#define DY_MEM_V2           0x80
+#define DRC_INFO            0x40
+#define BYTE22              (DY_MEM_V2 | DRC_INFO)
 
 void
 grub_exit (int rc __attribute__((unused)))
@@ -323,6 +353,11 @@ struct option_vector5 {
         grub_uint8_t micro_checkpoint;
         grub_uint8_t reserved0;
         grub_uint32_t max_cpus;
+        grub_uint16_t base_PAPR;
+        grub_uint16_t mem_reference;
+        grub_uint32_t platform_facilities;
+        grub_uint8_t sub_processors;
+        grub_uint8_t byte22;
 } __attribute__((packed));
 
 struct pvr_entry {
@@ -378,7 +413,7 @@ grub_ieee1275_ibm_cas (void)
     .vec4 = 0x0001, // set required minimum capacity % to the lowest value
     .vec5_size = 1 + sizeof(struct option_vector5) - 2,
     .vec5 = {
-        0, BYTE2, 0, CMO, 0, 0, 0, 0, MAX_CPU	
+        0, BYTE2, 0, CMO, ASSOCIATIVITY, BIN_OPTS, 0, 0, MAX_CPU, 0, 0, PLATFORM_FACILITIES, SUB_PROCESSORS, BYTE22
     }
   };
 
