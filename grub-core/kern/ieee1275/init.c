@@ -56,6 +56,12 @@ extern char _end[];
 grub_addr_t grub_ieee1275_original_stack;
 #endif
 
+#define LPAR     0x80
+#define SPLPAR   0x40
+#define BYTE2    (LPAR | SPLPAR)
+#define CMO      0x80
+#define MAX_CPU  256
+
 void
 grub_exit (int rc __attribute__((unused)))
 {
@@ -372,7 +378,7 @@ grub_ieee1275_ibm_cas (void)
     .vec4 = 0x0001, // set required minimum capacity % to the lowest value
     .vec5_size = 1 + sizeof(struct option_vector5) - 2,
     .vec5 = {
-	0, 192, 0, 128, 0, 0, 0, 0, 256
+        0, BYTE2, 0, CMO, 0, 0, 0, 0, MAX_CPU	
     }
   };
 
