@@ -74,6 +74,10 @@ grub_linux_boot (void)
 		(kexecute==1) ? "do-or-die" : "just-in-case");
   rc = grub_util_exec (systemctl);
 
+  /* `systemctl kexec` is "asynchronous" and will return even on success. */
+  if (rc == 0)
+    grub_sleep (10);
+
   if (kexecute == 1)
     grub_fatal (N_("error trying to perform 'systemctl kexec': %d"), rc);
 
