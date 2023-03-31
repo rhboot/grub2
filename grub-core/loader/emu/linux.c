@@ -15,7 +15,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <grub/loader.h>
 #include <grub/dl.h>
 #include <grub/command.h>
@@ -32,6 +31,196 @@ static grub_dl_t my_mod;
 static char *kernel_path;
 static char *initrd_path;
 static char *boot_cmdline;
+
+static grub_err_t
+grub_switch_root (void)
+{
+  char *tmp = NULL;
+  char *options_cmd = NULL;
+  char *options = NULL;
+  char *subvol = NULL;
+  char *root_uuid = NULL;
+  char *kernel_release = NULL;
+  grub_err_t rc = GRUB_ERR_NONE;
+  const char *subvol_param = "subvol=";
+  const char *kernel_release_prefix = "/boot/vmlinuz-";
+  const char *root_prefix = "root=";
+  const char *systemctl[] = {"systemctl", "--force", "switch-root", "/sysroot", NULL};
+  const char *mountrootfs[] = {"mount", root_uuid, "/sysroot", options_cmd, options, NULL};
+  const char *unamer[] = {"uname", "-r", NULL};
+  char *uname_buf = NULL;
+  int i = 0;
+
+  /* Extract the kernel release tag from kernel_path */
+  if (!kernel_path)
+    {
+      rc = GRUB_ERR_BAD_ARGUMENT;
+      grub_dprintf ("linux", "switch_root: No kernel_path found\n");
+      goto out;
+    }
+
+  if ((kernel_release = grub_xasprintf ("%s", (kernel_path + grub_strlen (kernel_release_prefix)))) == NULL)
+    {
+      grub_dprintf ("linux", "switch_root: Failed to allocate memory\n");
+      rc = GRUB_ERR_BAD_ARGUMENT;
+      goto out;
+    }
+
+
+  /* Check for kernel mismatch  */
+  /* Retrieve the current kernel relase tag */
+  grub_util_exec_redirect (unamer, NULL, "/tmp/version");
+
+  grub_file_t f = grub_file_open ("/tmp/version", GRUB_FILE_TYPE_FS_SEARCH);
+
+  if (f == NULL)
+    {
+      grub_dprintf ("linux", "failed opening file.\n");
+      rc = GRUB_ERR_FILE_NOT_FOUND;
+      goto out;
+    }
+
+  if ((uname_buf = grub_malloc (f->size)) == NULL)
+    {
+      grub_dprintf ("linux", "switch_root: Failed to allocate memory\n");
+      rc = GRUB_ERR_OUT_OF_MEMORY;
+      goto out;
+    }
+
+  if (grub_file_read (f, uname_buf, f->size) < 0)
+    {
+      grub_dprintf ("linux", "switch_root: failed to read from file\n");
+      rc = GRUB_ERR_FILE_READ_ERROR;
+      goto out;
+    }
+
+  grub_file_close (f);
+
+  if (grub_strstr (uname_buf, kernel_release) == NULL)
+    {
+      grub_dprintf ("linux", "switch_root: kernel mismatch, not performing switch-root ...\n");
+      rc = GRUB_ERR_NO_KERNEL;
+      goto out;
+    }
+
+  /* Extract the root partition from boot_cmdline */
+  if (!boot_cmdline)
+    {
+      rc = GRUB_ERR_BAD_ARGUMENT;
+      goto out;
+    }
+
+  tmp = grub_strdup (boot_cmdline);
+
+  if (tmp == NULL)
+    {
+      rc = GRUB_ERR_OUT_OF_MEMORY;
+      goto out;
+    }
+
+  if ((root_uuid = grub_strstr (tmp, root_prefix)) == NULL)
+    {
+      rc = GRUB_ERR_BAD_ARGUMENT;
+      grub_dprintf ("linux", "switch_root: Can't find rootfs\n");
+      goto out;
+    }
+
+  root_uuid += grub_strlen (root_prefix);
+
+  while (root_uuid[i] != ' ' && root_uuid[i] != '\0')
+    i++;
+
+  root_uuid[i] = '\0';
+
+  /* Allocate a new buffer holding root_uuid */
+  root_uuid = grub_xasprintf ("%s", root_uuid);
+
+  if (root_uuid == NULL)
+    {
+      grub_dprintf ("linux", "switch_root: Failed to allocated memory\n");
+      rc = GRUB_ERR_OUT_OF_MEMORY;
+      goto out;
+    }
+
+  /* Check for subvol parameter */
+  grub_strcpy (tmp, boot_cmdline);
+
+  if ((subvol = grub_strstr(tmp, subvol_param)) != NULL)
+    {
+      i = 0;
+
+      while (subvol[i] != ' ' && subvol[i] != '\0')
+        i++;
+
+      subvol[i] = '\0';
+
+      /* Allocate a new buffer holding subvol */
+      subvol = grub_xasprintf("%s", subvol);
+
+      if (subvol == NULL)
+        {
+          grub_dprintf ("linux", "switch_root: Failed to allocated memory\n");
+          rc = GRUB_ERR_OUT_OF_MEMORY;
+          goto out;
+        }
+
+      options_cmd = grub_xasprintf("%s", "-o");
+      options = grub_xasprintf("%s", subvol);
+    }
+
+  if (options == NULL)
+    {
+      mountrootfs[3] = NULL;
+    }
+  else
+    {
+      mountrootfs[3] = options_cmd;
+      mountrootfs[4] = options;
+    }
+
+  mountrootfs[1] = root_uuid;
+
+  grub_dprintf ("linux", "Executing:\n");
+  grub_dprintf ("linux", "%s %s %s %s %s\n", mountrootfs[0], mountrootfs[1],
+    mountrootfs[2], mountrootfs[3], mountrootfs[4]);
+
+  /* Mount the rootfs */
+  rc = grub_util_exec (mountrootfs);
+
+  if (rc != GRUB_ERR_NONE)
+    {
+      grub_dprintf ("linux", "switch_root: Failed.\n");
+      rc = GRUB_ERR_INVALID_COMMAND;
+      goto out;
+    }
+
+  grub_dprintf ("linux", "Done.\n");
+
+  grub_dprintf ("linux", "%s %s %s %s\n", systemctl[0], systemctl[1],
+    systemctl[2], systemctl[3]);
+
+  /* Switch root */
+  rc = grub_util_exec (systemctl);
+
+  if (rc != GRUB_ERR_NONE)
+    {
+      grub_dprintf ("linux", "switch_root: Failed.\n");
+      rc = GRUB_ERR_INVALID_COMMAND;
+      goto out;
+    }
+
+  grub_dprintf ("linux", "Done.\n");
+
+out:
+  grub_free (tmp);
+  grub_free (options_cmd);
+  grub_free (options);
+  grub_free (subvol);
+  grub_free (root_uuid);
+  grub_free (uname_buf);
+  grub_free (kernel_release);
+  return rc;
+}
 
 static grub_err_t
 grub_linux_boot (void)
@@ -51,12 +240,20 @@ grub_linux_boot (void)
   else
     initrd_param = grub_xasprintf ("%s", "");
 
-  grub_dprintf ("linux", "%serforming 'kexec -la %s %s %s'\n",
-                (kexecute) ? "P" : "Not p",
-                kernel_path, initrd_param, boot_cmdline);
+  if (grub_util_get_switch_root() == 1)
+    {
+      rc = grub_switch_root();
+      if (rc != GRUB_ERR_NONE)
+        grub_fatal (N_("Failed to execute switch_root\n"));
+    }
+  else if (kexecute)
+    {
+      grub_dprintf ("linux", "%serforming 'kexec -la %s %s %s'\n",
+                    (kexecute) ? "P" : "Not p",
+                    kernel_path, initrd_param, boot_cmdline);
 
-  if (kexecute)
-    rc = grub_util_exec (kexec);
+      rc = grub_util_exec (kexec);
+    }
 
   grub_free (initrd_param);
 
