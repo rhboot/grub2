@@ -108,6 +108,7 @@ static struct argp_option options[] = {
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   {"hold",     'H', N_("SECS"),      OPTION_ARG_OPTIONAL, N_("wait until a debugger will attach"), 0},
   {"kexec",       'X', 0,      0, N_("use kexec to boot Linux kernels via systemctl (pass twice to enable dangerous fallback to non-systemctl)."), 0},
+  {"switch-root",     'W', 0,      0, N_("use switch-root to only switch root filesystem without restarting the kernel."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -168,7 +169,9 @@ argp_parser (int key, char *arg, struct argp_state *state)
     case 'X':
       grub_util_set_kexecute ();
       break;
-
+    case 'W':
+      grub_util_set_switch_root ();
+      break;
     case ARGP_KEY_ARG:
       {
 	/* Too many arguments. */

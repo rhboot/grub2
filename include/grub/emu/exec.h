@@ -36,7 +36,7 @@ grub_util_exec_redirect_all (const char *const *argv, const char *stdin_file,
 int
 EXPORT_FUNC(grub_util_exec) (const char *const *argv);
 int
-grub_util_exec_redirect (const char *const *argv, const char *stdin_file,
+EXPORT_FUNC(grub_util_exec_redirect) (const char *const *argv, const char *stdin_file,
 			 const char *stdout_file);
 int
 grub_util_exec_redirect_null (const char *const *argv);

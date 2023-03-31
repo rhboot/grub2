@@ -40,6 +40,7 @@
 
 int verbosity;
 int kexecute;
+int switchroot = 0;
 
 void
 grub_util_warn (const char *fmt, ...)
@@ -230,4 +231,16 @@ int
 grub_util_get_kexecute (void)
 {
   return kexecute;
+}
+
+void
+grub_util_set_switch_root (void)
+{
+  switchroot = 1;
+}
+
+int
+grub_util_get_switch_root (void)
+{
+  return switchroot;
 }
