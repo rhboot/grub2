@@ -50,12 +50,6 @@ grub_disk_adjust_range (grub_disk_t disk, grub_disk_addr_t *sector,
   return GRUB_ERR_NONE;
 }
 
-static inline grub_disk_addr_t
-transform_sector (grub_disk_t disk, grub_disk_addr_t sector)
-{
-  return sector >> (disk->log_sector_size - GRUB_DISK_SECTOR_BITS);
-}
-
 static unsigned
 grub_disk_cache_get_index (unsigned long dev_id, unsigned long disk_id,
 			   grub_disk_addr_t sector)

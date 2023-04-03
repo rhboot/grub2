@@ -341,7 +341,7 @@ grub_disk_read_small_real (grub_disk_t disk, grub_disk_addr_t sector,
       < (disk->total_sectors << (disk->log_sector_size - GRUB_DISK_SECTOR_BITS)))
     {
       grub_err_t err;
-      err = (disk->dev->disk_read) (disk, transform_sector (disk, sector),
+      err = (disk->dev->disk_read) (disk, grub_disk_to_native_sector (disk, sector),
 				    1U << (GRUB_DISK_CACHE_BITS
 					   + GRUB_DISK_SECTOR_BITS
 					   - disk->log_sector_size), tmp_buf);
@@ -377,7 +377,7 @@ grub_disk_read_small_real (grub_disk_t disk, grub_disk_addr_t sector,
     if (!tmp_buf)
       return grub_errno;
 
-    if ((disk->dev->disk_read) (disk, transform_sector (disk, aligned_sector),
+    if ((disk->dev->disk_read) (disk, grub_disk_to_native_sector (disk, aligned_sector),
 				num, tmp_buf))
       {
 	grub_error_push ();
@@ -483,7 +483,7 @@ grub_disk_read (grub_disk_t disk, grub_disk_addr_t sector,
 	{
 	  grub_disk_addr_t i;
 
-	  err = (disk->dev->disk_read) (disk, transform_sector (disk, sector),
+	  err = (disk->dev->disk_read) (disk, grub_disk_to_native_sector (disk, sector),
 					agglomerate << (GRUB_DISK_CACHE_BITS
 							+ GRUB_DISK_SECTOR_BITS
 							- disk->log_sector_size),

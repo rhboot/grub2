@@ -101,7 +101,7 @@ grub_disk_write (grub_disk_t disk, grub_disk_addr_t sector,
 
 	  grub_disk_cache_invalidate (disk->dev->id, disk->id, sector);
 
-	  if ((disk->dev->disk_write) (disk, transform_sector (disk, sector),
+	  if ((disk->dev->disk_write) (disk, grub_disk_to_native_sector (disk, sector),
 				       1, tmp_buf) != GRUB_ERR_NONE)
 	    {
 	      grub_free (tmp_buf);
@@ -130,7 +130,7 @@ grub_disk_write (grub_disk_t disk, grub_disk_addr_t sector,
 		 << (GRUB_DISK_CACHE_BITS + GRUB_DISK_SECTOR_BITS
 		     - disk->log_sector_size));
 
-	  if ((disk->dev->disk_write) (disk, transform_sector (disk, sector),
+	  if ((disk->dev->disk_write) (disk, grub_disk_to_native_sector (disk, sector),
 				       n, buf) != GRUB_ERR_NONE)
 	    goto finish;
 
