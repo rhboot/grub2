@@ -733,7 +733,8 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
     {
       tgsz = ALIGN_UP(tgsz, arch_addralign);
 
-      grub_dprintf ("modules", "updating attributes for GOT and trampolines\n",
+      grub_dprintf ("modules",
+		    "updating attributes for GOT and trampolines (\"%s\")\n",
 		    mod->name);
       grub_update_mem_attrs (tgaddr, tgsz, GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_X,
 			     GRUB_MEM_ATTR_W);
