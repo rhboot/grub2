@@ -682,7 +682,7 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv)
   grub_size_t arch_addralign = grub_arch_dl_min_alignment ();
   grub_addr_t tgaddr;
-  grub_uint64_t tgsz;
+  grub_size_t tgsz;
 #endif
 
   grub_dprintf ("modules", "updating memory attributes for \"%s\"\n",
@@ -736,6 +736,15 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
       grub_dprintf ("modules",
 		    "updating attributes for GOT and trampolines (\"%s\")\n",
 		    mod->name);
+      if (tgaddr < (grub_addr_t)mod->base ||
+          tgsz > (grub_addr_t)-1 - tgaddr ||
+	  tgaddr + tgsz > (grub_addr_t)mod->base + mod->sz)
+	return grub_error (GRUB_ERR_BUG,
+			   "BUG: trying to protect pages outside of module "
+			   "allocation (\"%s\"): module base %p, size 0x%"
+			   PRIxGRUB_SIZE "; tramp/GOT base 0x%" PRIxGRUB_ADDR
+			   ", size 0x%" PRIxGRUB_SIZE,
+			   mod->name, mod->base, mod->sz, tgaddr, tgsz);
       grub_update_mem_attrs (tgaddr, tgsz, GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_X,
 			     GRUB_MEM_ATTR_W);
     }
