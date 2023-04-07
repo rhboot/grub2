@@ -272,7 +272,9 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
   !defined (__loongarch__)
   grub_size_t tramp;
+  grub_size_t tramp_align;
   grub_size_t got;
+  grub_size_t got_align;
   grub_err_t err;
 #endif
   char *ptr;
@@ -304,12 +306,18 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
   err = grub_arch_dl_get_tramp_got_size (e, &tramp, &got);
   if (err)
     return err;
-  tsize += ALIGN_UP (tramp, GRUB_ARCH_DL_TRAMP_ALIGN);
-  if (talign < GRUB_ARCH_DL_TRAMP_ALIGN)
-    talign = GRUB_ARCH_DL_TRAMP_ALIGN;
-  tsize += ALIGN_UP (got, GRUB_ARCH_DL_GOT_ALIGN);
-  if (talign < GRUB_ARCH_DL_GOT_ALIGN)
-    talign = GRUB_ARCH_DL_GOT_ALIGN;
+  tramp_align = GRUB_ARCH_DL_TRAMP_ALIGN;
+  if (tramp_align < arch_addralign)
+    tramp_align = arch_addralign;
+  tsize += ALIGN_UP (tramp, tramp_align);
+  if (talign < tramp_align)
+    talign = tramp_align;
+  got_align = GRUB_ARCH_DL_GOT_ALIGN;
+  if (got_align < arch_addralign)
+    got_align = arch_addralign;
+  tsize += ALIGN_UP (got, got_align);
+  if (talign < got_align)
+    talign = got_align;
 #endif
 
 #ifdef GRUB_MACHINE_EMU
@@ -370,11 +378,11 @@ grub_dl_load_segments (grub_dl_t mod, const Elf_Ehdr *e)
     }
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
   !defined (__loongarch__)
-  ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, GRUB_ARCH_DL_TRAMP_ALIGN);
+  ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, tramp_align);
   mod->tramp = ptr;
   mod->trampptr = ptr;
   ptr += tramp;
-  ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, GRUB_ARCH_DL_GOT_ALIGN);
+  ptr = (char *) ALIGN_UP ((grub_addr_t) ptr, got_align);
   mod->got = ptr;
   mod->gotptr = ptr;
   ptr += got;
