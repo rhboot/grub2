@@ -1465,7 +1465,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		FSTIMEM2="$(date -d "$FSTIME UTC -2 second" -u "+%Y-%m-%d %H:%M:%S")"
 		FSTIMEM3="$(date -d "$FSTIME UTC -3 second" -u "+%Y-%m-%d %H:%M:%S")"
 
-		if echo "$LSOUT" | grep -F 'Last modification time '"$FSTIME" > /dev/null || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM1" > /dev/null || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM2" || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM3" > /dev/null; then
+		if echo "$LSOUT" | grep -F 'Last modification time '"$FSTIME" > /dev/null || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM1" > /dev/null || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM2" > /dev/null || echo "$LSOUT" | grep -F 'Last modification time '"$FSTIMEM3" > /dev/null; then
 		    :
 		else
 		    echo FSTIME FAIL
