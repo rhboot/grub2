@@ -24,6 +24,8 @@
 #include <grub/ieee1275/ofdisk.h>
 #include <grub/i18n.h>
 #include <grub/time.h>
+#define EXTEND_PATH_64 64
+#define EXTEND_PATH_512 512
 
 static char *last_devpath;
 static grub_ieee1275_ihandle_t last_ihandle;
@@ -207,116 +209,316 @@ dev_iterate_real (const char *name, const char *path)
 }
 
 static void
+dev_iterate_fcp_disks(const struct grub_ieee1275_devalias *alias)
+{
+  /*
+   * If we are dealing with fcp devices, we need
+   * to find the WWPNs and LUNs to iterate them
+   */
+  grub_ieee1275_ihandle_t ihandle;
+  grub_uint64_t *ptr_targets, *ptr_luns, k, l;
+  unsigned int i, j, pos;
+  char *buf, *bufptr;
+  struct set_fcp_targets_args
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t nentries;
+    grub_ieee1275_cell_t table;
+  } args_targets;
+
+  struct set_fcp_luns_args
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t wwpn_h;
+    grub_ieee1275_cell_t wwpn_l;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t nentries;
+    grub_ieee1275_cell_t table;
+  } args_luns;
+
+  struct args_ret
+  {
+    grub_uint64_t addr;
+    grub_uint64_t len;
+  };
+  struct args_ret *targets_table;
+  struct args_ret *luns_table;
+
+  if (grub_ieee1275_open (alias->path, &ihandle))
+    {
+      grub_dprintf("disk", "failed to open the disk while iterating FCP disk path=%s\n", alias->path);
+      return;
+    }
+
+  /* Setup the fcp-targets method to call via pfw*/
+  INIT_IEEE1275_COMMON (&args_targets.common, "call-method", 2, 3);
+  args_targets.method = (grub_ieee1275_cell_t) "fcp-targets";
+  args_targets.ihandle = ihandle;
+
+  /* Setup the fcp-luns method to call via pfw */
+  INIT_IEEE1275_COMMON (&args_luns.common, "call-method", 4, 3);
+  args_luns.method = (grub_ieee1275_cell_t) "fcp-luns";
+  args_luns.ihandle = ihandle;
+  if (IEEE1275_CALL_ENTRY_FN (&args_targets) == -1)
+    {
+      grub_dprintf("disk", "failed to get the targets while iterating FCP disk path=%s\n", alias->path);
+      grub_ieee1275_close(ihandle);
+      return;
+    }
+  /* Allocate memory for building the path */
+  buf = grub_malloc (grub_strlen (alias->path) + EXTEND_PATH_64);
+  if (!buf)
+    {
+      grub_ieee1275_close(ihandle);
+      return;
+    }
+  bufptr = grub_stpcpy (buf, alias->path);
+
+  /*
+   * Iterate over entries returned by pfw. Each entry contains a
+   * pointer to wwpn table and his length.
+   */
+  targets_table = (struct args_ret *)(args_targets.table);
+  for (i=0; i< args_targets.nentries; i++)
+    {
+      ptr_targets = (grub_uint64_t*) targets_table[i].addr;
+      /* Iterate over all wwpns in given table */
+      for (k=0; k<targets_table[i].len; k++)
+        {
+          args_luns.wwpn_l = (grub_ieee1275_cell_t) (*ptr_targets);
+          args_luns.wwpn_h = (grub_ieee1275_cell_t) (*ptr_targets >> 32);
+          pos = grub_snprintf (bufptr, 32, "/disk@%" PRIxGRUB_UINT64_T,
+                              *ptr_targets++);
+          /* Get the luns for given wwpn target */
+          if (IEEE1275_CALL_ENTRY_FN (&args_luns) == -1)
+            {
+              grub_dprintf("disk", "failed to get the LUNS while iterating FCP disk path=%s\n", buf);
+              grub_ieee1275_close (ihandle);
+              grub_free (buf);
+              return;
+            }
+          luns_table = (struct args_ret *)(args_luns.table);
+
+          /* Iterate over all LUNs */
+          for (j=0; j<args_luns.nentries; j++)
+            {
+              ptr_luns = (grub_uint64_t*) (grub_uint32_t) luns_table[j].addr;
+              for (l=0;l<luns_table[j].len;l++)
+                {
+                  grub_snprintf (&bufptr[pos], 30, ",%" PRIxGRUB_UINT64_T,
+                                 *ptr_luns++);
+                  dev_iterate_real(buf,buf);
+                }
+            }
+        }
+    }
+  grub_ieee1275_close (ihandle);
+  grub_free (buf);
+  return;
+}
+
+static void
+dev_iterate_fcp_nvmeof (const struct grub_ieee1275_devalias *alias)
+{
+  char *bufptr;
+  grub_ieee1275_ihandle_t ihandle;
+
+  /* Create the structs for the parameters passing to PFW */
+  struct nvme_args
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t nentries;
+    grub_ieee1275_cell_t table;
+  } nvme_discovery_controllers_args, nvme_controllers_args, nvme_namespaces_args;
+
+  /* Create the structs for the results from PFW */
+  struct discovery_controllers_table_struct
+  {
+    grub_uint64_t table[256];
+    grub_uint32_t len;
+  } discovery_controllers_table;
+
+  /*
+   * struct nvme_controllers_table_entry
+   * this the return of nvme-controllers method tables, containing:
+   * - 2-byte controller ID
+   * - 256-byte transport address string
+   * - 256-byte field containing null-terminated NVM subsystem NQN string up to 223 characters
+   */
+  struct nvme_controllers_table_entry
+  {
+    grub_uint16_t id;
+    char wwpn[256];
+    char nqn[256];
+  };
+
+  struct nvme_controllers_table_entry_real
+  {
+    grub_uint16_t id;
+    char wwpn[256];
+    char nqn[256];
+  };
+
+  struct nvme_controllers_table_entry* nvme_controllers_table;
+  grub_uint32_t nvme_controllers_table_entries;
+  char *buf;
+  unsigned int i = 0;
+  int current_buffer_index;
+  int nvme_controller_index;
+  int bufptr_pos2;
+  grub_uint32_t namespace_index = 0;
+  struct nvme_controllers_table_entry* nvme_controllers_table_buf;
+
+  nvme_controllers_table = grub_malloc(sizeof(struct nvme_controllers_table_entry)*256);
+  /* Allocate memory for building the NVMeoF path */
+  buf = grub_malloc (grub_strlen (alias->path) + EXTEND_PATH_512);
+  if (!buf || !nvme_controllers_table)
+    {
+      grub_free(nvme_controllers_table);
+      grub_free(buf);
+
+      return;
+    }
+
+  /* Copy the alias->path to buf so we can work with */
+  bufptr = grub_stpcpy (buf, alias->path);
+  grub_snprintf (bufptr, 32, "/nvme-of");
+
+  /*
+   *  Open the nvme-of layer
+   *  Ex.  /pci@bus/fibre-channel@@dev,func/nvme-of
+   */
+  if (grub_ieee1275_open (buf, &ihandle))
+    {
+      grub_dprintf("disk", "failed to open the disk while iterating FCP disk path=%s\n", buf);
+      grub_free(nvme_controllers_table);
+      grub_free(buf);
+      return;
+    }
+
+  /*
+   * Call to nvme-discovery-controllers method from the nvme-of layer
+   * to get a list of the NVMe discovery controllers per the binding
+   */
+  INIT_IEEE1275_COMMON (&nvme_discovery_controllers_args.common, "call-method", 2, 2);
+  nvme_discovery_controllers_args.method = (grub_ieee1275_cell_t) "nvme-discovery-controllers";
+  nvme_discovery_controllers_args.ihandle = ihandle;
+  if (IEEE1275_CALL_ENTRY_FN (&nvme_discovery_controllers_args) == -1)
+    {
+      grub_dprintf("disk", "failed to get the targets while iterating FCP disk path=%s\n", buf);
+      grub_free(nvme_controllers_table);
+      grub_free(buf);
+      grub_ieee1275_close(ihandle);
+      return;
+    }
+
+  /* After closing the device, the info is lost. So lets copy each buffer in the buffers table */
+  discovery_controllers_table.len = (grub_uint32_t) nvme_discovery_controllers_args.nentries;
+
+  for (i = 0; i < discovery_controllers_table.len; i++)
+    {
+      discovery_controllers_table.table[i] = ((grub_uint64_t*)nvme_discovery_controllers_args.table)[i];
+    }
+
+  grub_ieee1275_close(ihandle);
+  grub_dprintf("ofdisk","NVMeoF: Found %d discovery controllers\n", discovery_controllers_table.len);
+
+  /* For each nvme discovery controller */
+  for (current_buffer_index = 0; current_buffer_index < (int) discovery_controllers_table.len; current_buffer_index++)
+    {
+      grub_snprintf (bufptr, 64, "/nvme-of/controller@%" PRIxGRUB_UINT64_T ",ffff",
+                     discovery_controllers_table.table[current_buffer_index]);
+      grub_dprintf("ofdisk", "nvmeof controller=%s\n", buf);
+      if (grub_ieee1275_open (buf, &ihandle))
+        {
+          grub_dprintf("ofdisk", "failed to open the disk while getting nvme-controllers  path=%s\n", buf);
+          continue;
+        }
+      INIT_IEEE1275_COMMON (&nvme_controllers_args.common, "call-method", 2, 2);
+      nvme_controllers_args.method = (grub_ieee1275_cell_t) "nvme-controllers";
+      nvme_controllers_args.ihandle = ihandle;
+      nvme_controllers_args.catch_result = 0;
+
+      if (IEEE1275_CALL_ENTRY_FN (&nvme_controllers_args) == -1)
+        {
+          grub_dprintf("ofdisk", "failed to get the nvme-controllers while iterating FCP disk path\n");
+          grub_ieee1275_close(ihandle);
+          continue;
+        }
+
+      /* Copy the buffer list to nvme_controllers_table */
+      nvme_controllers_table_entries = ((grub_uint32_t) nvme_controllers_args.nentries);
+      nvme_controllers_table_buf = (struct nvme_controllers_table_entry*) nvme_controllers_args.table;
+      for (i = 0; i < nvme_controllers_table_entries; i++)
+        {
+	  nvme_controllers_table[i].id = (grub_uint16_t) nvme_controllers_table_buf[i].id;
+	  grub_strcpy(nvme_controllers_table[i].wwpn, nvme_controllers_table_buf[i].wwpn);
+	  grub_strcpy(nvme_controllers_table[i].nqn, nvme_controllers_table_buf[i].nqn);
+	}
+      grub_ieee1275_close(ihandle);
+      grub_dprintf("ofdisk", "NVMeoF: found %d nvme controllers\n", (int) nvme_controllers_args.nentries);
+
+      /* For each nvme controller */
+      for (nvme_controller_index = 0; nvme_controller_index < (int) nvme_controllers_args.nentries; nvme_controller_index++)
+        {
+          /*
+	   * Open the nvme controller
+           * /pci@bus/fibre-channel@dev,func/nvme-of/controller@transport-addr,ctlr-id:nqn=tgt-subsystem-nqn
+           */
+          bufptr_pos2 = grub_snprintf (bufptr, 512, "/nvme-of/controller@%s,ffff:nqn=%s",
+                                       nvme_controllers_table[nvme_controller_index].wwpn, nvme_controllers_table[nvme_controller_index].nqn);
+	  grub_dprintf("ofdisk", "NVMeoF: nvmeof controller=%s\n", buf);
+          if(grub_ieee1275_open (buf, &ihandle))
+	    {
+              grub_dprintf("ofdisk", "failed to open the path=%s\n", buf);
+	      continue;
+	    }
+          INIT_IEEE1275_COMMON (&nvme_namespaces_args.common, "call-method", 2, 2);
+          nvme_namespaces_args.method = (grub_ieee1275_cell_t) "get-namespace-list";
+          nvme_namespaces_args.ihandle = ihandle;
+          nvme_namespaces_args.catch_result = 0;
+
+	  if (IEEE1275_CALL_ENTRY_FN (&nvme_namespaces_args) == -1)
+            {
+              grub_dprintf("ofdisk", "failed to get the nvme-namespace-list while iterating FCP disk path\n");
+              grub_ieee1275_close(ihandle);
+              continue;
+            }
+          grub_uint32_t *namespaces = (grub_uint32_t*) nvme_namespaces_args.table;
+	  grub_dprintf("ofdisk", "NVMeoF: found %d namespaces\n", (int)nvme_namespaces_args.nentries);
+	  grub_ieee1275_close(ihandle);
+          namespace_index = 0;
+	  for (namespace_index=0; namespace_index < nvme_namespaces_args.nentries; namespace_index++)
+	    {
+	      grub_snprintf (bufptr+bufptr_pos2, 512, "/namespace@%"PRIxGRUB_UINT32_T,namespaces[namespace_index]);
+             grub_dprintf("ofdisk", "NVMeoF: namespace=%s\n", buf);
+             dev_iterate_real(buf, buf);
+           }
+         dev_iterate_real(buf, buf);
+	}
+    }
+  grub_free(buf);
+  grub_free(nvme_controllers_table);
+  return;
+}
+
+static void
 dev_iterate (const struct grub_ieee1275_devalias *alias)
 {
   if (grub_strcmp (alias->type, "fcp") == 0)
     {
-      /*
-       * If we are dealing with fcp devices, we need
-       * to find the WWPNs and LUNs to iterate them
-       */
-      grub_ieee1275_ihandle_t ihandle;
-      grub_uint64_t *ptr_targets, *ptr_luns, k, l;
-      unsigned int i, j, pos;
-      char *buf, *bufptr;
-      struct set_fcp_targets_args
-      {
-        struct grub_ieee1275_common_hdr common;
-        grub_ieee1275_cell_t method;
-        grub_ieee1275_cell_t ihandle;
-        grub_ieee1275_cell_t catch_result;
-        grub_ieee1275_cell_t nentries;
-        grub_ieee1275_cell_t table;
-      } args_targets;
-
-      struct set_fcp_luns_args
-      {
-        struct grub_ieee1275_common_hdr common;
-        grub_ieee1275_cell_t method;
-        grub_ieee1275_cell_t ihandle;
-        grub_ieee1275_cell_t wwpn_h;
-        grub_ieee1275_cell_t wwpn_l;
-        grub_ieee1275_cell_t catch_result;
-        grub_ieee1275_cell_t nentries;
-        grub_ieee1275_cell_t table;
-      } args_luns;
-
-      struct args_ret
-      {
-        grub_uint64_t addr;
-        grub_uint64_t len;
-      };
-
-      if(grub_ieee1275_open (alias->path, &ihandle))
-        {
-          grub_dprintf("disk", "failed to open the disk while iterating FCP disk path=%s\n", alias->path);
-          return;
-        }
-
-      /* Setup the fcp-targets method to call via pfw*/
-      INIT_IEEE1275_COMMON (&args_targets.common, "call-method", 2, 3);
-      args_targets.method = (grub_ieee1275_cell_t) "fcp-targets";
-      args_targets.ihandle = ihandle;
-
-      /* Setup the fcp-luns method to call via pfw */
-      INIT_IEEE1275_COMMON (&args_luns.common, "call-method", 4, 3);
-      args_luns.method = (grub_ieee1275_cell_t) "fcp-luns";
-      args_luns.ihandle = ihandle;
-      if (IEEE1275_CALL_ENTRY_FN (&args_targets) == -1)
-        {
-          grub_dprintf("disk", "failed to get the targets while iterating FCP disk path=%s\n", alias->path);
-          grub_ieee1275_close(ihandle);
-          return;
-        }
-      buf = grub_malloc (grub_strlen (alias->path) + 32 + 32);
-      if (!buf)
-        {
-          grub_ieee1275_close(ihandle);
-          return;
-        }
-      bufptr = grub_stpcpy (buf, alias->path);
-
-      /*
-       * Iterate over entries returned by pfw. Each entry contains a
-       * pointer to wwpn table and his length.
-       */
-      struct args_ret *targets_table = (struct args_ret *)(args_targets.table);
-      for (i=0; i< args_targets.nentries; i++)
-        {
-          ptr_targets = (grub_uint64_t*)(grub_uint32_t) targets_table[i].addr;
-          /* Iterate over all wwpns in given table */
-          for(k=0;k<targets_table[i].len;k++)
-            {
-              args_luns.wwpn_l = (grub_ieee1275_cell_t) (*ptr_targets);
-              args_luns.wwpn_h = (grub_ieee1275_cell_t) (*ptr_targets >> 32);
-              pos = grub_snprintf (bufptr, 32, "/disk@%" PRIxGRUB_UINT64_T,
-                                  *ptr_targets++);
-              /* Get the luns for given wwpn target */
-              if (IEEE1275_CALL_ENTRY_FN (&args_luns) == -1)
-                {
-                  grub_dprintf("disk", "failed to get the LUNS while iterating FCP disk path=%s\n", buf);
-                  grub_ieee1275_close (ihandle);
-                  grub_free (buf);
-                  return;
-                }
-              struct args_ret *luns_table = (struct args_ret *)(args_luns.table);
-
-              /* Iterate over all LUNs */
-              for(j=0;j<args_luns.nentries; j++)
-                {
-                  ptr_luns = (grub_uint64_t*) (grub_uint32_t) luns_table[j].addr;
-                  for(l=0;l<luns_table[j].len;l++)
-                    {
-                      grub_snprintf (&bufptr[pos], 30, ",%" PRIxGRUB_UINT64_T,
-                                     *ptr_luns++);
-                      dev_iterate_real(buf,buf);
-                    }
-                }
-            }
-        }
-      grub_ieee1275_close (ihandle);
-      grub_free (buf);
-      return;
+      /* Iterate disks */
+      dev_iterate_fcp_disks(alias);
+      /* Iterate NVMeoF */
+      dev_iterate_fcp_nvmeof(alias);
     }
   else if (grub_strcmp (alias->type, "vscsi") == 0)
     {
