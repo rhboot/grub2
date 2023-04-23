@@ -40,9 +40,19 @@ grub_keyboard_controller_init (void);
 static void
 keyboard_controller_wait_until_ready (void)
 {
+  unsigned int i = 200;
+
   /* 50 us would be enough but our current time resolution is 1ms.  */
   grub_millisleep (1);
-  while (! KEYBOARD_COMMAND_ISREADY (grub_inb (KEYBOARD_REG_STATUS)));
+
+  while (!KEYBOARD_COMMAND_ISREADY (grub_inb (KEYBOARD_REG_STATUS)))
+    {
+      grub_millisleep (1);
+
+      /* Timeout. */
+      if (!i--)
+	break;
+    }
 }
 
 static grub_uint8_t
