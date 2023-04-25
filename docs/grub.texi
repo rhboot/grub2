@@ -3057,6 +3057,18 @@ environment variable @samp{net_default_server} is used.
 Before using the network drive, you must initialize the network.
 @xref{Network}, for more information.
 
+When using @samp{http} or @samp{tftp}, ports other than @samp{80} can be
+specified using a colon (@samp{:}) after the address.  To avoid parsing
+conflicts, when using IPv6 addresses with custom ports, the addresses
+must be enclosed with square brackets (@samp{[]}), as is standard
+practice.
+
+@example
+(http,grub.example.com:31337)
+(http,192.0.2.1:339)
+(http,[2001:db8::1]:11235)
+@end example
+
 If you boot GRUB from a CD-ROM, @samp{(cd)} is available. @xref{Making
 a GRUB bootable CD-ROM}, for details.
 
