@@ -171,9 +171,9 @@ typedef struct {
     grub_efi_http_request_data_t *request;
     grub_efi_http_response_data_t *response;
   } data;
-  grub_efi_uint32_t header_count;
+  grub_efi_uintn_t header_count;
   grub_efi_http_header_t *headers;
-  grub_efi_uint32_t body_length;
+  grub_efi_uintn_t body_length;
   void *body;
 } grub_efi_http_message_t;
 
