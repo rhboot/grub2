@@ -1454,7 +1454,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			# Creating the squash image may take more than a few
 			# seconds. Use the more accurate timestamp from the
 			# superblock.
-			FSTIME="$(unsquashfs -s "${FSIMAGEP}0.img" | grep ^Creation | awk '{print $6 " " $7 " " $8 " " $9 " " $10; }')"
+			FSTIME="$(unsquashfs -UTC -s "${FSIMAGEP}0.img" | grep ^Creation | awk '{print $6 " " $7 " " $8 " " $9 " " $10; }')"
 			FSTIME="$(date -d "$FSTIME" -u '+%Y-%m-%d %H:%M:%S')";;
 		    *)
 			FSTIME="$(TZ=UTC ls --time-style="+%Y-%m-%d_%H:%M:%S" -l -d "${FSIMAGEP}0.img"|awk '{print $6; }'|sed 's,_, ,g')";;
