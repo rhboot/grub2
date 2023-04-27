@@ -561,6 +561,7 @@ main (int argc, char *argv[])
 	  || source_dirs[GRUB_INSTALL_PLATFORM_IA64_EFI]
 	  || source_dirs[GRUB_INSTALL_PLATFORM_ARM_EFI]
 	  || source_dirs[GRUB_INSTALL_PLATFORM_ARM64_EFI]
+	  || source_dirs[GRUB_INSTALL_PLATFORM_LOONGARCH64_EFI]
 	  || source_dirs[GRUB_INSTALL_PLATFORM_RISCV32_EFI]
 	  || source_dirs[GRUB_INSTALL_PLATFORM_RISCV64_EFI]
 	  || source_dirs[GRUB_INSTALL_PLATFORM_X86_64_EFI])
@@ -761,6 +762,7 @@ main (int argc, char *argv[])
       || source_dirs[GRUB_INSTALL_PLATFORM_IA64_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_ARM_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_ARM64_EFI]
+      || source_dirs[GRUB_INSTALL_PLATFORM_LOONGARCH64_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV32_EFI]
       || source_dirs[GRUB_INSTALL_PLATFORM_RISCV64_EFI])
     {
@@ -808,6 +810,12 @@ main (int argc, char *argv[])
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootaa64.efi");
       make_image_abs (GRUB_INSTALL_PLATFORM_ARM64_EFI, "arm64-efi", imgname);
+      free (imgname);
+
+      imgname = grub_util_path_concat (2, efidir_efi_boot, "bootloongarch64.efi");
+      make_image_fwdisk_abs (GRUB_INSTALL_PLATFORM_LOONGARCH64_EFI,
+			     "loongarch64-efi",
+			     imgname);
       free (imgname);
 
       imgname = grub_util_path_concat (2, efidir_efi_boot, "bootriscv32.efi");
