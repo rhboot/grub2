@@ -30,7 +30,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     mips*-arc | mips*-qemu_mips)
 	exit 77;;
     # FIXME: No native drivers are available for those
-    powerpc-ieee1275 | sparc64-ieee1275 | arm*-efi)
+    powerpc-ieee1275 | sparc64-ieee1275 | arm*-efi | loongarch64-efi)
 	exit 77;;
 esac
 

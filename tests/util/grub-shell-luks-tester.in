@@ -72,6 +72,9 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     i386-qemu)
 	disk="ata0"
 	;;
+    loongarch64-efi)
+	disk="hd1"
+	;;
 esac
 
 # Check the arguments.

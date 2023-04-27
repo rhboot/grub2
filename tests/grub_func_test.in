@@ -12,6 +12,8 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
     # PLATFORM: Max RAM is 256M
     mips-qemu_mips | mipsel-qemu_mips)
 	mem=256M;;
+    loongarch64-efi)
+	mem=3G;;
     *)
 	mem=512M;;
 esac
