@@ -765,11 +765,14 @@ grub_cmd_del_dns (struct grub_command *cmd __attribute__ ((unused)),
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));
-  err = grub_net_resolve_address (args[1], &server);
+
+  err = grub_net_resolve_address (args[0], &server);
   if (err)
     return err;
 
-  return grub_net_add_dns_server (&server);
+  grub_net_remove_dns_server (&server);
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_command_t cmd, cmd_add, cmd_del, cmd_list;
