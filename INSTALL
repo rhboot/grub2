@@ -42,6 +42,9 @@ To build GRUB's graphical terminal (gfxterm), you need:
 * FreeType 2.1.5 or later
 * GNU Unifont
 
+To build grub-mkfont the unicode fonts are required (xfonts-unifont package
+on Debian).
+
 If you use a development snapshot or want to hack on GRUB you may
 need the following.
 
