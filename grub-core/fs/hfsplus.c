@@ -87,6 +87,9 @@ struct grub_hfsplus_catfile
 #define HFSPLUS_BTNODE_MINSZ	(1 << 9)
 #define HFSPLUS_BTNODE_MAXSZ	(1 << 15)
 
+#define HFSPLUS_CATKEY_MIN_LEN	6
+#define HFSPLUS_CATKEY_MAX_LEN	516
+
 /* Some pre-defined file IDs.  */
 enum
   {
@@ -701,6 +704,13 @@ list_nodes (void *record, void *hook_arg)
   struct list_nodes_ctx *ctx = hook_arg;
 
   catkey = (struct grub_hfsplus_catkey *) record;
+
+  if (grub_be_to_cpu16 (catkey->keylen) < HFSPLUS_CATKEY_MIN_LEN ||
+      grub_be_to_cpu16 (catkey->keylen) > HFSPLUS_CATKEY_MAX_LEN)
+    {
+      grub_error (GRUB_ERR_BAD_FS, "catalog key length is out of range");
+      return 1;
+    }
 
   fileinfo =
     (struct grub_hfsplus_catfile *) ((char *) record
