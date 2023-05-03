@@ -262,42 +262,26 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
      We may get multiple responses due to network condition, so check here
      and quit early. */
   if (*data->addresses)
-    {
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
-    }
+    goto out;
 
   head = (struct dns_header *) nb->data;
   ptr = (grub_uint8_t *) (head + 1);
   if (ptr >= nb->tail)
-    {
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
-    }
+    goto out;
 
   if (head->id != data->id)
-    {
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
-    }
+    goto out;
   if (!(head->flags & FLAGS_RESPONSE) || (head->flags & FLAGS_OPCODE))
-    {
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
-    }
+    goto out;
   if (head->ra_z_r_code & ERRCODE_MASK)
     {
       data->dns_err = 1;
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
+      goto out;
     }
   for (i = 0; i < grub_be_to_cpu16 (head->qdcount); i++)
     {
       if (ptr >= nb->tail)
-	{
-	  grub_netbuff_free (nb);
-	  return GRUB_ERR_NONE;
-	}
+	goto out;
       while (ptr < nb->tail && !((*ptr & 0xc0) || *ptr == 0))
 	ptr += *ptr + 1;
       if (ptr < nb->tail && (*ptr & 0xc0))
@@ -310,8 +294,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
   if (!*data->addresses)
     {
       grub_errno = GRUB_ERR_NONE;
-      grub_netbuff_free (nb);
-      return GRUB_ERR_NONE;
+      goto out;
     }
   reparse_ptr = ptr;
  reparse:
@@ -325,7 +308,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	{
 	  if (!*data->naddresses)
 	    grub_free (*data->addresses);
-	  return GRUB_ERR_NONE;
+	  goto out;
 	}
       ignored = !check_name (ptr, nb->data, nb->tail, data->name);
       while (ptr < nb->tail && !((*ptr & 0xc0) || *ptr == 0))
@@ -337,8 +320,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	{
 	  if (!*data->naddresses)
 	    grub_free (*data->addresses);
-	  grub_netbuff_free (nb);
-	  return GRUB_ERR_NONE;
+	  goto out;
 	}
       if (*ptr++ != 0)
 	ignored = 1;
@@ -358,8 +340,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	{
 	  if (!*data->naddresses)
 	    grub_free (*data->addresses);
-	  grub_netbuff_free (nb);
-	  return GRUB_ERR_NONE;
+	  goto out;
 	}
       if (!ignored)
 	{
@@ -400,15 +381,14 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	      if (!data->name)
 		{
 		  data->dns_err = 1;
-		  grub_errno = 0;
-		  return GRUB_ERR_NONE;
+		  grub_errno = GRUB_ERR_NONE;
+		  goto out;
 		}
 	      grub_dprintf ("dns", "CNAME %s\n", data->name);
 	      if (grub_strcmp (redirect_save, data->name) == 0)
 		{
 		  data->dns_err = 1;
-		  grub_free (redirect_save);
-		  return GRUB_ERR_NONE;
+		  goto out;
 		}
 	      goto reparse;
 	    }
@@ -440,6 +420,8 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 		   *data->naddresses
 		   * sizeof (dns_cache[h].addresses[0]));
     }
+
+ out:
   grub_netbuff_free (nb);
   grub_free (redirect_save);
   return GRUB_ERR_NONE;
