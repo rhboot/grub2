@@ -357,7 +357,10 @@ grub_hfsplus_mount (grub_disk_t disk)
 			  (header.key_compare == GRUB_HFSPLUSX_BINARYCOMPARE));
 
   if (data->catalog_tree.nodesize < 2)
-    goto fail;
+    {
+      grub_error (GRUB_ERR_BAD_FS, "invalid catalog node size");
+      goto fail;
+    }
 
   if (grub_hfsplus_read_file (&data->extoverflow_tree.file, 0, 0,
 			      sizeof (struct grub_hfsplus_btnode),
@@ -374,7 +377,10 @@ grub_hfsplus_mount (grub_disk_t disk)
   data->extoverflow_tree.nodesize = grub_be_to_cpu16 (header.nodesize);
 
   if (data->extoverflow_tree.nodesize < 2)
-    goto fail;
+    {
+      grub_error (GRUB_ERR_BAD_FS, "invalid extents overflow node size");
+      goto fail;
+    }
 
   data->extoverflow_tree_ready = 1;
 
