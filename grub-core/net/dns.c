@@ -355,6 +355,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 		= GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV4;
 	      grub_memcpy (&(*data->addresses)[*data->naddresses].ipv4,
 			   ptr, 4);
+	      grub_dprintf ("dns", "got A 0x%x\n", (*data->addresses)[*data->naddresses].ipv4);
 	      (*data->naddresses)++;
 	      data->stop = 1;
 	      break;
@@ -365,6 +366,9 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 		= GRUB_NET_NETWORK_LEVEL_PROTOCOL_IPV6;
 	      grub_memcpy (&(*data->addresses)[*data->naddresses].ipv6,
 			   ptr, 16);
+	      grub_dprintf ("dns", "got AAAA 0x%" PRIxGRUB_UINT64_T "%" PRIxGRUB_UINT64_T "\n",
+			    (*data->addresses)[*data->naddresses].ipv6[0],
+			    (*data->addresses)[*data->naddresses].ipv6[1]);
 	      (*data->naddresses)++;
 	      data->stop = 1;
 	      break;
