@@ -84,6 +84,9 @@ struct grub_hfsplus_catfile
 #define GRUB_HFSPLUS_FILEMODE_DIRECTORY	0040000
 #define GRUB_HFSPLUS_FILEMODE_SYMLINK	0120000
 
+#define HFSPLUS_BTNODE_MINSZ	(1 << 9)
+#define HFSPLUS_BTNODE_MAXSZ	(1 << 15)
+
 /* Some pre-defined file IDs.  */
 enum
   {
@@ -583,6 +586,10 @@ grub_hfsplus_btree_search (struct grub_hfsplus_btree *btree,
       *matchnode = 0;
       return 0;
     }
+
+  if (btree->nodesize < HFSPLUS_BTNODE_MINSZ ||
+      btree->nodesize > HFSPLUS_BTNODE_MAXSZ)
+    return grub_error (GRUB_ERR_BAD_FS, "invalid HFS+ btree node size");
 
   node = grub_malloc (btree->nodesize);
   if (! node)
