@@ -261,7 +261,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
   /* Code apparently assumed that only one packet is received as response.
      We may get multiple responses due to network condition, so check here
      and quit early. */
-  if (*data->addresses)
+  if (*data->naddresses)
     goto out;
 
   head = (struct dns_header *) nb->data;
@@ -305,11 +305,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
       grub_uint32_t ttl = 0;
       grub_uint16_t length;
       if (ptr >= nb->tail)
-	{
-	  if (!*data->naddresses)
-	    grub_free (*data->addresses);
-	  goto out;
-	}
+	goto out;
       ignored = !check_name (ptr, nb->data, nb->tail, data->name);
       while (ptr < nb->tail && !((*ptr & 0xc0) || *ptr == 0))
 	ptr += *ptr + 1;
@@ -317,11 +313,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
 	ptr++;
       ptr++;
       if (ptr + 10 >= nb->tail)
-	{
-	  if (!*data->naddresses)
-	    grub_free (*data->addresses);
-	  goto out;
-	}
+	goto out;
       if (*ptr++ != 0)
 	ignored = 1;
       class = *ptr++;
@@ -337,11 +329,7 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
       length = *ptr++ << 8;
       length |= *ptr++;
       if (ptr + length > nb->tail)
-	{
-	  if (!*data->naddresses)
-	    grub_free (*data->addresses);
-	  goto out;
-	}
+	goto out;
       if (!ignored)
 	{
 	  if (ttl_all > ttl)
@@ -428,6 +416,8 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
  out:
   grub_netbuff_free (nb);
   grub_free (redirect_save);
+  if (!*data->naddresses)
+    grub_free (*data->addresses);
   return GRUB_ERR_NONE;
 }
 
