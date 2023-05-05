@@ -472,7 +472,7 @@ grub_install_parse (int key, char *arg)
 {
   switch (key)
     {
-    case 'C':
+    case GRUB_INSTALL_OPTIONS_INSTALL_CORE_COMPRESS:
       if (grub_strcmp (arg, "xz") == 0)
 	{
 #ifdef HAVE_LIBLZMA
