@@ -41,22 +41,22 @@ static grub_uint8_t
 ns8250_reg_read (struct grub_serial_port *port, grub_addr_t reg)
 {
   asm volatile("" : : : "memory");
-  if (port->mmio == true)
+  if (port->use_mmio == true)
     {
       /*
        * Note: we assume MMIO UARTs are little endian. This is not true of all
        * embedded platforms but will do for now.
        */
-      switch(port->access_size)
+      switch(port->mmio.access_size)
         {
         default:
           /* ACPI tables occasionally uses "0" (legacy) as equivalent to "1" (byte). */
         case 1:
-          return *((volatile grub_uint8_t *) (port->mmio_base + reg));
+          return *((volatile grub_uint8_t *) (port->mmio.base + reg));
         case 2:
-          return grub_le_to_cpu16 (*((volatile grub_uint16_t *) (port->mmio_base + (reg << 1))));
+          return grub_le_to_cpu16 (*((volatile grub_uint16_t *) (port->mmio.base + (reg << 1))));
         case 3:
-          return grub_le_to_cpu32 (*((volatile grub_uint32_t *) (port->mmio_base + (reg << 2))));
+          return grub_le_to_cpu32 (*((volatile grub_uint32_t *) (port->mmio.base + (reg << 2))));
         case 4:
           /*
            * This will only work properly on 64-bit systems since 64-bit
@@ -64,7 +64,7 @@ ns8250_reg_read (struct grub_serial_port *port, grub_addr_t reg)
            * case of a UART with a 64-bit register spacing on 32-bit
            * also probably doesn't exist.
            */
-          return grub_le_to_cpu64 (*((volatile grub_uint64_t *) (port->mmio_base + (reg << 3))));
+          return grub_le_to_cpu64 (*((volatile grub_uint64_t *) (port->mmio.base + (reg << 3))));
         }
     }
   return grub_inb (port->port + reg);
@@ -74,24 +74,24 @@ static void
 ns8250_reg_write (struct grub_serial_port *port, grub_uint8_t value, grub_addr_t reg)
 {
   asm volatile("" : : : "memory");
-  if (port->mmio == true)
+  if (port->use_mmio == true)
     {
-      switch(port->access_size)
+      switch(port->mmio.access_size)
         {
         default:
           /* ACPI tables occasionally uses "0" (legacy) as equivalent to "1" (byte). */
         case 1:
-          *((volatile grub_uint8_t *) (port->mmio_base + reg)) = value;
+          *((volatile grub_uint8_t *) (port->mmio.base + reg)) = value;
           break;
         case 2:
-          *((volatile grub_uint16_t *) (port->mmio_base + (reg << 1))) = grub_cpu_to_le16 (value);
+          *((volatile grub_uint16_t *) (port->mmio.base + (reg << 1))) = grub_cpu_to_le16 (value);
           break;
         case 3:
-          *((volatile grub_uint32_t *) (port->mmio_base + (reg << 2))) = grub_cpu_to_le32 (value);
+          *((volatile grub_uint32_t *) (port->mmio.base + (reg << 2))) = grub_cpu_to_le32 (value);
           break;
         case 4:
           /* See commment in ns8250_reg_read(). */
-          *((volatile grub_uint64_t *) (port->mmio_base + (reg << 3))) = grub_cpu_to_le64 (value);
+          *((volatile grub_uint64_t *) (port->mmio.base + (reg << 3))) = grub_cpu_to_le64 (value);
           break;
         }
     }
@@ -323,13 +323,12 @@ grub_ns8250_init (void)
 	com_ports[i].name = com_names[i];
 	com_ports[i].driver = &grub_ns8250_driver;
 	com_ports[i].port = serial_hw_io_addr[i];
-	com_ports[i].mmio = false;
+	com_ports[i].use_mmio = false;
 	err = grub_serial_config_defaults (&com_ports[i]);
 	if (err)
 	  grub_print_error ();
 
 	grub_serial_register (&com_ports[i]);
-	com_ports[i].access_size = 1;
       }
 }
 
@@ -365,7 +364,7 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
       }
 
   FOR_SERIAL_PORTS (p)
-    if (p->mmio == false && p->port == port)
+    if (p->use_mmio == false && p->port == port)
       {
         if (config != NULL)
           grub_serial_port_configure (p, config);
@@ -390,9 +389,8 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
       return NULL;
     }
   p->driver = &grub_ns8250_driver;
-  p->mmio = false;
+  p->use_mmio = false;
   p->port = port;
-  p->access_size = 1;
   if (config != NULL)
     grub_serial_port_configure (p, config);
   else
@@ -410,7 +408,7 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
   unsigned i;
 
   for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
-    if (com_ports[i].mmio == true && com_ports[i].mmio_base == addr)
+    if (com_ports[i].use_mmio == true && com_ports[i].mmio.base == addr)
       {
         if (config != NULL)
           grub_serial_port_configure (&com_ports[i], config);
@@ -418,7 +416,7 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
       }
 
   FOR_SERIAL_PORTS (p)
-    if (p->mmio == true && p->mmio_base == addr)
+    if (p->use_mmio == true && p->mmio.base == addr)
       {
         if (config != NULL)
           grub_serial_port_configure (p, config);
@@ -435,9 +433,9 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
       return NULL;
     }
   p->driver = &grub_ns8250_driver;
-  p->mmio = true;
-  p->mmio_base = addr;
-  p->access_size = acc_size;
+  p->use_mmio = true;
+  p->mmio.base = addr;
+  p->mmio.access_size = acc_size;
   if (config != NULL)
     grub_serial_port_configure (p, config);
   else

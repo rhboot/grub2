@@ -88,7 +88,7 @@ struct grub_serial_port
   {
     struct
     {
-      bool mmio;
+      bool use_mmio;
       union
       {
 #if defined(__mips__) || defined (__i386__) || defined (__x86_64__)
@@ -96,10 +96,10 @@ struct grub_serial_port
 #endif
         struct
         {
-          grub_addr_t mmio_base;
-          /* Access size uses ACPI definition. */
+          grub_addr_t base;
+          /* Access size uses ACPI definition */
           grub_uint8_t access_size;
-        };
+        } mmio;
       };
     };
     struct
