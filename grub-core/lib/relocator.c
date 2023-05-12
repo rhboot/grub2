@@ -744,7 +744,7 @@ malloc_in_range (struct grub_relocator *rel,
 	    {
 	      target = starta;
 	      if (target < start)
-		target = start;
+		target = ALIGN_UP (start, align);
 	      if (target + size <= end && target + size <= events[j].pos)
 		/* Found an usable address.  */
 		goto found;
@@ -761,7 +761,7 @@ malloc_in_range (struct grub_relocator *rel,
 	    {
 	      target = starta - size;
 	      if (target > end - size)
-		target = end - size;
+		target = ALIGN_DOWN (end - size, align);
 	      if (target >= start && target >= events[j].pos)
 		goto found;
 	    }
