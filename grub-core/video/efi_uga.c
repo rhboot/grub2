@@ -100,7 +100,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_CLASS);
   subclass = (grub_pci_read (addr) >> 16) & 0xffff;
 
-  if (subclass != GRUB_PCI_CLASS_SUBCLASS_VGA)
+  if (subclass != GRUB_PCI_CLASS_DISPLAY_VGA)
     return 0;
 
   /* Enable MEM address spaces */

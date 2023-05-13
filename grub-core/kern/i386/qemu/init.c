@@ -168,11 +168,11 @@ enable_cards (grub_pci_device_t dev,
 
   class = (grub_pci_read (addr) >> 16) & 0xffff;
 
-  if (class == GRUB_PCI_CLASS_SUBCLASS_VGA)
+  if (class == GRUB_PCI_CLASS_DISPLAY_VGA)
     cmd |= GRUB_PCI_COMMAND_IO_ENABLED
       | GRUB_PCI_COMMAND_MEM_ENABLED;
 
-  if (class == GRUB_PCI_CLASS_SUBCLASS_USB)
+  if (class == GRUB_PCI_CLASS_SERIAL_USB)
     return 0;
 
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_COMMAND);

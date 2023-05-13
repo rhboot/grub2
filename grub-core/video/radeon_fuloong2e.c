@@ -72,7 +72,7 @@ find_card (grub_pci_device_t dev, grub_pci_id_t pciid, void *data)
   addr = grub_pci_make_address (dev, GRUB_PCI_REG_CLASS);
   class = grub_pci_read (addr);
 
-  if (((class >> 16) & 0xffff) != GRUB_PCI_CLASS_SUBCLASS_VGA
+  if (((class >> 16) & 0xffff) != GRUB_PCI_CLASS_DISPLAY_VGA
       || pciid != 0x515a1002)
     return 0;
 
