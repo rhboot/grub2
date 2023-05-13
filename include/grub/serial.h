@@ -210,6 +210,10 @@ grub_arcserial_init (void);
 struct grub_serial_port *grub_arcserial_add_port (const char *path);
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
+extern void grub_pciserial_init (void);
+#endif
+
 struct grub_serial_port *grub_serial_find (const char *name);
 extern struct grub_serial_driver grub_ns8250_driver;
 void EXPORT_FUNC(grub_serial_unregister_driver) (struct grub_serial_driver *driver);

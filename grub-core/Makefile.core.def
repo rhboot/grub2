@@ -2081,6 +2081,7 @@ module = {
   ieee1275 = term/ieee1275/serial.c;
   mips_arc = term/arc/serial.c;
   efi = term/efi/serial.c;
+  x86 = term/pci/serial.c;
 
   enable = terminfomodule;
   enable = ieee1275;

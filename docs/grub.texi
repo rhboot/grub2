@@ -2716,8 +2716,7 @@ grub> @kbd{terminal_input serial; terminal_output serial}
 The command @command{serial} initializes the serial unit 0 with the
 speed 9600bps. The serial unit 0 is usually called @samp{COM1}, so, if
 you want to use COM2, you must specify @samp{--unit=1} instead. This
-command accepts many other options, so please refer to @ref{serial},
-for more details.
+command accepts many other options, @pxref{serial} for more details.
 
 Without argument or with @samp{--port=auto}, GRUB will attempt to use
 ACPI when available to auto-detect the default serial port and its
@@ -4164,6 +4163,9 @@ Additionally, an MMIO address can be suffixed with:
 @samp{.q} for 64-bit long long word access
 @end itemize
 
+Also, @var{port} can be of the form @samp{pci,XX:XX.X} to indicate a serial
+device exposed on the PCI bus.
+
 @var{speed} is the transmission speed; default is 9600. @var{word} and
 @var{stop} are the number of data bits and stop bits. Data bits must
 be in the range 5-8 and stop bits must be 1 or 2. Default is 8 data
@@ -4179,10 +4181,15 @@ The serial port is not used as a communication channel unless the
 @command{terminal_input} or @command{terminal_output} command is used
 (@pxref{terminal_input}, @pxref{terminal_output}).
 
+Note, valid @var{port} values, excluding IO port addresses, can be found
+by listing terminals with @command{terminal_output}, selecting all names
+prefixed by @samp{serial_} and removing that prefix.
+
 Examples:
 @example
-serial --port=3f8 --speed=9600
+serial --port=0x3f8 --speed=9600
 serial --port=mmio,fefb0000.l --speed=115200
+serial --port=pci,00:16.3 --speed=115200
 @end example
 
 See also @ref{Serial terminal}.

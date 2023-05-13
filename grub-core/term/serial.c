@@ -255,7 +255,8 @@ grub_cmd_serial (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (state[OPTION_PORT].set)
     {
-      if (grub_strncmp (state[OPTION_PORT].arg, "mmio,", sizeof ("mmio,") - 1) == 0)
+      if (grub_strncmp (state[OPTION_PORT].arg, "mmio,", sizeof ("mmio,") - 1) == 0 ||
+	  grub_strncmp (state[OPTION_PORT].arg, "pci,", sizeof ("pci,") - 1) == 0)
           grub_snprintf (pname, sizeof (pname), "%s", state[1].arg);
       else
           grub_snprintf (pname, sizeof (pname), "port%lx",
@@ -504,6 +505,9 @@ GRUB_MOD_INIT(serial)
 #endif
 #ifdef GRUB_MACHINE_ARC
   grub_arcserial_init ();
+#endif
+#if defined(__i386__) || defined(__x86_64__)
+  grub_pciserial_init ();
 #endif
 }
 
