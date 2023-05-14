@@ -83,7 +83,7 @@ Prerequisites for make-check:
     exfat FUSE filesystem
 * The following are Debian named packages required mostly for the full
   suite of filesystem testing (but some are needed by other tests as well):
-  - btrfs-progs, dosfstools, e2fsprogs, exfatprogs, f2fs-tools, genromfs,
+  - btrfs-progs, dosfstools, e2fsprogs, exfat-utils, f2fs-tools, genromfs,
     hfsprogs, jfsutils, nilfs-tools, ntfs-3g, reiserfsprogs, squashfs-tools,
     reiserfsprogs, udftools, xfsprogs, zfs-fuse
   - exfat-fuse, if not using the exfat kernel module
