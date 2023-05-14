@@ -3147,9 +3147,8 @@ The command-line interface provides a prompt and after it an editable
 text area much like a command-line in Unix or DOS. Each command is
 immediately executed after it is entered@footnote{However, this
 behavior will be changed in the future version, in a user-invisible
-way.}. The commands (@pxref{Command-line and menu entry commands}) are a
-subset of those available in the configuration file, used with exactly
-the same syntax.
+way.}. The commands (@pxref{Commands}) are a subset of those available
+in the configuration file, used with exactly the same syntax.
 
 Cursor movement and editing of the text on the line can be done via a
 subset of the functions available in the Bash shell:
@@ -3890,7 +3889,7 @@ shell}.
 * Menu-specific commands::
 * Loader commands::
 * General commands::
-* Command-line and menu entry commands::
+* Command-line commands::
 * Networking commands::
 * Undocumented commands::
 @end menu
@@ -4255,8 +4254,8 @@ printed.
 @end deffn
 
 
-@node Command-line and menu entry commands
-@section The list of command-line and menu entry commands
+@node Command-line commands
+@section The list of command-line commands
 
 These commands are usable in the command-line and in menu entries.  If
 you forget a command, you can run the command @command{help}
