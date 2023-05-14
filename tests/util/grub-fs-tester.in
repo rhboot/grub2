@@ -1058,15 +1058,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	    if [ x$CASESENS = xy ]; then
 		"$builddir"/garbage-gen $BLOCKCNT > "$MNTPOINTRW/$OSDIR/cAsE"
 	    fi
-	    if (test x$fs = xvfat12a || test x$fs = xmsdos12a) && test x$BLKSIZE = x131072; then
-		# With this config there isn't enough space for full copy.
-		# Copy as much as we can
-		cp "${CFILESRC}" "$MNTPOINTRW/$OSDIR/${CFILE}" &> /dev/null;
-	    else
-
-		cp "${CFILESRC}" "$MNTPOINTRW/$OSDIR/${CFILE}";
-
-	    fi
+	    dd if="${CFILESRC}" of="$MNTPOINTRW/$OSDIR/${CFILE}" bs=1024 count=1024
 
 	    if [ x$NOSYMLINK != xy ]; then
 		ln -s "$BASEFILE" "$MNTPOINTRW/$OSDIR/$BASESYM"
