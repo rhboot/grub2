@@ -46,7 +46,7 @@ static grub_uint64_t
 grub_loongarch64_stack_pop (grub_loongarch64_stack_t stack)
 {
   if (stack->top == -1)
-    return -1;
+    return 0;
   return stack->data[stack->top--];
 }
 
