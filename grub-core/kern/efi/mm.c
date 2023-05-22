@@ -263,6 +263,7 @@ grub_efi_finish_boot_services (grub_efi_uintn_t *outbuf_size, void *outbuf,
 				   &finish_desc_size, &finish_desc_version) <= 0)
 	{
 	  grub_free (finish_mmap_buf);
+	  finish_mmap_buf = NULL;
 	  return grub_error (GRUB_ERR_IO, "couldn't retrieve memory map");
 	}
 
@@ -274,10 +275,12 @@ grub_efi_finish_boot_services (grub_efi_uintn_t *outbuf_size, void *outbuf,
       if (status != GRUB_EFI_INVALID_PARAMETER)
 	{
 	  grub_free (finish_mmap_buf);
+	  finish_mmap_buf = NULL;
 	  return grub_error (GRUB_ERR_IO, "couldn't terminate EFI services");
 	}
 
       grub_free (finish_mmap_buf);
+      finish_mmap_buf = NULL;
       grub_printf ("Trying to terminate EFI services again\n");
     }
   grub_efi_is_finished = 1;
