@@ -67,7 +67,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
   char *phdr_base;
   grub_err_t err;
   grub_relocator_chunk_t ch;
-  grub_uint32_t load_offset = 0, load_size;
+  grub_uint32_t load_offset = 0, load_size = 0;
   Elf_Shnum shnum;
   Elf_Word shstrndx, phnum;
   unsigned int i;
@@ -170,8 +170,9 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	    }
 	  else
 	    {
+	      load_size = phdr(i)->p_memsz;
 	      err = grub_relocator_alloc_chunk_addr (GRUB_MULTIBOOT (relocator), &ch,
-	                                             phdr(i)->p_paddr, phdr(i)->p_memsz);
+	                                             phdr(i)->p_paddr, load_size);
 
 	      if (err != GRUB_ERR_NONE)
 		{
@@ -199,8 +200,14 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
 	    }
 
           if (phdr(i)->p_filesz < phdr(i)->p_memsz)
-            grub_memset ((grub_uint8_t *) source + load_offset + phdr(i)->p_filesz, 0,
-			 phdr(i)->p_memsz - phdr(i)->p_filesz);
+	    {
+	      /* Need to insure that the memory being set isn't larger than the allocated memory. */
+	      if (load_offset + phdr(i)->p_memsz - phdr(i)->p_filesz > load_size)
+		return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("memory being set is larger than allocated memory"));
+
+              grub_memset ((grub_uint8_t *) source + load_offset + phdr(i)->p_filesz, 0,
+			   phdr(i)->p_memsz - phdr(i)->p_filesz);
+	    }
         }
     }
 
