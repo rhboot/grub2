@@ -248,6 +248,9 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
     {
       grub_uint8_t *shdr, *shdrptr;
 
+      if ((grub_off_t) ehdr->e_shoff + shnum * ehdr->e_shentsize > grub_file_size (mld->file))
+	return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("ELF section header region is larger than the file size"));
+
       shdr = grub_calloc (shnum, ehdr->e_shentsize);
       if (!shdr)
 	return grub_errno;
