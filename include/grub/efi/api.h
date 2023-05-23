@@ -1539,18 +1539,18 @@ typedef struct grub_efi_pxe_mode
 typedef struct grub_efi_pxe
 {
   grub_uint64_t rev;
-  void (*start) (void);
-  void (*stop) (void);
-  void (*dhcp) (void);
-  void (*discover) (void);
-  void (*mftp) (void);
-  void (*udpwrite) (void);
-  void (*udpread) (void);
-  void (*setipfilter) (void);
-  void (*arp) (void);
-  void (*setparams) (void);
-  void (*setstationip) (void);
-  void (*setpackets) (void);
+  void *start;
+  void *stop;
+  void *dhcp;
+  void *discover;
+  void *mftp;
+  void *udpwrite;
+  void *udpread;
+  void *setipfilter;
+  void *arp;
+  void *setparams;
+  void *setstationip;
+  void *setpackets;
   struct grub_efi_pxe_mode *mode;
 } grub_efi_pxe_t;
 
