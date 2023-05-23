@@ -34,7 +34,7 @@ grub_efi_get_time_ms (void)
   return tmr;
 }
 
-static void
+static void __grub_efi_api
 increment_timer (grub_efi_event_t event __attribute__ ((unused)),
 		 void *context __attribute__ ((unused)))
 {

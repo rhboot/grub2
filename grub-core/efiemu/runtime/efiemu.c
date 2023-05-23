@@ -32,17 +32,17 @@
 #include <grub/efi/api.h>
 #include <grub/efiemu/runtime.h>
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_get_time (grub_efi_time_t *time,
 		 grub_efi_time_capabilities_t *capabilities);
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_set_time (grub_efi_time_t *time);
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_get_wakeup_time (grub_efi_boolean_t *enabled,
 			grub_efi_boolean_t *pending,
 			grub_efi_time_t *time);
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_set_wakeup_time (grub_efi_boolean_t enabled,
 			grub_efi_time_t *time);
 
@@ -52,51 +52,51 @@ efiemu_set_wakeup_time (grub_efi_boolean_t enabled,
 #define PHYSICAL_ATTRIBUTE __attribute__ ((section(".text-physical")));
 #endif
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_set_virtual_address_map (grub_efi_uintn_t memory_map_size,
 				grub_efi_uintn_t descriptor_size,
 				grub_efi_uint32_t descriptor_version,
 				grub_efi_memory_descriptor_t *virtual_map)
   PHYSICAL_ATTRIBUTE;
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_convert_pointer (grub_efi_uintn_t debug_disposition,
 			void **address)
   PHYSICAL_ATTRIBUTE;
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_get_variable (grub_efi_char16_t *variable_name,
 		     const grub_efi_guid_t *vendor_guid,
 		     grub_efi_uint32_t *attributes,
 		     grub_efi_uintn_t *data_size,
 		     void *data);
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_get_next_variable_name (grub_efi_uintn_t *variable_name_size,
 			       grub_efi_char16_t *variable_name,
 			       grub_efi_guid_t *vendor_guid);
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_set_variable (grub_efi_char16_t *variable_name,
 		     const grub_efi_guid_t *vendor_guid,
 		     grub_efi_uint32_t attributes,
 		     grub_efi_uintn_t data_size,
 		     void *data);
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 efiemu_get_next_high_monotonic_count (grub_efi_uint32_t *high_count);
-void
+void __grub_efi_api
 efiemu_reset_system (grub_efi_reset_type_t reset_type,
 		     grub_efi_status_t reset_status,
 		     grub_efi_uintn_t data_size,
 		     grub_efi_char16_t *reset_data);
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_virtual_address_map) (grub_efi_uintn_t,
 					      grub_efi_uintn_t,
 					      grub_efi_uint32_t,
 					      grub_efi_memory_descriptor_t *)
      PHYSICAL_ATTRIBUTE;
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_convert_pointer) (grub_efi_uintn_t debug_disposition,
 				      void **address)
      PHYSICAL_ATTRIBUTE;
@@ -202,7 +202,7 @@ bcd_to_hex (grub_uint8_t in)
   return 10 * ((in & 0xf0) >> 4) + (in & 0x0f);
 }
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_get_time) (grub_efi_time_t *time,
 			       grub_efi_time_capabilities_t *capabilities)
 {
@@ -246,7 +246,7 @@ EFI_FUNC (efiemu_get_time) (grub_efi_time_t *time,
   return GRUB_EFI_SUCCESS;
 }
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_time) (grub_efi_time_t *time)
 {
   LOG ('b');
@@ -265,7 +265,7 @@ EFI_FUNC (efiemu_set_time) (grub_efi_time_t *time)
 }
 
 /* Following 2 functions are vendor specific. So announce it as unsupported */
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_get_wakeup_time) (grub_efi_boolean_t *enabled,
 				      grub_efi_boolean_t *pending,
 				      grub_efi_time_t *time)
@@ -274,7 +274,7 @@ EFI_FUNC (efiemu_get_wakeup_time) (grub_efi_boolean_t *enabled,
   return GRUB_EFI_UNSUPPORTED;
 }
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_wakeup_time) (grub_efi_boolean_t enabled,
 				      grub_efi_time_t *time)
 {
@@ -337,7 +337,7 @@ efiemu_getcrc32 (grub_uint32_t crc, void *buf, int size)
 }
 
 
-grub_efi_status_t EFI_FUNC
+grub_efi_status_t __grub_efi_api EFI_FUNC
 (efiemu_set_virtual_address_map) (grub_efi_uintn_t memory_map_size,
 				  grub_efi_uintn_t descriptor_size,
 				  grub_efi_uint32_t descriptor_version,
@@ -403,7 +403,7 @@ grub_efi_status_t EFI_FUNC
 
 /* since efiemu_set_virtual_address_map corrects all the pointers
    we don't need efiemu_convert_pointer */
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_convert_pointer) (grub_efi_uintn_t debug_disposition,
 				      void **address)
 {
@@ -436,7 +436,7 @@ find_variable (const grub_efi_guid_t *vendor_guid,
   return 0;
 }
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
 				const grub_efi_guid_t *vendor_guid,
 				grub_efi_uint32_t *attributes,
@@ -461,7 +461,7 @@ EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
   return GRUB_EFI_SUCCESS;
 }
 
-grub_efi_status_t EFI_FUNC
+grub_efi_status_t __grub_efi_api EFI_FUNC
 (efiemu_get_next_variable_name) (grub_efi_uintn_t *variable_name_size,
 				 grub_efi_char16_t *variable_name,
 				 grub_efi_guid_t *vendor_guid)
@@ -501,7 +501,7 @@ grub_efi_status_t EFI_FUNC
   return GRUB_EFI_SUCCESS;
 }
 
-grub_efi_status_t
+grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_variable) (grub_efi_char16_t *variable_name,
 				const grub_efi_guid_t *vendor_guid,
 				grub_efi_uint32_t attributes,
@@ -556,7 +556,7 @@ EFI_FUNC (efiemu_set_variable) (grub_efi_char16_t *variable_name,
   return GRUB_EFI_SUCCESS;
 }
 
-grub_efi_status_t EFI_FUNC
+grub_efi_status_t __grub_efi_api EFI_FUNC
 (efiemu_get_next_high_monotonic_count) (grub_efi_uint32_t *high_count)
 {
   LOG ('j');
@@ -570,7 +570,7 @@ grub_efi_status_t EFI_FUNC
    Besides EFI specification says that this function shouldn't be used
    on systems supporting ACPI
  */
-void
+void __grub_efi_api
 EFI_FUNC (efiemu_reset_system) (grub_efi_reset_type_t reset_type,
 				   grub_efi_status_t reset_status,
 				   grub_efi_uintn_t data_size,
