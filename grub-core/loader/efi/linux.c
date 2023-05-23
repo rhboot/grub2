@@ -69,6 +69,12 @@ static initrd_media_device_path_t initrd_lf2_device_path = {
   }
 };
 
+extern grub_err_t
+grub_cmd_linux_x86_legacy (grub_command_t cmd, int argc, char *argv[]);
+
+extern grub_err_t
+grub_cmd_initrd_x86_legacy (grub_command_t cmd, int argc, char *argv[]);
+
 static grub_efi_status_t __grub_efi_api
 grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
                             grub_efi_device_path_t *device_path,
@@ -125,6 +131,7 @@ grub_arch_efi_linux_load_image_header (grub_file_t file,
   return GRUB_ERR_NONE;
 }
 
+#if !defined(__i386__) && !defined(__x86_64__)
 static grub_err_t
 finalize_params_linux (void)
 {
@@ -169,6 +176,7 @@ failure:
   grub_fdt_unload();
   return grub_error(GRUB_ERR_BAD_OS, "failed to install/update FDT");
 }
+#endif
 
 grub_err_t
 grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
@@ -231,8 +239,10 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 static grub_err_t
 grub_linux_boot (void)
 {
+#if !defined(__i386__) && !defined(__x86_64__)
   if (finalize_params_linux () != GRUB_ERR_NONE)
     return grub_errno;
+#endif
 
   return (grub_arch_efi_linux_boot_image((grub_addr_t)kernel_addr,
                                           kernel_size, linux_args));
@@ -253,7 +263,9 @@ grub_linux_unload (void)
   if (kernel_addr)
     grub_efi_free_pages ((grub_addr_t) kernel_addr,
 			 GRUB_EFI_BYTES_TO_PAGES (kernel_size));
+#if !defined(__i386__) && !defined(__x86_64__)
   grub_fdt_unload ();
+#endif
 
   if (initrd_lf2_handle != NULL)
     {
@@ -269,6 +281,7 @@ grub_linux_unload (void)
   return GRUB_ERR_NONE;
 }
 
+#if !defined(__i386__) && !defined(__x86_64__)
 /*
  * As per linux/Documentation/arm/Booting
  * ARM initrd needs to be covered by kernel linear mapping,
@@ -304,6 +317,7 @@ allocate_initrd_mem (int initrd_pages)
 				       GRUB_EFI_ALLOCATE_MAX_ADDRESS,
 				       GRUB_EFI_LOADER_DATA);
 }
+#endif
 
 static grub_efi_status_t __grub_efi_api
 grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
@@ -345,8 +359,8 @@ static grub_err_t
 grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 		 int argc, char *argv[])
 {
-  int initrd_size, initrd_pages;
-  void *initrd_mem = NULL;
+  int __attribute__ ((unused)) initrd_size, initrd_pages;
+  void *__attribute__ ((unused)) initrd_mem = NULL;
   grub_efi_boot_services_t *b = grub_efi_system_table->boot_services;
   grub_efi_status_t status;
 
@@ -355,6 +369,11 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
       goto fail;
     }
+
+#if defined(__i386__) || defined(__x86_64__)
+  if (!initrd_use_loadfile2)
+    return grub_cmd_initrd_x86_legacy (cmd, argc, argv);
+#endif
 
   if (!loaded)
     {
@@ -391,6 +410,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
       return GRUB_ERR_NONE;
     }
 
+#if !defined(__i386__) && !defined(__x86_64__)
   initrd_size = grub_get_initrd_size (&initrd_ctx);
   grub_dprintf ("linux", "Loading initrd\n");
 
@@ -404,17 +424,19 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
     }
 
   if (grub_initrd_load (&initrd_ctx, initrd_mem))
-    goto fail;
+    {
+      grub_efi_free_pages ((grub_addr_t) initrd_mem, initrd_pages);
+      goto fail;
+    }
 
   initrd_start = (grub_addr_t) initrd_mem;
   initrd_end = initrd_start + initrd_size;
   grub_dprintf ("linux", "[addr=%p, size=0x%x]\n",
 		(void *) initrd_start, initrd_size);
+#endif
 
  fail:
   grub_initrd_close (&initrd_ctx);
-  if (initrd_mem && !initrd_start)
-    grub_efi_free_pages ((grub_addr_t) initrd_mem, initrd_pages);
 
   return grub_errno;
 }
@@ -442,7 +464,24 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   kernel_size = grub_file_size (file);
 
   if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
+#if !defined(__i386__) && !defined(__x86_64__)
     goto fail;
+#else
+    goto fallback;
+
+  if (!initrd_use_loadfile2)
+    {
+      /*
+       * This is a EFI stub image but it is too old to implement the LoadFile2
+       * based initrd loading scheme, and Linux/x86 does not support the DT
+       * based method either. So fall back to the x86-specific loader that
+       * enters Linux in EFI mode but without going through its EFI stub.
+       */
+fallback:
+      grub_file_close (file);
+      return grub_cmd_linux_x86_legacy (cmd, argc, argv);
+    }
+#endif
 
   grub_loader_unset();
 

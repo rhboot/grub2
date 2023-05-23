@@ -1136,6 +1136,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   return grub_errno;
 }
 
+#ifndef GRUB_MACHINE_EFI
 static grub_command_t cmd_linux, cmd_initrd;
 
 GRUB_MOD_INIT(linux)
@@ -1152,3 +1153,10 @@ GRUB_MOD_FINI(linux)
   grub_unregister_command (cmd_linux);
   grub_unregister_command (cmd_initrd);
 }
+#else
+extern grub_err_t __attribute__((alias("grub_cmd_linux")))
+grub_cmd_linux_x86_legacy (grub_command_t cmd, int argc, char *argv[]);
+
+extern grub_err_t __attribute__((alias("grub_cmd_initrd")))
+grub_cmd_initrd_x86_legacy (grub_command_t cmd, int argc, char *argv[]);
+#endif
