@@ -101,8 +101,8 @@ grub_relocator_firmware_alloc_region (grub_addr_t start, grub_size_t size)
 		(unsigned long long) start, (unsigned long long) size);
 #endif
   b = grub_efi_system_table->boot_services;
-  status = efi_call_4 (b->allocate_pages, GRUB_EFI_ALLOCATE_ADDRESS,
-		       GRUB_EFI_LOADER_DATA, size >> 12, &address);
+  status = b->allocate_pages (GRUB_EFI_ALLOCATE_ADDRESS,
+			      GRUB_EFI_LOADER_DATA, size >> 12, &address);
   return (status == GRUB_EFI_SUCCESS);
 }
 
@@ -115,5 +115,5 @@ grub_relocator_firmware_free_region (grub_addr_t start, grub_size_t size)
     return;
 
   b = grub_efi_system_table->boot_services;
-  efi_call_2 (b->free_pages, start, size >> 12);
+  b->free_pages (start, size >> 12);
 }

@@ -56,7 +56,7 @@ grub_chainloader_unload (void *context)
     grub_free (loaded_image->load_options);
 
   b = grub_efi_system_table->boot_services;
-  efi_call_1 (b->unload_image, image_handle);
+  b->unload_image (image_handle);
 
   grub_dl_unref (my_mod);
   return GRUB_ERR_NONE;
@@ -72,7 +72,7 @@ grub_chainloader_boot (void *context)
   grub_efi_char16_t *exit_data = NULL;
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_3 (b->start_image, image_handle, &exit_data_size, &exit_data);
+  status = b->start_image (image_handle, &exit_data_size, &exit_data);
   if (status != GRUB_EFI_SUCCESS)
     {
       if (exit_data)
@@ -94,7 +94,7 @@ grub_chainloader_boot (void *context)
     }
 
   if (exit_data)
-    efi_call_1 (b->free_pool, exit_data);
+    b->free_pool (exit_data);
 
   grub_loader_unset ();
 
@@ -289,7 +289,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
   pages = (((grub_efi_uintn_t) size + ((1 << 12) - 1)) >> 12);
 
-  status = efi_call_4 (b->allocate_pages, GRUB_EFI_ALLOCATE_ANY_PAGES,
+  status = b->allocate_pages (GRUB_EFI_ALLOCATE_ANY_PAGES,
 			      GRUB_EFI_LOADER_CODE,
 			      pages, &address);
   if (status != GRUB_EFI_SUCCESS)
@@ -346,9 +346,9 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
-  status = efi_call_6 (b->load_image, 0, grub_efi_image_handle, file_path,
-		       boot_image, size,
-		       &image_handle);
+  status = b->load_image (0, grub_efi_image_handle, file_path,
+			  boot_image, size,
+			  &image_handle);
   if (status != GRUB_EFI_SUCCESS)
     {
       if (status == GRUB_EFI_OUT_OF_RESOURCES)
@@ -403,7 +403,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_device_close (dev);
 
   /* We're finished with the source image buffer and file path now. */
-  efi_call_2 (b->free_pages, address, pages);
+  b->free_pages (address, pages);
   grub_free (file_path);
 
   grub_loader_set_ex (grub_chainloader_boot, grub_chainloader_unload, image_handle, 0);
@@ -421,10 +421,10 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   grub_free (file_path);
 
   if (address)
-    efi_call_2 (b->free_pages, address, pages);
+    b->free_pages (address, pages);
 
   if (image_handle != NULL)
-    efi_call_1 (b->unload_image, image_handle);
+    b->unload_image (image_handle);
 
   grub_dl_unref (my_mod);
 

@@ -51,16 +51,16 @@ grub_machine_init (void)
   grub_efi_uintn_t idx;
   grub_efi_init ();
 
-  efi_call_5 (grub_efi_system_table->boot_services->create_event,
-	      GRUB_EFI_EVT_TIMER, GRUB_EFI_TPL_CALLBACK, 0, 0, &event);
+  grub_efi_system_table->boot_services->create_event (GRUB_EFI_EVT_TIMER,
+						      GRUB_EFI_TPL_CALLBACK,
+						      0, 0, &event);
 
   before = get_itc ();
-  efi_call_3 (grub_efi_system_table->boot_services->set_timer, event,
-	      GRUB_EFI_TIMER_RELATIVE, 200000);
-  efi_call_3 (grub_efi_system_table->boot_services->wait_for_event, 1,
-	      &event, &idx);
+  grub_efi_system_table->boot_services->set_timer (event, GRUB_EFI_TIMER_RELATIVE,
+						   200000);
+  grub_efi_system_table->boot_services->wait_for_event (1, &event, &idx);
   after = get_itc ();
-  efi_call_1 (grub_efi_system_table->boot_services->close_event, event);
+  grub_efi_system_table->boot_services->close_event (event);
   divisor = (after - before + 5) / 20;
   if (divisor == 0)
     divisor = 800000;

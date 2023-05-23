@@ -107,14 +107,13 @@ grub_console_setcolorstate (struct grub_term_output *term
 
   switch (state) {
     case GRUB_TERM_COLOR_STANDARD:
-      efi_call_2 (o->set_attributes, o, GRUB_TERM_DEFAULT_STANDARD_COLOR
-		  & 0x7f);
+      o->set_attributes (o, GRUB_TERM_DEFAULT_STANDARD_COLOR & 0x7f);
       break;
     case GRUB_TERM_COLOR_NORMAL:
-      efi_call_2 (o->set_attributes, o, grub_term_normal_color & 0x7f);
+      o->set_attributes (o, grub_term_normal_color & 0x7f);
       break;
     case GRUB_TERM_COLOR_HIGHLIGHT:
-      efi_call_2 (o->set_attributes, o, grub_term_highlight_color & 0x7f);
+      o->set_attributes (o, grub_term_highlight_color & 0x7f);
       break;
     default:
       break;
@@ -135,7 +134,7 @@ grub_console_setcursor (struct grub_term_output *term __attribute__ ((unused)),
     }
 
   o = grub_efi_system_table->con_out;
-  efi_call_2 (o->enable_cursor, o, on);
+  o->enable_cursor (o, on);
 }
 
 static grub_err_t
@@ -189,10 +188,10 @@ grub_console_putchar (struct grub_term_output *term,
 
   /* Should this test be cached?  */
   if ((c->base > 0x7f || c->ncomb)
-      && efi_call_2 (o->test_string, o, str) != GRUB_EFI_SUCCESS)
+      && o->test_string (o, str) != GRUB_EFI_SUCCESS)
     return;
 
-  efi_call_2 (o->output_string, o, str);
+  o->output_string (o, str);
 }
 
 const unsigned efi_codes[] =
@@ -242,7 +241,7 @@ grub_console_getkey_con (struct grub_term_input *term __attribute__ ((unused)))
   grub_efi_status_t status;
 
   i = grub_efi_system_table->con_in;
-  status = efi_call_2 (i->read_key_stroke, i, &key);
+  status = i->read_key_stroke (i, &key);
 
   if (status != GRUB_EFI_SUCCESS)
     return GRUB_TERM_NO_KEY;
@@ -270,7 +269,7 @@ grub_console_read_key_stroke (
 
   key = grub_efi_translate_key (key_data.key);
   if (key == GRUB_TERM_NO_KEY) {
-    status = efi_call_2 (text_input->read_key_stroke, text_input, &key_data);
+    status = text_input->read_key_stroke (text_input, &key_data);
     if (status != GRUB_EFI_SUCCESS)
       return GRUB_ERR_EOF;
 
@@ -391,8 +390,8 @@ grub_console_getwh (struct grub_term_output *term)
 
   o = grub_efi_system_table->con_out;
   if (grub_prepare_for_text_output (term) != GRUB_ERR_NONE ||
-      efi_call_4 (o->query_mode, o, o->mode->mode,
-		  &columns, &rows) != GRUB_EFI_SUCCESS)
+      o->query_mode (o, o->mode->mode,
+		     &columns, &rows) != GRUB_EFI_SUCCESS)
     {
       /* Why does this fail?  */
       columns = 80;
@@ -424,7 +423,7 @@ grub_console_gotoxy (struct grub_term_output *term,
     return;
 
   o = grub_efi_system_table->con_out;
-  efi_call_3 (o->set_cursor_position, o, pos.x, pos.y);
+  o->set_cursor_position (o, pos.x, pos.y);
 }
 
 static void
@@ -438,9 +437,9 @@ grub_console_cls (struct grub_term_output *term __attribute__ ((unused)))
 
   o = grub_efi_system_table->con_out;
   orig_attr = o->mode->attribute;
-  efi_call_2 (o->set_attributes, o, GRUB_EFI_BACKGROUND_BLACK);
-  efi_call_1 (o->clear_screen, o);
-  efi_call_2 (o->set_attributes, o, orig_attr);
+  o->set_attributes (o, GRUB_EFI_BACKGROUND_BLACK);
+  o->clear_screen (o);
+  o->set_attributes (o, orig_attr);
 }
 
 static grub_err_t

@@ -50,9 +50,9 @@ grub_machine_init (void)
   grub_efi_init ();
 
   b = grub_efi_system_table->boot_services;
-  efi_call_5 (b->create_event, GRUB_EFI_EVT_TIMER | GRUB_EFI_EVT_NOTIFY_SIGNAL,
-	      GRUB_EFI_TPL_CALLBACK, grub_loongson_increment_timer, NULL, &tmr_evt);
-  efi_call_3 (b->set_timer, tmr_evt, GRUB_EFI_TIMER_PERIODIC, EFI_TIMER_PERIOD_MILLISECONDS(10));
+  b->create_event (GRUB_EFI_EVT_TIMER | GRUB_EFI_EVT_NOTIFY_SIGNAL,
+		   GRUB_EFI_TPL_CALLBACK, grub_loongson_increment_timer, NULL, &tmr_evt);
+  b->set_timer (tmr_evt, GRUB_EFI_TIMER_PERIODIC, EFI_TIMER_PERIOD_MILLISECONDS(10));
 
   grub_install_get_time_ms (grub_efi_get_time_ms);
 }
@@ -67,8 +67,8 @@ grub_machine_fini (int flags)
 
   b = grub_efi_system_table->boot_services;
 
-  efi_call_3 (b->set_timer, tmr_evt, GRUB_EFI_TIMER_CANCEL, 0);
-  efi_call_1 (b->close_event, tmr_evt);
+  b->set_timer (tmr_evt, GRUB_EFI_TIMER_CANCEL, 0);
+  b->close_event (tmr_evt);
 
   grub_efi_fini ();
 

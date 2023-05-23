@@ -579,9 +579,10 @@ grub_efidisk_readwrite (struct grub_disk *disk, grub_disk_addr_t sector,
       aligned_buf = buf;
     }
 
-  status =  efi_call_5 ((wr ? bio->write_blocks : bio->read_blocks), bio,
-			bio->media->media_id, (grub_efi_uint64_t) sector,
-			(grub_efi_uintn_t) num_bytes, aligned_buf);
+  status =  (wr ? bio->write_blocks : bio->read_blocks) (bio, bio->media->media_id,
+							 (grub_efi_uint64_t) sector,
+							 (grub_efi_uintn_t) num_bytes,
+							 aligned_buf);
 
   if ((grub_addr_t) buf & (io_align - 1))
     {

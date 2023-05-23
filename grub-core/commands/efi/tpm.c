@@ -53,8 +53,7 @@ grub_tpm1_present (grub_efi_tpm_protocol_t *tpm)
 
   caps.Size = (grub_uint8_t) sizeof (caps);
 
-  status = efi_call_5 (tpm->status_check, tpm, &caps, &flags, &eventlog,
-		       &lastevent);
+  status = tpm->status_check (tpm, &caps, &flags, &eventlog, &lastevent);
 
   if (status != GRUB_EFI_SUCCESS || caps.TPMDeactivatedFlag
       || !caps.TPMPresentFlag)
@@ -78,7 +77,7 @@ grub_tpm2_present (grub_efi_tpm2_protocol_t *tpm)
   if (tpm2_present != -1)
     return (grub_efi_boolean_t) tpm2_present;
 
-  status = efi_call_2 (tpm->get_capability, tpm, &caps);
+  status = tpm->get_capability (tpm, &caps);
 
   if (status != GRUB_EFI_SUCCESS || !caps.TPMPresentFlag)
     tpm2_present = 0;
@@ -180,8 +179,8 @@ grub_tpm1_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
   grub_strcpy ((char *) event->Event, description);
 
   algorithm = TCG_ALG_SHA;
-  status = efi_call_7 (tpm->log_extend_event, tpm, (grub_addr_t) buf, (grub_uint64_t) size,
-		       algorithm, event, &eventnum, &lastevent);
+  status = tpm->log_extend_event (tpm, (grub_addr_t) buf, (grub_uint64_t) size,
+				  algorithm, event, &eventnum, &lastevent);
   grub_free (event);
 
   return grub_efi_log_event_status (status);
@@ -216,8 +215,8 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
     sizeof (*event) - sizeof (event->Event) + grub_strlen (description) + 1;
   grub_strcpy ((char *) event->Event, description);
 
-  status = efi_call_5 (tpm->hash_log_extend_event, tpm, 0, (grub_addr_t) buf,
-		       (grub_uint64_t) size, event);
+  status = tpm->hash_log_extend_event (tpm, 0, (grub_addr_t) buf,
+				       (grub_uint64_t) size, event);
   grub_free (event);
 
   return grub_efi_log_event_status (status);
@@ -236,7 +235,7 @@ grub_cc_log_event (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   if (cc == NULL)
     return;
 
-  status = efi_call_3 (cc->map_pcr_to_mr_index, cc, pcr, &mr);
+  status = cc->map_pcr_to_mr_index (cc, pcr, &mr);
   if (status != GRUB_EFI_SUCCESS)
     {
       grub_efi_log_event_status (status);
@@ -258,9 +257,9 @@ grub_cc_log_event (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   event->Size = sizeof (*event) + grub_strlen (description) + 1;
   grub_strcpy ((char *) event->Event, description);
 
-  status = efi_call_5 (cc->hash_log_extend_event, cc, 0,
-		       (grub_efi_physical_address_t)(grub_addr_t) buf,
-		       (grub_efi_uint64_t) size, event);
+  status = cc->hash_log_extend_event (cc, 0,
+				      (grub_efi_physical_address_t)(grub_addr_t) buf,
+				      (grub_efi_uint64_t) size, event);
   grub_free (event);
 
   if (status != GRUB_EFI_SUCCESS)

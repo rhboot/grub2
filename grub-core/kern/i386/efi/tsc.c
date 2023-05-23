@@ -33,7 +33,7 @@ grub_tsc_calibrate_from_efi (void)
   grub_uint64_t start_tsc, end_tsc;
   /* Use EFI Time Service to calibrate TSC */
   start_tsc = grub_get_tsc ();
-  efi_call_1 (grub_efi_system_table->boot_services->stall, 1000);
+  grub_efi_system_table->boot_services->stall (1000);
   end_tsc = grub_get_tsc ();
   grub_tsc_rate = grub_divmod64 ((1ULL << 32), end_tsc - start_tsc, 0);
   return 1;

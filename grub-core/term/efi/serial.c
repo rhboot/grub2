@@ -51,16 +51,16 @@ do_real_config (struct grub_serial_port *port)
   if (port->configured)
     return;
 
-  status = efi_call_7 (port->interface->set_attributes, port->interface,
-		       port->config.speed,
-		       0, 0, parities[port->config.parity],
-		       port->config.word_len,
-		       stop_bits[port->config.stop_bits]);
+  status = port->interface->set_attributes (port->interface,
+					    port->config.speed,
+					    0, 0, parities[port->config.parity],
+					    port->config.word_len,
+					    stop_bits[port->config.stop_bits]);
   if (status != GRUB_EFI_SUCCESS)
     port->broken = 1;
 
-  status = efi_call_2 (port->interface->set_control_bits, port->interface,
-		       port->config.rtscts ? 0x4002 : 0x2);
+  status = port->interface->set_control_bits (port->interface,
+					      port->config.rtscts ? 0x4002 : 0x2);
 
   port->configured = 1;
 }
@@ -76,7 +76,7 @@ serial_hw_fetch (struct grub_serial_port *port)
   if (port->broken)
     return -1;
 
-  status = efi_call_3 (port->interface->read, port->interface, &bufsize, &c);
+  status = port->interface->read (port->interface, &bufsize, &c);
   if (status != GRUB_EFI_SUCCESS || bufsize == 0)
     return -1;
 
@@ -95,7 +95,7 @@ serial_hw_put (struct grub_serial_port *port, const int c)
   if (port->broken)
     return;
 
-  efi_call_3 (port->interface->write, port->interface, &bufsize, &c0);
+  port->interface->write (port->interface, &bufsize, &c0);
 }
 
 /* Initialize a serial device. PORT is the port number for a serial device.

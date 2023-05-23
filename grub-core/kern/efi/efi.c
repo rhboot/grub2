@@ -45,8 +45,9 @@ grub_efi_locate_protocol (grub_efi_guid_t *protocol, void *registration)
   void *interface;
   grub_efi_status_t status;
 
-  status = efi_call_3 (grub_efi_system_table->boot_services->locate_protocol,
-                       protocol, registration, &interface);
+  status = grub_efi_system_table->boot_services->locate_protocol (protocol,
+								  registration,
+								  &interface);
   if (status != GRUB_EFI_SUCCESS)
     return 0;
 
@@ -72,7 +73,7 @@ grub_efi_locate_handle (grub_efi_locate_search_type_t search_type,
     return 0;
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_5 (b->locate_handle, search_type, protocol, search_key,
+  status = b->locate_handle (search_type, protocol, search_key,
 			     &buffer_size, buffer);
   if (status == GRUB_EFI_BUFFER_TOO_SMALL)
     {
@@ -81,7 +82,7 @@ grub_efi_locate_handle (grub_efi_locate_search_type_t search_type,
       if (! buffer)
 	return 0;
 
-      status = efi_call_5 (b->locate_handle, search_type, protocol, search_key,
+      status = b->locate_handle (search_type, protocol, search_key,
 				 &buffer_size, buffer);
     }
 
@@ -105,12 +106,12 @@ grub_efi_open_protocol (grub_efi_handle_t handle,
   void *interface;
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_6 (b->open_protocol, handle,
-		       protocol,
-		       &interface,
-		       grub_efi_image_handle,
-		       0,
-		       attributes);
+  status = b->open_protocol (handle,
+			     protocol,
+			     &interface,
+			     grub_efi_image_handle,
+			     0,
+			     attributes);
   if (status != GRUB_EFI_SUCCESS)
     return 0;
 
@@ -122,7 +123,7 @@ grub_efi_close_protocol (grub_efi_handle_t handle, grub_efi_guid_t *protocol)
 {
   grub_efi_boot_services_t *b = grub_efi_system_table->boot_services;
 
-  return efi_call_4 (b->close_protocol, handle, protocol, grub_efi_image_handle, NULL);
+  return b->close_protocol (handle, protocol, grub_efi_image_handle, NULL);
 }
 
 int
@@ -137,12 +138,12 @@ grub_efi_set_text_mode (int on)
        already in text mode. */
     return 1;
 
-  if (efi_call_4 (c->get_mode, c, &mode, 0, 0) != GRUB_EFI_SUCCESS)
+  if (c->get_mode (c, &mode, 0, 0) != GRUB_EFI_SUCCESS)
     return 0;
 
   new_mode = on ? GRUB_EFI_SCREEN_TEXT : GRUB_EFI_SCREEN_GRAPHICS;
   if (mode != new_mode)
-    if (efi_call_2 (c->set_mode, c, new_mode) != GRUB_EFI_SUCCESS)
+    if (c->set_mode (c, new_mode) != GRUB_EFI_SUCCESS)
       return 0;
 
   return 1;
@@ -151,7 +152,7 @@ grub_efi_set_text_mode (int on)
 void
 grub_efi_stall (grub_efi_uintn_t microseconds)
 {
-  efi_call_1 (grub_efi_system_table->boot_services->stall, microseconds);
+  grub_efi_system_table->boot_services->stall (microseconds);
 }
 
 grub_efi_loaded_image_t *
@@ -167,8 +168,9 @@ grub_reboot (void)
 {
   grub_machine_fini (GRUB_LOADER_FLAG_NORETURN |
 		     GRUB_LOADER_FLAG_EFI_KEEP_ALLOCATED_MEMORY);
-  efi_call_4 (grub_efi_system_table->runtime_services->reset_system,
-              GRUB_EFI_RESET_COLD, GRUB_EFI_SUCCESS, 0, NULL);
+  grub_efi_system_table->runtime_services->reset_system (GRUB_EFI_RESET_COLD,
+							 GRUB_EFI_SUCCESS, 0,
+							 NULL);
   for (;;) ;
 }
 
@@ -176,8 +178,8 @@ void
 grub_exit (void)
 {
   grub_machine_fini (GRUB_LOADER_FLAG_NORETURN);
-  efi_call_4 (grub_efi_system_table->boot_services->exit,
-              grub_efi_image_handle, GRUB_EFI_SUCCESS, 0, 0);
+  grub_efi_system_table->boot_services->exit (grub_efi_image_handle,
+					      GRUB_EFI_SUCCESS, 0, 0);
   for (;;) ;
 }
 
@@ -191,8 +193,8 @@ grub_efi_set_virtual_address_map (grub_efi_uintn_t memory_map_size,
   grub_efi_status_t status;
 
   r = grub_efi_system_table->runtime_services;
-  status = efi_call_4 (r->set_virtual_address_map, memory_map_size,
-		       descriptor_size, descriptor_version, virtual_map);
+  status = r->set_virtual_address_map (memory_map_size, descriptor_size,
+				       descriptor_version, virtual_map);
 
   if (status == GRUB_EFI_SUCCESS)
     return GRUB_ERR_NONE;
@@ -219,11 +221,11 @@ grub_efi_set_variable(const char *var, const grub_efi_guid_t *guid,
 
   r = grub_efi_system_table->runtime_services;
 
-  status = efi_call_5 (r->set_variable, var16, guid,
-		       (GRUB_EFI_VARIABLE_NON_VOLATILE
-			| GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS
-			| GRUB_EFI_VARIABLE_RUNTIME_ACCESS),
-		       datasize, data);
+  status = r->set_variable (var16, guid,
+			    (GRUB_EFI_VARIABLE_NON_VOLATILE
+			     | GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS
+			     | GRUB_EFI_VARIABLE_RUNTIME_ACCESS),
+			    datasize, data);
   grub_free (var16);
   if (status == GRUB_EFI_SUCCESS)
     return GRUB_ERR_NONE;
@@ -258,7 +260,7 @@ grub_efi_get_variable_with_attributes (const char *var,
 
   r = grub_efi_system_table->runtime_services;
 
-  status = efi_call_5 (r->get_variable, var16, guid, NULL, &datasize, NULL);
+  status = r->get_variable (var16, guid, NULL, &datasize, NULL);
 
   if (status != GRUB_EFI_BUFFER_TOO_SMALL || !datasize)
     {
@@ -273,7 +275,7 @@ grub_efi_get_variable_with_attributes (const char *var,
       return GRUB_EFI_OUT_OF_RESOURCES;
     }
 
-  status = efi_call_5 (r->get_variable, var16, guid, attributes, &datasize, data);
+  status = r->get_variable (var16, guid, attributes, &datasize, data);
   grub_free (var16);
 
   if (status == GRUB_EFI_SUCCESS)

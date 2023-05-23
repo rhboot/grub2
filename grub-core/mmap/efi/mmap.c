@@ -203,14 +203,14 @@ grub_mmap_register (grub_uint64_t start, grub_uint64_t size, int type)
   b = grub_efi_system_table->boot_services;
   address = start & (~0xfffULL);
   pages = (end - address + 0xfff) >> 12;
-  status = efi_call_2 (b->free_pages, address, pages);
+  status = b->free_pages (address, pages);
   if (status != GRUB_EFI_SUCCESS && status != GRUB_EFI_NOT_FOUND)
     {
       grub_free (curover);
       return 0;
     }
-  status = efi_call_4 (b->allocate_pages, GRUB_EFI_ALLOCATE_ADDRESS,
-		       make_efi_memtype (type), pages, &address);
+  status = b->allocate_pages (GRUB_EFI_ALLOCATE_ADDRESS,
+			      make_efi_memtype (type), pages, &address);
   if (status != GRUB_EFI_SUCCESS)
     {
       grub_free (curover);
@@ -239,7 +239,7 @@ grub_mmap_unregister (int handle)
     {
       if (curover->handle == handle)
 	{
-	  efi_call_2 (b->free_pages, curover->address, curover->pages);
+	  b->free_pages (curover->address, curover->pages);
 	  if (prevover != 0)
 	    prevover->next = curover->next;
 	  else
@@ -281,8 +281,8 @@ grub_mmap_malign_and_register (grub_uint64_t align __attribute__ ((unused)),
 #endif
 
   pages = (size + 0xfff) >> 12;
-  status = efi_call_4 (b->allocate_pages, atype,
-		       make_efi_memtype (type), pages, &address);
+  status = b->allocate_pages (atype,
+			      make_efi_memtype (type), pages, &address);
   if (status != GRUB_EFI_SUCCESS)
     {
       grub_free (curover);
@@ -294,8 +294,8 @@ grub_mmap_malign_and_register (grub_uint64_t align __attribute__ ((unused)),
       /* Uggh, the address 0 was allocated... This is too annoying,
 	 so reallocate another one.  */
       address = 0xffffffff;
-      status = efi_call_4 (b->allocate_pages, atype,
-			   make_efi_memtype (type), pages, &address);
+      status = b->allocate_pages (atype,
+				  make_efi_memtype (type), pages, &address);
       grub_efi_free_pages (0, pages);
       if (status != GRUB_EFI_SUCCESS)
 	return 0;

@@ -110,7 +110,7 @@ grub_video_gop_fini (void)
 {
   if (restore_needed)
     {
-      efi_call_2 (gop->set_mode, gop, old_mode);
+      gop->set_mode (gop, old_mode);
       restore_needed = 0;
     }
   grub_free (framebuffer.offscreen);
@@ -274,7 +274,7 @@ grub_video_gop_iterate (int (*hook) (const struct grub_video_mode_info *info, vo
       struct grub_efi_gop_mode_info *info = NULL;
       struct grub_video_mode_info mode_info;
 
-      status = efi_call_4 (gop->query_mode, gop, mode, &size, &info);
+      status = gop->query_mode (gop, mode, &size, &info);
 
       if (status)
 	{
@@ -400,7 +400,7 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 	  grub_efi_uintn_t size;
 	  grub_efi_status_t status;
 
-	  status = efi_call_4 (gop->query_mode, gop, mode, &size, &info);
+	  status = gop->query_mode (gop, mode, &size, &info);
 	  if (status)
 	    {
 	      info = 0;
@@ -461,7 +461,7 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
 	  old_mode = gop->mode->mode;
 	  restore_needed = 1;
 	}
-      efi_call_2 (gop->set_mode, gop, best_mode);
+      gop->set_mode (gop, best_mode);
     }
 
   info = gop->mode->info;
@@ -523,10 +523,10 @@ grub_video_gop_swap_buffers (void)
 {
   if (framebuffer.offscreen)
     {
-      efi_call_10 (gop->blt, gop, framebuffer.offscreen,
-		   GRUB_EFI_BLT_BUFFER_TO_VIDEO, 0, 0, 0, 0,
-		   framebuffer.mode_info.width, framebuffer.mode_info.height,
-		   framebuffer.mode_info.width * 4);
+      gop->blt (gop, framebuffer.offscreen,
+		GRUB_EFI_BLT_BUFFER_TO_VIDEO, 0, 0, 0, 0,
+		framebuffer.mode_info.width, framebuffer.mode_info.height,
+		framebuffer.mode_info.width * 4);
     }
   return GRUB_ERR_NONE;
 }
@@ -613,7 +613,7 @@ GRUB_MOD_FINI(efi_gop)
 {
   if (restore_needed)
     {
-      efi_call_2 (gop->set_mode, gop, old_mode);
+      gop->set_mode (gop, old_mode);
       restore_needed = 0;
     }
   if (gop)

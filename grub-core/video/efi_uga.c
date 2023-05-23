@@ -186,13 +186,13 @@ check_protocol (void)
       grub_uint32_t width, height, depth, rate, pixel;
       int ret;
 
-      if (efi_call_5 (c->get_mode, c, &width, &height, &depth, &rate))
+      if (c->get_mode (c, &width, &height, &depth, &rate))
 	return 0;
 
       grub_efi_set_text_mode (0);
       pixel = RGB_MAGIC;
-      efi_call_10 (c->blt, c, (struct grub_efi_uga_pixel *) &pixel,
-		   GRUB_EFI_UGA_VIDEO_FILL, 0, 0, 0, 0, 1, height, 0);
+      c->blt (c, (struct grub_efi_uga_pixel *) &pixel,
+	      GRUB_EFI_UGA_VIDEO_FILL, 0, 0, 0, 0, 1, height, 0);
       ret = find_framebuf (&uga_fb, &uga_pitch);
       grub_efi_set_text_mode (1);
 
@@ -236,7 +236,7 @@ grub_video_uga_setup (unsigned int width, unsigned int height,
     grub_uint32_t d;
     grub_uint32_t r;
 
-    if ((! efi_call_5 (uga->get_mode, uga, &w, &h, &d, &r)) &&
+    if ((! uga->get_mode (uga, &w, &h, &d, &r)) &&
 	((! width) || (width == w)) &&
 	((! height) || (height == h)) &&
 	((! depth) || (depth == d)))

@@ -40,7 +40,7 @@ grub_appleloader_unload (void)
   grub_efi_boot_services_t *b;
 
   b = grub_efi_system_table->boot_services;
-  efi_call_1 (b->unload_image, image_handle);
+  b->unload_image (image_handle);
 
   grub_free (cmdline);
   cmdline = 0;
@@ -55,7 +55,7 @@ grub_appleloader_boot (void)
   grub_efi_boot_services_t *b;
 
   b = grub_efi_system_table->boot_services;
-  efi_call_3 (b->start_image, image_handle, 0, 0);
+  b->start_image (image_handle, 0, 0);
 
   grub_appleloader_unload ();
 
@@ -165,8 +165,8 @@ grub_cmd_appleloader (grub_command_t cmd __attribute__ ((unused)),
   b = grub_efi_system_table->boot_services;
 
   for (pdev = devs ; pdev->devpath ; pdev++)
-    if (efi_call_6 (b->load_image, 0, grub_efi_image_handle, pdev->devpath,
-                    NULL, 0, &image_handle) == GRUB_EFI_SUCCESS)
+    if (b->load_image (0, grub_efi_image_handle, pdev->devpath,
+                       NULL, 0, &image_handle) == GRUB_EFI_SUCCESS)
       break;
 
   if (! pdev->devpath)

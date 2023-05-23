@@ -46,7 +46,7 @@ send_card_buffer (struct grub_net_card *dev,
     while (1)
       {
 	txbuf = NULL;
-	st = efi_call_3 (net->get_status, net, 0, &txbuf);
+	st = net->get_status (net, 0, &txbuf);
 	if (st != GRUB_EFI_SUCCESS)
 	  return grub_error (GRUB_ERR_IO,
 			     N_("couldn't send network packet"));
@@ -74,8 +74,8 @@ send_card_buffer (struct grub_net_card *dev,
 
   grub_memcpy (dev->txbuf, pack->data, dev->last_pkt_size);
 
-  st = efi_call_7 (net->transmit, net, 0, dev->last_pkt_size,
-		   dev->txbuf, NULL, NULL, NULL);
+  st = net->transmit (net, 0, dev->last_pkt_size,
+		      dev->txbuf, NULL, NULL, NULL);
   if (st != GRUB_EFI_SUCCESS)
     return grub_error (GRUB_ERR_IO, N_("couldn't send network packet"));
 
@@ -88,7 +88,7 @@ send_card_buffer (struct grub_net_card *dev,
      Perhaps a timeout in the FW has discarded the recycle buffer.
    */
   txbuf = NULL;
-  st = efi_call_3 (net->get_status, net, 0, &txbuf);
+  st = net->get_status (net, 0, &txbuf);
   dev->txbusy = !(st == GRUB_EFI_SUCCESS && txbuf);
 
   return GRUB_ERR_NONE;
@@ -114,8 +114,8 @@ get_card_packet (struct grub_net_card *dev)
       if (!dev->rcvbuf)
 	return NULL;
 
-      st = efi_call_7 (net->receive, net, NULL, &bufsize,
-		       dev->rcvbuf, NULL, NULL, NULL);
+      st = net->receive (net, NULL, &bufsize,
+		         dev->rcvbuf, NULL, NULL, NULL);
       if (st != GRUB_EFI_BUFFER_TOO_SMALL)
 	break;
       dev->rcvbufsize = 2 * ALIGN_UP (dev->rcvbufsize > bufsize
@@ -168,7 +168,7 @@ open_card (struct grub_net_card *dev)
   if (net != NULL)
     {
       if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
-	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
+	  && net->start (net) != GRUB_EFI_SUCCESS)
 	return grub_error (GRUB_ERR_NET_NO_CARD, "%s: net start failed",
 			   dev->name);
 
@@ -177,7 +177,7 @@ open_card (struct grub_net_card *dev)
 			   dev->name);
 
       if (net->mode->state == GRUB_EFI_NETWORK_STARTED
-	  && efi_call_3 (net->initialize, net, 0, 0) != GRUB_EFI_SUCCESS)
+	  && net->initialize (net, 0, 0) != GRUB_EFI_SUCCESS)
 	return grub_error (GRUB_ERR_NET_NO_CARD, "%s: net initialize failed",
 			   dev->name);
 
@@ -201,7 +201,7 @@ open_card (struct grub_net_card *dev)
 	    filters |= (net->mode->receive_filter_mask &
 			GRUB_EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS);
 
-	  efi_call_6 (net->receive_filters, net, filters, 0, 0, 0, NULL);
+	  net->receive_filters (net, filters, 0, 0, 0, NULL);
 	}
 
       dev->efi_net = net;
@@ -216,8 +216,8 @@ open_card (struct grub_net_card *dev)
 static void
 close_card (struct grub_net_card *dev)
 {
-  efi_call_1 (dev->efi_net->shutdown, dev->efi_net);
-  efi_call_1 (dev->efi_net->stop, dev->efi_net);
+  dev->efi_net->shutdown (dev->efi_net);
+  dev->efi_net->stop (dev->efi_net);
   grub_efi_close_protocol (dev->efi_handle, &net_io_guid);
 }
 
@@ -286,14 +286,14 @@ grub_efinet_findcards (void)
 	continue;
 
       if (net->mode->state == GRUB_EFI_NETWORK_STOPPED
-	  && efi_call_1 (net->start, net) != GRUB_EFI_SUCCESS)
+	  && net->start (net) != GRUB_EFI_SUCCESS)
 	continue;
 
       if (net->mode->state == GRUB_EFI_NETWORK_STOPPED)
 	continue;
 
       if (net->mode->state == GRUB_EFI_NETWORK_STARTED
-	  && efi_call_3 (net->initialize, net, 0, 0) != GRUB_EFI_SUCCESS)
+	  && net->initialize (net, 0, 0) != GRUB_EFI_SUCCESS)
 	continue;
 
       card = grub_zalloc (sizeof (struct grub_net_card));

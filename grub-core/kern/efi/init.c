@@ -56,11 +56,11 @@ __stack_chk_fail (void)
    * the serial console, at least on EDK2.
    */
   o = grub_efi_system_table->con_out;
-  efi_call_2 (o->output_string, o, stack_chk_fail_msg);
+  o->output_string (o, stack_chk_fail_msg);
 
-  efi_call_1 (grub_efi_system_table->boot_services->stall, 5000000);
-  efi_call_4 (grub_efi_system_table->runtime_services->reset_system,
-	      GRUB_EFI_RESET_SHUTDOWN, GRUB_EFI_ABORTED, 0, NULL);
+  grub_efi_system_table->boot_services->stall (5000000);
+  grub_efi_system_table->runtime_services->reset_system (GRUB_EFI_RESET_SHUTDOWN,
+							 GRUB_EFI_ABORTED, 0, NULL);
 
   /*
    * We shouldn't get here. It's unsafe to return because the stack
@@ -86,8 +86,8 @@ stack_protector_init (void)
     {
       grub_efi_status_t status;
 
-      status = efi_call_4 (rng->get_rng, rng, NULL, sizeof (stack_chk_guard_buf),
-			   stack_chk_guard_buf);
+      status = rng->get_rng (rng, NULL, sizeof (stack_chk_guard_buf),
+			     stack_chk_guard_buf);
       if (status == GRUB_EFI_SUCCESS)
 	grub_memcpy (&__stack_chk_guard, stack_chk_guard_buf, sizeof (__stack_chk_guard));
     }
@@ -124,8 +124,7 @@ grub_efi_init (void)
       grub_shim_lock_verifier_setup ();
     }
 
-  efi_call_4 (grub_efi_system_table->boot_services->set_watchdog_timer,
-	      0, 0, 0, NULL);
+  grub_efi_system_table->boot_services->set_watchdog_timer (0, 0, 0, NULL);
 
   grub_efidisk_init ();
 }

@@ -32,8 +32,7 @@ grub_get_datetime (struct grub_datetime *datetime)
   grub_efi_status_t status;
   struct grub_efi_time efi_time;
 
-  status = efi_call_2 (grub_efi_system_table->runtime_services->get_time,
-                       &efi_time, 0);
+  status = grub_efi_system_table->runtime_services->get_time (&efi_time, 0);
 
   if (status)
     return grub_error (GRUB_ERR_INVALID_COMMAND,
@@ -57,8 +56,7 @@ grub_set_datetime (struct grub_datetime *datetime)
   grub_efi_status_t status;
   struct grub_efi_time efi_time;
 
-  status = efi_call_2 (grub_efi_system_table->runtime_services->get_time,
-                       &efi_time, 0);
+  status = grub_efi_system_table->runtime_services->get_time (&efi_time, 0);
 
   if (status)
     return grub_error (GRUB_ERR_INVALID_COMMAND,
@@ -71,8 +69,7 @@ grub_set_datetime (struct grub_datetime *datetime)
   efi_time.minute = datetime->minute;
   efi_time.second = datetime->second;
 
-  status = efi_call_1 (grub_efi_system_table->runtime_services->set_time,
-                       &efi_time);
+  status = grub_efi_system_table->runtime_services->set_time (&efi_time);
 
   if (status)
     return grub_error (GRUB_ERR_INVALID_COMMAND,

@@ -69,8 +69,8 @@ grub_efi_store_alloc (grub_efi_physical_address_t address,
   grub_efi_status_t status;
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_3 (b->allocate_pool, GRUB_EFI_LOADER_DATA,
-                           sizeof(*alloc), (void**)&alloc);
+  status = b->allocate_pool (GRUB_EFI_LOADER_DATA,
+			     sizeof(*alloc), (void**)&alloc);
 
   if (status == GRUB_EFI_SUCCESS)
     {
@@ -105,7 +105,7 @@ grub_efi_drop_alloc (grub_efi_physical_address_t address,
         efi_allocated_memory = ea->next;
 
       /* Then free the memory backing it. */
-      efi_call_1 (b->free_pool, ea);
+      b->free_pool (ea);
 
       /* And leave, we're done. */
       break;
@@ -137,7 +137,7 @@ grub_efi_allocate_pages_real (grub_efi_physical_address_t address,
     }
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_4 (b->allocate_pages, alloctype, memtype, pages, &address);
+  status = b->allocate_pages (alloctype, memtype, pages, &address);
   if (status != GRUB_EFI_SUCCESS)
     {
       grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
@@ -149,7 +149,7 @@ grub_efi_allocate_pages_real (grub_efi_physical_address_t address,
       /* Uggh, the address 0 was allocated... This is too annoying,
 	 so reallocate another one.  */
       address = GRUB_EFI_MAX_USABLE_ADDRESS;
-      status = efi_call_4 (b->allocate_pages, alloctype, memtype, pages, &address);
+      status = b->allocate_pages (alloctype, memtype, pages, &address);
       grub_efi_free_pages (0, pages);
       if (status != GRUB_EFI_SUCCESS)
 	{
@@ -188,7 +188,7 @@ grub_efi_free_pages (grub_efi_physical_address_t address,
   grub_efi_boot_services_t *b;
 
   b = grub_efi_system_table->boot_services;
-  efi_call_2 (b->free_pages, address, pages);
+  b->free_pages (address, pages);
 
   grub_efi_drop_alloc (address, pages);
 }
@@ -267,8 +267,7 @@ grub_efi_finish_boot_services (grub_efi_uintn_t *outbuf_size, void *outbuf,
 	}
 
       b = grub_efi_system_table->boot_services;
-      status = efi_call_2 (b->exit_boot_services, grub_efi_image_handle,
-			   finish_key);
+      status = b->exit_boot_services (grub_efi_image_handle, finish_key);
       if (status == GRUB_EFI_SUCCESS)
 	break;
 
@@ -381,7 +380,7 @@ grub_efi_get_memory_map (grub_efi_uintn_t *memory_map_size,
     descriptor_size = &size;
 
   b = grub_efi_system_table->boot_services;
-  status = efi_call_5 (b->get_memory_map, memory_map_size, memory_map, map_key,
+  status = b->get_memory_map (memory_map_size, memory_map, map_key,
 			      descriptor_size, descriptor_version);
   if (*descriptor_size == 0)
     *descriptor_size = sizeof (grub_efi_memory_descriptor_t);

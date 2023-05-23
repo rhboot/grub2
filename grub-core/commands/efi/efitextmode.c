@@ -36,7 +36,7 @@ grub_efi_set_mode (grub_efi_simple_text_output_interface_t *o,
 
   if (mode != o->mode->mode)
     {
-      status = efi_call_2 (o->set_mode, o, mode);
+      status = o->set_mode (o, mode);
       if (status == GRUB_EFI_SUCCESS)
 	;
       else if (status == GRUB_EFI_DEVICE_ERROR)
@@ -79,8 +79,7 @@ grub_cmd_efitextmode (grub_command_t cmd __attribute__ ((unused)),
       grub_printf_ (N_("Available modes for console output device.\n"));
 
       for (i = 0; i < o->mode->max_mode; i++)
-	if (GRUB_EFI_SUCCESS == efi_call_4 (o->query_mode, o, i,
-					    &columns, &rows))
+	if (GRUB_EFI_SUCCESS == o->query_mode (o, i, &columns, &rows))
 	  grub_printf_ (N_(" [%" PRIuGRUB_EFI_UINT32_T "]  Col %5"
 			   PRIuGRUB_EFI_UINTN_T " Row %5" PRIuGRUB_EFI_UINTN_T
 			   " %c\n"),
@@ -129,8 +128,7 @@ grub_cmd_efitextmode (grub_command_t cmd __attribute__ ((unused)),
 			   N_("non-numeric or invalid rows number `%s'"), args[1]);
 
       for (i = 0; i < o->mode->max_mode; i++)
-	if (GRUB_EFI_SUCCESS == efi_call_4 (o->query_mode, o, i,
-					    &columns, &rows))
+	if (GRUB_EFI_SUCCESS == o->query_mode (o, i, &columns, &rows))
 	  if (u_columns == columns && u_rows == rows)
 	    return grub_efi_set_mode (o, (grub_efi_int32_t) i);
 
