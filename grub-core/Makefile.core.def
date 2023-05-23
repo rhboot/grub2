@@ -236,7 +236,6 @@ kernel = {
 
   x86_64 = kern/x86_64/dl.c;
   x86_64_xen = kern/x86_64/dl.c;
-  x86_64_efi = kern/x86_64/efi/callwrap.S;
   x86_64_efi = kern/i386/efi/init.c;
   x86_64_efi = bus/pci.c;
 
