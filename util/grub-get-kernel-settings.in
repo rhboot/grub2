@@ -68,6 +68,14 @@ if test -f /etc/sysconfig/kernel ; then
     . /etc/sysconfig/kernel
 fi
 
+GRUB_DEFAULT_KERNEL_TYPE=${DEFAULTKERNEL/-core/}
+if [ "$GRUB_DEFAULT_KERNEL_TYPE" != "kernel" ]; then
+    echo GRUB_NON_STANDARD_KERNEL=true
+    echo export GRUB_NON_STANDARD_KERNEL
+    GRUB_DEFAULT_KERNEL_TYPE=${GRUB_DEFAULT_KERNEL_TYPE/kernel-/}
+fi
+echo GRUB_DEFAULT_KERNEL_TYPE=$GRUB_DEFAULT_KERNEL_TYPE
+echo export GRUB_DEFAULT_KERNEL_TYPE
 if [ "$MAKEDEBUG" = "yes" ]; then
     echo GRUB_LINUX_MAKE_DEBUG=true
     echo export GRUB_LINUX_MAKE_DEBUG
