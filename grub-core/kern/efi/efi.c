@@ -286,6 +286,28 @@ grub_efi_get_variable_with_attributes (const char *var,
   return status;
 }
 
+grub_err_t
+grub_efi_set_variable_to_string (const char *name, const grub_guid_t *guid,
+			         const char *value, grub_efi_uint32_t attributes)
+{
+  grub_efi_char16_t *value_16;
+  grub_ssize_t len16;
+  grub_err_t status;
+
+  len16 = grub_utf8_to_utf16_alloc (value, &value_16, NULL);
+
+  if (len16 < 0)
+    return grub_errno;
+
+  status = grub_efi_set_variable_with_attributes (name, guid,
+			(void *) value_16, (len16 + 1) * sizeof (value_16[0]),
+			attributes);
+
+  grub_free (value_16);
+
+  return status;
+}
+
 grub_efi_status_t
 grub_efi_get_variable (const char *var, const grub_guid_t *guid,
 		       grub_size_t *datasize_out, void **data_out)
