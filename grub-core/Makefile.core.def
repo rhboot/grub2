@@ -2580,3 +2580,9 @@ module = {
   common = commands/memtools.c;
   condition = COND_MM_DEBUG;
 };
+
+module = {
+  name = bli;
+  efi = commands/bli.c;
+  enable = efi;
+};

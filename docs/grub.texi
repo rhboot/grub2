@@ -96,6 +96,7 @@ This edition documents version @value{VERSION}.
 * Filesystem::                  Filesystem syntax and semantics
 * Interface::                   The menu and the command-line
 * Environment::                 GRUB environment variables
+* Modules::                     Available modules
 * Commands::                    Available builtin commands
 * Internationalisation::        Topics relating to language support
 * Security::                    Authentication, authorisation, and signatures
@@ -3867,6 +3868,28 @@ using BIOS or EFI functions (no ATA, USB or IEEE1275).
 @command{grub-mkconfig} uses this facility to implement
 @samp{GRUB_SAVEDEFAULT} (@pxref{Simple configuration}).
 
+@node Modules
+@chapter Modules
+
+In this chapter, we list all modules that are available in GRUB (currently incomplete).
+
+Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
+
+@menu
+* bli::
+@end menu
+
+@node bli
+@section bli
+This module provides basic support for the Boot Loader Interface. The Boot
+Loader Interface specifies a set of EFI variables that are used to communicate
+boot-time information between the boot loader and the operating system.
+
+When loaded, the bli module publishes the GPT partition UUID of the EFI System
+Partition used during boot and a string identifying GRUB as the active boot
+loader, including the version number.
+
+This module is only available on UEFI platforms.
 
 @node Commands
 @chapter Available commands
