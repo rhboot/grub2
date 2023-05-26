@@ -512,6 +512,12 @@ script = {
 };
 
 script = {
+  name = '25_bli';
+  common = util/grub.d/25_bli.in;
+  installdir = grubconf;
+};
+
+script = {
   name = '30_os-prober';
   common = util/grub.d/30_os-prober.in;
   installdir = grubconf;
