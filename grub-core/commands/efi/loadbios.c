@@ -27,9 +27,9 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static grub_efi_guid_t acpi_guid = GRUB_EFI_ACPI_TABLE_GUID;
-static grub_efi_guid_t acpi2_guid = GRUB_EFI_ACPI_20_TABLE_GUID;
-static grub_efi_guid_t smbios_guid = GRUB_EFI_SMBIOS_TABLE_GUID;
+static grub_guid_t acpi_guid = GRUB_EFI_ACPI_TABLE_GUID;
+static grub_guid_t acpi2_guid = GRUB_EFI_ACPI_20_TABLE_GUID;
+static grub_guid_t smbios_guid = GRUB_EFI_SMBIOS_TABLE_GUID;
 
 #define EBDA_SEG_ADDR	0x40e
 #define LOW_MEM_ADDR	0x413
@@ -105,15 +105,15 @@ fake_bios_data (int use_rom)
   smbios = 0;
   for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
     {
-      grub_efi_packed_guid_t *guid =
+      grub_guid_t *guid =
 	&grub_efi_system_table->configuration_table[i].vendor_guid;
 
-      if (! grub_memcmp (guid, &acpi2_guid, sizeof (grub_efi_guid_t)))
+      if (! grub_memcmp (guid, &acpi2_guid, sizeof (grub_guid_t)))
 	{
 	  acpi = grub_efi_system_table->configuration_table[i].vendor_table;
 	  grub_dprintf ("efi", "ACPI2: %p\n", acpi);
 	}
-      else if (! grub_memcmp (guid, &acpi_guid, sizeof (grub_efi_guid_t)))
+      else if (! grub_memcmp (guid, &acpi_guid, sizeof (grub_guid_t)))
 	{
 	  void *t;
 
@@ -122,7 +122,7 @@ fake_bios_data (int use_rom)
 	    acpi = t;
 	  grub_dprintf ("efi", "ACPI: %p\n", t);
 	}
-      else if (! grub_memcmp (guid, &smbios_guid, sizeof (grub_efi_guid_t)))
+      else if (! grub_memcmp (guid, &smbios_guid, sizeof (grub_guid_t)))
 	{
 	  smbios = grub_efi_system_table->configuration_table[i].vendor_table;
 	  grub_dprintf ("efi", "SMBIOS: %p\n", smbios);

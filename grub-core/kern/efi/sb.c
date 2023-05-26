@@ -30,7 +30,7 @@
 #include <grub/types.h>
 #include <grub/verify.h>
 
-static grub_efi_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
+static grub_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
 
 /*
  * Determine whether we're in secure boot mode.
@@ -41,7 +41,7 @@ static grub_efi_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
 grub_uint8_t
 grub_efi_get_secureboot (void)
 {
-  static grub_efi_guid_t efi_variable_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+  static grub_guid_t efi_variable_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
   grub_efi_status_t status;
   grub_efi_uint32_t attr = 0;
   grub_size_t size = 0;

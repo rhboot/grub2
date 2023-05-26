@@ -36,7 +36,7 @@ static grub_efi_char16_t stack_chk_fail_msg[] =
   L"* GRUB: ABORTED!!! *\r\n"
   L"* GRUB: REBOOTING IN 5 SECONDS... *\r\n";
 
-static grub_efi_guid_t rng_protocol_guid = GRUB_EFI_RNG_PROTOCOL_GUID;
+static grub_guid_t rng_protocol_guid = GRUB_EFI_RNG_PROTOCOL_GUID;
 
 /*
  * Don't put this on grub_efi_init()'s local stack to avoid it

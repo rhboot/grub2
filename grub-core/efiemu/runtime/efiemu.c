@@ -66,7 +66,7 @@ efiemu_convert_pointer (grub_efi_uintn_t debug_disposition,
 
 grub_efi_status_t __grub_efi_api
 efiemu_get_variable (grub_efi_char16_t *variable_name,
-		     const grub_efi_guid_t *vendor_guid,
+		     const grub_guid_t *vendor_guid,
 		     grub_efi_uint32_t *attributes,
 		     grub_efi_uintn_t *data_size,
 		     void *data);
@@ -74,11 +74,11 @@ efiemu_get_variable (grub_efi_char16_t *variable_name,
 grub_efi_status_t __grub_efi_api
 efiemu_get_next_variable_name (grub_efi_uintn_t *variable_name_size,
 			       grub_efi_char16_t *variable_name,
-			       grub_efi_guid_t *vendor_guid);
+			       grub_guid_t *vendor_guid);
 
 grub_efi_status_t __grub_efi_api
 efiemu_set_variable (grub_efi_char16_t *variable_name,
-		     const grub_efi_guid_t *vendor_guid,
+		     const grub_guid_t *vendor_guid,
 		     grub_efi_uint32_t attributes,
 		     grub_efi_uintn_t data_size,
 		     void *data);
@@ -416,7 +416,7 @@ EFI_FUNC (efiemu_convert_pointer) (grub_efi_uintn_t debug_disposition,
 
 /* Find variable by name and GUID. */
 static struct efi_variable *
-find_variable (const grub_efi_guid_t *vendor_guid,
+find_variable (const grub_guid_t *vendor_guid,
 	       grub_efi_char16_t *variable_name)
 {
   grub_uint8_t *ptr;
@@ -438,7 +438,7 @@ find_variable (const grub_efi_guid_t *vendor_guid,
 
 grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
-				const grub_efi_guid_t *vendor_guid,
+				const grub_guid_t *vendor_guid,
 				grub_efi_uint32_t *attributes,
 				grub_efi_uintn_t *data_size,
 				void *data)
@@ -464,7 +464,7 @@ EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
 grub_efi_status_t __grub_efi_api EFI_FUNC
 (efiemu_get_next_variable_name) (grub_efi_uintn_t *variable_name_size,
 				 grub_efi_char16_t *variable_name,
-				 grub_efi_guid_t *vendor_guid)
+				 grub_guid_t *vendor_guid)
 {
   struct efi_variable *efivar;
   LOG ('l');
@@ -503,7 +503,7 @@ grub_efi_status_t __grub_efi_api EFI_FUNC
 
 grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_variable) (grub_efi_char16_t *variable_name,
-				const grub_efi_guid_t *vendor_guid,
+				const grub_guid_t *vendor_guid,
 				grub_efi_uint32_t attributes,
 				grub_efi_uintn_t data_size,
 				void *data)

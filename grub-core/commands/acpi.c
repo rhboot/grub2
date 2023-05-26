@@ -759,8 +759,8 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
 
 #ifdef GRUB_MACHINE_EFI
   {
-    struct grub_efi_guid acpi = GRUB_EFI_ACPI_TABLE_GUID;
-    struct grub_efi_guid acpi20 = GRUB_EFI_ACPI_20_TABLE_GUID;
+    static grub_guid_t acpi = GRUB_EFI_ACPI_TABLE_GUID;
+    static grub_guid_t acpi20 = GRUB_EFI_ACPI_20_TABLE_GUID;
 
     grub_efi_system_table->boot_services->install_configuration_table (&acpi20,
 								       grub_acpi_get_rsdpv2 ());

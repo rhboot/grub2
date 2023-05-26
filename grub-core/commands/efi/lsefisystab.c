@@ -29,7 +29,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 struct guid_mapping
 {
-  grub_efi_guid_t guid;
+  grub_guid_t guid;
   const char *name;
 };
 
@@ -104,7 +104,7 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
 
       for (j = 0; j < ARRAY_SIZE (guid_mappings); j++)
 	if (grub_memcmp (&guid_mappings[j].guid, &t->vendor_guid,
-			 sizeof (grub_efi_guid_t)) == 0)
+			 sizeof (grub_guid_t)) == 0)
 	  grub_printf ("   %s", guid_mappings[j].name);
 
       grub_printf ("\n");

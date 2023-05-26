@@ -106,7 +106,7 @@ query_fpswa (void)
   grub_efi_boot_services_t *bs;
   grub_efi_status_t status;
   grub_efi_uintn_t size;
-  static const grub_efi_guid_t fpswa_protocol =
+  static const grub_guid_t fpswa_protocol =
     { 0xc41b6531, 0x97b9, 0x11d3,
       {0x9a, 0x29, 0x0, 0x90, 0x27, 0x3f, 0xc1, 0x4d} };
 

@@ -48,7 +48,7 @@ grub_uint32_t grub_xnu_entry_point, grub_xnu_arg1, grub_xnu_stack;
 /* Aliases set for some tables. */
 struct tbl_alias
 {
-  grub_efi_guid_t guid;
+  grub_guid_t guid;
   const char *name;
 };
 
@@ -694,7 +694,7 @@ grub_cpu_xnu_fill_devicetree (grub_uint64_t *fsbfreq_out)
     {
       void *ptr;
       struct grub_xnu_devtree_key *curkey;
-      grub_efi_packed_guid_t guid;
+      grub_guid_t guid;
       char guidbuf[64];
 
       /* Retrieve current key. */

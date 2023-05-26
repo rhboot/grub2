@@ -365,4 +365,13 @@ static inline void grub_set_unaligned64 (void *ptr, grub_uint64_t val)
 # define grub_absolute_pointer(val) ((void *) (val))
 #endif
 
+struct grub_guid
+{
+  grub_uint32_t data1;
+  grub_uint16_t data2;
+  grub_uint16_t data3;
+  grub_uint8_t data4[8];
+} GRUB_PACKED;
+typedef struct grub_guid grub_guid_t;
+
 #endif /* ! GRUB_TYPES_HEADER */

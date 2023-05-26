@@ -176,26 +176,26 @@ grub_err_t grub_efiemu_loadcore_load (void);
 struct grub_efiemu_configuration_table
 {
   struct grub_efiemu_configuration_table *next;
-  grub_efi_guid_t guid;
+  grub_guid_t guid;
   void * (*get_table) (void *data);
   void (*unload) (void *data);
   void *data;
 };
 struct grub_efiemu_configuration_table32
 {
-  grub_efi_packed_guid_t vendor_guid;
+  grub_guid_t vendor_guid;
   grub_efi_uint32_t vendor_table;
 } GRUB_PACKED;
 typedef struct grub_efiemu_configuration_table32 grub_efiemu_configuration_table32_t;
 struct grub_efiemu_configuration_table64
 {
-  grub_efi_packed_guid_t vendor_guid;
+  grub_guid_t vendor_guid;
   grub_efi_uint64_t vendor_table;
 } GRUB_PACKED;
 typedef struct grub_efiemu_configuration_table64 grub_efiemu_configuration_table64_t;
-grub_err_t grub_efiemu_unregister_configuration_table (grub_efi_guid_t guid);
+grub_err_t grub_efiemu_unregister_configuration_table (grub_guid_t guid);
 grub_err_t
-grub_efiemu_register_configuration_table (grub_efi_guid_t guid,
+grub_efiemu_register_configuration_table (grub_guid_t guid,
 					  void * (*get_table) (void *data),
 					  void (*unload) (void *data),
 					  void *data);

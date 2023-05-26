@@ -352,7 +352,7 @@ grub_console_getkeystatus (struct grub_term_input *term)
 static grub_err_t
 grub_efi_console_input_init (struct grub_term_input *term)
 {
-  static grub_efi_guid_t text_input_ex_guid =
+  static grub_guid_t text_input_ex_guid =
     GRUB_EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL_GUID;
 
   if (grub_efi_is_finished)

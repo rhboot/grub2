@@ -51,8 +51,8 @@ static struct grub_linux_initrd_context initrd_ctx = {0, 0, 0};
 static grub_efi_handle_t initrd_lf2_handle = NULL;
 static bool initrd_use_loadfile2 = false;
 
-static grub_efi_guid_t load_file2_guid = GRUB_EFI_LOAD_FILE2_PROTOCOL_GUID;
-static grub_efi_guid_t device_path_guid = GRUB_EFI_DEVICE_PATH_GUID;
+static grub_guid_t load_file2_guid = GRUB_EFI_LOAD_FILE2_PROTOCOL_GUID;
+static grub_guid_t device_path_guid = GRUB_EFI_DEVICE_PATH_GUID;
 
 static initrd_media_device_path_t initrd_lf2_device_path = {
   {

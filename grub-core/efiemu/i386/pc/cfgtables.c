@@ -29,9 +29,9 @@ grub_machine_efiemu_init_tables (void)
 {
   void *table;
   grub_err_t err;
-  static grub_efi_guid_t smbios = GRUB_EFI_SMBIOS_TABLE_GUID;
-  static grub_efi_guid_t acpi20 = GRUB_EFI_ACPI_20_TABLE_GUID;
-  static grub_efi_guid_t acpi = GRUB_EFI_ACPI_TABLE_GUID;
+  static grub_guid_t smbios = GRUB_EFI_SMBIOS_TABLE_GUID;
+  static grub_guid_t acpi20 = GRUB_EFI_ACPI_20_TABLE_GUID;
+  static grub_guid_t acpi = GRUB_EFI_ACPI_TABLE_GUID;
 
   err = grub_efiemu_unregister_configuration_table (smbios);
   if (err)

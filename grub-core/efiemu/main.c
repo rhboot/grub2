@@ -80,7 +80,7 @@ grub_efiemu_unload (void)
 
 /* Remove previously registered table from the list */
 grub_err_t
-grub_efiemu_unregister_configuration_table (grub_efi_guid_t guid)
+grub_efiemu_unregister_configuration_table (grub_guid_t guid)
 {
   struct grub_efiemu_configuration_table *cur, *prev;
 
@@ -136,7 +136,7 @@ grub_efiemu_register_prepare_hook (grub_err_t (*hook) (void *data),
    or with a hook
 */
 grub_err_t
-grub_efiemu_register_configuration_table (grub_efi_guid_t guid,
+grub_efiemu_register_configuration_table (grub_guid_t guid,
 					  void * (*get_table) (void *data),
 					  void (*unload) (void *data),
 					  void *data)

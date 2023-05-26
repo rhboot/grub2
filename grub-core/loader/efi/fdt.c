@@ -86,7 +86,7 @@ grub_err_t
 grub_fdt_install (void)
 {
   grub_efi_boot_services_t *b;
-  static grub_efi_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
+  static grub_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
   grub_efi_status_t status;
 
   if (fdt == NULL && loaded_fdt == NULL)

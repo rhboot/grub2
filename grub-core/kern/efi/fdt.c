@@ -24,7 +24,7 @@ void *
 grub_efi_get_firmware_fdt (void)
 {
   grub_efi_configuration_table_t *tables;
-  static grub_efi_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
+  static grub_guid_t fdt_guid = GRUB_EFI_DEVICE_TREE_GUID;
   void *firmware_fdt = NULL;
   unsigned int i;
 

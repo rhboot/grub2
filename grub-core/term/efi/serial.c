@@ -31,7 +31,7 @@
 #include <grub/i18n.h>
 
 /* GUID.  */
-static grub_efi_guid_t serial_io_guid = GRUB_EFI_SERIAL_IO_GUID;
+static grub_guid_t serial_io_guid = GRUB_EFI_SERIAL_IO_GUID;
 
 static void
 do_real_config (struct grub_serial_port *port)

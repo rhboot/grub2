@@ -30,9 +30,9 @@
 
 typedef TCG_PCR_EVENT grub_tpm_event_t;
 
-static grub_efi_guid_t tpm_guid = EFI_TPM_GUID;
-static grub_efi_guid_t tpm2_guid = EFI_TPM2_GUID;
-static grub_efi_guid_t cc_measurement_guid = GRUB_EFI_CC_MEASUREMENT_PROTOCOL_GUID;
+static grub_guid_t tpm_guid = EFI_TPM_GUID;
+static grub_guid_t tpm2_guid = EFI_TPM2_GUID;
+static grub_guid_t cc_measurement_guid = GRUB_EFI_CC_MEASUREMENT_PROTOCOL_GUID;
 
 static grub_efi_handle_t *grub_tpm_handle;
 static grub_uint8_t grub_tpm_version;

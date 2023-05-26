@@ -119,7 +119,7 @@ grub_cmd_probe (grub_extcmd_context_t ctxt, int argc, char **args)
 	  if (grub_strcmp(dev->disk->partition->partmap->name, "gpt") == 0)
 	    {
 	      struct grub_gpt_partentry entry;
-	      grub_gpt_part_guid_t *guid;
+	      grub_guid_t *guid;
 
 	      if (grub_disk_read(disk, p->offset, p->index, sizeof(entry), &entry))
 		{

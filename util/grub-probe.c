@@ -133,7 +133,7 @@ get_targets_string (void)
 }
 
 static int
-print_gpt_guid (grub_gpt_part_guid_t guid)
+print_gpt_guid (grub_guid_t guid)
 {
   guid.data1 = grub_le_to_cpu32 (guid.data1);
   guid.data2 = grub_le_to_cpu16 (guid.data2);

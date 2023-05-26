@@ -37,7 +37,7 @@ struct grub_efidisk_data
 };
 
 /* GUID.  */
-static grub_efi_guid_t block_io_guid = GRUB_EFI_BLOCK_IO_GUID;
+static grub_guid_t block_io_guid = GRUB_EFI_BLOCK_IO_GUID;
 
 static struct grub_efidisk_data *fd_devices;
 static struct grub_efidisk_data *hd_devices;
@@ -319,7 +319,7 @@ name_devices (struct grub_efidisk_data *devices)
 	  == GRUB_EFI_VENDOR_MEDIA_DEVICE_PATH_SUBTYPE)
 	{
 	  grub_efi_vendor_device_path_t *vendor = (grub_efi_vendor_device_path_t *) dp;
-	  const struct grub_efi_guid apple = GRUB_EFI_VENDOR_APPLE_GUID;
+	  static const grub_guid_t apple = GRUB_EFI_VENDOR_APPLE_GUID;
 
 	  if (vendor->header.length == sizeof (*vendor)
 	      && grub_memcmp (&vendor->vendor_guid, &apple,

@@ -32,10 +32,10 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static grub_efi_guid_t graphics_output_guid = GRUB_EFI_GOP_GUID;
-static grub_efi_guid_t active_edid_guid = GRUB_EFI_EDID_ACTIVE_GUID;
-static grub_efi_guid_t discovered_edid_guid = GRUB_EFI_EDID_DISCOVERED_GUID;
-static grub_efi_guid_t efi_var_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+static grub_guid_t graphics_output_guid = GRUB_EFI_GOP_GUID;
+static grub_guid_t active_edid_guid = GRUB_EFI_EDID_ACTIVE_GUID;
+static grub_guid_t discovered_edid_guid = GRUB_EFI_EDID_DISCOVERED_GUID;
+static grub_guid_t efi_var_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
 static struct grub_efi_gop *gop;
 static unsigned old_mode;
 static int restore_needed;
