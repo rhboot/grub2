@@ -96,12 +96,12 @@ This edition documents version @value{VERSION}.
 * Filesystem::                  Filesystem syntax and semantics
 * Interface::                   The menu and the command-line
 * Environment::                 GRUB environment variables
-* Commands::                    The list of available builtin commands
+* Commands::                    Available builtin commands
 * Internationalisation::        Topics relating to language support
 * Security::                    Authentication, authorisation, and signatures
-* Platform limitations::        The list of platform-specific limitations
+* Platform limitations::        Platform-specific limitations
 * Platform-specific operations:: Platform-specific operations
-* Supported kernels::           The list of supported kernels
+* Supported kernels::           Supported kernels
 * Troubleshooting::             Error messages produced by GRUB
 * Invoking grub-install::       How to use the GRUB installer
 * Invoking grub-mkconfig::      Generate a GRUB configuration file
@@ -3869,7 +3869,7 @@ using BIOS or EFI functions (no ATA, USB or IEEE1275).
 
 
 @node Commands
-@chapter The list of available commands
+@chapter Available commands
 
 In this chapter, we list all commands that are available in GRUB.
 
@@ -3895,7 +3895,7 @@ shell}.
 
 
 @node Menu-specific commands
-@section The list of commands for the menu only
+@section Commands for the menu only
 
 The semantics used in parsing the configuration file are the following:
 
@@ -3976,7 +3976,7 @@ All options are the same as in the @command{menuentry} command
 
 
 @node Loader commands
-@section The list of various loader commands
+@section Various loader commands
 
 These commands are used to load necessary components to boot desired OS.
 Many of the loader commands are not sufficiently documented. The following is
@@ -4127,7 +4127,7 @@ This command is only available on AArch64 systems.
 
 
 @node General commands
-@section The list of general commands
+@section General commands
 
 Commands usable anywhere in the menu and in the command-line.
 
@@ -4262,7 +4262,7 @@ printed.
 
 
 @node Command-line commands
-@section The list of command-line commands
+@section Command-line commands
 
 These commands are usable in the command-line and in menu entries.  If
 you forget a command, you can run the command @command{help}
@@ -5843,7 +5843,7 @@ Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
 @end deffn
 
 @node Networking commands
-@section The list of networking commands
+@section Networking commands
 
 @menu
 * net_add_addr::                Add a network address
@@ -6058,7 +6058,7 @@ net_set_vlan efinet1 0
 
 
 @node Undocumented commands
-@section The list of commands currently undocumented
+@section Commands currently undocumented
 Unfortunately, not all GRUB commands are documented at this time due to
 developer resource constraints. One way to contribute back to the GRUB
 project would be to help document these commands, and submit patches or
