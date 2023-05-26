@@ -71,6 +71,9 @@ grub_device_open (const char *name)
 grub_err_t
 grub_device_close (grub_device_t device)
 {
+  if (device == NULL)
+    return GRUB_ERR_NONE;
+
   if (device->disk)
     grub_disk_close (device->disk);
 

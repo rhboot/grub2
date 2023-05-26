@@ -292,6 +292,10 @@ void
 grub_disk_close (grub_disk_t disk)
 {
   grub_partition_t part;
+
+  if (disk == NULL)
+    return;
+
   grub_dprintf ("disk", "Closing `%s'.\n", disk->name);
 
   if (disk->dev && disk->dev->disk_close)
