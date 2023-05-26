@@ -124,18 +124,7 @@ grub_cmd_lsefi (grub_command_t cmd __attribute__ ((unused)),
 	  if (k < ARRAY_SIZE (known_protocols))
 	    grub_printf ("  %s\n", known_protocols[k].name);
 	  else
-	    grub_printf ("  %08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
-			 protocols[j]->data1,
-			 protocols[j]->data2,
-			 protocols[j]->data3,
-			 (unsigned) protocols[j]->data4[0],
-			 (unsigned) protocols[j]->data4[1],
-			 (unsigned) protocols[j]->data4[2],
-			 (unsigned) protocols[j]->data4[3],
-			 (unsigned) protocols[j]->data4[4],
-			 (unsigned) protocols[j]->data4[5],
-			 (unsigned) protocols[j]->data4[6],
-			 (unsigned) protocols[j]->data4[7]);
+	    grub_printf ("  %pG\n", protocols[j]);
 	}
 
     }

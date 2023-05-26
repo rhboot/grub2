@@ -96,11 +96,7 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
 
       grub_printf ("%p  ", t->vendor_table);
 
-      grub_printf ("%08x-%04x-%04x-",
-		   t->vendor_guid.data1, t->vendor_guid.data2,
-		   t->vendor_guid.data3);
-      for (j = 0; j < 8; j++)
-	grub_printf ("%02x", t->vendor_guid.data4[j]);
+      grub_printf ("%pG", &t->vendor_guid);
 
       for (j = 0; j < ARRAY_SIZE (guid_mappings); j++)
 	if (grub_memcmp (&guid_mappings[j].guid, &t->vendor_guid,

@@ -545,20 +545,7 @@ static void
 dump_vendor_path (const char *type, grub_efi_vendor_device_path_t *vendor)
 {
   grub_uint32_t vendor_data_len = vendor->header.length - sizeof (*vendor);
-  grub_printf ("/%sVendor(%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x)[%x: ",
-	       type,
-	       (unsigned) vendor->vendor_guid.data1,
-	       (unsigned) vendor->vendor_guid.data2,
-	       (unsigned) vendor->vendor_guid.data3,
-	       (unsigned) vendor->vendor_guid.data4[0],
-	       (unsigned) vendor->vendor_guid.data4[1],
-	       (unsigned) vendor->vendor_guid.data4[2],
-	       (unsigned) vendor->vendor_guid.data4[3],
-	       (unsigned) vendor->vendor_guid.data4[4],
-	       (unsigned) vendor->vendor_guid.data4[5],
-	       (unsigned) vendor->vendor_guid.data4[6],
-	       (unsigned) vendor->vendor_guid.data4[7],
-	       vendor_data_len);
+  grub_printf ("/%sVendor(%pG)[%x: ", type, &vendor->vendor_guid, vendor_data_len);
   if (vendor->header.length > sizeof (*vendor))
     {
       grub_uint32_t i;
@@ -929,18 +916,7 @@ grub_efi_print_device_path (grub_efi_device_path_t *dp)
 	      {
 		grub_efi_protocol_device_path_t *proto
 		  = (grub_efi_protocol_device_path_t *) dp;
-		grub_printf ("/Protocol(%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x)",
-			     (unsigned) proto->guid.data1,
-			     (unsigned) proto->guid.data2,
-			     (unsigned) proto->guid.data3,
-			     (unsigned) proto->guid.data4[0],
-			     (unsigned) proto->guid.data4[1],
-			     (unsigned) proto->guid.data4[2],
-			     (unsigned) proto->guid.data4[3],
-			     (unsigned) proto->guid.data4[4],
-			     (unsigned) proto->guid.data4[5],
-			     (unsigned) proto->guid.data4[6],
-			     (unsigned) proto->guid.data4[7]);
+		grub_printf ("/Protocol(%pG)",&proto->guid);
 	      }
 	      break;
 	    default:
