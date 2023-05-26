@@ -529,4 +529,7 @@ void EXPORT_FUNC(grub_real_boot_time) (const char *file,
 
 #define grub_log2ull(n) (GRUB_TYPE_BITS (grub_uint64_t) - __builtin_clzll (n) - 1)
 
+grub_ssize_t
+EXPORT_FUNC(grub_utf8_to_utf16_alloc) (const char *str8, grub_uint16_t **utf16_msg, grub_uint16_t **last_position);
+
 #endif /* ! GRUB_MISC_HEADER */

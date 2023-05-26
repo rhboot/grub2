@@ -25,6 +25,7 @@
 #include <grub/env.h>
 #include <grub/i18n.h>
 #include <grub/types.h>
+#include <grub/charset.h>
 
 union printf_arg
 {
@@ -1317,6 +1318,37 @@ grub_fatal (const char *fmt, ...)
 
   grub_abort ();
 }
+
+grub_ssize_t
+grub_utf8_to_utf16_alloc (const char *str8, grub_uint16_t **utf16_msg, grub_uint16_t **last_position)
+{
+  grub_size_t len;
+  grub_size_t len16;
+
+  len = grub_strlen (str8);
+
+  /* Check for integer overflow */
+  if (len > GRUB_SSIZE_MAX / GRUB_MAX_UTF16_PER_UTF8 - 1)
+    {
+      grub_error (GRUB_ERR_BAD_ARGUMENT, N_("string too long"));
+      *utf16_msg = NULL;
+      return -1;
+    }
+
+  len16 = len * GRUB_MAX_UTF16_PER_UTF8;
+
+  *utf16_msg = grub_calloc (len16 + 1, sizeof (*utf16_msg[0]));
+  if (*utf16_msg == NULL)
+    return -1;
+
+  len16 = grub_utf8_to_utf16 (*utf16_msg, len16, (grub_uint8_t *) str8, len, NULL);
+
+  if (last_position != NULL)
+    *last_position = *utf16_msg + len16;
+
+  return len16;
+}
+
 
 #if BOOT_TIME_STATS
 
