@@ -32,6 +32,7 @@
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/disk.h>
+#include <grub/efi/memory.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
 #include <grub/net.h>
@@ -241,10 +242,9 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
 
   /* Get the root device's device path.  */
   dev = grub_device_open (0);
-  if (! dev)
-    goto fail;
-
-  if (dev->disk)
+  if (dev == NULL)
+    ;
+  else if (dev->disk)
     dev_handle = grub_efidisk_get_device_handle (dev->disk);
   else if (dev->net && dev->net->server)
     {
@@ -267,18 +267,15 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
   if (dev_handle)
     dp = grub_efi_get_device_path (dev_handle);
 
-  if (! dp)
+  if (dp != NULL)
     {
-      grub_error (GRUB_ERR_BAD_DEVICE, "not a valid root device");
-      goto fail;
+      file_path = make_file_path (dp, filename);
+      if (file_path == NULL)
+	goto fail;
+
+      grub_printf ("file path: ");
+      grub_efi_print_device_path (file_path);
     }
-
-  file_path = make_file_path (dp, filename);
-  if (! file_path)
-    goto fail;
-
-  grub_printf ("file path: ");
-  grub_efi_print_device_path (file_path);
 
   size = grub_file_size (file);
   if (!size)
@@ -287,7 +284,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
 		  filename);
       goto fail;
     }
-  pages = (((grub_efi_uintn_t) size + ((1 << 12) - 1)) >> 12);
+  pages = (grub_efi_uintn_t) GRUB_EFI_BYTES_TO_PAGES (size);
 
   status = b->allocate_pages (GRUB_EFI_ALLOCATE_ANY_PAGES,
 			      GRUB_EFI_LOADER_CODE,
@@ -370,6 +367,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
   loaded_image->device_handle = dev_handle;
 
+  /* Build load options with arguments from chainloader command line. */
   if (argc > 1)
     {
       int i, len;
