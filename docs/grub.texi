@@ -980,7 +980,7 @@ invoke shutdown machinery.
 Operating systems that do not support Multiboot and do not have specific
 support in GRUB (specific support is available for Linux, FreeBSD, NetBSD
 and OpenBSD) must be chain-loaded, which involves loading another boot
-loader and jumping to it in real mode.
+loader and jumping to it in real mode or via the firmware.
 
 The @command{chainloader} command (@pxref{chainloader}) is used to set this
 up.  It is normally also necessary to load some GRUB modules and set the
@@ -4054,10 +4054,13 @@ a list of commands that could use more documentation:
 @node chainloader
 @subsection chainloader
 
-@deffn Command chainloader [@option{--force}] file
+@deffn Command chainloader [@option{--force}] file [args...]
 Load @var{file} as a chain-loader. Like any other file loaded by the
 filesystem code, it can use the blocklist notation (@pxref{Block list
 syntax}) to grab the first sector of the current partition with @samp{+1}.
+On EFI platforms, any arguments after @var{file} will be sent to the loaded
+image.
+
 If you specify the option @option{--force}, then load @var{file} forcibly,
 whether it has a correct signature or not. This is required when you want to
 load a defective boot loader, such as SCO UnixWare 7.1.
