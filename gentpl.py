@@ -569,6 +569,7 @@ def foreach_platform_value(defn, platform, suffix, closure):
     for group in RMAP[platform]:
         for value in defn.find_all(group + suffix):
             r.append(closure(value))
+    r.sort()
     return ''.join(r)
 
 def platform_conditional(platform, closure):
