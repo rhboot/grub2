@@ -174,7 +174,7 @@ infile.close ()
 
 outfile.write ("struct grub_unicode_arabic_shape grub_unicode_arabic_shapes[] = {\n ")
 
-for x in arabicsubst:
+for x in sorted(arabicsubst):
     try:
         if arabicsubst[x]['join'] == "DUAL":
             outfile.write ("{0x%x, 0x%x, 0x%x, 0x%x, 0x%x},\n " % (arabicsubst[x][0], arabicsubst[x][1], arabicsubst[x][2], arabicsubst[x][3], arabicsubst[x][4]))
