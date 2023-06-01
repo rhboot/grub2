@@ -59,7 +59,9 @@ END {
     }
     modlist = ""
     depcount[mod] = 0
-    for (depmod in uniqmods) {
+    n = asorti(uniqmods, w)
+    for (i = 1; i <= n; i++) {
+      depmod = w[i]
       modlist = modlist " " depmod;
       inverse_dependencies[depmod] = inverse_dependencies[depmod] " " mod
       depcount[mod]++
