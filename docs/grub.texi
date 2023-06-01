@@ -4324,6 +4324,7 @@ you forget a command, you can run the command @command{help}
 * export::                      Export an environment variable
 * false::                       Do nothing, unsuccessfully
 * fwsetup::                     Reboot into the firmware setup menu
+* gdbinfo::                     Provide info for debugging with GDB
 * gettext::                     Translate a string
 * gptsync::                     Fill an MBR based on GPT entries
 * halt::                        Shut down your computer
@@ -4853,6 +4854,18 @@ such as @code{if} and @code{while} (@pxref{Shell-like scripting}).
 Reboot into the firmware setup menu. If @option{--is-supported} option is
 specified, instead check whether the firmware supports a setup menu and
 exit successfully if so.
+@end deffn
+
+
+@node gdbinfo
+@subsection gdbinfo
+
+@deffn Command gdbinfo
+Output text to be used as a GDB command for a GDB session using the gdb_grub
+script and attached to a running GRUB instance. The GDB command that is
+output will tell GDB how to load debugging symbols to their proper runtime
+address. Currently this is only available for EFI platforms. See the Debugging
+in the developer documentation for more information.
 @end deffn
 
 
