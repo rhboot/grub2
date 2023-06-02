@@ -239,6 +239,7 @@ struct grub_fshelp_node
 
 struct grub_xfs_data
 {
+  grub_size_t data_size;
   struct grub_xfs_sblock sblock;
   grub_disk_t disk;
   int pos;
@@ -621,8 +622,20 @@ grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
     }
   else if (node->inode.format == XFS_INODE_FORMAT_EXT)
     {
+      grub_addr_t exts_end = 0;
+      grub_addr_t data_end = 0;
+
       nrec = grub_be_to_cpu32 (node->inode.nextents);
       exts = (struct grub_xfs_extent *) grub_xfs_inode_data(&node->inode);
+
+      if (grub_mul (sizeof (struct grub_xfs_extent), nrec, &exts_end) ||
+	  grub_add ((grub_addr_t) node->data, exts_end, &exts_end) ||
+	  grub_add ((grub_addr_t) node->data, node->data->data_size, &data_end) ||
+	  exts_end > data_end)
+	{
+	  grub_error (GRUB_ERR_BAD_FS, "invalid number of XFS extents");
+	  return 0;
+	}
     }
   else
     {
@@ -825,6 +838,9 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	    grub_uint8_t *inopos = grub_xfs_inline_de_inopos(dir->data, de);
 	    grub_uint8_t c;
 
+	    if ((inopos + (smallino ? 4 : 8)) > (grub_uint8_t *) dir + grub_xfs_fshelp_size (dir->data))
+	      return grub_error (GRUB_ERR_BAD_FS, "not a correct XFS inode");
+
 	    /* inopos might be unaligned.  */
 	    if (smallino)
 	      ino = (((grub_uint32_t) inopos[0]) << 24)
@@ -851,6 +867,10 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	    de->name[de->len] = c;
 
 	    de = grub_xfs_inline_next_de(dir->data, head, de);
+
+	    if ((grub_uint8_t *) de >= (grub_uint8_t *) dir + grub_xfs_fshelp_size (dir->data))
+	      return grub_error (GRUB_ERR_BAD_FS, "invalid XFS directory entry");
+
 	  }
 	break;
       }
@@ -916,6 +936,9 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 		  }
 
 		filename = (char *)(direntry + 1);
+		if (filename + direntry->len - 1 > (char *) tail)
+		  return grub_error (GRUB_ERR_BAD_FS, "invalid XFS directory entry");
+
 		/* The byte after the filename is for the filetype, padding, or
 		   tag, which is not used by GRUB.  So it can be overwritten. */
 		filename[direntry->len] = '\0';
@@ -960,6 +983,8 @@ grub_xfs_mount (grub_disk_t disk)
   if (!data)
     return 0;
 
+  data->data_size = sizeof (struct grub_xfs_data);
+
   grub_dprintf("xfs", "Reading sb\n");
   /* Read the superblock.  */
   if (grub_disk_read (disk, 0, 0,
@@ -981,6 +1006,7 @@ grub_xfs_mount (grub_disk_t disk)
   if (! data)
     goto fail;
 
+  data->data_size = sz;
   data->diropen.data = data;
   data->diropen.ino = grub_be_to_cpu64(data->sblock.rootino);
   data->diropen.inode_read = 1;
