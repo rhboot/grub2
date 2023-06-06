@@ -79,6 +79,7 @@ This edition documents version @value{VERSION}.
 * Contributing Changes::
 * Setting up and running test suite::
 * Updating External Code::
+* Debugging::
 * Porting::
 * Error Handling::
 * Stack and heap size::
@@ -594,6 +595,229 @@ rm -r grub-core/lib/minilzo/*
 cp minilzo-2.10/*.[hc] grub-core/lib/minilzo
 rm -r minilzo-2.10*
 @end example
+
+@node Debugging
+@chapter Debugging
+
+GRUB2 can be difficult to debug because it runs on the bare-metal and thus
+does not have the debugging facilities normally provided by an operating
+system. This chapter aims to provide useful information on some ways to
+debug GRUB2 for some architectures. It by no means intends to be exhaustive.
+The focus will be one x86_64 and i386 architectures. Luckily for some issues
+virtual machines have made the ability to debug GRUB2 much easier, and this
+chapter will focus debugging via the QEMU virtual machine. We will not be
+going over debugging of the userland tools (eg. grub-install), there are
+many tutorials on debugging programs in userland.
+
+You will need GDB and the QEMU binaries for your system, on Debian these
+can be installed with the @samp{gdb} and @samp{qemu-system-x86} packages.
+Also it is assumed that you have already successfully compiled GRUB2 from
+source for the target specified in the section below and have some
+familiarity with GDB. When GRUB2 is built it will create many different
+binaries. The ones of concern will be in the @file{grub-core}
+directory of the GRUB2 build dir. To aide in debugging we will want the
+debugging symbols generated during the build because these symbols are not
+kept in the binaries which get installed to the boot location. The build
+process outputs two sets of binaries, one without symbols which gets executed
+at boot, and another set of ELF images with debugging symbols. The built
+images with debugging symbols will have a @file{.image} suffix, and the ones
+without a @file{.img} suffix. Similarly, loadable modules with debugging
+symbols will have a @file{.module} suffix, and ones without a @file{.mod}
+suffix. In the case of the kernel the binary with symbols is named
+@file{kernel.exec}.
+
+In the following sections, information will be provided on debugging on
+various targets using @command{gdb} and the @samp{gdb_grub} GDB script.
+
+@menu
+* i386-pc::
+* x86_64-efi::
+@end menu
+
+@node i386-pc
+@section i386-pc
+
+The i386-pc target is a good place to start when first debugging GRUB2
+because in some respects it's easier than EFI platforms. The reason being
+that the initial load address is always known in advance. To start
+debugging GRUB2 first QEMU must be started in GDB stub mode. The following
+command is a simple illustration:
+
+@example
+qemu-system-i386 -drive file=disk.img,format=raw \
+    -device virtio-scsi-pci,id=scsi0 -S -s
+@end example
+
+This will start a QEMU instance booting from @file{disk.img}. It will pause
+at start waiting for a GDB instance to attach to it. You should change
+@file{disk.img} to something more appropriate. A block device can be used,
+but you may need to run QEMU as a privileged user.
+
+To connect to this QEMU instance with GDB, the @code{target remote} GDB
+command must be used. We also need to load a binary image, preferably with
+symbols. This can be done using the GDB command @code{file kernel.exec}, if
+GDB is started from the @file{grub-core} directory in the GRUB2 build
+directory. GRUB2 developers have made this more simple by including a GDB
+script which does much of the setup. This file at @file{grub-core/gdb_grub}
+of the build directory and is also installed via @command{make install}.
+If not building GRUB, the distribution may have a package which installs
+this GDB script along with debug symbol binaries, such as Debian's
+@samp{grub-pc-dbg} package. The GDB scripts is intended to by used
+like so, assuming:
+
+@example
+cd $(dirname /path/to/script/gdb_grub)
+gdb -x gdb_grub
+@end example
+
+Once GDB has been started with the @file{gdb_grub} script it will
+automatically connect to the QEMU instance. You can then do things you
+normally would in GDB like set a break point on @var{grub_main}.
+
+Setting breakpoints in modules is trickier since they haven't been loaded
+yet and are loaded at addresses determined at runtime. The module could be
+loaded to different addresses in different QEMU instances. The debug symbols
+in the modules @file{.module} binary, thus are always wrong, and GDB needs
+to be told where to load the symbols to. But this must happen at runtime
+after GRUB2 has determined where the module will get loaded. Luckily the
+@file{gdb_grub} script takes care of this with the @command{runtime_load_module}
+command, which configures GDB to watch for GRUB2 module loading and when
+it does add the module symbols with the appropriate offset.
+
+@node x86_64-efi
+@section x86_64-efi
+
+Using GDB to debug GRUB2 for the x86_64-efi target has some similarities with
+the i386-pc target. Please read and familiarize yourself with the @ref{i386-pc}
+section when reading this one. Extra care must be used to run QEMU such that it
+boots a UEFI firmware. This usually involves either using the @samp{-bios}
+option with a UEFI firmware blob (eg. @file{OVMF.fd}) or loading the firmware
+via pflash. This document will not go further into how to do this as there are
+ample resource on the web.
+
+Like all EFI implementations, on x86_64-efi the (U)EFI firmware that loads
+the GRUB2 EFI application determines at runtime where the application will
+be loaded. This means that we do not know where to tell GDB to load the
+symbols for the GRUB2 core until the (U)EFI firmware determines it. There are
+two good ways of figuring this out when running in QEMU: use a @ref{OVMF debug log,
+debug build of OVMF} and check the debug log, or have GRUB2 say where it is
+loaded. Neither of these are ideal because they both generally give the
+information after GRUB2 is already running, which makes debugging early boot
+infeasible. Technically, the first method does give the load address before
+GRUB2 is run, but without debugging the EFI firmware with symbols, the author
+currently does not know how to cause the OVMF firmware to pause at that point
+to use the load address before GRUB2 is run.
+
+Even after getting the application load address, the loading of core symbols
+is complicated by the fact that the debugging symbols for the kernel are in
+an ELF binary named @file{kernel.exec} while what is in memory are sections
+for the PE32+ EFI binary. When @command{grub-mkimage} creates the PE32+
+binary it condenses several segments from the ELF kernel binary into one
+.data section in the PE32+ binary. This must be taken into account to
+properly load the other non-text sections. Otherwise, GDB will work as
+expected when breaking on functions, but, for instance, global variables
+will point to the wrong address in memory and thus give incorrect values
+(which can be difficult to debug).
+
+The calculating of the correct offsets for sections when loading symbol
+files are taken care of when loading the kernel symbols via the user-defined
+GDB command @command{dynamic_load_kernel_exec_symbols}, which takes one
+argument, the address where the text section is loaded, as determined by
+one of the methods above. Alternatively, the command @command{dynamic_load_symbols}
+with the text section address as an agrument can be called to load the
+kernel symbols and setup loading the module symbols as they are loaded at
+runtime.
+
+In the author's experience, when debugging with QEMU and OVMF, to have
+debugging symbols loaded at the start of GRUB2 execution the GRUB2 EFI
+application must be run via QEMU at least once prior in order to get the
+load address. Two methods for obtaining the load address are described in
+two subsections below. Generally speaking, the load address does not change
+between QEMU runs. There are exceptions to this, namely that different
+GRUB2 EFI applications can be run at different addresses. Also, it has been
+observed that after running the EFI application for the first time, the
+second run will some times have a different load address, but subsequent
+runs of the same EFI application will have the same load address as the
+second run. And it's a near certainty that if the GRUB EFI binary has changed,
+eg. been recompiled, the load address will also be different.
+
+This ability to predict what the load address will be allows one to assume
+the load address on subsequent runs and thus load the symbols before GRUB2
+starts. The following command illustrates this, assuming that QEMU is
+running and waiting for a debugger connection and the current working
+directory is where @file{gdb_grub} resides:
+
+@example
+gdb -x gdb_grub -ex 'dynamic_load_symbols @var{address of .text section}'
+@end example
+
+If you load the symbols in this manner and, after continuing execution, do
+not see output showing the loading of modules symbol, then it is very likely
+that the load address was incorrect.
+
+Another thing to be aware of is how the loading of the GRUB image by the
+firmware affects previously set software breakpoints. On x86 platforms,
+software breakpoints are implemented by GDB by writing a special processor
+instruction at the location of the desired breakpoint. This special instruction
+when executed will stop the program execution and hand control to the
+debugger, GDB. GDB will first save the instruction bytes that are
+overwritten at the breakpoint and will put them back when the breakpoint
+is hit. If GRUB is being run for the first time in QEMU, the firmware will
+be loading the GRUB image into memory where every byte is already set to 0.
+This means that if a breakpoint is set before GRUB is loaded, GDB will save
+the 0-byte(s) where the the special instruction will go. Then when the firmware
+loads the GRUB image and because it is unaware of the debugger, it will
+write the GRUB image to memory, overwriting anything that was there previously,
+notably in this case the instruction that implements the software breakpoint.
+This will be confusing for the person using GDB because GDB will show the
+breakpoint as set, but the brekapoint will never be hit. Furthermore, GDB
+then becomes confused, such that even deleting an recreating the breakpoint
+will not create usable breakpoints. The @file{gdb_grub} script takes care of
+this by saving the breakpoints just before they are overwritten, and then
+restores them at the start of GRUB execution. So breakpoints for GRUB can be
+set before GRUB is loaded, but be mindful of this effect if you are confused
+as to why breakpoints are not getting hit.
+
+Also note, that hardware breakpoints do not suffer this problem. They are
+implemented by having the breakpoint address in special debug registers on
+the CPU. So they can always be set freely without regard to whether GRUB has
+been loaded or not. The reason that hardware breakpoints aren't always used
+is because there are a limited number of them, usually around 4 on various
+CPUs, and specifically exactly 4 for x86 CPUs. The @file{gdb_grub} script
+goes out of its way to not use hardware breakpoints internally and when
+needed use them as short a time as possible, thus allowing the user to have a
+maximal number at their disposal.
+
+@node OVMF debug log
+@subsection OVMF debug log
+
+In order to get the GRUB2 load address from OVMF, first, a debug build
+of OVMF must be obtained (@uref{https://github.com/retrage/edk2-nightly/raw/master/bin/DEBUGX64_OVMF.fd,
+here is one} which is not officially recommended). OVMF will output debug
+messages to a special serial device, which we must add to QEMU. The following
+QEMU command will run the debug OVMF and write the debug messages to a
+file named @file{debug.log}. It is assumed that @file{disk.img} is a disk
+image or block device that is setup to boot GRUB2 EFI.
+
+@example
+qemu-system-x86_64 -bios /path/to/debug/OVMF.fd \
+    -drive file=disk.img,format=raw \
+    -device virtio-scsi-pci,id=scsi0 \
+    -debugcon file:debug.log -global isa-debugcon.iobase=0x402
+@end example
+
+If GRUB2 was started by the (U)EFI firmware, then in the @file{debug.log}
+file one of the last lines should be a log message like:
+@samp{Loading driver at 0x00006AEE000 EntryPoint=0x00006AEE756}. This
+means that the GRUB2 EFI application was loaded at @samp{0x00006AEE000} and
+its .text section is at @samp{0x00006AEE756}.
+
+@node Using the gdbinfo command
+@subsection Using the gdbinfo command
+
+On EFI platforms the command @command{gdbinfo} will output a string that
+is to be run in a GDB session running with the @file{gdb_grub} GDB script.
+
 
 @node Porting
 @chapter Porting
