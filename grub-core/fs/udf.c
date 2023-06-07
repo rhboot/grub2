@@ -114,6 +114,10 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define GRUB_UDF_PARTMAP_TYPE_1		1
 #define GRUB_UDF_PARTMAP_TYPE_2		2
 
+#define GRUB_UDF_INVALID_STRUCT_PTR(_ptr, _struct)	\
+  ((char *) (_ptr) >= end_ptr || \
+   ((grub_ssize_t) (end_ptr - (char *) (_ptr)) < (grub_ssize_t) sizeof (_struct)))
+
 struct grub_udf_lb_addr
 {
   grub_uint32_t block_num;
@@ -458,6 +462,7 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
   char *ptr;
   grub_ssize_t len;
   grub_disk_addr_t filebytes;
+  char *end_ptr;
 
   switch (U16 (node->block.fe.tag.tag_ident))
     {
@@ -476,9 +481,17 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       return 0;
     }
 
+  end_ptr = (char *) node + get_fshelp_size (node->data);
+
   if ((U16 (node->block.fe.icbtag.flags) & GRUB_UDF_ICBTAG_FLAG_AD_MASK)
       == GRUB_UDF_ICBTAG_FLAG_AD_SHORT)
     {
+      if (GRUB_UDF_INVALID_STRUCT_PTR (ptr, struct grub_udf_short_ad))
+	{
+	  grub_error (GRUB_ERR_BAD_FS, "corrupted UDF file system");
+	  return 0;
+	}
+
       struct grub_udf_short_ad *ad = (struct grub_udf_short_ad *) ptr;
 
       filebytes = fileblock * U32 (node->data->lvd.bsize);
@@ -542,10 +555,22 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 	  filebytes -= adlen;
 	  ad++;
 	  len -= sizeof (struct grub_udf_short_ad);
+
+	  if (GRUB_UDF_INVALID_STRUCT_PTR (ad, struct grub_udf_short_ad))
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "corrupted UDF file system");
+	      return 0;
+	    }
 	}
     }
   else
     {
+      if (GRUB_UDF_INVALID_STRUCT_PTR (ptr, struct grub_udf_long_ad))
+	{
+	  grub_error (GRUB_ERR_BAD_FS, "corrupted UDF file system");
+	  return 0;
+	}
+
       struct grub_udf_long_ad *ad = (struct grub_udf_long_ad *) ptr;
 
       filebytes = fileblock * U32 (node->data->lvd.bsize);
@@ -611,6 +636,12 @@ grub_udf_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 	  filebytes -= adlen;
 	  ad++;
 	  len -= sizeof (struct grub_udf_long_ad);
+
+	  if (GRUB_UDF_INVALID_STRUCT_PTR (ad, struct grub_udf_long_ad))
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "corrupted UDF file system");
+	      return 0;
+	    }
 	}
     }
 
@@ -630,12 +661,19 @@ grub_udf_read_file (grub_fshelp_node_t node,
     case GRUB_UDF_ICBTAG_FLAG_AD_IN_ICB:
       {
 	char *ptr;
+	char *end_ptr = (char *) node + get_fshelp_size (node->data);
 
 	ptr = ((U16 (node->block.fe.tag.tag_ident) == GRUB_UDF_TAG_IDENT_FE) ?
 	       ((char *) &node->block.fe.ext_attr[0]
                 + U32 (node->block.fe.ext_attr_length)) :
 	       ((char *) &node->block.efe.ext_attr[0]
                 + U32 (node->block.efe.ext_attr_length)));
+
+	if ((ptr + pos + len) > end_ptr)
+	  {
+	    grub_error (GRUB_ERR_BAD_FS, "corrupted UDF file system");
+	    return 0;
+	  }
 
 	grub_memcpy (buf, ptr + pos, len);
 
