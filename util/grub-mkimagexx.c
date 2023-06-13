@@ -1156,7 +1156,7 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		     {
 		       grub_int64_t off;
 
-		       off = sym_addr - target_section_addr - offset - image_target->vaddr_offset;
+		       off = sym_addr - pc;
 
 		       grub_loongarch64_b26 (t32, off);
 		     }
