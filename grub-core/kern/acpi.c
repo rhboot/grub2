@@ -101,12 +101,6 @@ grub_acpi_find_table (const char *sig)
   if (r)
     return r;
   rsdpv2 = grub_machine_acpi_get_rsdpv2 ();
-  if (rsdpv2)
-    r = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
-				   (grub_addr_t) rsdpv2->rsdpv1.rsdt_addr,
-				   sig);
-  if (r)
-    return r;
   if (rsdpv2
 #if GRUB_CPU_SIZEOF_VOID_P != 8
       && !(rsdpv2->xsdt_addr >> 32)
@@ -114,6 +108,12 @@ grub_acpi_find_table (const char *sig)
       )
     r = grub_acpi_xsdt_find_table ((struct grub_acpi_table_header *)
 				   (grub_addr_t) rsdpv2->xsdt_addr,
+				   sig);
+  if (r)
+    return r;
+  if (rsdpv2)
+    r = grub_acpi_rsdt_find_table ((struct grub_acpi_table_header *)
+				   (grub_addr_t) rsdpv2->rsdpv1.rsdt_addr,
 				   sig);
   if (r)
     return r;
