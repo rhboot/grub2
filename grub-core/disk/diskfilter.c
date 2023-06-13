@@ -1046,8 +1046,8 @@ grub_diskfilter_make_raid (grub_size_t uuidlen, char *uuid, int nmemb,
   struct grub_diskfilter_pv *pv;
   grub_err_t err;
 
-  /* We choose not to support more than 1024 disks. */
-  if (nmemb < 1 || nmemb > 1024)
+  /* We choose not to support more than the specified number of disks. */
+  if (nmemb < 1 || nmemb > GRUB_MDRAID_MAX_DISKS)
     {
       grub_free (uuid);
       return NULL;

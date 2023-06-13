@@ -172,6 +172,17 @@ typedef struct grub_disk_memberlist *grub_disk_memberlist_t;
 /* The maximum number of disk caches.  */
 #define GRUB_DISK_CACHE_NUM	1021
 
+/*
+ * The maximum number of disks in an mdraid device.
+ *
+ * GET_DISK_INFO nr_disks (total count) does not map to disk.number,
+ * which is an internal kernel index. Instead, do what mdadm does
+ * and keep scanning until we find enough valid disks. The limit is
+ * copied from there, which notes that it is sufficiently high given
+ * that the on-disk metadata for v1.x can only support 1920.
+ */
+#define GRUB_MDRAID_MAX_DISKS	4096
+
 /* The size of a disk cache in 512B units. Must be at least as big as the
    largest supported sector size, currently 16K.  */
 #define GRUB_DISK_CACHE_BITS	6
