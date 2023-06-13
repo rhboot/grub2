@@ -514,7 +514,11 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
       /* Set revision variables to replicate the same version as host. */
       rev1 = ! rsdp->revision;
       rev2 = rsdp->revision;
-      rsdt = (struct grub_acpi_table_header *) (grub_addr_t) rsdp->rsdt_addr;
+      if (rev2 && ((struct grub_acpi_table_header *) (grub_addr_t) ((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr) != NULL)
+	rsdt = (struct grub_acpi_table_header *) (grub_addr_t) ((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr;
+      else
+	rsdt = (struct grub_acpi_table_header *) (grub_addr_t) rsdp->rsdt_addr;
+
       /* Load host tables. */
       for (entry_ptr = (grub_uint32_t *) (rsdt + 1);
 	   entry_ptr < (grub_uint32_t *) (((grub_uint8_t *) rsdt)
