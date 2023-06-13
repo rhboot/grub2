@@ -46,9 +46,9 @@ grub_arm64_set_xxxx26_offset (grub_uint32_t *place, grub_int64_t offset)
 {
   const grub_uint32_t insmask = grub_cpu_to_le32_compile_time (0xfc000000);
 
-  grub_dprintf ("dl", "  reloc_xxxx64 %p %c= 0x%llx\n",
+  grub_dprintf ("dl", "  reloc_xxxx64 %p %c= 0x%" PRIxGRUB_INT64_T "\n",
 		place, offset > 0 ? '+' : '-',
-		offset < 0 ? (long long) -(unsigned long long) offset : offset);
+		offset < 0 ? -offset : offset);
 
   *place &= insmask;
   *place |= grub_cpu_to_le32 (offset >> 2) & ~insmask;
