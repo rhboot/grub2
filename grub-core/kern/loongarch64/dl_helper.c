@@ -235,7 +235,7 @@ void grub_loongarch64_xxx_lo12 (grub_uint32_t *place, grub_int64_t offset)
   *place |= grub_cpu_to_le32 (offset << 10) & ~insmask;
 }
 
-void grub_loongarch64_xxx64_hi12 (grub_uint32_t *place, grub_int64_t offset)
+void grub_loongarch64_abs64_hi12 (grub_uint32_t *place, grub_int64_t offset)
 {
   const grub_uint32_t insmask = grub_cpu_to_le32_compile_time (0xffc003ff);
   grub_uint32_t val;
@@ -247,7 +247,7 @@ void grub_loongarch64_xxx64_hi12 (grub_uint32_t *place, grub_int64_t offset)
   *place |= grub_cpu_to_le32 (val) & ~insmask;
 }
 
-void grub_loongarch64_xxx64_lo20 (grub_uint32_t *place, grub_int64_t offset)
+void grub_loongarch64_abs64_lo20 (grub_uint32_t *place, grub_int64_t offset)
 {
   const grub_uint32_t insmask = grub_cpu_to_le32_compile_time (0xfe00001f);
   grub_uint32_t val;

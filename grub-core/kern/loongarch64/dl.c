@@ -109,13 +109,13 @@ grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr,
 	case R_LARCH_ABS64_LO20:
 	  {
 	    grub_uint32_t *abs_place = place;
-	    grub_loongarch64_xxx64_lo20 (abs_place, sym_addr);
+	    grub_loongarch64_abs64_lo20 (abs_place, sym_addr);
 	  }
 	  break;
 	case R_LARCH_ABS64_HI12:
 	  {
 	    grub_uint32_t *abs_place = place;
-	    grub_loongarch64_xxx64_hi12 (abs_place, sym_addr);
+	    grub_loongarch64_abs64_hi12 (abs_place, sym_addr);
 	  }
 	  break;
 	case R_LARCH_PCALA_HI20:

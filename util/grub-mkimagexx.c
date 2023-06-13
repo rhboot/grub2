@@ -1165,10 +1165,10 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		     grub_loongarch64_xxx_hi20 (t32, sym_addr);
 		     break;
 		   case R_LARCH_ABS64_LO20:
-		     grub_loongarch64_xxx64_lo20 (t32, sym_addr);
+		     grub_loongarch64_abs64_lo20 (t32, sym_addr);
 		     break;
 		   case R_LARCH_ABS64_HI12:
-		     grub_loongarch64_xxx64_hi12 (t32, sym_addr);
+		     grub_loongarch64_abs64_hi12 (t32, sym_addr);
 		     break;
 		   case R_LARCH_PCALA_HI20:
 		     {
