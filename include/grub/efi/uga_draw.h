@@ -46,30 +46,30 @@ struct grub_efi_uga_pixel
 struct grub_efi_uga_draw_protocol
 {
   grub_efi_status_t
-  (*get_mode) (struct grub_efi_uga_draw_protocol *this,
-	       grub_uint32_t *width,
-	       grub_uint32_t *height,
-	       grub_uint32_t *depth,
-	       grub_uint32_t *refresh_rate);
+  (__grub_efi_api *get_mode) (struct grub_efi_uga_draw_protocol *this,
+			      grub_uint32_t *width,
+			      grub_uint32_t *height,
+			      grub_uint32_t *depth,
+			      grub_uint32_t *refresh_rate);
 
   grub_efi_status_t
-  (*set_mode) (struct grub_efi_uga_draw_protocol *this,
-	       grub_uint32_t width,
-	       grub_uint32_t height,
-	       grub_uint32_t depth,
-	       grub_uint32_t refresh_rate);
+  (__grub_efi_api *set_mode) (struct grub_efi_uga_draw_protocol *this,
+			      grub_uint32_t width,
+			      grub_uint32_t height,
+			      grub_uint32_t depth,
+			      grub_uint32_t refresh_rate);
 
   grub_efi_status_t
-  (*blt) (struct grub_efi_uga_draw_protocol *this,
-	  struct grub_efi_uga_pixel *blt_buffer,
-	  enum grub_efi_uga_blt_operation blt_operation,
-	  grub_efi_uintn_t src_x,
-	  grub_efi_uintn_t src_y,
-	  grub_efi_uintn_t dest_x,
-	  grub_efi_uintn_t dest_y,
-	  grub_efi_uintn_t width,
-	  grub_efi_uintn_t height,
-	  grub_efi_uintn_t delta);
+  (__grub_efi_api *blt) (struct grub_efi_uga_draw_protocol *this,
+			 struct grub_efi_uga_pixel *blt_buffer,
+			 enum grub_efi_uga_blt_operation blt_operation,
+			 grub_efi_uintn_t src_x,
+			 grub_efi_uintn_t src_y,
+			 grub_efi_uintn_t dest_x,
+			 grub_efi_uintn_t dest_y,
+			 grub_efi_uintn_t width,
+			 grub_efi_uintn_t height,
+			 grub_efi_uintn_t delta);
 };
 typedef struct grub_efi_uga_draw_protocol grub_efi_uga_draw_protocol_t;
 

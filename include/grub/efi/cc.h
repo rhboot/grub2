@@ -124,27 +124,27 @@ typedef struct grub_efi_cc_boot_service_capability grub_efi_cc_boot_service_capa
 struct grub_efi_cc_protocol
 {
   grub_efi_status_t
-  (*get_capability) (struct grub_efi_cc_protocol *this,
-		     grub_efi_cc_boot_service_capability_t *ProtocolCapability);
+  (__grub_efi_api *get_capability) (struct grub_efi_cc_protocol *this,
+				    grub_efi_cc_boot_service_capability_t *ProtocolCapability);
 
   grub_efi_status_t
-  (*get_event_log) (struct grub_efi_cc_protocol *this,
-		    grub_efi_cc_event_log_format_t EventLogFormat,
-		    grub_efi_physical_address_t *EventLogLocation,
-		    grub_efi_physical_address_t *EventLogLastEntry,
-		    grub_efi_boolean_t *EventLogTruncated);
+  (__grub_efi_api *get_event_log) (struct grub_efi_cc_protocol *this,
+				   grub_efi_cc_event_log_format_t EventLogFormat,
+				   grub_efi_physical_address_t *EventLogLocation,
+				   grub_efi_physical_address_t *EventLogLastEntry,
+				   grub_efi_boolean_t *EventLogTruncated);
 
   grub_efi_status_t
-  (*hash_log_extend_event) (struct grub_efi_cc_protocol *this,
-			    grub_efi_uint64_t Flags,
-			    grub_efi_physical_address_t DataToHash,
-			    grub_efi_uint64_t DataToHashLen,
-			    grub_efi_cc_event_t *EfiCcEvent);
+  (__grub_efi_api *hash_log_extend_event) (struct grub_efi_cc_protocol *this,
+					   grub_efi_uint64_t Flags,
+					   grub_efi_physical_address_t DataToHash,
+					   grub_efi_uint64_t DataToHashLen,
+					   grub_efi_cc_event_t *EfiCcEvent);
 
   grub_efi_status_t
-  (*map_pcr_to_mr_index) (struct grub_efi_cc_protocol *this,
-			  grub_efi_uint32_t PcrIndex,
-			  grub_efi_cc_mr_index_t *MrIndex);
+  (__grub_efi_api *map_pcr_to_mr_index) (struct grub_efi_cc_protocol *this,
+					 grub_efi_uint32_t PcrIndex,
+					 grub_efi_cc_mr_index_t *MrIndex);
 };
 typedef struct grub_efi_cc_protocol grub_efi_cc_protocol_t;
 
