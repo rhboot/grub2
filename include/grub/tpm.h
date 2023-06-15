@@ -19,6 +19,8 @@
 #ifndef GRUB_TPM_HEADER
 #define GRUB_TPM_HEADER 1
 
+#include <grub/env.h>
+
 #define GRUB_STRING_PCR 8
 #define GRUB_BINARY_PCR 9
 
@@ -37,4 +39,11 @@
 grub_err_t grub_tpm_measure (unsigned char *buf, grub_size_t size,
 			     grub_uint8_t pcr, const char *description);
 int grub_tpm_present (void);
+
+static inline bool
+grub_is_tpm_fail_fatal (void)
+{
+  return grub_env_get_bool ("tpm_fail_fatal", false);
+}
+
 #endif

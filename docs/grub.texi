@@ -3841,6 +3841,11 @@ If this variable is set and true (i.e., not set to ``0'', ``false'',
 fatal. Otherwise, they will merely be debug-logged and boot will
 continue.
 
+Call to EFI firmware, like hash_log_extend_event(), can return an unknown
+error, i.e. due to bug present in firmware. When this variable is set and
+true (same values as with TPM measurements) this situation will be considered
+to be fatal and error-logged as ``unknown TPM error''. If not set, booting
+the OS will be enabled.
 
 @node Environment block
 @section The GRUB environment block

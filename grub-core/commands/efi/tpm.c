@@ -146,7 +146,7 @@ grub_efi_log_event_status (grub_efi_status_t status)
     case GRUB_EFI_NOT_FOUND:
       return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("TPM unavailable"));
     default:
-      return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("unknown TPM error"));
+      return grub_error (grub_is_tpm_fail_fatal () ? GRUB_ERR_UNKNOWN_DEVICE : GRUB_ERR_NONE, N_("unknown TPM error"));
     }
 }
 
