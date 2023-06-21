@@ -1613,7 +1613,7 @@ AC_CHECK_LIB([SDL], [SDL_Init], [LIBSDL="-lSDL"],
   [fi]
 
   if test x"enable_grub_emu_sdl" = xyes && test x"$grub_emu_sdl_excuse" != x ; then
-  AC_MSG_ERROR([SDL support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl_excuse)])
+    AC_MSG_ERROR([SDL support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl_excuse)])
   fi
   if test x"$grub_emu_sdl_excuse" = x ; then
     enable_grub_emu_sdl=yes

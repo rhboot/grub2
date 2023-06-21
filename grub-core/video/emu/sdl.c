@@ -29,7 +29,7 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-static SDL_Surface *window = 0;
+static SDL_Surface *window = NULL;
 static struct grub_video_render_target *sdl_render_target;
 static struct grub_video_mode_info mode_info;
 
@@ -40,10 +40,10 @@ grub_video_sdl_set_palette (unsigned int start, unsigned int count,
 static grub_err_t
 grub_video_sdl_init (void)
 {
-  window = 0;
+  window = NULL;
 
   if (SDL_Init (SDL_INIT_VIDEO) < 0)
-    return grub_error (GRUB_ERR_BAD_DEVICE, "Couldn't init SDL: %s",
+    return grub_error (GRUB_ERR_BAD_DEVICE, "could not init SDL: %s",
 		       SDL_GetError ());
 
   grub_memset (&mode_info, 0, sizeof (mode_info));
@@ -55,7 +55,7 @@ static grub_err_t
 grub_video_sdl_fini (void)
 {
   SDL_Quit ();
-  window = 0;
+  window = NULL;
 
   grub_memset (&mode_info, 0, sizeof (mode_info));
 
@@ -96,10 +96,10 @@ grub_video_sdl_setup (unsigned int width, unsigned int height,
     flags |= SDL_DOUBLEBUF;
 
   window = SDL_SetVideoMode (width, height, depth, flags | SDL_HWSURFACE);
-  if (! window)
+  if (window == NULL)
     window = SDL_SetVideoMode (width, height, depth, flags | SDL_SWSURFACE);
-  if (! window)
-    return grub_error (GRUB_ERR_BAD_DEVICE, "Couldn't open window: %s",
+  if (window == NULL)
+    return grub_error (GRUB_ERR_BAD_DEVICE, "could not open window: %s",
 		       SDL_GetError ());
 
   grub_memset (&sdl_render_target, 0, sizeof (sdl_render_target));
@@ -191,7 +191,7 @@ static grub_err_t
 grub_video_sdl_swap_buffers (void)
 {
   if (SDL_Flip (window) < 0)
-    return grub_error (GRUB_ERR_BAD_DEVICE, "couldn't swap buffers: %s",
+    return grub_error (GRUB_ERR_BAD_DEVICE, "could not swap buffers: %s",
 		       SDL_GetError ());
   return GRUB_ERR_NONE;
 }
