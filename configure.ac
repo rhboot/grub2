@@ -1586,6 +1586,10 @@ else
 fi
 AC_SUBST([BOOT_TIME_STATS])
 
+AC_ARG_ENABLE([grub-emu-sdl2],
+	      [AS_HELP_STRING([--enable-grub-emu-sdl2],
+                             [build and install the `grub-emu' debugging utility with SDL2 support (default=guessed)])])
+
 AC_ARG_ENABLE([grub-emu-sdl],
 	      [AS_HELP_STRING([--enable-grub-emu-sdl],
                              [build and install the `grub-emu' debugging utility with SDL support (default=guessed)])])
@@ -1595,6 +1599,28 @@ AC_ARG_ENABLE([grub-emu-pci],
                              [build and install the `grub-emu' debugging utility with PCI support (potentially dangerous) (default=no)])])
 
 if test "$platform" = emu; then
+  if test x"$enable_grub_emu_sdl2" = xno ; then
+    grub_emu_sdl2_excuse="explicitly disabled"
+  fi
+  [if [ x"$grub_emu_sdl2_excuse" = x ]; then
+    # Check for libSDL libraries.]
+    PKG_CHECK_MODULES([SDL2], [sdl2], [
+            AC_DEFINE([HAVE_SDL2], [1], [Define to 1 if you have SDL2 library.])
+            AC_SUBST(HAVE_SDL2)],
+            [grub_emu_sdl2_excuse="libSDL2 libraries are required to build \`grub-emu' with SDL2 support"])
+  [fi]
+  if test x"enable_grub_emu_sdl2" = xyes && test x"$grub_emu_sdl2_excuse" != x ; then
+    AC_MSG_ERROR([SDL2 support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl2_excuse)])
+  fi
+  if test x"$grub_emu_sdl2_excuse" = x ; then
+    enable_grub_emu_sdl2=yes
+  else
+    enable_grub_emu_sdl2=no
+  fi
+  if test x"$enable_grub_emu_sdl2" = xyes ; then
+    grub_emu_sdl_excuse="disabled by sdl2"
+  fi
+
 
   if test x"$enable_grub_emu_sdl" = xno ; then
     grub_emu_sdl_excuse="explicitly disabled"
@@ -1643,12 +1669,14 @@ AC_CHECK_LIB([SDL], [SDL_Init], [LIBSDL="-lSDL"],
     enable_grub_emu_pci=no
   fi
 
+  AC_SUBST([enable_grub_emu_sdl2])
   AC_SUBST([enable_grub_emu_sdl])
   AC_SUBST([enable_grub_emu_pci])
 
 else
 
   # Ignore --enable-emu-* if platform is not emu
+  enable_grub_emu_sdl2=no
   enable_grub_emu_sdl=no
   enable_grub_emu_pci=no
 fi
@@ -2075,6 +2103,7 @@ AM_CONDITIONAL([COND_HOST_XNU], [test x$host_kernel = xxnu])
 AM_CONDITIONAL([COND_HOST_ILLUMOS], [test x$host_kernel = xillumos])
 
 AM_CONDITIONAL([COND_MAN_PAGES], [test x$cross_compiling = xno -a x$HELP2MAN != x])
+AM_CONDITIONAL([COND_GRUB_EMU_SDL2], [test x$enable_grub_emu_sdl2 = xyes])
 AM_CONDITIONAL([COND_GRUB_EMU_SDL], [test x$enable_grub_emu_sdl = xyes])
 AM_CONDITIONAL([COND_GRUB_EMU_PCI], [test x$enable_grub_emu_pci = xyes])
 AM_CONDITIONAL([COND_GRUB_MKFONT], [test x$enable_grub_mkfont = xyes])
@@ -2153,6 +2182,11 @@ echo "*******************************************************"
 echo GRUB2 will be compiled with following components:
 echo Platform: "$target_cpu"-"$platform"
 if [ x"$platform" = xemu ]; then
+if [ x"$grub_emu_sdl2_excuse" = x ]; then
+echo SDL2 support for grub-emu: Yes
+else
+echo SDL2 support for grub-emu: No "($grub_emu_sdl2_excuse)"
+fi
 if [ x"$grub_emu_sdl_excuse" = x ]; then
 echo SDL support for grub-emu: Yes
 else
