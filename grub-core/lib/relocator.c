@@ -478,6 +478,8 @@ malloc_in_range (struct grub_relocator *rel,
 
 #if GRUB_RELOCATOR_HAVE_LEFTOVERS
   {
+    COMPILE_TIME_ASSERT (GRUB_RELOCATOR_FIRMWARE_REQUESTS_QUANT % 8 == 0);
+
     struct grub_relocator_fw_leftover *cur;
     for (cur = leftovers; cur; cur = cur->next)
       {
