@@ -881,9 +881,11 @@ malloc_in_range (struct grub_relocator *rel,
 			offend = GRUB_RELOCATOR_FIRMWARE_REQUESTS_QUANT;
 		      lo->freebytes[offstart / 8]
 			&= ((1 << (8 - (start % 8))) - 1);
-		      grub_memset (lo->freebytes + (offstart + 7) / 8, 0,
-				   offend / 8 - (offstart + 7) / 8);
-		      lo->freebytes[offend / 8] &= ~((1 << (offend % 8)) - 1);
+		      if (offend / 8 > (offstart + 7) / 8)
+			grub_memset (lo->freebytes + (offstart + 7) / 8, 0,
+				     offend / 8 - (offstart + 7) / 8);
+		      if (offend < GRUB_RELOCATOR_FIRMWARE_REQUESTS_QUANT)
+			lo->freebytes[offend / 8] &= ~((1 << (offend % 8)) - 1);
 		    }
 		    break;
 #endif
