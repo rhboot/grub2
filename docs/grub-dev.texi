@@ -658,11 +658,11 @@ command must be used. We also need to load a binary image, preferably with
 symbols. This can be done using the GDB command @code{file kernel.exec}, if
 GDB is started from the @file{grub-core} directory in the GRUB2 build
 directory. GRUB2 developers have made this more simple by including a GDB
-script which does much of the setup. This file at @file{grub-core/gdb_grub}
-of the build directory and is also installed via @command{make install}.
+script which does much of the setup. This file is at @file{grub-core/gdb_grub}
+in the build directory and is also installed via @command{make install}.
 If not building GRUB, the distribution may have a package which installs
 this GDB script along with debug symbol binaries, such as Debian's
-@samp{grub-pc-dbg} package. The GDB scripts is intended to by used
+@samp{grub-pc-dbg} package. The GDB script is intended to be used
 like so, assuming:
 
 @example
@@ -719,14 +719,13 @@ expected when breaking on functions, but, for instance, global variables
 will point to the wrong address in memory and thus give incorrect values
 (which can be difficult to debug).
 
-The calculating of the correct offsets for sections when loading symbol
-files are taken care of when loading the kernel symbols via the user-defined
-GDB command @command{dynamic_load_kernel_exec_symbols}, which takes one
-argument, the address where the text section is loaded, as determined by
-one of the methods above. Alternatively, the command @command{dynamic_load_symbols}
-with the text section address as an agrument can be called to load the
-kernel symbols and setup loading the module symbols as they are loaded at
-runtime.
+Calculating the correct offsets for sections is taken care of automatically
+when loading the kernel symbols via the user-defined GDB command
+@command{dynamic_load_kernel_exec_symbols}, which takes one argument, the
+address where the text section is loaded as determined by one of the methods
+above. Alternatively, the command @command{dynamic_load_symbols} with the text
+section address as an agrument can be called to load the kernel symbols and set
+up loading the module symbols as they are loaded at runtime.
 
 In the author's experience, when debugging with QEMU and OVMF, to have
 debugging symbols loaded at the start of GRUB2 execution the GRUB2 EFI
@@ -736,7 +735,7 @@ two subsections below. Generally speaking, the load address does not change
 between QEMU runs. There are exceptions to this, namely that different
 GRUB2 EFI applications can be run at different addresses. Also, it has been
 observed that after running the EFI application for the first time, the
-second run will some times have a different load address, but subsequent
+second run will sometimes have a different load address, but subsequent
 runs of the same EFI application will have the same load address as the
 second run. And it's a near certainty that if the GRUB EFI binary has changed,
 eg. been recompiled, the load address will also be different.
@@ -752,7 +751,7 @@ gdb -x gdb_grub -ex 'dynamic_load_symbols @var{address of .text section}'
 @end example
 
 If you load the symbols in this manner and, after continuing execution, do
-not see output showing the loading of modules symbol, then it is very likely
+not see output showing the module symbols loading, then it is very likely
 that the load address was incorrect.
 
 Another thing to be aware of is how the loading of the GRUB image by the
@@ -767,7 +766,7 @@ be loading the GRUB image into memory where every byte is already set to 0.
 This means that if a breakpoint is set before GRUB is loaded, GDB will save
 the 0-byte(s) where the the special instruction will go. Then when the firmware
 loads the GRUB image and because it is unaware of the debugger, it will
-write the GRUB image to memory, overwriting anything that was there previously,
+write the GRUB image to memory, overwriting anything that was there previously ---
 notably in this case the instruction that implements the software breakpoint.
 This will be confusing for the person using GDB because GDB will show the
 breakpoint as set, but the brekapoint will never be hit. Furthermore, GDB
@@ -783,10 +782,10 @@ implemented by having the breakpoint address in special debug registers on
 the CPU. So they can always be set freely without regard to whether GRUB has
 been loaded or not. The reason that hardware breakpoints aren't always used
 is because there are a limited number of them, usually around 4 on various
-CPUs, and specifically exactly 4 for x86 CPUs. The @file{gdb_grub} script
-goes out of its way to not use hardware breakpoints internally and when
-needed use them as short a time as possible, thus allowing the user to have a
-maximal number at their disposal.
+CPUs, and specifically exactly 4 for x86 CPUs. The @file{gdb_grub} script goes
+out of its way to avoid using hardware breakpoints internally and uses them as
+briefly as possible when needed, thus allowing the user to have a maximal
+number at their disposal.
 
 @node OVMF debug log
 @subsection OVMF debug log
@@ -797,7 +796,7 @@ here is one} which is not officially recommended). OVMF will output debug
 messages to a special serial device, which we must add to QEMU. The following
 QEMU command will run the debug OVMF and write the debug messages to a
 file named @file{debug.log}. It is assumed that @file{disk.img} is a disk
-image or block device that is setup to boot GRUB2 EFI.
+image or block device that is set up to boot GRUB2 EFI.
 
 @example
 qemu-system-x86_64 -bios /path/to/debug/OVMF.fd \
