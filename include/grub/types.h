@@ -181,10 +181,13 @@ typedef grub_uint64_t grub_properly_aligned_t;
 #define GRUB_PROPERLY_ALIGNED_ARRAY(name, size) grub_properly_aligned_t name[((size) + sizeof (grub_properly_aligned_t) - 1) / sizeof (grub_properly_aligned_t)]
 
 /* The type for representing a file offset.  */
-typedef grub_uint64_t	grub_off_t;
+typedef grub_uint64_t		grub_off_t;
+#define PRIxGRUB_OFFSET		PRIxGRUB_UINT64_T
+#define PRIuGRUB_OFFSET		PRIuGRUB_UINT64_T
 
 /* The type for representing a disk block address.  */
-typedef grub_uint64_t	grub_disk_addr_t;
+typedef grub_uint64_t		grub_disk_addr_t;
+#define PRIxGRUB_DISK_ADDR	PRIxGRUB_UINT64_T
 
 /* Byte-orders.  */
 static inline grub_uint16_t grub_swap_bytes16(grub_uint16_t _x)
