@@ -666,7 +666,7 @@ grub_divmod64 (grub_uint64_t n, grub_uint64_t d, grub_uint64_t *r)
 static inline char *
 grub_lltoa (char *str, int c, unsigned long long n)
 {
-  unsigned base = ((c == 'x') || (c == 'X')) ? 16 : 10;
+  unsigned base = ((c == 'x') || (c == 'X')) ? 16 : ((c == 'o') ? 8 : 10);
   char *p;
 
   if ((long long) n < 0 && c == 'd')
@@ -681,9 +681,15 @@ grub_lltoa (char *str, int c, unsigned long long n)
     do
       {
 	unsigned d = (unsigned) (n & 0xf);
-	*p++ = (d > 9) ? d + ((c == 'x') ? 'a' : 'A') - 10 : d + '0';
+	*p++ = (d > 9) ? (d + ((c == 'x') ? 'a' : 'A') - 10) : d + '0';
       }
     while (n >>= 4);
+  else if (base == 8)
+    do
+      {
+	*p++ = ((unsigned) (n & 0x7)) + '0';
+      }
+    while (n >>= 3);
   else
     /* BASE == 10 */
     do
@@ -782,6 +788,7 @@ parse_printf_arg_fmt (const char *fmt0, struct printf_args *args,
 	case 'X':
 	case 'u':
 	case 'd':
+	case 'o':
 	case 'c':
 	case 'C':
 	case 's':
@@ -880,6 +887,7 @@ parse_printf_arg_fmt (const char *fmt0, struct printf_args *args,
 	{
 	case 'x':
 	case 'X':
+	case 'o':
 	case 'u':
 	  args->ptr[curn].type = UNSIGNED_INT + longfmt;
 	  break;
@@ -1089,6 +1097,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	case 'X':
 	case 'u':
 	case 'd':
+	case 'o':
 	  write_number (str, &count, max_len, format1, rightfill, zerofill, c, curarg);
 	  break;
 
