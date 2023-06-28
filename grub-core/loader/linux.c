@@ -114,7 +114,7 @@ insert_dir (const char *name, struct dir **root,
 	break;
 
       for (cur = *root; cur; cur = cur->next)
-	if (grub_memcmp (cur->name, cb, ce - cb)
+	if (grub_memcmp (cur->name, cb, ce - cb) == 0
 	    && cur->name[ce - cb] == 0)
 	  break;
       if (!cur)
