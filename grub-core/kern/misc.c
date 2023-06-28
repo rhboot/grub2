@@ -1004,7 +1004,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 
       if (c != '%')
 	{
-	  write_char (str, &count, max_len,c);
+	  write_char (str, &count, max_len, c);
 	  continue;
 	}
 
@@ -1052,7 +1052,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 
       if (c == '%')
 	{
-	  write_char (str, &count, max_len,c);
+	  write_char (str, &count, max_len, c);
 	  n--;
 	  continue;
 	}
@@ -1102,7 +1102,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	  break;
 
 	case 'c':
-	  write_char (str, &count, max_len,curarg & 0xff);
+	  write_char (str, &count, max_len, curarg & 0xff);
 	  break;
 
 	case 'C':
@@ -1138,10 +1138,10 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 		mask = 0;
 	      }
 
-	    write_char (str, &count, max_len,mask | (code >> shift));
+	    write_char (str, &count, max_len, mask | (code >> shift));
 
 	    for (shift -= 6; shift >= 0; shift -= 6)
-	      write_char (str, &count, max_len,0x80 | (0x3f & (code >> shift)));
+	      write_char (str, &count, max_len, 0x80 | (0x3f & (code >> shift)));
 	  }
 	  break;
 
@@ -1162,7 +1162,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 		write_char (str, &count, max_len, zerofill);
 
 	    for (i = 0; i < len; i++)
-	      write_char (str, &count, max_len,*p++);
+	      write_char (str, &count, max_len, *p++);
 
 	    if (rightfill)
 	      while (fill--)
@@ -1172,7 +1172,7 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 	  break;
 
 	default:
-	  write_char (str, &count, max_len,c);
+	  write_char (str, &count, max_len, c);
 	  break;
 	}
     }
