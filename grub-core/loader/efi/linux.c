@@ -251,8 +251,8 @@ grub_linux_boot (void)
     return grub_errno;
 #endif
 
-  return (grub_arch_efi_linux_boot_image((grub_addr_t)kernel_addr,
-                                          kernel_size, linux_args));
+  return grub_arch_efi_linux_boot_image ((grub_addr_t) kernel_addr,
+					 kernel_size, linux_args);
 }
 
 static grub_err_t
