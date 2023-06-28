@@ -16,6 +16,7 @@
 *.o
 *.pf2
 *.pp
+*.pyc
 *.trs
 *~
 .deps-core/
