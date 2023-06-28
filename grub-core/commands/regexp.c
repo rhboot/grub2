@@ -36,7 +36,7 @@ static const struct grub_arg_option options[] =
 	 groups with parentheses. These groups are
 	 then numbered and you can save some of
 	 them in variables. In other programs
-	 those components aree often referenced with
+	 those components are often referenced with
 	 back slash, e.g. \1. Compare
 	 sed -e 's,\([a-z][a-z]*\),lowercase=\1,g'
 	 The whole matching component is saved in VARNAME, not its number.
