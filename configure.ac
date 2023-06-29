@@ -1638,7 +1638,7 @@ AC_CHECK_LIB([SDL], [SDL_Init], [LIBSDL="-lSDL"],
       [grub_emu_sdl_excuse=["libSDL header file is required to build \`grub-emu' with SDL support"]])
   [fi]
 
-  if test x"enable_grub_emu_sdl" = xyes && test x"$grub_emu_sdl_excuse" != x ; then
+  if test x"$enable_grub_emu_sdl" = xyes && test x"$grub_emu_sdl_excuse" != x ; then
     AC_MSG_ERROR([SDL support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl_excuse)])
   fi
   if test x"$grub_emu_sdl_excuse" = x ; then
