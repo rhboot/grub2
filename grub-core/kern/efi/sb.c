@@ -32,6 +32,8 @@
 
 static grub_guid_t shim_lock_guid = GRUB_EFI_SHIM_LOCK_GUID;
 
+static bool shim_lock_enabled = false;
+
 /*
  * Determine whether we're in secure boot mode.
  *
@@ -215,6 +217,14 @@ grub_shim_lock_verifier_setup (void)
   /* Enforce shim_lock_verifier. */
   grub_verifier_register (&shim_lock_verifier);
 
+  shim_lock_enabled = true;
+
   grub_env_set ("shim_lock", "y");
   grub_env_export ("shim_lock");
+}
+
+bool
+grub_is_shim_lock_enabled (void)
+{
+  return shim_lock_enabled;
 }

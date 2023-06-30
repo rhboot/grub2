@@ -29,6 +29,7 @@
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
 #include <grub/efi/pe32.h>
+#include <grub/efi/sb.h>
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
 #include <grub/verify.h>
@@ -457,6 +458,22 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_err_t err;
 
   grub_dl_ref (my_mod);
+
+  if (grub_is_shim_lock_enabled () == true)
+    {
+#if defined(__i386__) || defined(__x86_64__)
+      grub_dprintf ("linux", "shim_lock enabled, falling back to legacy Linux kernel loader\n");
+
+      err = grub_cmd_linux_x86_legacy (cmd, argc, argv);
+
+      if (err == GRUB_ERR_NONE)
+	return GRUB_ERR_NONE;
+      else
+	goto fail;
+#else
+      grub_dprintf ("linux", "shim_lock enabled, trying Linux kernel EFI stub loader\n");
+#endif
+    }
 
   if (argc == 0)
     {

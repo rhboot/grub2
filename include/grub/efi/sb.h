@@ -22,7 +22,7 @@
 #include <grub/types.h>
 #include <grub/dl.h>
 
-#define GRUB_EFI_SECUREBOOT_MODE_UNSET	0
+#define GRUB_EFI_SECUREBOOT_MODE_UNSET		0
 #define GRUB_EFI_SECUREBOOT_MODE_UNKNOWN	1
 #define GRUB_EFI_SECUREBOOT_MODE_DISABLED	2
 #define GRUB_EFI_SECUREBOOT_MODE_ENABLED	3
@@ -30,6 +30,9 @@
 #ifdef GRUB_MACHINE_EFI
 extern grub_uint8_t
 EXPORT_FUNC (grub_efi_get_secureboot) (void);
+
+extern bool
+EXPORT_FUNC (grub_is_shim_lock_enabled) (void);
 
 extern void
 grub_shim_lock_verifier_setup (void);
