@@ -1777,7 +1777,11 @@ typedef struct grub_efi_block_io grub_efi_block_io_t;
 
 struct grub_efi_shim_lock_protocol
 {
-  grub_efi_status_t (__grub_efi_api *verify) (void *buffer, grub_uint32_t size);
+  /*
+   * verify() function (surprisingly) does not use specific EFI calling convention.
+   * So, it does not need to be tagged with __grub_efi_api attribute.
+   */
+  grub_efi_status_t (*verify) (void *buffer, grub_uint32_t size);
 };
 typedef struct grub_efi_shim_lock_protocol grub_efi_shim_lock_protocol_t;
 
