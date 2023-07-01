@@ -68,16 +68,16 @@ for i in /hurd/${hurd_fs}.static /hurd/exec ; do
   fi
 done
 
-if test -e '/hurd/acpi.static' ; then
-  acpi=true
-else
-  acpi=false
-fi
-
 if test -e '/hurd/pci-arbiter.static' ; then
   pci_arbiter=true
 else
   pci_arbiter=false
+fi
+
+if test -e '/hurd/acpi.static' ; then
+  acpi=true
+else
+  acpi=false
 fi
 
 if test -e '/hurd/rumpdisk.static' ; then
@@ -159,26 +159,10 @@ EOF
 	echo		'$(echo "$message" | grub_quote)'
 EOF
 
-  if [ "$acpi" = true ] ; then
-    if [ "$pci_arbiter" = true ] ; then
-      next_task='${pci-task}'
-    elif [ "$rumpdisk" = true ] ; then
-      next_task='${disk-task}'
-    else
-      next_task='${fs-task}'
-    fi
-    sed "s/^/$submenu_indentation/" << EOF
-	module          /hurd/acpi.static acpi \\
-			$host_ports \\
-			--next-task='$next_task' \\
-			'\$(acpi-task=task-create)' $resume_task
-EOF
-    host_ports=""
-    resume_task=""
-  fi
-
   if [ "$pci_arbiter" = true ] ; then
-    if [ "$rumpdisk" = true ] ; then
+    if [ "$acpi" = true ] ; then
+      next_task='${acpi-task}'
+    elif [ "$rumpdisk" = true ] ; then
       next_task='${disk-task}'
     else
       next_task='${fs-task}'
@@ -188,6 +172,22 @@ EOF
 			$host_ports \\
 			--next-task='$next_task' \\
 			'\$(pci-task=task-create)' $resume_task
+EOF
+    host_ports=""
+    resume_task=""
+  fi
+
+  if [ "$acpi" = true ] ; then
+    if [ "$rumpdisk" = true ] ; then
+      next_task='${disk-task}'
+    else
+      next_task='${fs-task}'
+    fi
+    sed "s/^/$submenu_indentation/" << EOF
+	module          /hurd/acpi.static acpi \\
+			$host_ports \\
+			--next-task='$next_task' \\
+			'\$(acpi-task=task-create)' $resume_task
 EOF
     host_ports=""
     resume_task=""
