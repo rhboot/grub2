@@ -73,6 +73,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define	DATA_TYPE_NVLIST	19
 #define	DATA_TYPE_NVLIST_ARRAY	20
 
+#define DNODE_NUM_MASK 0xffffffffffffULL
+
 #ifndef GRUB_UTIL
 static grub_dl_t my_mod;
 #endif
@@ -2668,6 +2670,8 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
   void *dnbuf;
   grub_err_t err;
   grub_zfs_endian_t endian;
+
+  objnum &= DNODE_NUM_MASK;
 
   blksz = grub_zfs_to_cpu16 (mdn->dn.dn_datablkszsec,
 			     mdn->endian) << SPA_MINBLOCKSHIFT;
