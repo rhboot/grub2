@@ -4157,6 +4157,9 @@ iterate_zap_fs (const char *name, grub_uint64_t val,
   grub_err_t err;
   struct grub_dirhook_info info;
 
+  if (name[0] == 0 && val == 0)
+    return 0;
+
   dnode_end_t mdn;
   err = dnode_get (&(ctx->data->mos), val, 0, &mdn, ctx->data);
   if (err)
