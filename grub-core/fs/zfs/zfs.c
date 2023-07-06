@@ -3382,8 +3382,11 @@ dnode_get_fullpath (const char *fullpath, struct subvolume *subvol,
       if (!err)
 	err = zap_lookup (&subvol->mdn, snapname, &headobj, data, 0);
       if (!err)
-	err = dnode_get (&(data->mos), headobj, DMU_OT_DSL_DATASET,
+	err = dnode_get (&(data->mos), headobj, 0,
 			 &subvol->mdn, data);
+      if (!err && subvol->mdn.dn.dn_type != DMU_OT_DSL_DATASET && subvol->mdn.dn.dn_bonustype != DMU_OT_DSL_DATASET)
+	return grub_error(GRUB_ERR_BAD_FS, "incorrect dataset dnode type");
+
       if (err)
 	{
 	  grub_free (fsname);
@@ -4015,7 +4018,7 @@ fill_fs_info (struct grub_dirhook_info *info,
 
   info->dir = 1;
 
-  if (mdn.dn.dn_type == DMU_OT_DSL_DIR)
+  if (mdn.dn.dn_type == DMU_OT_DSL_DIR || mdn.dn.dn_bonustype == DMU_OT_DSL_DIR)
     {
       headobj = grub_zfs_to_cpu64 (((dsl_dir_phys_t *) DN_BONUS (&mdn.dn))->dd_head_dataset_obj, mdn.endian);
 
@@ -4167,8 +4170,10 @@ iterate_zap_fs (const char *name, grub_uint64_t val,
       grub_errno = 0;
       return 0;
     }
-  if (mdn.dn.dn_type != DMU_OT_DSL_DIR)
+  if (mdn.dn.dn_type != DMU_OT_DSL_DIR && mdn.dn.dn_bonustype != DMU_OT_DSL_DIR) {
+    grub_dprintf ("zfs", "type = 0x%x, val = 0x%llx\n", mdn.dn.dn_type, (long long)val);
     return 0;
+  }
 
   err = fill_fs_info (&info, &mdn, ctx->data);
   if (err)
@@ -4198,7 +4203,7 @@ iterate_zap_snap (const char *name, grub_uint64_t val,
       return 0;
     }
 
-  if (mdn.dn.dn_type != DMU_OT_DSL_DATASET)
+  if (mdn.dn.dn_type != DMU_OT_DSL_DATASET && mdn.dn.dn_bonustype != DMU_OT_DSL_DATASET)
     return 0;
 
   err = fill_fs_info (&info, &mdn, ctx->data);
@@ -4270,7 +4275,10 @@ grub_zfs_dir (grub_device_t device, const char *path,
 
       zap_iterate_u64 (&dn, iterate_zap_fs, data, &ctx);
 
-      err = dnode_get (&(data->mos), headobj, DMU_OT_DSL_DATASET, &dn, data);
+      err = dnode_get (&(data->mos), headobj, 0, &dn, data);
+      if (!err && dn.dn.dn_type != DMU_OT_DSL_DATASET && dn.dn.dn_bonustype != DMU_OT_DSL_DATASET)
+	return grub_error(GRUB_ERR_BAD_FS, "incorrect dataset dnode type");
+
       if (err)
 	{
 	  zfs_unmount (data);
