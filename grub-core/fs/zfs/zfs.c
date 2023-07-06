@@ -2684,8 +2684,8 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
   blkid = objnum >> epbs;
   idx = objnum & ((1 << epbs) - 1);
 
-  if (data->dnode_buf != NULL && grub_memcmp (data->dnode_mdn, mdn,
-					      sizeof (*mdn)) == 0
+  if (data->dnode_buf != NULL && grub_memcmp (data->dnode_mdn, &mdn->dn,
+					      sizeof (mdn->dn)) == 0
       && objnum >= data->dnode_start && objnum < data->dnode_end)
     {
       grub_memmove (&(buf->dn), &(data->dnode_buf)[idx], DNODE_SIZE);
