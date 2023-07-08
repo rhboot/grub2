@@ -151,7 +151,7 @@ VARIABLE(grub_relocator64_rdx)
 
 #if defined (__APPLE__) || !defined (__x86_64__)
 	.byte 0xff, 0x25
-	.quad 0
+	.long 0
 #else
 	jmp *LOCAL(jump_addr) (%rip)
 #endif
