@@ -88,10 +88,9 @@ SUFFIX (grub_freebsd_load_elfmodule_obj) (struct grub_relocator *relocator,
   Elf_Shnum shnum;
   grub_addr_t curload, module;
   grub_err_t err;
-  grub_size_t chunk_size = 0;
   void *chunk_src;
 
-  curload = module = ALIGN_PAGE (*kern_end);
+  module = ALIGN_PAGE (*kern_end);
 
   err = read_headers (file, argv[0], &e, &shdr);
   if (err != GRUB_ERR_NONE)
@@ -101,6 +100,8 @@ SUFFIX (grub_freebsd_load_elfmodule_obj) (struct grub_relocator *relocator,
   if (err != GRUB_ERR_NONE)
     goto out;
 
+  curload = module;
+
   for (s = shdr; s < (Elf_Shdr *) ((grub_uint8_t *) shdr + shnum * e.e_shentsize);
        s = (Elf_Shdr *) ((grub_uint8_t *) s + e.e_shentsize))
     {
@@ -108,20 +109,23 @@ SUFFIX (grub_freebsd_load_elfmodule_obj) (struct grub_relocator *relocator,
 	continue;
 
       if (s->sh_addralign)
-	chunk_size = ALIGN_UP (chunk_size + *kern_end, s->sh_addralign)
-	  - *kern_end;
+	curload = ALIGN_UP (curload, s->sh_addralign);
 
-      chunk_size += s->sh_size;
+      curload += s->sh_size;
     }
+
+  *kern_end = ALIGN_PAGE (curload);
 
   {
     grub_relocator_chunk_t ch;
     err = grub_relocator_alloc_chunk_addr (relocator, &ch,
-					   module, chunk_size);
+					   module, curload - module);
     if (err != GRUB_ERR_NONE)
       goto out;
     chunk_src = get_virtual_current_address (ch);
   }
+
+  curload = module;
 
   for (s = shdr; s < (Elf_Shdr *) ((grub_uint8_t *) shdr + shnum * e.e_shentsize);
        s = (Elf_Shdr *) ((grub_uint8_t *) s + e.e_shentsize))
@@ -141,13 +145,13 @@ SUFFIX (grub_freebsd_load_elfmodule_obj) (struct grub_relocator *relocator,
 	{
 	default:
 	case SHT_PROGBITS:
-	  err = load (file, argv[0], (grub_uint8_t *) chunk_src + curload - *kern_end,
+	  err = load (file, argv[0], (grub_uint8_t *) chunk_src + curload - module,
 		      s->sh_offset, s->sh_size);
 	  if (err != GRUB_ERR_NONE)
 	    goto out;
 	  break;
 	case SHT_NOBITS:
-	  grub_memset ((grub_uint8_t *) chunk_src + curload - *kern_end, 0,
+	  grub_memset ((grub_uint8_t *) chunk_src + curload - module, 0,
 		       s->sh_size);
 	  break;
 	}
