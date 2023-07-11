@@ -225,7 +225,7 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	console=console;;
 esac
 
-timeout=60
+timeout=${GRUB_SHELL_DEFAULT_TIMEOUT:-60}
 mkimage_extra_arg=
 debug=${GRUB_SHELL_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}
 
