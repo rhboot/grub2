@@ -660,10 +660,11 @@ GDB is started from the @file{grub-core} directory in the GRUB2 build
 directory. GRUB2 developers have made this more simple by including a GDB
 script which does much of the setup. This file is at @file{grub-core/gdb_grub}
 in the build directory and is also installed via @command{make install}.
-If not building GRUB, the distribution may have a package which installs
+When using a pre-built GRUB, the distribution may have a package which installs
 this GDB script along with debug symbol binaries, such as Debian's
 @samp{grub-pc-dbg} package. The GDB script is intended to be used
-like so, assuming:
+like so, assuming that @samp{/path/to/script} is the path to the directory
+containing the gdb_grub script and debug symbol files:
 
 @example
 cd $(dirname /path/to/script/gdb_grub)
