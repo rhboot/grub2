@@ -422,7 +422,9 @@ fi
 
 if [ x$boot != xnet ] && [ x$boot != xemu ]; then
     pkgdatadir="${builddir}" \
-    exec_show_error "${builddir}/grub-mkrescue" "--output=${isofile}" \
+    exec_show_error "${builddir}/grub-mkrescue" \
+	${debug:+$([ "$debug" -gt 2 ] && echo -n "--verbose")} \
+	"--output=${isofile}" \
 	"--override-directory=${builddir}/grub-core" \
 	--rom-directory="${rom_directory}" \
 	--locale-directory="${srcdir}/po" \
