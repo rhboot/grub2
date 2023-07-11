@@ -37,6 +37,8 @@ keyfile_offset=
 keyfile_size=
 KEYFILE_SIZE_MAX=4096
 
+debug="${GRUB_SHELL_LUKS_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}"
+
 # Usage: usage
 # Print the usage.
 usage () {
@@ -350,7 +352,7 @@ if [ -n "$detached_header" ]; then
 fi
 
 # Run the test in grub-shell
-@builddir@/grub-shell ${debug:+--debug} $grub_shell_opts \
+@builddir@/grub-shell ${debug:+--debug=$debug} $grub_shell_opts \
     --modules="$modules" --qemu-opts="$qemuopts" \
     --files="${grub_testvars}=${testvars}" "$testcase" \
     >$testoutput
