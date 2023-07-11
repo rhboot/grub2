@@ -248,6 +248,8 @@ for option in "$@"; do
 	trim=0 ;;
     --debug)
         debug=$((debug+1)) ;;
+    --debug=*)
+        debug=$((`echo "$option" | sed -e 's/--debug=//'`)) ;;
     --modules=*)
 	ms=`echo "$option" | sed -e 's/--modules=//' -e 's/,/ /g'`
 	modules="$modules $ms" ;;
