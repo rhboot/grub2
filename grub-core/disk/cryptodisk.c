@@ -1504,9 +1504,8 @@ luks_script_get (grub_size_t *sz)
 	ptr = grub_stpcpy (ptr, "luks_mount ");
 	ptr = grub_stpcpy (ptr, i->uuid);
 	*ptr++ = ' ';
-	grub_snprintf (ptr, 21, "%" PRIuGRUB_UINT64_T " ", i->offset_sectors);
-	while (*ptr)
-	  ptr++;
+	ptr += grub_snprintf (ptr, 21, "%" PRIxGRUB_OFFSET, i->offset_sectors);
+	*ptr++ = ' ';
 	for (iptr = i->cipher->cipher->name; *iptr; iptr++)
 	  *ptr++ = grub_tolower (*iptr);
 	switch (i->mode)
