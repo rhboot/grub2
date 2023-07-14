@@ -257,7 +257,10 @@ grub_cmd_serial (grub_extcmd_context_t ctxt, int argc, char **args)
     {
       if (grub_strncmp (state[OPTION_PORT].arg, "mmio,", sizeof ("mmio,") - 1) == 0 ||
 	  grub_strncmp (state[OPTION_PORT].arg, "pci,", sizeof ("pci,") - 1) == 0)
-	grub_strncpy (pname, state[1].arg, sizeof (pname));
+	{
+	  grub_strncpy (pname, state[1].arg, sizeof (pname));
+	  pname[sizeof (pname) - 1] = '\0';
+	}
       else
 	grub_snprintf (pname, sizeof (pname), "port%lx",
 		       grub_strtoul (state[1].arg, 0, 0));
