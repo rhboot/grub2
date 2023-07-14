@@ -1479,12 +1479,22 @@ luks_script_get (grub_size_t *sz)
   *sz = 0;
 
   for (i = cryptodisk_list; i != NULL; i = i->next)
-    if (grub_strcmp (i->modname, "luks") == 0)
+    if (grub_strcmp (i->modname, "luks") == 0 ||
+	grub_strcmp (i->modname, "luks2") == 0)
       {
-	size += sizeof ("luks_mount ");
+	size += grub_strlen (i->modname);
+	size += sizeof ("_mount");
 	size += grub_strlen (i->uuid);
 	size += grub_strlen (i->cipher->cipher->name);
-	size += 54;
+	/*
+	 * Add space in the line for (in order) spaces, cipher mode, cipher IV
+	 * mode, sector offset, sector size and the trailing newline. This is
+	 * an upper bound on the size of this data. There are 15 extra bytes
+	 * in an earlier version of this code that are unaccounted for. It is
+	 * left in the calculations in case it is needed. At worst, its short-
+	 * lived wasted space.
+	 */
+	size += 5 + 5 + 8 + 20 + 6 + 1 + 15;
 	if (i->essiv_hash)
 	  size += grub_strlen (i->essiv_hash->name);
 	size += i->keysize * 2;
@@ -1497,14 +1507,18 @@ luks_script_get (grub_size_t *sz)
   ptr = ret;
 
   for (i = cryptodisk_list; i != NULL; i = i->next)
-    if (grub_strcmp (i->modname, "luks") == 0)
+    if (grub_strcmp (i->modname, "luks") == 0 ||
+	grub_strcmp (i->modname, "luks2") == 0)
       {
 	unsigned j;
 	const char *iptr;
-	ptr = grub_stpcpy (ptr, "luks_mount ");
+	ptr = grub_stpcpy (ptr, i->modname);
+	ptr = grub_stpcpy (ptr, "_mount ");
 	ptr = grub_stpcpy (ptr, i->uuid);
 	*ptr++ = ' ';
 	ptr += grub_snprintf (ptr, 21, "%" PRIxGRUB_OFFSET, i->offset_sectors);
+	*ptr++ = ' ';
+	ptr += grub_snprintf (ptr, 7, "%u", 1 << i->log_sector_size);
 	*ptr++ = ' ';
 	for (iptr = i->cipher->cipher->name; *iptr; iptr++)
 	  *ptr++ = grub_tolower (*iptr);
