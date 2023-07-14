@@ -64,12 +64,18 @@ grub_cmd_lsefisystab (struct grub_command *cmd __attribute__ ((unused)),
 		      char **args __attribute__ ((unused)))
 {
   const grub_efi_system_table_t *st = grub_efi_system_table;
+  const grub_efi_uint32_t major_rev = st->hdr.revision >> 16;
+  const grub_efi_uint32_t minor_rev_upper = (st->hdr.revision & 0xffff) / 10;
+  const grub_efi_uint32_t minor_rev_lower = (st->hdr.revision & 0xffff) % 10;
   grub_efi_configuration_table_t *t;
   unsigned int i;
 
   grub_printf ("Address: %p\n", st);
-  grub_printf ("Signature: %016" PRIxGRUB_UINT64_T " revision: %08x\n",
-	       st->hdr.signature, st->hdr.revision);
+  grub_printf ("Signature: %016" PRIxGRUB_UINT64_T " revision: %u.%u",
+	       st->hdr.signature, major_rev, minor_rev_upper);
+  if (minor_rev_lower)
+     grub_printf (".%u", minor_rev_lower);
+  grub_printf ("\n");
   {
     char *vendor;
     grub_uint16_t *vendor_utf16;
