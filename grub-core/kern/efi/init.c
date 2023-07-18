@@ -102,7 +102,7 @@ stack_protector_init (void)
 
 grub_addr_t grub_modbase;
 
-void
+__attribute__ ((__optimize__ ("-fno-stack-protector"))) void
 grub_efi_init (void)
 {
   grub_modbase = grub_efi_section_addr ("mods");
