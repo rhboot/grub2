@@ -1609,7 +1609,7 @@ if test "$platform" = emu; then
             AC_SUBST(HAVE_SDL2)],
             [grub_emu_sdl2_excuse="libSDL2 libraries are required to build \`grub-emu' with SDL2 support"])
   [fi]
-  if test x"enable_grub_emu_sdl2" = xyes && test x"$grub_emu_sdl2_excuse" != x ; then
+  if test x"$enable_grub_emu_sdl2" = xyes && test x"$grub_emu_sdl2_excuse" != x ; then
     AC_MSG_ERROR([SDL2 support for grub-emu was explicitly requested but can't be compiled ($grub_emu_sdl2_excuse)])
   fi
   if test x"$grub_emu_sdl2_excuse" = x ; then
