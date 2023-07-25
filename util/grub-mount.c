@@ -198,6 +198,7 @@ fuse_getattr (const char *path, struct stat *st,
   (fs->fs_dir) (dev, path2, fuse_getattr_find_file, &ctx);
 
   grub_free (path2);
+  free (pathname);
   if (!ctx.file_exists)
     {
       grub_errno = GRUB_ERR_NONE;
