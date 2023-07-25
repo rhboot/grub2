@@ -17,6 +17,8 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stddef.h> /* offsetof() */
+
 #include <grub/kernel.h>
 #include <grub/dl.h>
 #include <grub/disk.h>
@@ -198,6 +200,96 @@ grub_claim_heap (void)
 #else
 /* Helpers for mm on powerpc. */
 
+/* ibm,kernel-dump data structures */
+struct kd_section
+{
+  grub_uint32_t flags;
+  grub_uint16_t src_datatype;
+#define KD_SRC_DATATYPE_REAL_MODE_REGION  0x0011
+  grub_uint16_t error_flags;
+  grub_uint64_t src_address;
+  grub_uint64_t num_bytes;
+  grub_uint64_t act_bytes;
+  grub_uint64_t dst_address;
+} GRUB_PACKED;
+
+#define MAX_KD_SECTIONS 10
+
+struct kernel_dump
+{
+  grub_uint32_t format;
+  grub_uint16_t num_sections;
+  grub_uint16_t status_flags;
+  grub_uint32_t offset_1st_section;
+  grub_uint32_t num_blocks;
+  grub_uint64_t start_block;
+  grub_uint64_t num_blocks_avail;
+  grub_uint32_t offet_path_string;
+  grub_uint32_t max_time_allowed;
+  struct kd_section kds[MAX_KD_SECTIONS]; /* offset_1st_section should point to kds[0] */
+} GRUB_PACKED;
+
+/*
+ * Determine if a kernel dump exists and if it does, then determine the highest
+ * address that grub can use for memory allocations.
+ * The caller must have initialized *highest to rmo_top. *highest will not
+ * be modified if no kernel dump is found.
+ */
+static void
+check_kernel_dump (grub_uint64_t *highest)
+{
+  struct kernel_dump kernel_dump;
+  grub_ssize_t kernel_dump_size;
+  grub_ieee1275_phandle_t rtas;
+  struct kd_section *kds;
+  grub_size_t i;
+
+  /* If there's a kernel-dump it must have at least one section */
+  if (grub_ieee1275_finddevice ("/rtas", &rtas) ||
+      grub_ieee1275_get_property (rtas, "ibm,kernel-dump", &kernel_dump,
+                                  sizeof (kernel_dump), &kernel_dump_size) ||
+      kernel_dump_size <= (grub_ssize_t) offsetof (struct kernel_dump, kds[1]))
+    return;
+
+  kernel_dump_size = grub_min (kernel_dump_size, (grub_ssize_t) sizeof (kernel_dump));
+
+  if (grub_be_to_cpu32 (kernel_dump.format) != 1)
+    {
+      grub_printf (_("Error: ibm,kernel-dump has an unexpected format version '%u'\n"),
+                   grub_be_to_cpu32 (kernel_dump.format));
+      return;
+    }
+
+  if (grub_be_to_cpu16 (kernel_dump.num_sections) > MAX_KD_SECTIONS)
+    {
+      grub_printf (_("Error: Too many kernel dump sections: %d\n"),
+                   grub_be_to_cpu32 (kernel_dump.num_sections));
+      return;
+    }
+
+  for (i = 0; i < grub_be_to_cpu16 (kernel_dump.num_sections); i++)
+    {
+      kds = (struct kd_section *) ((grub_addr_t) &kernel_dump +
+                                   grub_be_to_cpu32 (kernel_dump.offset_1st_section) +
+                                   i * sizeof (struct kd_section));
+      /* sanity check the address is within the 'kernel_dump' struct */
+      if ((grub_addr_t) kds > (grub_addr_t) &kernel_dump + kernel_dump_size + sizeof (*kds))
+        {
+          grub_printf (_("Error: 'kds' address beyond last available section\n"));
+          return;
+        }
+
+      if ((grub_be_to_cpu16 (kds->src_datatype) == KD_SRC_DATATYPE_REAL_MODE_REGION) &&
+          (grub_be_to_cpu64 (kds->src_address) == 0))
+        {
+          *highest = grub_min (*highest, grub_be_to_cpu64 (kds->num_bytes));
+          break;
+        }
+    }
+
+  return;
+}
+
 /*
  * How much memory does OF believe exists in total?
  *
@@ -277,9 +369,30 @@ regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
    *
    * Finally, we also want to make sure that when grub loads the kernel,
    * it isn't going to use up all the memory we're trying to reserve! So
-   * enforce our entire RUNTIME_MIN_SPACE here:
+   * enforce our entire RUNTIME_MIN_SPACE here (no fadump):
+   *
+   * | Top of memory == upper_mem_limit -|
+   * |                                   |
+   * |             available             |
+   * |                                   |
+   * |----------     768 MB    ----------|
+   * |                                   |
+   * |              reserved             |
+   * |                                   |
+   * |--- 768 MB - runtime min space  ---|
+   * |                                   |
+   * |             available             |
+   * |                                   |
+   * |----------      0 MB     ----------|
+   *
+   * In case fadump is used, we allow the following:
    *
    * |---------- Top of memory ----------|
+   * |                                   |
+   * |             unavailable           |
+   * |         (kernel dump area)        |
+   * |                                   |
+   * |--------- upper_mem_limit ---------|
    * |                                   |
    * |             available             |
    * |                                   |
@@ -335,17 +448,44 @@ regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
         }
       else
         {
+          grub_uint64_t upper_mem_limit = rmo_top;
+          grub_uint64_t orig_addr = addr;
+
+          check_kernel_dump (&upper_mem_limit);
+
           /*
            * we order these cases to prefer higher addresses and avoid some
            * splitting issues
+           * The following shows the order of variables:
+           *  no   kernel dump: linux_rmo_save < RMO_ADDR_MAX <= upper_mem_limit == rmo_top
+           *  with kernel dump: liuxx_rmo_save < RMO_ADDR_MAX <= upper_mem_limit <= rmo_top
            */
-          if (addr < RMO_ADDR_MAX && (addr + len) > RMO_ADDR_MAX)
+          if (addr < RMO_ADDR_MAX && (addr + len) > RMO_ADDR_MAX && upper_mem_limit >= RMO_ADDR_MAX)
             {
               grub_dprintf ("ieee1275",
                             "adjusting region for RUNTIME_MIN_SPACE: (%llx -> %llx) -> (%llx -> %llx)\n",
                             addr, addr + len, RMO_ADDR_MAX, addr + len);
               len = (addr + len) - RMO_ADDR_MAX;
               addr = RMO_ADDR_MAX;
+
+              /* We must not exceed the upper_mem_limit (assuming it's >= RMO_ADDR_MAX) */
+              if (addr + len > upper_mem_limit)
+                {
+                  /* take the bigger chunk from either below linux_rmo_save or above upper_mem_limit */
+                  len = upper_mem_limit - addr;
+                  if (orig_addr < linux_rmo_save && linux_rmo_save - orig_addr > len)
+                    {
+                      /* lower part is bigger */
+                      addr = orig_addr;
+                      len = linux_rmo_save - addr;
+                    }
+
+                  grub_dprintf ("ieee1275", "re-adjusted region to: (%llx -> %llx)\n",
+                                addr, addr + len);
+
+                  if (len == 0)
+                    return 0;
+                }
             }
           else if ((addr < linux_rmo_save) && ((addr + len) > linux_rmo_save))
             {
