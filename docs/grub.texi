@@ -4507,6 +4507,12 @@ will be displayed as a simple new line.  Otherwise, the carriage return will
 be displayed as a control character (@samp{<d>}) to make it easier to see
 when boot problems are caused by a file formatted using DOS-style line
 endings.
+
+Note: @command{cat} can be used to view the contents of devices using the
+block list syntax (@pxref{Block list syntax}). However, it is not advised
+to view binary data because it will try to decode UTF-8 strings, which can
+lead to some bytes missing or added in the output. Instead, use the
+@command{hexdump} command (@pxref{hexdump}).
 @end deffn
 
 
