@@ -104,15 +104,7 @@ This edition documents version @value{VERSION}.
 * Platform-specific operations:: Platform-specific operations
 * Supported kernels::           Supported kernels
 * Troubleshooting::             Error messages produced by GRUB
-* Invoking grub-install::       How to use the GRUB installer
-* Invoking grub-mkconfig::      Generate a GRUB configuration file
-* Invoking grub-mkpasswd-pbkdf2::
-                                Generate GRUB password hashes
-* Invoking grub-mkrelpath::     Make system path relative to its root
-* Invoking grub-mkrescue::      Make a GRUB rescue image
-* Invoking grub-mount::         Mount a file system using GRUB
-* Invoking grub-probe::         Probe device information for GRUB
-* Invoking grub-script-check::  Check GRUB script file for syntax errors
+* User-space utilities::        Usage of user-space utilities
 * Obtaining and Building GRUB:: How to obtain and build GRUB
 * Reporting bugs::              Where you should send a bug report
 * Future::                      Some future plans on GRUB
@@ -6995,8 +6987,24 @@ entry which claims partition start at block 0. This change will not hamper
 bootability on other machines.
 
 
+@node User-space utilities
+@chapter User-space utilities
+
+@menu
+* Invoking grub-install::       How to use the GRUB installer
+* Invoking grub-mkconfig::      Generate a GRUB configuration file
+* Invoking grub-mkpasswd-pbkdf2::
+                                Generate GRUB password hashes
+* Invoking grub-mkrelpath::     Make system path relative to its root
+* Invoking grub-mkrescue::      Make a GRUB rescue image
+* Invoking grub-mount::         Mount a file system using GRUB
+* Invoking grub-probe::         Probe device information for GRUB
+* Invoking grub-script-check::  Check GRUB script file for syntax errors
+@end menu
+
+
 @node Invoking grub-install
-@chapter Invoking grub-install
+@section Invoking grub-install
 
 The program @command{grub-install} generates a GRUB core image using
 @command{grub-mkimage} and installs it on your system.  You must specify the
@@ -7062,7 +7070,7 @@ outside of the MBR.  Disable the Reed-Solomon codes with this option.
 @end table
 
 @node Invoking grub-mkconfig
-@chapter Invoking grub-mkconfig
+@section Invoking grub-mkconfig
 
 The program @command{grub-mkconfig} generates a configuration file for GRUB
 (@pxref{Simple configuration}).
@@ -7088,7 +7096,7 @@ it to standard output.
 
 
 @node Invoking grub-mkpasswd-pbkdf2
-@chapter Invoking grub-mkpasswd-pbkdf2
+@section Invoking grub-mkpasswd-pbkdf2
 
 The program @command{grub-mkpasswd-pbkdf2} generates password hashes for
 GRUB (@pxref{Security}).
@@ -7116,7 +7124,7 @@ Length of the salt.  Defaults to 64.
 
 
 @node Invoking grub-mkrelpath
-@chapter Invoking grub-mkrelpath
+@section Invoking grub-mkrelpath
 
 The program @command{grub-mkrelpath} makes a file system path relative to
 the root of its containing file system.  For instance, if @file{/usr} is a
@@ -7143,7 +7151,7 @@ Print the version number of GRUB and exit.
 
 
 @node Invoking grub-mkrescue
-@chapter Invoking grub-mkrescue
+@section Invoking grub-mkrescue
 
 The program @command{grub-mkrescue} generates a bootable GRUB rescue image
 (@pxref{Making a GRUB bootable CD-ROM}).
@@ -7201,7 +7209,7 @@ built-in default.
 
 
 @node Invoking grub-mount
-@chapter Invoking grub-mount
+@section Invoking grub-mount
 
 The program @command{grub-mount} performs a read-only mount of any file
 system or file system image that GRUB understands, using GRUB's file system
@@ -7288,7 +7296,7 @@ Print verbose messages.
 
 
 @node Invoking grub-probe
-@chapter Invoking grub-probe
+@section Invoking grub-probe
 
 The program @command{grub-probe} probes device information for a given path
 or device.
@@ -7374,7 +7382,7 @@ Print verbose messages.
 
 
 @node Invoking grub-script-check
-@chapter Invoking grub-script-check
+@section Invoking grub-script-check
 
 The program @command{grub-script-check} takes a GRUB script file
 (@pxref{Shell-like scripting}) and checks it for syntax errors, similar to
