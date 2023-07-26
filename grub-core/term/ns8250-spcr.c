@@ -18,6 +18,7 @@
 
 #if !defined(GRUB_MACHINE_IEEE1275) && !defined(GRUB_MACHINE_QEMU)
 
+#include <grub/misc.h>
 #include <grub/serial.h>
 #include <grub/ns8250.h>
 #include <grub/types.h>
@@ -34,7 +35,8 @@ grub_ns8250_spcr_init (void)
   if (spcr == NULL)
     return NULL;
   if (spcr->hdr.revision < 2)
-    return NULL;
+    grub_dprintf ("serial", "SPCR table revision %d < 2, continuing anyway\n",
+		  (int) spcr->hdr.revision);
   if (spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550 &&
       spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550X)
     return NULL;
