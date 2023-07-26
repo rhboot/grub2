@@ -4327,6 +4327,7 @@ you forget a command, you can run the command @command{help}
 * halt::                        Shut down your computer
 * hashsum::                     Compute or check hash checksum
 * help::                        Show help messages
+* hexdump::                     Show raw contents of a file or memory
 * insmod::                      Insert a module
 * keystatus::                   Check key modifier status
 * list_env::                    List variables in environment block
@@ -4942,6 +4943,20 @@ available commands.
 
 If you specify any @var{patterns}, it displays longer information
 about each of the commands whose names begin with those @var{patterns}.
+@end deffn
+
+
+@node hexdump
+@subsection hexdump
+
+@deffn Command hexdump [--skip offset] [--length len] FILE_OR_DEVICE
+Show raw contents of a file or memory. When option @option{--skip} is given,
+@samp{offset} number of bytes are skipped from the start of the device or
+file given. And @option{--length} allows specifying a maximum number of bytes
+to be shown.
+
+If given the special device named @samp{(mem)}, then the @samp{offset} given to
+@option{--skip} is treated as the address of a memory location to dump from.
 @end deffn
 
 
@@ -6131,7 +6146,6 @@ GRUB shell may provide more information on parameters and usage.
 @item @command{gdbstub} -  Start GDB stub on given port
 @item @command{gdbstub_stop} - Stop GDB stub
 @item @command{hdparm} - Get/set ATA disk parameters.
-@item @command{hexdump} - Show raw contents of a file or memory.
 @item @command{hexdump_random} - Hexdump random data.
 @item @command{inb} - Read 8-bit value from PORT.
 @item @command{inl} - Read 32-bit value from PORT.
