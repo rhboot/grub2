@@ -4068,10 +4068,43 @@ load a defective boot loader, such as SCO UnixWare 7.1.
 @subsection initrd
 
 @deffn Command initrd file [file @dots{}]
-Load, in order, all initial ramdisks for a Linux kernel image, and set
-the appropriate parameters in the Linux setup area in memory.  This may only
-be used after the @command{linux} command (@pxref{linux}) has been run.  See
-also @ref{GNU/Linux}.
+Load, in order, all initrds for a Linux kernel image, and set the
+appropriate parameters in the Linux setup area in memory.  This may only
+be used after the @command{linux} command (@pxref{linux}) has been run.
+See @ref{GNU/Linux} for more info on booting GNU/Linux.  For more
+information on initrds see the GNU/Linux kernel
+@uref{https://docs.kernel.org/filesystems/ramfs-rootfs-initramfs.html,
+documentation}.
+
+A new-style initrd (for kernels newer than 2.6) containing one file
+with leading path components can also be generated at run time. This
+can be done by prefixing an argument with @code{newc:} followed by the
+path of the file in the new initrd, a @code{:}, and then the GRUB file
+path to the file data to be be included.
+
+For example:
+@example
+initrd newc:/etc/ssh/config:(hd0,2)/home/user/.ssh/config \
+       newc:/etc/ssh/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key \
+       /boot/initrd.gz \
+       newc:/init:/home/user/init.fixed
+@end example
+
+This command will generate two new-style initrds on the fly. The first
+contains the path @samp{/etc/ssh/config} with the contents of
+@samp{(hd0,2)/home/user/.ssh/config} and the path
+@samp{/etc/ssh/ssh_host_rsa_key} with the contents of
+@samp{/etc/ssh/ssh_host_rsa_key} on the @var{root} device. Parent directory
+paths will automatically be generated as needed. This first generated initrd
+will then have @samp{/boot/initrd.gz} concatenated after it. Next, another
+new-style archive will be generated with the contents of @samp{/home/user/init.fixed}
+in the path @samp{/init} and appended to the previous concatenation. Finally,
+the result will be sent to the kernel when booted.
+
+Keep in mind that paths that come later will take precedence. So in the
+example above, the generated path @samp{/init} will overwrite any @samp{/init}
+in @samp{/boot/initrd.gz}. This can be useful when changing the main initrd
+is undesirable or difficult.
 @end deffn
 
 
@@ -4079,12 +4112,13 @@ also @ref{GNU/Linux}.
 @subsection initrd16
 
 @deffn Command initrd16 file [file @dots{}]
-Load, in order, all initial ramdisks for a Linux kernel image to be booted in
+Load, in order, all initrds for a Linux kernel image to be booted in
 16-bit mode, and set the appropriate parameters in the Linux setup area in
 memory.  This may only be used after the @command{linux16} command
-(@pxref{linux16}) has been run.  See also @ref{GNU/Linux}.
+(@pxref{linux16}) has been run.  See also @ref{GNU/Linux} and the @command{initrd}
+command (@pxref{initrd}) for more details on arguments.
 
-This command is only available on x86 systems.
+This command is only available on the pc platform for x86 systems.
 @end deffn
 
 
