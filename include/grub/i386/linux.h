@@ -69,6 +69,16 @@
 #define GRUB_LINUX_OFW_SIGNATURE	\
   (' ' << 24 | 'W' << 16 | 'F' << 8 | 'O')
 
+#define LINUX_X86_XLF_KERNEL_64			(1<<0)
+#define LINUX_X86_XLF_CAN_BE_LOADED_ABOVE_4G	(1<<1)
+#define LINUX_X86_XLF_EFI_HANDOVER_32		(1<<2)
+#define LINUX_X86_XLF_EFI_HANDOVER_64		(1<<3)
+#define LINUX_X86_XLF_EFI_KEXEC			(1<<4)
+#define LINUX_X86_XLF_5LEVEL			(1<<5)
+#define LINUX_X86_XLF_5LEVEL_ENABLED		(1<<6)
+
+#define LINUX_X86_STARTUP64_OFFSET		0x200
+
 #ifndef ASM_FILE
 
 #define GRUB_E820_RAM        1
@@ -138,7 +148,7 @@ struct linux_i386_kernel_header
   grub_uint32_t kernel_alignment;
   grub_uint8_t relocatable;
   grub_uint8_t min_alignment;
-  grub_uint8_t pad[2];
+  grub_uint16_t xloadflags;
   grub_uint32_t cmdline_size;
   grub_uint32_t hardware_subarch;
   grub_uint64_t hardware_subarch_data;
@@ -315,7 +325,8 @@ struct linux_kernel_params
   grub_uint32_t initrd_addr_max;	/* Maximum initrd address */
   grub_uint32_t kernel_alignment;	/* Alignment of the kernel */
   grub_uint8_t relocatable_kernel;	/* Is the kernel relocatable */
-  grub_uint8_t pad1[3];
+  grub_uint8_t min_alignment;
+  grub_uint16_t xloadflags;
   grub_uint32_t cmdline_size;		/* Size of the kernel command line */
   grub_uint32_t hardware_subarch;
   grub_uint64_t hardware_subarch_data;

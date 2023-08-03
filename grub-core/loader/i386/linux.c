@@ -624,6 +624,18 @@ grub_linux_boot (void)
   }
 #endif
 
+#if defined (__x86_64__) && defined (GRUB_MACHINE_EFI)
+  if (grub_le_to_cpu16 (ctx.params->version) >= 0x020c &&
+      (linux_params.xloadflags & LINUX_X86_XLF_KERNEL_64) != 0)
+    {
+      struct grub_relocator64_efi_state state64;
+
+      state64.rsi = ctx.real_mode_target;
+      state64.rip = ctx.params->code32_start + LINUX_X86_STARTUP64_OFFSET;
+      return grub_relocator64_efi_boot (relocator, state64);
+    }
+#endif
+
   /* FIXME.  */
   /*  asm volatile ("lidt %0" : : "m" (idt_desc)); */
   state.ebp = state.edi = state.ebx = 0;
