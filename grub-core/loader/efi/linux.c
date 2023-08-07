@@ -117,6 +117,9 @@ grub_arch_efi_linux_load_image_header (grub_file_t file,
         return grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read COFF image header");
     }
 
+  if (lh->pe_image_header.optional_header.magic != GRUB_PE32_NATIVE_MAGIC)
+    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "non-native image not supported");
+
   /*
    * Linux kernels built for any architecture are guaranteed to support the
    * LoadFile2 based initrd loading protocol if the image version is >= 1.

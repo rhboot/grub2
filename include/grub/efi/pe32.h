@@ -267,6 +267,12 @@ struct grub_pe32_section_table
 
 #define GRUB_PE32_SIGNATURE_SIZE 4
 
+#if GRUB_TARGET_SIZEOF_VOID_P == 8
+#define GRUB_PE32_NATIVE_MAGIC			GRUB_PE32_PE64_MAGIC
+#else
+#define GRUB_PE32_NATIVE_MAGIC			GRUB_PE32_PE32_MAGIC
+#endif
+
 struct grub_pe_image_header
 {
   /* This is always PE\0\0.  */
