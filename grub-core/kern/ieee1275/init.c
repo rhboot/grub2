@@ -17,6 +17,8 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stddef.h> /* offsetof() */
+
 #include <grub/kernel.h>
 #include <grub/dl.h>
 #include <grub/disk.h>
@@ -180,6 +182,97 @@ grub_claim_heap (void)
 				 + GRUB_KERNEL_MACHINE_STACK_SIZE), 0x200000);
 }
 #else
+
+/* ibm,kernel-dump data structures */
+struct kd_section
+{
+  grub_uint32_t flags;
+  grub_uint16_t src_datatype;
+#define KD_SRC_DATATYPE_REAL_MODE_REGION  0x0011
+  grub_uint16_t error_flags;
+  grub_uint64_t src_address;
+  grub_uint64_t num_bytes;
+  grub_uint64_t act_bytes;
+  grub_uint64_t dst_address;
+} GRUB_PACKED;
+
+#define MAX_KD_SECTIONS 10
+
+struct kernel_dump
+{
+  grub_uint32_t format;
+  grub_uint16_t num_sections;
+  grub_uint16_t status_flags;
+  grub_uint32_t offset_1st_section;
+  grub_uint32_t num_blocks;
+  grub_uint64_t start_block;
+  grub_uint64_t num_blocks_avail;
+  grub_uint32_t offet_path_string;
+  grub_uint32_t max_time_allowed;
+  struct kd_section kds[MAX_KD_SECTIONS]; /* offset_1st_section should point to kds[0] */
+} GRUB_PACKED;
+
+/*
+ * Determine if a kernel dump exists and if it does, then determine the highest
+ * address that grub can use for memory allocations.
+ * The caller must have initialized *highest to ~0. *highest will not
+ * be modified if no kernel dump is found.
+ */
+static int
+check_kernel_dump (grub_uint64_t *highest)
+{
+  struct kernel_dump kernel_dump;
+  grub_ssize_t kernel_dump_size;
+  grub_ieee1275_phandle_t rtas;
+  struct kd_section *kds;
+  grub_size_t i;
+
+  /* If there's a kernel-dump it must have at least one section */
+  if (grub_ieee1275_finddevice ("/rtas", &rtas) ||
+      grub_ieee1275_get_property (rtas, "ibm,kernel-dump", &kernel_dump,
+                                  sizeof (kernel_dump), &kernel_dump_size) ||
+      kernel_dump_size <= (grub_ssize_t) offsetof (struct kernel_dump, kds[1]))
+    return 0;
+
+  kernel_dump_size = grub_min (kernel_dump_size, (grub_ssize_t) sizeof (kernel_dump));
+
+  if (grub_be_to_cpu32 (kernel_dump.format) != 1)
+    {
+      grub_printf (_("Error: ibm,kernel-dump has an unexpected format version '%u'\n"),
+                   grub_be_to_cpu32 (kernel_dump.format));
+      return 0;
+    }
+
+  if (grub_be_to_cpu16 (kernel_dump.num_sections) > MAX_KD_SECTIONS)
+    {
+      grub_printf (_("Error: Too many kernel dump sections: %d\n"),
+                   grub_be_to_cpu32 (kernel_dump.num_sections));
+      return 0;
+    }
+
+  for (i = 0; i < grub_be_to_cpu16 (kernel_dump.num_sections); i++)
+    {
+      kds = (struct kd_section *) ((grub_addr_t) &kernel_dump +
+                                   grub_be_to_cpu32 (kernel_dump.offset_1st_section) +
+                                   i * sizeof (struct kd_section));
+      /* sanity check the address is within the 'kernel_dump' struct */
+      if ((grub_addr_t) kds > (grub_addr_t) &kernel_dump + kernel_dump_size + sizeof (*kds))
+        {
+          grub_printf (_("Error: 'kds' address beyond last available section\n"));
+          return 0;
+        }
+
+      if ((grub_be_to_cpu16 (kds->src_datatype) == KD_SRC_DATATYPE_REAL_MODE_REGION) &&
+          (grub_be_to_cpu64 (kds->src_address) == 0))
+        {
+          *highest = grub_min (*highest, grub_be_to_cpu64 (kds->num_bytes));
+          break;
+        }
+    }
+
+  return 1;
+}
+
 /* Helper for grub_claim_heap on powerpc. */
 static int
 heap_size (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
@@ -207,7 +300,9 @@ static int
 heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
 	   void *data)
 {
+  grub_uint64_t upper_mem_limit = ~0;
   grub_uint32_t total = *(grub_uint32_t *)data;
+  int has_kernel_dump;
 
   if (type != GRUB_MEMORY_AVAILABLE)
     return 0;
@@ -241,6 +336,50 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
     {
       grub_printf ("Warning: attempt to claim over our own code!\n");
       len = 0;
+    }
+
+  has_kernel_dump = check_kernel_dump (&upper_mem_limit);
+  if (has_kernel_dump)
+    {
+      grub_uint64_t lo_len = 0, hi_len = 0;
+
+      if (addr > upper_mem_limit || upper_mem_limit == (grub_uint64_t)~0)
+        return 0;
+
+      /* limit len to stay below upper_mem_limit */
+      if (addr < upper_mem_limit && (addr + len) > upper_mem_limit)
+        {
+           len = grub_min (len, upper_mem_limit - addr);
+        }
+
+      /* We can allocate below 640MB or above 768MB.
+       * Choose the bigger chunk below 640MB or above 768MB.
+       */
+      if (addr < 0x28000000)
+        {
+           lo_len = grub_min (len, 0x28000000 - addr);
+        }
+      if (addr + len > 0x30000000)
+        {
+           if (addr < 0x30000000)
+             hi_len = len - (0x30000000 - addr);
+           else
+             hi_len = len;
+        }
+
+      if (hi_len > lo_len)
+        {
+           len = hi_len;
+           if (addr < 0x30000000)
+             addr = 0x30000000;
+        }
+      else
+        {
+           len = lo_len;
+        }
+
+      if (len == 0)
+        return 0;
     }
 
   /* If this block contains 0x30000000 (768MB), do not claim below that.
