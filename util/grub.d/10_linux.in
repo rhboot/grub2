@@ -265,7 +265,9 @@ if [ -z "\${kernelopts}" ]; then
 fi
 EOF
 
-  if [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ]; then
+  if [ "x${GRUB_UPDATE_BLS_CMDLINE}" = "xyes" ] || \
+	  ( [ -w /etc/kernel ] && [[ ! -f /etc/kernel/cmdline ]] && \
+	  [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ] ); then
       update_bls_cmdline
   fi
 
