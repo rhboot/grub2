@@ -6,3 +6,6 @@ ConditionPathExists=/run/systemd/reboot-to-boot-loader-menu
 
 [Service]
 ExecStart=@libexecdir@/@grubdirname@/systemd-integration.sh
+
+[Install]
+WantedBy=reboot.target
