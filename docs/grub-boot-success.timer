@@ -5,3 +5,6 @@ ConditionVirtualization=!container
 
 [Timer]
 OnActiveSec=2min
+
+[Install]
+WantedBy=timers.target
