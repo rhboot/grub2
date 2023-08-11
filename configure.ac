@@ -1020,6 +1020,19 @@ if test x"$target_cpu" = xsparc64 ; then
   TARGET_LDFLAGS="$TARGET_LDFLAGS $grub_cv_target_cc_mno_relax"
 fi
 
+# The backtrace module relies on frame pointers and the default optimization
+# level, -Os, omits them. Make sure they are enabled.
+AC_CACHE_CHECK([whether -fno-omit-frame-pointer works], [grub_cv_cc_fno_omit_frame_pointer], [
+  CFLAGS="$TARGET_CFLAGS -fno-omit-frame-pointer"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+      [grub_cv_cc_fno_omit_frame_pointer=yes],
+      [grub_cv_cc_fno_omit_frame_pointer=no])
+])
+
+if test "x$grub_cv_cc_fno_omit_frame_pointer" = xyes; then
+  TARGET_CFLAGS="$TARGET_CFLAGS -fno-omit-frame-pointer"
+fi
+
 # By default, GCC 4.4 generates .eh_frame sections containing unwind
 # information in some cases where it previously did not. GRUB doesn't need
 # these and they just use up vital space. Restore the old compiler
