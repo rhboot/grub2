@@ -229,6 +229,9 @@ static struct grub_partition_map grub_gpt_partition_map =
 
 GRUB_MOD_INIT(part_gpt)
 {
+  COMPILE_TIME_ASSERT(sizeof(grub_guid_t) == 16);
+  COMPILE_TIME_ASSERT(sizeof(grub_packed_guid_t) == 16);
+  COMPILE_TIME_ASSERT(sizeof(struct grub_gpt_partentry) == 128);
   grub_partition_map_register (&grub_gpt_partition_map);
 }
 
