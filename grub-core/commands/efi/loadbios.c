@@ -92,7 +92,6 @@ lock_rom_area (void)
 static void
 fake_bios_data (int use_rom)
 {
-  unsigned i;
   void *acpi, *smbios;
   grub_uint16_t *ebda_seg_ptr, *low_mem_ptr;
 
@@ -101,33 +100,15 @@ fake_bios_data (int use_rom)
   if ((*ebda_seg_ptr) || (*low_mem_ptr))
     return;
 
-  acpi = 0;
-  smbios = 0;
-  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
-    {
-      grub_guid_t *guid =
-	&grub_efi_system_table->configuration_table[i].vendor_guid;
+  acpi = grub_efi_find_configuration_table (&acpi2_guid);
+  grub_dprintf ("efi", "ACPI2: %p\n", acpi);
+  if (!acpi) {
+    acpi = grub_efi_find_configuration_table (&acpi_guid);
+    grub_dprintf ("efi", "ACPI: %p\n", acpi);
+  }
 
-      if (! grub_memcmp (guid, &acpi2_guid, sizeof (grub_guid_t)))
-	{
-	  acpi = grub_efi_system_table->configuration_table[i].vendor_table;
-	  grub_dprintf ("efi", "ACPI2: %p\n", acpi);
-	}
-      else if (! grub_memcmp (guid, &acpi_guid, sizeof (grub_guid_t)))
-	{
-	  void *t;
-
-	  t = grub_efi_system_table->configuration_table[i].vendor_table;
-	  if (! acpi)
-	    acpi = t;
-	  grub_dprintf ("efi", "ACPI: %p\n", t);
-	}
-      else if (! grub_memcmp (guid, &smbios_guid, sizeof (grub_guid_t)))
-	{
-	  smbios = grub_efi_system_table->configuration_table[i].vendor_table;
-	  grub_dprintf ("efi", "SMBIOS: %p\n", smbios);
-	}
-    }
+  smbios = grub_efi_find_configuration_table (&smbios_guid);
+  grub_dprintf ("efi", "SMBIOS: %p\n", smbios);
 
   *ebda_seg_ptr = FAKE_EBDA_SEG;
   *low_mem_ptr = (FAKE_EBDA_SEG >> 6);

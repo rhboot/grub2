@@ -1031,3 +1031,21 @@ grub_efi_compare_device_paths (const grub_efi_device_path_t *dp1,
 
   return 0;
 }
+
+void *
+grub_efi_find_configuration_table (const grub_guid_t *target_guid)
+{
+  unsigned i;
+
+  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
+    {
+      grub_guid_t *guid =
+	&grub_efi_system_table->configuration_table[i].vendor_guid;
+
+      if (! grub_memcmp (guid, target_guid, sizeof (grub_guid_t)))
+	return (void *)
+	  grub_efi_system_table->configuration_table[i].vendor_table;
+    }
+
+  return 0;
+}

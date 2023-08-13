@@ -136,22 +136,16 @@ grub_cmd_lssal (struct grub_command *cmd __attribute__ ((unused)),
 		int argc __attribute__ ((unused)),
 		char **args __attribute__ ((unused)))
 {
-  const grub_efi_system_table_t *st = grub_efi_system_table;
-  grub_efi_configuration_table_t *t = st->configuration_table;
-  unsigned int i;
   static grub_guid_t guid = GRUB_EFI_SAL_TABLE_GUID;
+  void *table = grub_efi_find_configuration_table (&guid);
 
-  for (i = 0; i < st->num_table_entries; i++)
+  if (table == NULL)
     {
-      if (grub_memcmp (&guid, &t->vendor_guid,
-		       sizeof (grub_guid_t)) == 0)
-	{
-	  disp_sal (t->vendor_table);
-	  return GRUB_ERR_NONE;
-	}
-      t++;
+      grub_printf ("SAL not found\n");
+      return GRUB_ERR_NONE;
     }
-  grub_printf ("SAL not found\n");
+
+  disp_sal (table);
   return GRUB_ERR_NONE;
 }
 

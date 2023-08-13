@@ -18,44 +18,20 @@
  */
 
 #include <grub/smbios.h>
-#include <grub/misc.h>
 #include <grub/efi/efi.h>
-#include <grub/efi/api.h>
 
 struct grub_smbios_eps *
 grub_machine_smbios_get_eps (void)
 {
-  unsigned i;
   static grub_guid_t smbios_guid = GRUB_EFI_SMBIOS_TABLE_GUID;
 
-  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
-    {
-      grub_guid_t *guid =
-	&grub_efi_system_table->configuration_table[i].vendor_guid;
-
-      if (! grub_memcmp (guid, &smbios_guid, sizeof (grub_guid_t)))
-	return (struct grub_smbios_eps *)
-	  grub_efi_system_table->configuration_table[i].vendor_table;
-    }
-
-  return 0;
+  return (struct grub_smbios_eps *) grub_efi_find_configuration_table (&smbios_guid);
 }
 
 struct grub_smbios_eps3 *
 grub_machine_smbios_get_eps3 (void)
 {
-  unsigned i;
   static grub_guid_t smbios3_guid = GRUB_EFI_SMBIOS3_TABLE_GUID;
 
-  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
-    {
-      grub_guid_t *guid =
-	&grub_efi_system_table->configuration_table[i].vendor_guid;
-
-      if (! grub_memcmp (guid, &smbios3_guid, sizeof (grub_guid_t)))
-	return (struct grub_smbios_eps3 *)
-	  grub_efi_system_table->configuration_table[i].vendor_table;
-    }
-
-  return 0;
+  return (struct grub_smbios_eps3 *) grub_efi_find_configuration_table (&smbios3_guid);
 }

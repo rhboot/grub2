@@ -119,6 +119,9 @@ extern void (*EXPORT_VAR(grub_efi_net_config)) (grub_efi_handle_t hnd,
 						char **device,
 						char **path);
 
+void *
+EXPORT_FUNC (grub_efi_find_configuration_table) (const grub_guid_t *target_guid);
+
 #if defined(__arm__) || defined(__aarch64__) || defined(__riscv) || defined(__loongarch__)
 void *EXPORT_FUNC(grub_efi_get_firmware_fdt)(void);
 grub_err_t EXPORT_FUNC(grub_efi_get_ram_base)(grub_addr_t *);
