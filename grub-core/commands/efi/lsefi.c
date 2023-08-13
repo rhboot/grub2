@@ -29,7 +29,7 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-struct known_protocol
+static struct known_protocol
 {
   grub_guid_t guid;
   const char *name;
