@@ -1039,7 +1039,7 @@ grub_efi_find_configuration_table (const grub_guid_t *target_guid)
 
   for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
     {
-      grub_guid_t *guid =
+      grub_packed_guid_t *guid =
 	&grub_efi_system_table->configuration_table[i].vendor_guid;
 
       if (! grub_memcmp (guid, target_guid, sizeof (grub_guid_t)))

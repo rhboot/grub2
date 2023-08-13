@@ -29,7 +29,7 @@ struct grub_efiemu_ptv_rel
 
 struct efi_variable
 {
-  grub_guid_t guid;
+  grub_packed_guid_t guid;
   grub_uint32_t namelen;
   grub_uint32_t size;
   grub_efi_uint32_t attributes;

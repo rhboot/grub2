@@ -66,7 +66,7 @@ efiemu_convert_pointer (grub_efi_uintn_t debug_disposition,
 
 grub_efi_status_t __grub_efi_api
 efiemu_get_variable (grub_efi_char16_t *variable_name,
-		     const grub_guid_t *vendor_guid,
+		     const grub_packed_guid_t *vendor_guid,
 		     grub_efi_uint32_t *attributes,
 		     grub_efi_uintn_t *data_size,
 		     void *data);
@@ -74,11 +74,11 @@ efiemu_get_variable (grub_efi_char16_t *variable_name,
 grub_efi_status_t __grub_efi_api
 efiemu_get_next_variable_name (grub_efi_uintn_t *variable_name_size,
 			       grub_efi_char16_t *variable_name,
-			       grub_guid_t *vendor_guid);
+			       grub_packed_guid_t *vendor_guid);
 
 grub_efi_status_t __grub_efi_api
 efiemu_set_variable (grub_efi_char16_t *variable_name,
-		     const grub_guid_t *vendor_guid,
+		     const grub_packed_guid_t *vendor_guid,
 		     grub_efi_uint32_t attributes,
 		     grub_efi_uintn_t data_size,
 		     void *data);
@@ -416,7 +416,7 @@ EFI_FUNC (efiemu_convert_pointer) (grub_efi_uintn_t debug_disposition,
 
 /* Find variable by name and GUID. */
 static struct efi_variable *
-find_variable (const grub_guid_t *vendor_guid,
+find_variable (const grub_packed_guid_t *vendor_guid,
 	       grub_efi_char16_t *variable_name)
 {
   grub_uint8_t *ptr;
@@ -438,7 +438,7 @@ find_variable (const grub_guid_t *vendor_guid,
 
 grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
-				const grub_guid_t *vendor_guid,
+				const grub_packed_guid_t *vendor_guid,
 				grub_efi_uint32_t *attributes,
 				grub_efi_uintn_t *data_size,
 				void *data)
@@ -464,7 +464,7 @@ EFI_FUNC (efiemu_get_variable) (grub_efi_char16_t *variable_name,
 grub_efi_status_t __grub_efi_api EFI_FUNC
 (efiemu_get_next_variable_name) (grub_efi_uintn_t *variable_name_size,
 				 grub_efi_char16_t *variable_name,
-				 grub_guid_t *vendor_guid)
+				 grub_packed_guid_t *vendor_guid)
 {
   struct efi_variable *efivar;
   LOG ('l');
@@ -503,7 +503,7 @@ grub_efi_status_t __grub_efi_api EFI_FUNC
 
 grub_efi_status_t __grub_efi_api
 EFI_FUNC (efiemu_set_variable) (grub_efi_char16_t *variable_name,
-				const grub_guid_t *vendor_guid,
+				const grub_packed_guid_t *vendor_guid,
 				grub_efi_uint32_t attributes,
 				grub_efi_uintn_t data_size,
 				void *data)
@@ -597,9 +597,30 @@ struct grub_efi_runtime_services efiemu_runtime_services =
   .set_virtual_address_map = efiemu_set_virtual_address_map,
   .convert_pointer = efiemu_convert_pointer,
 
-  .get_variable = efiemu_get_variable,
-  .get_next_variable_name = efiemu_get_next_variable_name,
-  .set_variable = efiemu_set_variable,
+  /*
+    The code is structured in a way to accept unaligned inputs
+    in most cases and supply 4-byte aligned outputs.
+
+    Efiemu case is a bit ugly because there inputs and outputs are
+    reversed and so we need careful casts to account for this
+    inversion.
+   */
+  .get_variable = (grub_efi_status_t
+		   (__grub_efi_api *) (grub_efi_char16_t *variable_name,
+				       const grub_guid_t *vendor_guid,
+				       grub_efi_uint32_t *attributes,
+				       grub_efi_uintn_t *data_size,
+				       void *data)) efiemu_get_variable,
+  .get_next_variable_name = (grub_efi_status_t
+			     (__grub_efi_api *) (grub_efi_uintn_t *variable_name_size,
+						 grub_efi_char16_t *variable_name,
+						 grub_guid_t *vendor_guid)) efiemu_get_next_variable_name,
+  .set_variable = (grub_efi_status_t
+		   (__grub_efi_api *) (grub_efi_char16_t *variable_name,
+				       const grub_guid_t *vendor_guid,
+				       grub_efi_uint32_t attributes,
+				       grub_efi_uintn_t data_size,
+				       void *data)) efiemu_set_variable,
   .get_next_high_monotonic_count = efiemu_get_next_high_monotonic_count,
 
   .reset_system = efiemu_reset_system

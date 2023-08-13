@@ -183,13 +183,13 @@ struct grub_efiemu_configuration_table
 };
 struct grub_efiemu_configuration_table32
 {
-  grub_guid_t vendor_guid;
+  grub_packed_guid_t vendor_guid;
   grub_efi_uint32_t vendor_table;
 } GRUB_PACKED;
 typedef struct grub_efiemu_configuration_table32 grub_efiemu_configuration_table32_t;
 struct grub_efiemu_configuration_table64
 {
-  grub_guid_t vendor_guid;
+  grub_packed_guid_t vendor_guid;
   grub_efi_uint64_t vendor_table;
 } GRUB_PACKED;
 typedef struct grub_efiemu_configuration_table64 grub_efiemu_configuration_table64_t;
