@@ -66,8 +66,8 @@ exec_show_error () {
     v=`$@ 2>&1`
     ret=$?
     if [ "$ret" != 0 ]; then
-        echo "$v" >&2
-        exit $ret
+	echo "$v" >&2
+	exit $ret
     fi
 }
 
@@ -247,7 +247,7 @@ for option in "$@"; do
     --no-trim)
 	trim=0 ;;
     --debug)
-        debug=$((debug+1)) ;;
+	debug=$((debug+1)) ;;
     --debug=*)
         debug=$((`echo "$option" | sed -e 's/--debug=//'`)) ;;
     --modules=*)
@@ -270,10 +270,10 @@ for option in "$@"; do
 	pseries=y
 	    ;;
     --qemu-opts=*)
-        qs=`echo "$option" | sed -e 's/--qemu-opts=//'`
-        qemuopts="$qemuopts $qs" ;;
+	qs=`echo "$option" | sed -e 's/--qemu-opts=//'`
+	qemuopts="$qemuopts $qs" ;;
     --disk=*)
-        dsk=`echo "$option" | sed -e 's/--disk=//'`
+	dsk=`echo "$option" | sed -e 's/--disk=//'`
 	if [ ${grub_modinfo_platform} = emu ]; then
 	    echo "(hd$disk)  $dsk" >> "$device_map"
 	    disk="$((disk+1))"
@@ -282,7 +282,7 @@ for option in "$@"; do
 		echo "Too many disks" 1>&2
 		exit 1;
 	    fi
-            qemuopts="$qemuopts -$disk$dsk"
+	    qemuopts="$qemuopts -$disk$dsk"
 	    if [ "$disk" = "hda " ]; then
 		disk="hdb ";
 	    elif [ "$disk" = "hdb " ]; then
@@ -295,7 +295,7 @@ for option in "$@"; do
 	fi
 	;;
     --timeout=*)
-        timeout=`echo "$option" | sed -e 's/--timeout=//'`
+	timeout=`echo "$option" | sed -e 's/--timeout=//'`
 	;;
 
     # Intentionally undocumented
@@ -305,7 +305,7 @@ for option in "$@"; do
 	mkimage_extra_arg="$mkimage_extra_arg `echo "$option" | sed 's/--grub-mkimage-extra=//'`" ;;
 
     --boot=*)
-        dev=`echo "$option" | sed -e 's/--boot=//'`
+	dev=`echo "$option" | sed -e 's/--boot=//'`
 	if   [ "$dev" = "fd" ] ; then boot=fd;
 	elif [ "$dev" = "hd" ] ; then boot=hd;
 	elif [ "$dev" = "cd" ] ; then boot=cd;
