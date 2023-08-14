@@ -145,7 +145,9 @@ cleanup() {
     if [ -e "$luksdev" ]; then
         cryptsetup close "$luksdev"
     fi
-    [ -z "$debug" ] && rm -rf "$lukstestdir" || :
+    if [ -z "$debug" ] && [ "${RET:-1}" -eq 0 ]; then
+        rm -rf "$lukstestdir" || :
+    fi
 }
 trap cleanup EXIT INT TERM KILL QUIT
 
