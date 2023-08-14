@@ -242,8 +242,8 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
 	  grub_file_close (file);
 
 	  p = grub_strrchr (dirname, '/') + 1;
-	  dirname = grub_strndup (dirname, p - dirname);
-	  if (! dirname)
+	  ctx.dirname = grub_strndup (dirname, p - dirname);
+	  if (ctx.dirname == NULL)
 	    goto fail;
 
 	  all = 1;
@@ -253,7 +253,7 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
 	  else
 	    print_files (p, &info, &ctx);
 
-	  grub_free (dirname);
+	  grub_free (ctx.dirname);
 	}
 
       if (grub_errno == GRUB_ERR_NONE)
