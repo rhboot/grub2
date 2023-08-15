@@ -259,8 +259,6 @@ for option in "$@"; do
     --mkrescue-arg=*)
 	mkr=`echo "$option" | sed -e 's/--mkrescue-arg=//' -e 's/,/ /g'`
 	mkrescue_args="$mkrescue_args $mkr" ;;
-    --qemu=*)
-	qemu=`echo "$option" | sed -e 's/--qemu=//' -e 's/,/ /g'`;;
     --pseries)
 	qemu=qemu-system-ppc64
 	serial_port=ieee1275/hvterm
@@ -269,6 +267,10 @@ for option in "$@"; do
 	trim=1
 	pseries=y
 	    ;;
+    --serial=*)
+	serial_port=`echo "$option" | sed -e 's/--serial=//'`;;
+    --qemu=*)
+	qemu=`echo "$option" | sed -e 's/--qemu=//' -e 's/,/ /g'`;;
     --qemu-opts=*)
 	qs=`echo "$option" | sed -e 's/--qemu-opts=//'`
 	qemuopts="$qemuopts $qs" ;;
