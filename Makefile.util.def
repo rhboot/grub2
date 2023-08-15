@@ -1132,6 +1132,12 @@ script = {
 
 script = {
   testcase = nonnative;
+  name = serial_test;
+  common = tests/serial_test.in;
+};
+
+script = {
+  testcase = nonnative;
   name = pseries_test;
   common = tests/pseries_test.in;
 };

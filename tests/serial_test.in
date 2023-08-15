@@ -1,0 +1,55 @@
+#! @BUILD_SHEBANG@
+# Copyright (C) 2023  Free Software Foundation, Inc.
+#
+# GRUB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GRUB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+
+set -e
+grubshell=@builddir@/grub-shell
+
+. "@builddir@/grub-core/modinfo.sh"
+
+case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
+    # PLATFORM: emu is different.
+    *-emu)
+	exit 77;;
+    # PLATFORM: Flash targets.
+    i386-qemu | i386-coreboot | mips-qemu_mips | mipsel-qemu_mips)
+	exit 77;;
+    # FIXME: Currently grub-shell uses only -kernel for loongson.
+    mipsel-loongson)
+	exit 77;;
+    # FIXME: How do we setup serial ports in QEMU for these platforms?
+    *-ieee1275)
+	exit 77;;
+esac
+
+# Figure out the PCI device ID that the serial device will be on.
+output=$(echo terminal_output | "${grubshell}" --qemu-opts="-device pci-serial")
+PCIID=$(echo "$output" | grep -o "serial_pci,..:..\.." | cut -d, -f2)
+
+if [ -z "$PCIID" ]; then
+  echo "Failed to find QEMU serial device." >&2
+  echo "${output}" >&2
+  exit 99
+fi
+
+# Test serial output via an emulated PCI serial card.
+output=$(echo "terminal_output; hello" | \
+  "${grubshell}" --serial="pci,${PCIID}" \
+    --qemu-opts="-chardev file,path=/dev/stdout,id=ser1 -device pci-serial,chardev=ser1")
+
+v=$(echo -e "$output" | tail -n1)
+if [ "$v" != "Hello World" ]; then
+   exit 1
+fi
