@@ -1236,7 +1236,8 @@ grub_cryptodisk_scan_device (const char *name,
   dev = grub_cryptodisk_scan_device_real (name, source, cargs);
   if (dev)
     {
-      ret = (cargs->search_uuid != NULL && grub_strcasecmp (cargs->search_uuid, dev->uuid) == 0);
+      ret = (cargs->search_uuid != NULL
+	     && grub_uuidcasecmp (cargs->search_uuid, dev->uuid, sizeof (dev->uuid)) == 0);
       goto cleanup;
     }
 
