@@ -1201,7 +1201,7 @@ grub_vsnprintf (char *str, grub_size_t n, const char *fmt, va_list ap)
 
   free_printf_args (&args);
 
-  return ret < n ? ret : n;
+  return ret;
 }
 
 int
