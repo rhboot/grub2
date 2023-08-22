@@ -788,6 +788,11 @@ out of its way to avoid using hardware breakpoints internally and uses them as
 briefly as possible when needed, thus allowing the user to have a maximal
 number at their disposal.
 
+@menu
+* OVMF debug log::
+* Using the gdbinfo command::
+@end menu
+
 @node OVMF debug log
 @subsection OVMF debug log
 
