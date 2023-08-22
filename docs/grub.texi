@@ -956,7 +956,7 @@ information.
 @subsection Kexec with grub2-emu
 
 GRUB can be run in userspace by invoking the grub2-emu tool. It will
-read all configuration scripts as if booting directly (see @xref{Loading
+read all configuration scripts as if booting directly (see @ref{Loading
 an operating system directly}). With the @code{--kexec} flag, and
 kexec(8) support from the operating system, the @command{linux} command
 will directly boot the target image. For systems that lack working
