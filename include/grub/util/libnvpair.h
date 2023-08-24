@@ -29,9 +29,15 @@
 
 typedef void nvlist_t;
 
-int nvlist_lookup_string (nvlist_t *, const char *, char **);
-int nvlist_lookup_nvlist (nvlist_t *, const char *, nvlist_t **);
-int nvlist_lookup_nvlist_array (nvlist_t *, const char *, nvlist_t ***, unsigned int *);
+#ifdef GRUB_UTIL_NVPAIR_IS_PREFIXED
+#define NVLIST(x) opensolaris_nvlist_ ## x
+#else
+#define NVLIST(x) nvlist_ ## x
+#endif
+
+int NVLIST(lookup_string) (nvlist_t *, const char *, char **);
+int NVLIST(lookup_nvlist) (nvlist_t *, const char *, nvlist_t **);
+int NVLIST(lookup_nvlist_array) (nvlist_t *, const char *, nvlist_t ***, unsigned int *);
 
 #endif /* ! HAVE_LIBNVPAIR_H */
 

@@ -2005,8 +2005,19 @@ fi
 
 if test x"$libzfs_excuse" = x ; then
   AC_CHECK_LIB([nvpair], [nvlist_lookup_string],
-               [],
-               [libzfs_excuse="need nvpair library"])
+               [have_normal_nvpair=yes],
+               [have_normal_nvpair=no])
+  if test x"$have_normal_nvpair" = xno ; then
+    AC_CHECK_LIB([nvpair], [opensolaris_nvlist_lookup_string],
+                 [have_prefixed_nvpair=yes],
+                 [have_prefixed_nvpair=no])
+    if test x"$have_prefixed_nvpair" = xyes ; then
+      AC_DEFINE([GRUB_UTIL_NVPAIR_IS_PREFIXED], [1],
+            [Define to 1 if libnvpair symbols are prefixed with opensolaris_.])
+    else
+      libzfs_excuse="need nvpair library"
+    fi
+  fi
 fi
 
 if test x"$enable_libzfs" = xyes && test x"$libzfs_excuse" != x ; then

@@ -174,20 +174,20 @@ grub_util_find_root_devices_from_poolname (char *poolname)
   zpool = zpool_open (libzfs, poolname);
   config = zpool_get_config (zpool, NULL);
 
-  if (nvlist_lookup_nvlist (config, "vdev_tree", &vdev_tree) != 0)
+  if (NVLIST(lookup_nvlist) (config, "vdev_tree", &vdev_tree) != 0)
     error (1, errno, "nvlist_lookup_nvlist (\"vdev_tree\")");
 
-  if (nvlist_lookup_nvlist_array (vdev_tree, "children", &children, &nvlist_count) != 0)
+  if (NVLIST(lookup_nvlist_array) (vdev_tree, "children", &children, &nvlist_count) != 0)
     error (1, errno, "nvlist_lookup_nvlist_array (\"children\")");
   assert (nvlist_count > 0);
 
-  while (nvlist_lookup_nvlist_array (children[0], "children",
+  while (NVLIST(lookup_nvlist_array) (children[0], "children",
 				     &children, &nvlist_count) == 0)
     assert (nvlist_count > 0);
 
   for (i = 0; i < nvlist_count; i++)
     {
-      if (nvlist_lookup_string (children[i], "path", &device) != 0)
+      if (NVLIST(lookup_string) (children[i], "path", &device) != 0)
 	error (1, errno, "nvlist_lookup_string (\"path\")");
 
       struct stat st;
