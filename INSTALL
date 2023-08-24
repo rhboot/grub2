@@ -20,7 +20,7 @@ configuring the GRUB.
   for i386, x86_64, arm (including thumb), arm64, mips(el), powerpc, sparc64
 * GNU Make
 * GNU Bison 2.3 or later
-* GNU gettext 0.17 or later
+* GNU gettext
 * GNU binutils 2.9.1.0.23 or later
 * Flex 2.5.35 or later
 * pkg-config
