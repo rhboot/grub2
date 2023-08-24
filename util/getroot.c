@@ -47,7 +47,7 @@
 
 #include <sys/types.h>
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
+#ifdef USE_LIBZFS
 # include <grub/util/libzfs.h>
 # include <grub/util/libnvpair.h>
 #endif
@@ -456,7 +456,7 @@ grub_util_biosdisk_is_present (const char *os_dev)
   return ret;
 }
 
-#ifdef HAVE_LIBZFS
+#ifdef USE_LIBZFS
 static libzfs_handle_t *__libzfs_handle;
 
 static void
@@ -478,5 +478,5 @@ grub_get_libzfs_handle (void)
 
   return __libzfs_handle;
 }
-#endif /* HAVE_LIBZFS */
+#endif /* USE_LIBZFS */
 

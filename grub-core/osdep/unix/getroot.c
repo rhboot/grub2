@@ -53,7 +53,7 @@
 
 #include <grub/osdep/major.h>
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
+#ifdef USE_LIBZFS
 # include <grub/util/libzfs.h>
 # include <grub/util/libnvpair.h>
 #endif
@@ -158,7 +158,7 @@ grub_util_find_root_devices_from_poolname (char *poolname)
   size_t ndevices = 0;
   size_t devices_allocated = 0;
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
+#ifdef USE_LIBZFS
   zpool_handle_t *zpool;
   libzfs_handle_t *libzfs;
   nvlist_t *config, *vdev_tree;

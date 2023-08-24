@@ -2008,11 +2008,9 @@ fi
 if test x"$libzfs_excuse" = x ; then
   # We need both libzfs and libnvpair for a successful build.
   LIBZFS="-lzfs"
-  AC_DEFINE([HAVE_LIBZFS], [1],
-            [Define to 1 if you have the ZFS library.])
   LIBNVPAIR="-lnvpair"
-  AC_DEFINE([HAVE_LIBNVPAIR], [1],
-            [Define to 1 if you have the NVPAIR library.])
+  AC_DEFINE([USE_LIBZFS], [1],
+            [Define to 1 if ZFS library should be used.])
 fi
 
 AC_SUBST([LIBZFS])
