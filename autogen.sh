@@ -9,7 +9,7 @@ fi
 
 # Detect python
 if [ -z "$PYTHON" ]; then
-  for i in python3 python; do
+  for i in python3 python3.10 python; do
     if command -v "$i" > /dev/null 2>&1; then
       PYTHON="$i"
       echo "Using $PYTHON..."
