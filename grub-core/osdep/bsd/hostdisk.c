@@ -56,6 +56,10 @@
 # endif
 
 #if defined(__NetBSD__)
+# ifndef RAW_FLOPPY_MAJOR
+#  define RAW_FLOPPY_MAJOR	9
+# endif /* ! RAW_FLOPPY_MAJOR */
+
 /* Adjust device driver parameters.  This function should be called just
    after successfully opening the device.  For now, it simply prevents the
    floppy driver from retrying operations on failure, as otherwise the
@@ -92,7 +96,7 @@ grub_util_fd_open (const char *os_dev, int flags)
 
   ret = open (os_dev, flags, S_IROTH | S_IRGRP | S_IRUSR | S_IWUSR);
   if (ret >= 0)
-    configure_device_driver (fd);
+    configure_device_driver (ret);
   return ret;
 }
 
@@ -105,7 +109,7 @@ grub_util_get_fd_size_os (grub_util_fd_t fd, const char *name, unsigned *log_sec
   unsigned sector_size, log_sector_size;
 
 #if defined(__NetBSD__)
-  grub_hostdisk_configure_device_driver (fd);
+  configure_device_driver (fd);
 #endif
 
   if (ioctl (fd, DIOCGDINFO, &label) == -1)
