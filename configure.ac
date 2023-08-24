@@ -1716,6 +1716,9 @@ if test x"$grub_mkfont_excuse" = x ; then
     CPPFLAGS="$SAVED_CPPFLAGS"
     LIBS="$SAVED_LIBS"
   ], [grub_mkfont_excuse=["need freetype2 library"]])
+  if test x"$grub_mkfont_excuse" = x && test x"$host_kernel" = xnetbsd ; then
+      FREETYPE_LIBS="$FREETYPE_LIBS -Wl,-R,/usr/pkg/lib" ;
+  fi
 fi
 
 if test x"$enable_grub_mkfont" = xyes && test x"$grub_mkfont_excuse" != x ; then
@@ -1770,6 +1773,11 @@ if test x"$grub_build_mkfont_excuse" = x ; then
     LIBS="$SAVED_LIBS"
     CPPFLAGS="$SAVED_CPPFLAGS_2"
   ], [grub_build_mkfont_excuse=["need freetype2 library"]])
+  if test x"$grub_build_mkfont_excuse" = x ; then
+    case x"$build_os" in
+      xnetbsd*) BUILD_FREETYPE_LIBS="$BUILD_FREETYPE_LIBS -Wl,-R,/usr/pkg/lib" ;;
+    esac
+  fi
   PKG_CONFIG="$SAVED_PKG_CONFIG"
 fi
 
