@@ -1993,7 +1993,7 @@ module = {
   extra_dist = script/yylex.l;
   extra_dist = script/parser.y;
 
-  cflags = '$(CFLAGS_POSIX) -Wno-redundant-decls';
+  cflags = '$(CFLAGS_POSIX) -Wno-redundant-decls -Wno-unused-but-set-variable';
   cppflags = '$(CPPFLAGS_POSIX)';
 };
 
