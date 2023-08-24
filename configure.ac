@@ -1817,7 +1817,7 @@ if test "x$with_dejavufont" = x; then
   # search in well-known directories
   if test x"$starfield_excuse" = x; then
      for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz; do
-       for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/truetype/ttf-dejavu /usr/share/fonts/dejavu /usr/share/fonts/truetype; do
+       for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/truetype/ttf-dejavu /usr/share/fonts/dejavu /usr/share/fonts/truetype /usr/pkg/share/fonts/X11/TTF /usr/local/share/fonts/dejavu /usr/X11R6/lib/X11/fonts/TTF; do
           if test -f "$dir/DejaVuSans.$ext"; then
             DJVU_FONT_SOURCE="$dir/DejaVuSans.$ext"
             break 2
@@ -1846,7 +1846,7 @@ AC_ARG_WITH([unifont],
 if test "x$with_unifont" = x; then
   # search in well-known directories
   for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz; do
-    for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/unifont /usr/share/fonts/uni /usr/share/fonts/truetype/unifont /usr/share/fonts/misc; do
+    for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/unifont /usr/share/fonts/uni /usr/share/fonts/truetype/unifont /usr/share/fonts/misc /usr/pkg/share/fonts/X11/misc /usr/local/share/fonts/gnu-unifont /usr/local/share/fonts/unifont; do
       if test -f "$dir/unifont.$ext"; then
         md5="$(md5sum "$dir/unifont.$ext"|awk '{ print $1; }')"
         # PCF and BDF from version 6.3 isn't hanled properly by libfreetype.
