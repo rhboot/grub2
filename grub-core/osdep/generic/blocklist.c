@@ -30,6 +30,26 @@
 
 #define MAX_TRIES	5
 
+struct wrapper_hook_data
+{
+  void (*callback) (grub_disk_addr_t sector,
+		    unsigned int offset,
+		    unsigned int length,
+		    void *data);
+  void *callback_data;
+};
+
+static grub_err_t
+callback_wrapper (grub_disk_addr_t sector,
+		  unsigned int offset, unsigned int length,
+		  char *buf, void *data)
+{
+  struct wrapper_hook_data *wrap = data;
+
+  wrap->callback (sector, offset, length, wrap->callback_data);
+  return GRUB_ERR_NONE;
+}
+
 void
 grub_install_get_blocklist (grub_device_t root_dev,
 			    const char *core_path, const char *core_img,
@@ -43,6 +63,10 @@ grub_install_get_blocklist (grub_device_t root_dev,
   int i;
   char *tmp_img;
   char *core_path_dev;
+  struct wrapper_hook_data wrap_hook_data = {
+    .callback = callback,
+    .callback_data = hook_data
+  };
 
   core_path_dev = grub_make_system_path_relative_to_its_root (core_path);
 
@@ -120,8 +144,8 @@ grub_install_get_blocklist (grub_device_t root_dev,
   if (! file)
     grub_util_error ("%s", grub_errmsg);
 
-  file->read_hook = callback;
-  file->read_hook_data = hook_data;
+  file->read_hook = callback_wrapper;
+  file->read_hook_data = &wrap_hook_data;
   if (grub_file_read (file, tmp_img, core_size) != (grub_ssize_t) core_size)
     grub_util_error ("%s", _("failed to read the sectors of the core image"));
 
