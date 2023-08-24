@@ -1275,8 +1275,7 @@ AC_SUBST(TARGET_LDFLAGS_OLDMAGIC)
 
 LDFLAGS="$TARGET_LDFLAGS"
 
-if test "$target_cpu" = x86_64 || test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64 \
-  || test "$target_cpu" = loongarch64 ; then
+if test "$target_cpu" = x86_64 || test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64 ; then
   # Use large model to support 4G memory
   AC_CACHE_CHECK([whether option -mcmodel=large works], grub_cv_cc_mcmodel, [
     CFLAGS="$TARGET_CFLAGS -mcmodel=large"
