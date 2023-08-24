@@ -720,7 +720,7 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
     case GRUB_DISKFILTER_RAID6:
       {
 	grub_disk_addr_t read_sector;
-	grub_uint64_t b, p, n, disknr, e;
+	grub_uint64_t b, p, n, disknr;
 
 	/* n = 1 for level 4 and 5, 2 for level 6.  */
 	n = seg->type / 3;
@@ -770,7 +770,6 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	    if (read_size > size)
 	      read_size = size;
 
-	    e = 0;
 	    /* Reset read error.  */
 	    if (grub_errno == GRUB_ERR_READ_ERROR
 		|| grub_errno == GRUB_ERR_UNKNOWN_DEVICE)
@@ -784,7 +783,6 @@ read_segment (struct grub_diskfilter_segment *seg, grub_disk_addr_t sector,
 	    if ((err) && (err != GRUB_ERR_READ_ERROR
 			  && err != GRUB_ERR_UNKNOWN_DEVICE))
 	      return err;
-	    e++;
 
 	    if (err)
 	      {
