@@ -91,7 +91,7 @@ grub_util_create_envblk_file (const char *name)
       else if (retsize < 0)
         {
           free (linkbuf);
-          grub_util_error (_("cannot rename the file %s to %s: %m"), namenew, name);
+          grub_util_error (_("cannot rename the file %s to %s: %s"), namenew, name, strerror (errno));
         }
       else if (retsize == size)
         {
@@ -128,7 +128,7 @@ grub_util_create_envblk_file (const char *name)
   free (rename_target);
 
   if (rc < 0)
-    grub_util_error (_("cannot rename the file %s to %s: %m"), namenew, name);
+    grub_util_error (_("cannot rename the file %s to %s: %s"), namenew, name, strerror (errno));
 #endif
 
   free (namenew);
