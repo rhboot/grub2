@@ -238,8 +238,8 @@ grub_mm_init_region (void *addr, grub_size_t size)
        *   |<q region>|-q->post_size-|----size-----|
        */
       grub_dprintf ("regions", "Can we extend into region below?"
-                    " %p + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " ?=? %p\n",
-                    (grub_uint8_t *) q, sizeof(*q), q->size, q->post_size, (grub_uint8_t *) addr);
+                    " %p + %x + %" PRIxGRUB_SIZE " + %" PRIxGRUB_SIZE " ?=? %p\n",
+                    (grub_uint8_t *) q, (int) sizeof (*q), q->size, q->post_size, (grub_uint8_t *) addr);
       if ((grub_uint8_t *) q + sizeof (*q) + q->size + q->post_size ==
 	  (grub_uint8_t *) addr)
 	{
