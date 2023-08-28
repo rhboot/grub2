@@ -599,7 +599,7 @@ get_utf8 (grub_uint8_t *in, grub_size_t len)
 }
 
 static int
-list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos,
+list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos, grub_uint8_t *end_pos,
 	   grub_fshelp_iterate_dir_hook_t hook, void *hook_data)
 {
   grub_uint8_t *np;
@@ -610,12 +610,18 @@ list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos,
       grub_uint8_t namespace;
       char *ustr;
 
+      if ((pos >= end_pos) || (end_pos - pos < 0x52))
+        break;
+
       if (pos[0xC] & 2)		/* end signature */
 	break;
 
       np = pos + 0x50;
       ns = *(np++);
       namespace = *(np++);
+
+      if (2 * ns > end_pos - pos - 0x52)
+        break;
 
       /*
        *  Ignore files in DOS namespace, as they will reappear as Win32
@@ -802,7 +808,9 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
     }
 
   cur_pos += 0x10;		/* Skip index root */
-  ret = list_file (mft, cur_pos + u16at (cur_pos, 0), hook, hook_data);
+  ret = list_file (mft, cur_pos + u16at (cur_pos, 0),
+                   at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR),
+                   hook, hook_data);
   if (ret)
     goto done;
 
@@ -889,6 +897,7 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 			     (const grub_uint8_t *) "INDX")))
 		goto done;
 	      ret = list_file (mft, &indx[0x18 + u16at (indx, 0x18)],
+			       indx + (mft->data->idx_size << GRUB_NTFS_BLK_SHR),
 			       hook, hook_data);
 	      if (ret)
 		goto done;
