@@ -184,7 +184,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
     }
   if (at->attr_end)
     {
-      grub_uint8_t *pa;
+      grub_uint8_t *pa, *pa_end;
 
       at->emft_buf = grub_malloc (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
       if (at->emft_buf == NULL)
@@ -209,11 +209,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	    }
 	  at->attr_nxt = at->edat_buf;
 	  at->attr_end = at->edat_buf + u32at (pa, 0x30);
+	  pa_end = at->edat_buf + n;
 	}
       else
 	{
 	  at->attr_nxt = at->attr_end + u16at (pa, 0x14);
 	  at->attr_end = at->attr_end + u32at (pa, 4);
+	  pa_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
 	}
       at->flags |= GRUB_NTFS_AF_ALST;
       while (at->attr_nxt < at->attr_end)
@@ -230,6 +232,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	  at->flags |= GRUB_NTFS_AF_GPOS;
 	  at->attr_cur = at->attr_nxt;
 	  pa = at->attr_cur;
+
+	  if ((pa >= pa_end) || (pa_end - pa < 0x18))
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "can\'t parse attribute list");
+	      return NULL;
+	    }
+
 	  grub_set_unaligned32 ((char *) pa + 0x10,
 				grub_cpu_to_le32 (at->mft->data->mft_start));
 	  grub_set_unaligned32 ((char *) pa + 0x14,
@@ -240,6 +249,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	    {
 	      if (*pa != attr)
 		break;
+
+              if ((pa >= pa_end) || (pa_end - pa < 0x18))
+                {
+	          grub_error (GRUB_ERR_BAD_FS, "can\'t parse attribute list");
+	          return NULL;
+	        }
+
 	      if (read_attr
 		  (at, pa + 0x10,
 		   u32at (pa, 0x10) * (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR),
