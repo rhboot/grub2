@@ -1209,13 +1209,29 @@ grub_ntfs_label (grub_device_t device, char **label)
 
   init_attr (&mft->attr, mft);
   pa = find_attr (&mft->attr, GRUB_NTFS_AT_VOLUME_NAME);
+
+  if (pa >= mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+    {
+      grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
+      goto fail;
+    }
+
+  if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa < 0x16)
+    {
+      grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
+      goto fail;
+    }
+
   if ((pa) && (pa[8] == 0) && (u32at (pa, 0x10)))
     {
       int len;
 
       len = u32at (pa, 0x10) / 2;
       pa += u16at (pa, 0x14);
-      *label = get_utf8 (pa, len);
+      if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa >= 2 * len)
+        *label = get_utf8 (pa, len);
+      else
+        grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
     }
 
 fail:
