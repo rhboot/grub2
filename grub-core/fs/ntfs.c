@@ -401,7 +401,18 @@ read_data (struct grub_ntfs_attr *at, grub_uint8_t *pa, grub_uint8_t *dest,
     {
       if (ofs + len > u32at (pa, 0x10))
 	return grub_error (GRUB_ERR_BAD_FS, "read out of range");
-      grub_memcpy (dest, pa + u32at (pa, 0x14) + ofs, len);
+
+      if (u32at (pa, 0x10) > (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute too large");
+
+      if (pa >= at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute out of range");
+
+      if (u16at (pa, 0x14) + u32at (pa, 0x10) >
+	  (grub_addr_t) at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR) - (grub_addr_t) pa)
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute out of range");
+
+      grub_memcpy (dest, pa + u16at (pa, 0x14) + ofs, len);
       return 0;
     }
 
