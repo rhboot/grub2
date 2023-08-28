@@ -480,6 +480,10 @@ grub_video_gop_setup (unsigned int width, unsigned int height,
   if (!buffer)
     {
       grub_dprintf ("video", "GOP: couldn't allocate shadow\n");
+
+      if (info->pixel_format == GRUB_EFI_GOT_BLT_ONLY)
+        return grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+
       grub_errno = 0;
       grub_video_gop_fill_mode_info (gop->mode->mode, info,
 				     &framebuffer.mode_info);
