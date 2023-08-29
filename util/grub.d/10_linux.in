@@ -265,9 +265,11 @@ if [ -z "\${kernelopts}" ]; then
 fi
 EOF
 
-  if [ "x${GRUB_UPDATE_BLS_CMDLINE}" = "xyes" ] || \
-	  ( [ -w /etc/kernel ] && [[ ! -f /etc/kernel/cmdline ]] && \
-	  [ "x${GRUB_GRUBENV_UPDATE}" = "xyes" ] ); then
+  if [ "x${GRUB_UPDATE_BLS_CMDLINE}" = "xyes" ] || [[ -d /run/install ]]; then
+      # only update the bls cmdline if the user specifically requests it or _anytime_
+      # in the installer environment: /run/install directory only exists during the
+      # installation and not in cloud images, so this should get all the boot params
+      # from /etc/default/grub into BLS snippets
       update_bls_cmdline
   fi
 
