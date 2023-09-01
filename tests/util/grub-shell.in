@@ -225,6 +225,13 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	console=console;;
 esac
 
+case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
+    # Only add the RNG device for EFI platforms because we currently only
+    # support Stack Smashing protection on EFI.
+    *-efi)
+	qemuopts="$qemuopts -device virtio-rng-pci" ;;
+esac
+
 timeout=${GRUB_SHELL_DEFAULT_TIMEOUT:-60}
 mkimage_extra_arg=
 debug=${GRUB_SHELL_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}
