@@ -98,7 +98,7 @@ linux_entry_xsm ()
 {
   os="$1"
   version="$2"
-  xen_version="$3"
+  entry_xen_version="$3"
   type="$4"
   args="$5"
   xen_args="$6"
@@ -107,25 +107,25 @@ linux_entry_xsm ()
   # corresponding policy file.
   xenpolicy=
   if ${xsm} ; then
-      xenpolicy="xenpolicy-$xen_version"
+      xenpolicy="xenpolicy-$entry_xen_version"
       if test ! -e "${xen_dirname}/${xenpolicy}" ; then
 	  return
       fi
       xen_args="$xen_args flask=enforcing"
-      xen_version="$(gettext_printf "%s (XSM enabled)" "$xen_version")"
-      # xen_version is used for messages only; actual file is xen_basename
+      entry_xen_version="$(gettext_printf "%s (XSM enabled)" "$entry_xen_version")"
+      # entry_xen_version is used for messages only; actual file is xen_basename
   fi
   if [ -z "$boot_device_id" ]; then
       boot_device_id="$(grub_get_device_id "${GRUB_DEVICE}")"
   fi
   if [ x$type != xsimple ] ; then
       if [ x$type = xrecovery ] ; then
-	  title="$(gettext_printf "%s, with Xen %s and Linux %s (recovery mode)" "${os}" "${xen_version}" "${version}")"
+	  title="$(gettext_printf "%s, with Xen %s and Linux %s (recovery mode)" "${os}" "${entry_xen_version}" "${version}")"
       else
-	  title="$(gettext_printf "%s, with Xen %s and Linux %s" "${os}" "${xen_version}" "${version}")"
+	  title="$(gettext_printf "%s, with Xen %s and Linux %s" "${os}" "${entry_xen_version}" "${version}")"
       fi
       replacement_title="$(echo "Advanced options for ${OS}" | sed 's,>,>>,g')>$(echo "$title" | sed 's,>,>>,g')"
-      if [ x"Xen ${xen_version}>$title" = x"$GRUB_ACTUAL_DEFAULT" ]; then
+      if [ x"Xen ${entry_xen_version}>$title" = x"$GRUB_ACTUAL_DEFAULT" ]; then
          quoted="$(echo "$GRUB_ACTUAL_DEFAULT" | grub_quote)"
          title_correction_code="${title_correction_code}if [ \"x\$default\" = '$quoted' ]; then default='$(echo "$replacement_title" | grub_quote)'; fi;"
          grub_warn "$(gettext_printf "Please don't use old title \`%s' for GRUB_DEFAULT, use \`%s' (for versions before 2.00) or \`%s' (for 2.00 or later)" "$GRUB_ACTUAL_DEFAULT" "$replacement_title" "gnulinux-advanced-$boot_device_id>gnulinux-$version-$type-$boot_device_id")"
@@ -143,7 +143,7 @@ linux_entry_xsm ()
     prepare_boot_cache="$(prepare_grub_to_access_device ${GRUB_DEVICE_BOOT} | grub_add_tab)"
   fi
   printf '%s\n' "${prepare_boot_cache}" | sed "s/^/$submenu_indentation/"
-  xmessage="$(gettext_printf "Loading Xen %s ..." ${xen_version})"
+  xmessage="$(gettext_printf "Loading Xen %s ..." ${entry_xen_version})"
   lmessage="$(gettext_printf "Loading Linux %s ..." ${version})"
   sed "s/^/$submenu_indentation/" << EOF
 	echo	'$(echo "$xmessage" | grub_quote)'
