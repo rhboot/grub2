@@ -143,6 +143,21 @@ static int bls_add_keyval(struct bls_entry *entry, const char *key, const char *
   return 0;
 }
 
+static void keyval_free(const struct keyval *kv) {
+  grub_free((void*)kv->key);
+  grub_free((void*)kv->val);
+}
+
+static void bls_entry_free(const struct bls_entry *entry) {
+  int i;
+  for (i=0; i < entry->nkeyvals; ++i) {
+    keyval_free(entry->keyvals[i]);
+  }
+  grub_free((void*)entry->keyvals);
+  grub_free((void*)entry->filename);
+  grub_free((void*)entry);
+}
+
 /* Find they value of the key named by keyname.  If there are allowed to be
  * more than one, pass a pointer to an int set to -1 the first time, and pass
  * the same pointer through each time after, and it'll return them in sorted
@@ -470,7 +485,7 @@ static int read_entry (
   int rc = 0;
   char *p = NULL;
   grub_file_t f = NULL;
-  struct bls_entry *entry;
+  struct bls_entry *entry = NULL;
   struct read_entry_info *info = (struct read_entry_info *)data;
 
   grub_dprintf ("blscfg", "filename: \"%s\"\n", filename);
@@ -569,10 +584,16 @@ static int read_entry (
 	break;
     }
 
-    if (!rc)
-      bls_add_entry(entry);
+    if (!rc) {
+      if (bls_add_entry(entry) == GRUB_ERR_NONE) {
+	entry = NULL;
+      }
+    }
 
 finish:
+  if (entry)
+    bls_entry_free (entry);
+
   if (p)
     grub_free (p);
 
