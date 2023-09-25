@@ -51,6 +51,10 @@ grub_acpi_rsdt_find_table (struct grub_acpi_table_header *rsdt, const char *sig)
   for (; s; s--, ptr++)
     {
       struct grub_acpi_table_header *tbl;
+
+      /* Skip NULL entries in RSDT/XSDT. */
+      if (!ptr->val)
+	continue;
       tbl = (struct grub_acpi_table_header *) (grub_addr_t) ptr->val;
       if (grub_memcmp (tbl->signature, sig, 4) == 0)
 	return tbl;
@@ -75,6 +79,10 @@ grub_acpi_xsdt_find_table (struct grub_acpi_table_header *xsdt, const char *sig)
   for (; s; s--, ptr++)
     {
       struct grub_acpi_table_header *tbl;
+
+      /* Skip NULL entries in RSDT/XSDT. */
+      if (!ptr->val)
+	continue;
 #if GRUB_CPU_SIZEOF_VOID_P != 8
       if (ptr->val >> 32)
 	continue;
