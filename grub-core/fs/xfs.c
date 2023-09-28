@@ -836,7 +836,8 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	if (iterate_dir_call_hook (parent, "..", &ctx))
 	  return 1;
 
-	for (i = 0; i < head->count; i++)
+	for (i = 0; i < head->count &&
+	     (grub_uint8_t *) de < ((grub_uint8_t *) dir + grub_xfs_fshelp_size (dir->data)); i++)
 	  {
 	    grub_uint64_t ino;
 	    grub_uint8_t *inopos = grub_xfs_inline_de_inopos(dir->data, de);
@@ -871,10 +872,6 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	    de->name[de->len] = c;
 
 	    de = grub_xfs_inline_next_de(dir->data, head, de);
-
-	    if ((grub_uint8_t *) de >= (grub_uint8_t *) dir + grub_xfs_fshelp_size (dir->data))
-	      return grub_error (GRUB_ERR_BAD_FS, "invalid XFS directory entry");
-
 	  }
 	break;
       }
