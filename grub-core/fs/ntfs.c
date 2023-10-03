@@ -839,6 +839,25 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 
 	  if (is_resident)
 	    {
+              if (bitmap_len > (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap too large");
+		  goto done;
+		}
+
+              if (cur_pos >= at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap out of range");
+		  goto done;
+		}
+
+              if (u16at (cur_pos, 0x14) + u32at (cur_pos, 0x10) >
+		  (grub_addr_t) at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR) - (grub_addr_t) cur_pos)
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap out of range");
+		  goto done;
+		}
+
               grub_memcpy (bmp, cur_pos + u16at (cur_pos, 0x14),
                            bitmap_len);
 	    }
