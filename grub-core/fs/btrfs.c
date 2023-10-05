@@ -1603,6 +1603,8 @@ grub_btrfs_extent_read (struct grub_btrfs_data *data,
 	      csize = grub_le_to_cpu64 (key_out.offset) - pos;
 	      if (csize > len)
 		      csize = len;
+
+	      grub_memset (buf, 0, csize);
 	      buf += csize;
 	      pos += csize;
 	      len -= csize;
