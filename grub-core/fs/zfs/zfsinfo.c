@@ -358,8 +358,8 @@ grub_cmd_zfs_bootfs (grub_command_t cmd __attribute__ ((unused)), int argc,
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));
 
   devname = grub_file_get_device_name (args[0]);
-  if (devname == NULL)
-    return GRUB_ERR_OUT_OF_MEMORY;
+  if (grub_errno)
+    return grub_errno;
 
   dev = grub_device_open (devname);
   grub_free (devname);
