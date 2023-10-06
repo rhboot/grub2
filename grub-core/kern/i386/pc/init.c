@@ -191,7 +191,7 @@ extern grub_uint16_t grub_bios_via_workaround1, grub_bios_via_workaround2;
 static void
 grub_via_workaround_init (void)
 {
-  grub_uint32_t manufacturer[3], max_cpuid;
+  grub_uint32_t manufacturer[3], max_cpuid, proc_info;
   if (! grub_cpu_is_cpuid_supported ())
     return;
 
@@ -199,6 +199,15 @@ grub_via_workaround_init (void)
 
   if (grub_memcmp (manufacturer, "CentaurHauls", 12) != 0)
     return;
+
+  if (max_cpuid > 0)
+    {
+      grub_cpuid (1, proc_info, /* Don't care. */ manufacturer[0],
+                  manufacturer[2], manufacturer[1]);
+      /* Check model, apply only to VIA C3 and lower. */
+      if (((proc_info & 0xf0) >> 4 | (proc_info & 0xf0000) >> 12) > 10)
+        return;
+    }
 
   grub_bios_via_workaround1 = 0x090f;
   grub_bios_via_workaround2 = 0x090f;
