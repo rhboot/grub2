@@ -645,6 +645,36 @@ grub_reverse (char *str)
     }
 }
 
+/* Separate string into two parts, broken up by delimiter delim. */
+void
+grub_str_sep (const char *s, char *p, char delim, char *r)
+{
+  char* t = grub_strndup(s, grub_strlen(s));
+
+  if (t != NULL && *t != '\0')
+  {
+    char* tmp = t;
+  
+    while (((*p = *t) != '\0') && ((*p = *t) != delim))
+    {
+      p++;
+      t++;
+    }
+    *p = '\0';
+  
+    if (*t != '\0')
+    {
+      t++;
+      while ((*r++ = *t++) != '\0')
+        ;
+      *r = '\0';
+    }
+    grub_free (tmp);
+  }
+  else
+    grub_free (t);
+}
+
 /* Divide N by D, return the quotient, and store the remainder in *R.  */
 grub_uint64_t
 grub_divmod64 (grub_uint64_t n, grub_uint64_t d, grub_uint64_t *r)

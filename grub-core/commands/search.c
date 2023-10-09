@@ -86,6 +86,42 @@ iterate_device (const char *name, void *data)
       grub_device_close (dev);
     }
 
+  /* Skip it if it's not the root device when requested. */
+  if (ctx->flags & SEARCH_FLAGS_ROOTDEV_ONLY)
+    {
+      const char *root_dev;
+      root_dev = grub_env_get ("root");
+      if (root_dev != NULL && *root_dev != '\0')
+      {
+        char *root_disk = grub_malloc (grub_strlen(root_dev) + 1);
+        char *name_disk = grub_malloc (grub_strlen(name) + 1);
+        char *rem_1 = grub_malloc(grub_strlen(root_dev) + 1);
+        char *rem_2 = grub_malloc(grub_strlen(name) + 1);
+
+	if (root_disk != NULL && name_disk != NULL && 
+	    rem_1 != NULL && rem_2 != NULL)
+  	  {
+            /* get just the disk name; partitions will be different. */
+            grub_str_sep (root_dev, root_disk, ',', rem_1);
+            grub_str_sep (name, name_disk, ',', rem_2);
+            if (root_disk != NULL && *root_disk != '\0' &&
+    	        name_disk != NULL && *name_disk != '\0')
+              if (grub_strcmp(root_disk, name_disk) != 0)
+                {
+                  grub_free (root_disk);
+                  grub_free (name_disk);
+                  grub_free (rem_1);
+                  grub_free (rem_2);
+                  return 0;
+                }
+	  }
+        grub_free (root_disk);
+        grub_free (name_disk);
+        grub_free (rem_1);
+        grub_free (rem_2);
+      }
+    }
+
 #ifdef DO_SEARCH_FS_UUID
 #define compare_fn grub_strcasecmp
 #else
