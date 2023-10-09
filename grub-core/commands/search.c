@@ -59,6 +59,7 @@ static int
 iterate_device (const char *name, void *data)
 {
   struct search_ctx *ctx = data;
+  const char *root_dev;
   int found = 0;
 
   /* Skip floppy drives when requested.  */
@@ -84,6 +85,13 @@ iterate_device (const char *name, void *data)
 	}
       grub_device_close (dev);
     }
+
+  /* Skip it if it's not the root device when requested. */
+  root_dev = grub_env_get ("root");
+  if (ctx->flags & SEARCH_FLAGS_ROOTDEV_ONLY &&
+      (name[0] != root_dev[0] || name[1] != root_dev[1] ||
+       name[2] != root_dev[2]))
+    return 0;
 
 #ifdef DO_SEARCH_FS_UUID
 #define compare_fn grub_strcasecmp
