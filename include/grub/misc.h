@@ -314,6 +314,7 @@ void *EXPORT_FUNC(grub_memset) (void *s, int c, grub_size_t n);
 grub_size_t EXPORT_FUNC(grub_strlen) (const char *s) WARN_UNUSED_RESULT;
 int EXPORT_FUNC(grub_printf) (const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 1, 2)));
 int EXPORT_FUNC(grub_printf_) (const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 1, 2)));
+void EXPORT_FUNC(grub_str_sep) (const char *s, char *p, char delim, char *r);
 
 /* Replace all `ch' characters of `input' with `with' and copy the
    result into `output'; return EOS address of `output'. */
