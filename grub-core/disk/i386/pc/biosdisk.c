@@ -471,7 +471,7 @@ grub_biosdisk_rw (int cmd, grub_disk_t disk,
       struct grub_biosdisk_dap *dap;
 
       dap = (struct grub_biosdisk_dap *) (GRUB_MEMORY_MACHINE_SCRATCH_ADDR
-					  + (data->sectors
+					  + (GRUB_DISK_MAX_LBA_SECTORS
 					     << disk->log_sector_size));
       dap->length = sizeof (*dap);
       dap->reserved = 0;
@@ -560,6 +560,9 @@ get_safe_sectors (grub_disk_t disk, grub_disk_addr_t sector)
   grub_uint64_t offset;
   struct grub_biosdisk_data *data = disk->data;
   grub_uint32_t sectors = data->sectors;
+
+  if (data->flags & GRUB_BIOSDISK_FLAG_LBA)
+    sectors = GRUB_DISK_MAX_LBA_SECTORS;
 
   /* OFFSET = SECTOR % SECTORS */
   grub_divmod64 (sector, sectors, &offset);
