@@ -1796,8 +1796,6 @@ CPPFLAGS="$SAVED_CPPFLAGS"
 LDFLAGS="$SAVED_LDFLAGS"
 
 
-DJVU_FONT_SOURCE=
-
 starfield_excuse=
 
 AC_ARG_ENABLE([grub-themes],
@@ -1811,19 +1809,28 @@ if test x"$starfield_excuse" = x && test x"$enable_build_grub_mkfont" = xno ; th
   starfield_excuse="No build-time grub-mkfont"
 fi
 
-if test x"$starfield_excuse" = x; then
-   for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz; do
-     for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/truetype/ttf-dejavu /usr/share/fonts/dejavu /usr/share/fonts/truetype; do
-        if test -f "$dir/DejaVuSans.$ext"; then
-          DJVU_FONT_SOURCE="$dir/DejaVuSans.$ext"
-          break 2
-        fi
-     done
-   done
+AC_ARG_WITH([dejavufont],
+            AS_HELP_STRING([--with-dejavufont=FILE],
+                           [set the DejeVu source [[guessed]]]))
 
-   if test "x$DJVU_FONT_SOURCE" = x; then
-     starfield_excuse="No DejaVu found"
-   fi
+if test "x$with_dejavufont" = x; then
+  # search in well-known directories
+  if test x"$starfield_excuse" = x; then
+     for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz; do
+       for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/truetype/ttf-dejavu /usr/share/fonts/dejavu /usr/share/fonts/truetype; do
+          if test -f "$dir/DejaVuSans.$ext"; then
+            DJVU_FONT_SOURCE="$dir/DejaVuSans.$ext"
+            break 2
+          fi
+       done
+     done
+
+     if test "x$DJVU_FONT_SOURCE" = x; then
+       starfield_excuse="No DejaVu found"
+     fi
+  fi
+else
+  DJVU_FONT_SOURCE="$with_dejavufont"
 fi
 
 if test x"$enable_grub_themes" = xyes &&  test x"$starfield_excuse" != x; then
