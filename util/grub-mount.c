@@ -563,6 +563,8 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
   images = xrealloc (images, (num_disks + 1) * sizeof (images[0]));
   images[num_disks] = grub_canonicalize_file_name (arg);
+  if (images[num_disks] == NULL)
+    grub_util_error (_("cannot find `%s': %s"), arg, strerror (errno));
   num_disks++;
 
   return 0;
