@@ -79,6 +79,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 /* Inode flags2 flags */
 #define XFS_DIFLAG2_BIGTIME_BIT	3
 #define XFS_DIFLAG2_BIGTIME		(1 << XFS_DIFLAG2_BIGTIME_BIT)
+#define XFS_DIFLAG2_NREXT64_BIT	4
+#define XFS_DIFLAG2_NREXT64		(1 << XFS_DIFLAG2_NREXT64_BIT)
 
 /* incompat feature flags */
 #define XFS_SB_FEAT_INCOMPAT_FTYPE      (1 << 0)        /* filetype in dirent */
@@ -86,6 +88,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define XFS_SB_FEAT_INCOMPAT_META_UUID  (1 << 2)        /* metadata UUID */
 #define XFS_SB_FEAT_INCOMPAT_BIGTIME    (1 << 3)        /* large timestamps */
 #define XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR (1 << 4)       /* needs xfs_repair */
+#define XFS_SB_FEAT_INCOMPAT_NREXT64 (1 << 5)           /* large extent counters */
 
 /*
  * Directory entries with ftype are explicitly handled by GRUB code.
@@ -101,7 +104,8 @@ GRUB_MOD_LICENSE ("GPLv3+");
 	 XFS_SB_FEAT_INCOMPAT_SPINODES | \
 	 XFS_SB_FEAT_INCOMPAT_META_UUID | \
 	 XFS_SB_FEAT_INCOMPAT_BIGTIME | \
-	 XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR)
+	 XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR | \
+	 XFS_SB_FEAT_INCOMPAT_NREXT64)
 
 struct grub_xfs_sblock
 {
@@ -203,7 +207,8 @@ struct grub_xfs_inode
   grub_uint16_t mode;
   grub_uint8_t version;
   grub_uint8_t format;
-  grub_uint8_t unused2[26];
+  grub_uint8_t unused2[18];
+  grub_uint64_t nextents_big;
   grub_uint64_t atime;
   grub_uint64_t mtime;
   grub_uint64_t ctime;
@@ -539,11 +544,26 @@ get_fsb (const void *keys, int idx)
   return grub_be_to_cpu64 (grub_get_unaligned64 (p));
 }
 
+static int
+grub_xfs_inode_has_large_extent_counts (const struct grub_xfs_inode *inode)
+{
+  return inode->version >= 3 &&
+	 (inode->flags2 & grub_cpu_to_be64_compile_time (XFS_DIFLAG2_NREXT64));
+}
+
+static grub_uint64_t
+grub_xfs_get_inode_nextents (struct grub_xfs_inode *inode)
+{
+  return (grub_xfs_inode_has_large_extent_counts (inode)) ?
+	  grub_be_to_cpu64 (inode->nextents_big) :
+	  grub_be_to_cpu32 (inode->nextents);
+}
+
 static grub_disk_addr_t
 grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 {
   struct grub_xfs_btree_node *leaf = 0;
-  int ex, nrec;
+  grub_uint64_t ex, nrec;
   struct grub_xfs_extent *exts;
   grub_uint64_t ret = 0;
 
@@ -568,7 +588,7 @@ grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
 				/ (2 * sizeof (grub_uint64_t));
       do
         {
-          int i;
+          grub_uint64_t i;
 
           for (i = 0; i < nrec; i++)
             {
@@ -615,7 +635,7 @@ grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       grub_addr_t exts_end = 0;
       grub_addr_t data_end = 0;
 
-      nrec = grub_be_to_cpu32 (node->inode.nextents);
+      nrec = grub_xfs_get_inode_nextents (&node->inode);
       exts = (struct grub_xfs_extent *) grub_xfs_inode_data(&node->inode);
 
       if (grub_mul (sizeof (struct grub_xfs_extent), nrec, &exts_end) ||
