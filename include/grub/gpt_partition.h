@@ -67,7 +67,7 @@ struct grub_gpt_partentry
   grub_uint64_t end;
   grub_uint64_t attrib;
   char name[72];
-} GRUB_PACKED;
+};
 
 grub_err_t
 grub_gpt_partition_map_iterate (grub_disk_t disk,
