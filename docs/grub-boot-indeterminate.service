@@ -9,6 +9,3 @@ Before=system-update-pre.target
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/grub2-editenv - incr boot_indeterminate
-
-[Install]
-WantedBy=system-update.target
