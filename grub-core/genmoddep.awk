@@ -31,6 +31,10 @@ BEGIN {
       printf "%s in %s is not defined\n", $3, $2 >"/dev/stderr";
       error++;
     }
+  } else if ($1 == "depends") {
+    for (i = 3; i <= NF; i++) {
+      modtab[$2] = modtab[$2] " " $i;
+    }
   }
   else {
     printf "error: %u: unrecognized input format\n", NR >"/dev/stderr";
