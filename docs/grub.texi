@@ -3880,11 +3880,20 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 @section bli
 This module provides basic support for the Boot Loader Interface. The Boot
 Loader Interface specifies a set of EFI variables that are used to communicate
-boot-time information between the boot loader and the operating system.
+boot-time information between the bootloader and the operating system.
 
-When loaded, the bli module publishes the GPT partition UUID of the EFI System
-Partition used during boot and a string identifying GRUB as the active boot
-loader, including the version number.
+The following variables are placed under the vendor UUID
+@code{4a67b082-0a4c-41cf-b6c7-440b29bb8c4f} when the module is loaded:
+
+The GPT partition UUID of the EFI System Partition used during boot is
+published via the @code{LoaderDevicePartUUID} variable. The Boot Loader
+Interface specification requires GPT formatted drives. The bli module
+ignores drives/partitions in any other format. If GRUB is loaded from
+a non-GPT partition, e.g. from an MSDOS formatted drive or network,
+this variable will not be set.
+
+A string identifying GRUB as the active bootloader including the version
+number is stored in @code{LoaderInfo}.
 
 This module is only available on UEFI platforms.
 
