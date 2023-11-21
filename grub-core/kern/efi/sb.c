@@ -95,6 +95,14 @@ grub_efi_get_secureboot (void)
   if (!(attr & GRUB_EFI_VARIABLE_RUNTIME_ACCESS) && *moksbstate == 1)
     {
       secureboot = GRUB_EFI_SECUREBOOT_MODE_DISABLED;
+      /*
+       * TODO: Replace this all with shim's LoadImage protocol, delegating policy to it.
+       *
+       * We need to set shim_lock_enabled here because we disabled secure boot
+       * validation *inside* shim but not in the firmware, so we set this variable
+       * here to trigger that code path, whereas the actual verifier is not enabled.
+       */
+      shim_lock_enabled = true;
       goto out;
     }
 
