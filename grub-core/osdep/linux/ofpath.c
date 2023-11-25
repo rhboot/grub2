@@ -292,6 +292,8 @@ __of_path_common(char *sysfs_path,
       int part;
 
       sscanf(digit_string, "%d", &part);
+      if (part < 1) 
+        return NULL;
       snprintf(disk, sizeof (disk), "/disk@%d:%c", devno, 'a' + (part - 1));
     }
   strcat(of_path, disk);
