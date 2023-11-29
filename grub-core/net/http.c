@@ -29,11 +29,7 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-enum
-  {
-    HTTP_PORT = 80
-  };
-
+#define HTTP_PORT	((grub_uint16_t) 80)
 
 typedef struct http_data
 {
@@ -319,7 +315,7 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
   struct grub_net_buff *nb;
   grub_err_t err;
   char *server = file->device->net->server;
-  int port = file->device->net->port;
+  grub_uint16_t port = file->device->net->port;
 
   nb = grub_netbuff_alloc (GRUB_NET_TCP_RESERVE_SIZE
 			   + sizeof ("GET ") - 1
