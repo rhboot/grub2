@@ -141,6 +141,10 @@ enum grub_ieee1275_flag
    */
   GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY,
 #endif
+
+  GRUB_IEEE1275_FLAG_POWER_VM,
+
+  GRUB_IEEE1275_FLAG_POWER_KVM,
 };
 
 extern int EXPORT_FUNC(grub_ieee1275_test_flag) (enum grub_ieee1275_flag flag);

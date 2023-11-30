@@ -126,7 +126,10 @@ grub_ieee1275_find_options (void)
 
 #if defined(__powerpc__)
       if (grub_strncmp (tmp, "IBM,", 4) == 0)
-	grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY);
+	{
+	  grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_CAN_TRY_CAS_FOR_MORE_MEMORY);
+	  grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_POWER_VM);
+	}
 #endif
     }
 
@@ -193,6 +196,9 @@ grub_ieee1275_find_options (void)
       grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_NO_PRE1_5M_CLAIM);
 
       grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_HAS_CURSORONOFF);
+#if defined(__powerpc__)
+      grub_ieee1275_set_flag (GRUB_IEEE1275_FLAG_POWER_KVM);
+#endif
     }
 }
 
