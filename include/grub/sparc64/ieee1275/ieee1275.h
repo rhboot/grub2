@@ -25,6 +25,9 @@
 #define GRUB_IEEE1275_CELL_SIZEOF 8
 typedef grub_uint64_t grub_ieee1275_cell_t;
 
+#define PRIxGRUB_IEEE1275_CELL_T	PRIxGRUB_UINT64_T
+#define PRIuGRUB_IEEE1275_CELL_T	PRIuGRUB_UINT64_T
+
 /* Encoding of 'mode' argument to grub_ieee1275_map_physical() */
 #define IEEE1275_MAP_WRITE	0x0001 /* Writable */
 #define IEEE1275_MAP_READ	0x0002 /* Readable */

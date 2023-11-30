@@ -590,6 +590,9 @@ grub_ieee1275_claim (grub_addr_t addr, grub_size_t size, unsigned int align,
     *result = args.base;
   if (args.base == IEEE1275_CELL_INVALID)
     return -1;
+  grub_dprintf ("mmap", "CLAIMED: 0x%" PRIxGRUB_IEEE1275_CELL_T " (%"
+		PRIuGRUB_IEEE1275_CELL_T " MiB)  size: %" PRIuGRUB_SIZE " MiB\n",
+		args.base, args.base >> 20, ALIGN_UP (size, 1 << 20) >> 20);
   return 0;
 }
 
