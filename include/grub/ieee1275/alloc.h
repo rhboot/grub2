@@ -33,4 +33,7 @@ struct regions_claim_request {
   grub_size_t align;      /* alignment restrictions */
 };
 
+int EXPORT_FUNC(grub_regions_claim) (grub_uint64_t addr, grub_uint64_t len,
+				     grub_memory_type_t type, void *data);
+
 #endif /* GRUB_IEEE1275_ALLOC_HEADER */
