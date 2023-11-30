@@ -502,6 +502,20 @@ regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
             }
         }
     }
+
+  /* Honor alignment restrictions on candidate addr */
+  if (rcr->align)
+    {
+      grub_uint64_t align_addr = ALIGN_UP (addr, rcr->align);
+      grub_uint64_t d = align_addr - addr;
+
+      if (d > len)
+        return 0;
+
+      len -= d;
+      addr = align_addr;
+    }
+
   if (rcr->flags & GRUB_MM_ADD_REGION_CONSECUTIVE && len < rcr->total)
     return 0;
 
