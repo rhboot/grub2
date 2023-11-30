@@ -29,6 +29,7 @@ struct regions_claim_request {
   unsigned int flags;     /* GRUB_MM_ADD_REGION_(NONE|CONSECUTIVE) */
   grub_uint32_t total;    /* number of requested bytes */
   bool init_region;       /* whether to add memory to the heap using grub_mm_init_region() */
+  grub_uint64_t addr;     /* result address */
 };
 
 #endif /* GRUB_IEEE1275_ALLOC_HEADER */
