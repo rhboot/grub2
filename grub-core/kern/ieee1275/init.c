@@ -472,7 +472,7 @@ grub_regions_claim (grub_uint64_t addr, grub_uint64_t len,
               /* We must not exceed the upper_mem_limit (assuming it's >= RMO_ADDR_MAX) */
               if (addr + len > upper_mem_limit)
                 {
-                  /* take the bigger chunk from either below linux_rmo_save or above upper_mem_limit */
+                  /* Take the bigger chunk from either below linux_rmo_save or above RMO_ADDR_MAX. */
                   len = upper_mem_limit - addr;
                   if (orig_addr < linux_rmo_save && linux_rmo_save - orig_addr > len)
                     {
