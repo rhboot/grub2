@@ -456,6 +456,9 @@ grub_regions_claim (grub_uint64_t addr, grub_uint64_t len,
 
           check_kernel_dump (&upper_mem_limit);
 
+          grub_dprintf ("ieee1275", "upper_mem_limit is at %llx (%lld MiB)\n",
+                        upper_mem_limit, upper_mem_limit >> 20);
+
           /*
            * we order these cases to prefer higher addresses and avoid some
            * splitting issues
