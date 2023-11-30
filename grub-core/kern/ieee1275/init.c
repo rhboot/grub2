@@ -518,6 +518,8 @@ regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       if (rcr->init_region)
           grub_mm_init_region ((void *) (grub_addr_t) addr, len);
       rcr->total -= len;
+
+      rcr->addr = addr;
     }
 
   *(grub_uint32_t *) data = rcr->total;
