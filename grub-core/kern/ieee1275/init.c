@@ -517,7 +517,8 @@ regions_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
       err = grub_claimmap (addr, len);
       if (err)
 	return err;
-      grub_mm_init_region ((void *) (grub_addr_t) addr, len);
+      if (rcr->init_region)
+          grub_mm_init_region ((void *) (grub_addr_t) addr, len);
       rcr->total -= len;
     }
 
@@ -536,6 +537,7 @@ heap_init (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
   struct regions_claim_request rcr = {
     .flags = GRUB_MM_ADD_REGION_NONE,
     .total = *(grub_uint32_t *) data,
+    .init_region = true,
   };
   int ret;
 
@@ -553,6 +555,7 @@ region_claim (grub_uint64_t addr, grub_uint64_t len, grub_memory_type_t type,
   struct regions_claim_request rcr = {
     .flags = GRUB_MM_ADD_REGION_CONSECUTIVE,
     .total = *(grub_uint32_t *) data,
+    .init_region = true,
   };
   int ret;
 

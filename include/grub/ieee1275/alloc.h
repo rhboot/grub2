@@ -21,11 +21,14 @@
 #ifndef GRUB_IEEE1275_ALLOC_HEADER
 #define GRUB_IEEE1275_ALLOC_HEADER	1
 
+#include <stdbool.h>
+
 #include <grub/memory.h>
 
 struct regions_claim_request {
   unsigned int flags;     /* GRUB_MM_ADD_REGION_(NONE|CONSECUTIVE) */
   grub_uint32_t total;    /* number of requested bytes */
+  bool init_region;       /* whether to add memory to the heap using grub_mm_init_region() */
 };
 
 #endif /* GRUB_IEEE1275_ALLOC_HEADER */
