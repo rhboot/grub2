@@ -205,22 +205,43 @@ add_tar_file (const char *from,
     {
       grub_util_fd_dir_t d;
       grub_util_fd_dirent_t de;
+      char **from_files;
+      grub_size_t alloc = 8, used = 0;
+      grub_size_t i;
 
       d = grub_util_fd_opendir (from);
 
+      from_files = xmalloc (alloc * sizeof (*from_files));
       while ((de = grub_util_fd_readdir (d)))
 	{
-	  char *fp, *tfp;
 	  if (strcmp (de->d_name, ".") == 0)
 	    continue;
 	  if (strcmp (de->d_name, "..") == 0)
 	    continue;
-	  fp = grub_util_path_concat (2, from, de->d_name);
-	  tfp = xasprintf ("%s/%s", to, de->d_name);
-	  add_tar_file (fp, tfp);
-	  free (fp);
+	  if (alloc <= used)
+	    {
+	      alloc <<= 1;
+	      from_files = xrealloc (from_files, alloc * sizeof (*from_files));
+	    }
+	  from_files[used++] = xstrdup (de->d_name);
 	}
+
+      qsort (from_files, used, sizeof (*from_files), grub_qsort_strcmp);
+
+      for (i = 0; i < used; i++)
+	{
+	  char *fp, *tfp;
+
+	  fp = grub_util_path_concat (2, from, from_files[i]);
+	  tfp = xasprintf ("%s/%s", to, from_files[i]);
+	  add_tar_file (fp, tfp);
+	  free (tfp);
+	  free (fp);
+	  free (from_files[i]);
+	}
+
       grub_util_fd_closedir (d);
+      free (from_files);
       free (tcn);
       return;
     }
