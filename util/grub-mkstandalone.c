@@ -30,6 +30,9 @@
 #pragma GCC diagnostic error "-Wmissing-prototypes"
 #pragma GCC diagnostic error "-Wmissing-declarations"
 
+/* use 2015-01-01T00:00:00+0000 as a stock timestamp */
+#define STABLE_EMBEDDING_TIMESTAMP 1420070400
+
 static char *output_image;
 static char **files;
 static int nfiles;
@@ -184,15 +187,12 @@ add_tar_file (const char *from,
   struct head hd;
   grub_util_fd_t in;
   ssize_t r;
-  grub_uint32_t mtime = 0;
   grub_uint32_t size;
 
   COMPILE_TIME_ASSERT (sizeof (hd) == 512);
 
   if (grub_util_is_special_file (from))
     return;
-
-  mtime = grub_util_get_mtime (from);
 
   optr = tcn = xmalloc (strlen (to) + 1);
   for (iptr = to; *iptr == '/'; iptr++);
@@ -234,7 +234,7 @@ add_tar_file (const char *from,
       memcpy (hd.gid, "0001750", 7);
 
       set_tar_value (hd.size, optr - tcn, 12);
-      set_tar_value (hd.mtime, mtime, 12);
+      set_tar_value (hd.mtime, STABLE_EMBEDDING_TIMESTAMP, 12);
       hd.typeflag = 'L';
       memcpy (hd.magic, MAGIC, sizeof (hd.magic));
       memcpy (hd.uname, "grub", 4);
@@ -264,7 +264,7 @@ add_tar_file (const char *from,
   memcpy (hd.gid, "0001750", 7);
 
   set_tar_value (hd.size, size, 12);
-  set_tar_value (hd.mtime, mtime, 12);
+  set_tar_value (hd.mtime, STABLE_EMBEDDING_TIMESTAMP, 12);
   hd.typeflag = '0';
   memcpy (hd.magic, MAGIC, sizeof (hd.magic));
   memcpy (hd.uname, "grub", 4);
