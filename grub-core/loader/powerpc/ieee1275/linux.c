@@ -30,6 +30,7 @@
 #include <grub/lib/cmdline.h>
 #include <grub/cache.h>
 #include <grub/linux.h>
+#include <grub/ieee1275/alloc.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -114,6 +115,22 @@ grub_linux_claimmap_iterate (grub_addr_t target, grub_size_t size,
   grub_machine_mmap_iterate (alloc_mem, &ctx);
 
   return ctx.found_addr;
+}
+
+static grub_addr_t
+grub_linux_claimmap_iterate_restricted (grub_size_t size, grub_size_t align)
+{
+  struct regions_claim_request rcr = {
+    .flags = GRUB_MM_ADD_REGION_CONSECUTIVE,
+    .total = size,
+    .init_region = false,
+    .addr = (grub_uint64_t) -1,
+    .align = align,
+  };
+
+  grub_machine_mmap_iterate (grub_regions_claim, &rcr);
+
+  return rcr.addr;
 }
 
 static grub_err_t
@@ -227,10 +244,18 @@ grub_linux_load64 (grub_elf_t elf, const char *filename)
   offset = entry - base_addr;
   /* Linux's incorrectly contains a virtual address.  */
 
-  /* On some systems, firmware occupies the memory we're trying to use.
-   * Happily, Linux can be loaded anywhere (it relocates itself).  Iterate
-   * until we find an open area.  */
-  seg_addr = grub_linux_claimmap_iterate (base_addr & ~ELF64_LOADMASK, linux_size, align);
+  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_POWER_VM) ||
+      grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_POWER_KVM))
+    {
+      seg_addr = grub_linux_claimmap_iterate_restricted (linux_size, align);
+    }
+  else
+    {
+      /* On some systems, firmware occupies the memory we're trying to use.
+       * Happily, Linux can be loaded anywhere (it relocates itself).  Iterate
+       * until we find an open area.  */
+      seg_addr = grub_linux_claimmap_iterate (base_addr & ~ELF64_LOADMASK, linux_size, align);
+    }
   if (seg_addr == (grub_addr_t) -1)
     return grub_error (GRUB_ERR_OUT_OF_MEMORY, "couldn't claim memory");
 
@@ -339,13 +364,25 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 
   size = grub_get_initrd_size (&initrd_ctx);
 
-  first_addr = linux_addr + linux_size;
 
-  /* Attempt to claim at a series of addresses until successful in
-     the same way that grub_rescue_cmd_linux does.  */
-  addr = grub_linux_claimmap_iterate (first_addr, size, 0x100000);
+  if (grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_POWER_VM) ||
+      grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_POWER_KVM))
+    {
+      addr = grub_linux_claimmap_iterate_restricted (size, 0x100000);
+    }
+  else
+    {
+      /* Attempt to claim at a series of addresses until successful in
+         the same way that grub_rescue_cmd_linux does.  */
+      first_addr = linux_addr + linux_size;
+      addr = grub_linux_claimmap_iterate (first_addr, size, 0x100000);
+    }
+
   if (addr == (grub_addr_t) -1)
-     goto fail;
+    {
+      grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of memory");
+      goto fail;
+    }
 
   grub_dprintf ("loader", "Loading initrd at 0x%x, size 0x%x\n", addr, size);
 
