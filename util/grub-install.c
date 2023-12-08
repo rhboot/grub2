@@ -1366,18 +1366,6 @@ main (int argc, char *argv[])
       relative_grubdir = xstrdup ("/");
     }
 
-  char *platname =  grub_install_get_platform_name (platform);
-  char *platdir;
-  {
-    char *t = grub_util_path_concat (2, grubdir,
-				   platname);
-    platdir = grub_canonicalize_file_name (t);
-    if (!platdir)
-      grub_util_error (_("failed to get canonical path of `%s'"),
-		       t);
-    free (t);
-  }
-
   char *prefix_drive = NULL;
   char *install_drive = NULL;
 
@@ -1407,6 +1395,18 @@ main (int argc, char *argv[])
   char *envfile = grub_util_path_concat (2, grubdir, "grubenv");
   if (!grub_util_is_regular (envfile))
     grub_util_create_envblk_file (envfile);
+
+  char *platname =  grub_install_get_platform_name (platform);
+  char *platdir;
+  {
+    char *t = grub_util_path_concat (2, grubdir,
+                                   platname);
+    platdir = grub_canonicalize_file_name (t);
+    if (!platdir)
+      grub_util_error (_("failed to get canonical path of `%s'"),
+                       t);
+    free (t);
+  }
 
   load_cfg = grub_util_path_concat (2, platdir,
                                   "load.cfg");
