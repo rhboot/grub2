@@ -490,12 +490,12 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
 
   if (rsdp)
     {
-      grub_uint32_t *entry_ptr;
+      grub_uint8_t *entry_ptr;
       char *exclude = 0;
       char *load_only = 0;
       char *ptr;
-      /* RSDT consists of header and an array of 32-bit pointers. */
-      struct grub_acpi_table_header *rsdt;
+      grub_size_t tbl_addr_size;
+      struct grub_acpi_table_header *table_head;
 
       exclude = state[0].set ? grub_strdup (state[0].arg) : 0;
       if (exclude)
@@ -515,20 +515,31 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
       rev1 = ! rsdp->revision;
       rev2 = rsdp->revision;
       if (rev2 && ((struct grub_acpi_table_header *) (grub_addr_t) ((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr) != NULL)
-	rsdt = (struct grub_acpi_table_header *) (grub_addr_t) ((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr;
+	{
+	  /* XSDT consists of header and an array of 64-bit pointers. */
+	  table_head = (struct grub_acpi_table_header *) (grub_addr_t) ((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr;
+	  tbl_addr_size = sizeof (((struct grub_acpi_rsdp_v20 *) rsdp)->xsdt_addr);
+	}
       else
-	rsdt = (struct grub_acpi_table_header *) (grub_addr_t) rsdp->rsdt_addr;
+	{
+	  /* RSDT consists of header and an array of 32-bit pointers. */
+	  table_head = (struct grub_acpi_table_header *) (grub_addr_t) rsdp->rsdt_addr;
+	  tbl_addr_size = sizeof (rsdp->rsdt_addr);
+	}
 
       /* Load host tables. */
-      for (entry_ptr = (grub_uint32_t *) (rsdt + 1);
-	   entry_ptr < (grub_uint32_t *) (((grub_uint8_t *) rsdt)
-					  + rsdt->length);
-	   entry_ptr++)
+      for (entry_ptr = (grub_uint8_t *) (table_head + 1);
+	   entry_ptr < (grub_uint8_t *) (((grub_uint8_t *) table_head) + table_head->length);
+	   entry_ptr += tbl_addr_size)
 	{
 	  char signature[5];
 	  struct efiemu_acpi_table *table;
-	  struct grub_acpi_table_header *curtable
-	    = (struct grub_acpi_table_header *) (grub_addr_t) *entry_ptr;
+	  struct grub_acpi_table_header *curtable;
+	  if (tbl_addr_size == sizeof (rsdp->rsdt_addr))
+	    curtable = (struct grub_acpi_table_header *) (grub_addr_t) *((grub_uint32_t *) entry_ptr);
+	  else
+	    curtable = (struct grub_acpi_table_header *) (grub_addr_t) *((grub_uint64_t *) entry_ptr);
+
 	  signature[4] = 0;
 	  for (i = 0; i < 4;i++)
 	    signature[i] = grub_tolower (curtable->signature[i]);
