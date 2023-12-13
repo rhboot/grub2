@@ -195,13 +195,16 @@ load_image (grub_gui_image_t self, const char *path)
     return grub_errno;
 
   if (self->bitmap && (self->bitmap != self->raw_bitmap))
-    {
-      grub_video_bitmap_destroy (self->bitmap);
-      self->bitmap = 0;
-    }
+    grub_video_bitmap_destroy (self->bitmap);
   if (self->raw_bitmap)
     grub_video_bitmap_destroy (self->raw_bitmap);
 
+  /*
+   * Either self->bitmap is being freed or it shares memory with
+   * self->raw_bitmap which is being freed. To ensure self->bitmap doesn't
+   * point to memory that has been freed, we can set it to NULL.
+   */
+  self->bitmap = NULL;
   self->raw_bitmap = bitmap;
   return rescale_image (self);
 }
