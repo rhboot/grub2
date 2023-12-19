@@ -1439,7 +1439,9 @@ else
   fi
   TARGET_CPPFLAGS="$TARGET_CPPFLAGS -DGRUB_STACK_PROTECTOR=1"
 
-  if test -r /dev/urandom; then
+  if test -n "$SOURCE_DATE_EPOCH"; then
+     GRUB_STACK_PROTECTOR_INIT="0x00f2b7e2$(printf "%x" "$SOURCE_DATE_EPOCH" | sed 's/.*\(........\)$/\1/')"
+  elif test -r /dev/urandom; then
      # Generate the 8 byte stack protector canary at build time if /dev/urandom
      # is able to be read. The first byte should be NUL to filter out string
      # buffer overflow attacks.
