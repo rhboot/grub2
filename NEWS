@@ -1,3 +1,23 @@
+New in 2.12:
+
+* GCC 13 support.
+* clang 14 support.
+* binutils 2.38 support.
+* Unification of EFI Linux kernel loader across architectures.
+* Transition to EFI Linux kernel stub loader for x86 architecture.
+* Initial support for Boot Loader Interface.
+* Support for dynamic GRUB runtime memory addition using firmware calls.
+* PCI and MMIO UARTs support.
+* SDL2 support.
+* LoongArch support.
+* TPM driver fixes.
+* Many filesystems fixes.
+* Many CVE and Coverity fixes.
+* Debugging support improvements.
+* Tests improvements.
+* Documentation improvements.
+* ...and tons of other fixes and cleanups...
+
 New in 2.06:
 
 * GCC 10 support.
