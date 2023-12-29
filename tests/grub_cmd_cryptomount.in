@@ -173,7 +173,7 @@ eval testcase_fail "'LUKS2 test with argon2 pbkdf:'" \
 # Add good password to second slot and change first slot to unchecked password
 csscript=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 99
 cat >$csscript <<'EOF'
-    CSOPTS="--pbkdf-force-iterations 1000 --pbkdf=pbkdf2"
+    CSOPTS="--pbkdf-force-iterations 1000 --pbkdf=pbkdf2 --force-password"
     cryptsetup $CSOPTS --key-file $lukskeyfile luksAddKey $luksdiskfile $lukskeyfile
     echo "newpass" | cryptsetup $CSOPTS --key-file $lukskeyfile --key-slot 0 luksChangeKey $luksdiskfile
 EOF
