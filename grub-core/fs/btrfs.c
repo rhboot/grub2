@@ -2625,7 +2625,7 @@ grub_cmd_btrfs_info (grub_command_t cmd __attribute__ ((unused)), int argc,
       return grub_error (GRUB_ERR_BAD_ARGUMENT, "failed to open fs");
     }
 
-  if (data->sblock.label)
+  if (data->sblock.label[0])
     grub_printf("Label: '%s' ", data->sblock.label);
   else
     grub_printf("Label: none ");
