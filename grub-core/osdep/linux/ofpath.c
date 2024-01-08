@@ -775,6 +775,8 @@ get_slave_from_dm(const char * device){
 
     device_path = grub_xasprintf ("/sys/block/%s/slaves", curr_device);
     dp = opendir(device_path);
+    if (dp == NULL)
+      grub_util_warn (_("cannot open directory `%s'"), device_path);
     free(device_path);
 
     if (dp != NULL)
@@ -800,8 +802,6 @@ get_slave_from_dm(const char * device){
       }
       closedir (dp);
     }
-    else
-      grub_util_warn (_("cannot open directory `%s'"), device_path);
   }
 
   free (directory);
