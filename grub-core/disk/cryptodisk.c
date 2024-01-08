@@ -721,7 +721,7 @@ grub_cryptodisk_open (const char *name, grub_disk_t disk)
 #ifdef GRUB_UTIL
   if (dev->cheat)
     {
-      grub_uint64_t cheat_dev_size;
+      grub_int64_t cheat_dev_size;
       unsigned int cheat_log_sector_size;
 
       if (!GRUB_UTIL_FD_IS_VALID (dev->cheat_fd))
