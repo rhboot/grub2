@@ -269,11 +269,17 @@ fuse_read (const char *path, char *buf, size_t sz, off_t off,
 {
   grub_file_t file = files[fi->fh];
   grub_ssize_t size;
+  grub_off_t offset;
 
-  if (off > file->size)
+  if (off < 0)
     return -EINVAL;
 
-  file->offset = off;
+  if ((grub_off_t)off > file->size)
+    return -EINVAL;
+
+  offset = (grub_off_t)off;
+
+  file->offset = offset;
 
   size = grub_file_read (file, buf, sz);
   if (size < 0)
