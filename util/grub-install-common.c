@@ -368,7 +368,7 @@ char *grub_install_themes_directory = NULL;
 int
 grub_install_is_short_mbrgap_supported (void)
 {
-  int i, j;
+  unsigned int i, j;
   static const char *whitelist[] =
     {
      "part_msdos", "biosdisk", "affs", "afs", "bfs", "archelp",
