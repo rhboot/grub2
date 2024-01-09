@@ -505,7 +505,7 @@ grub_memalign (grub_size_t align, grub_size_t size)
 	goto fail;
 
       /* Preallocate some extra space if heap growth is small. */
-      grow = grub_max (grow, GRUB_MM_HEAP_GROW_EXTRA);
+      grow = grub_max (grow, (grub_size_t)GRUB_MM_HEAP_GROW_EXTRA);
 
       /* Align up heap growth to make it friendly to CPU/MMU. */
       if (grow > ~(grub_size_t) (GRUB_MM_HEAP_GROW_ALIGN - 1))
