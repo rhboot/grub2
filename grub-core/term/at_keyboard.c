@@ -93,7 +93,7 @@ at_command (grub_uint8_t data)
   return (i != GRUB_AT_TRIES);
 }
 
-static void
+static void __attribute__((__unused__))
 grub_keyboard_controller_write (grub_uint8_t c)
 {
   at_command (KEYBOARD_COMMAND_WRITE);
@@ -170,7 +170,7 @@ query_mode (void)
   grub_uint64_t endtime;
   unsigned i;
   int e;
-  char *envvar;
+  const char *envvar;
 
   for (i = 0; i < GRUB_AT_TRIES; i++) {
     grub_dprintf ("atkeyb", "query_mode: sending command to controller\n");
