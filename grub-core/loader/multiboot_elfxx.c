@@ -99,7 +99,7 @@ CONCAT(grub_multiboot_load_elf, XX) (mbi_load_data_t *mld)
     return err;
 
   /* FIXME: Should we support program headers at strange locations?  */
-  phlimit = grub_min (MULTIBOOT_SEARCH, grub_file_size (mld->file));
+  phlimit = grub_min ((grub_off_t)MULTIBOOT_SEARCH, grub_file_size (mld->file));
   if ((grub_off_t) ehdr->e_phoff + phnum * ehdr->e_phentsize > phlimit)
     return grub_error (GRUB_ERR_BAD_OS, "program header at a too high offset");
 
