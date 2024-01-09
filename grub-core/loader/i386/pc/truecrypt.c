@@ -176,7 +176,7 @@ grub_cmd_truecrypt (grub_command_t cmd __attribute__ ((unused)),
 
   edx = (dh << 8) | grub_get_root_biosnumber ();
 
-  destaddr = ALIGN_DOWN (grub_min (0x90000, grub_mmap_get_lower ())
+  destaddr = ALIGN_DOWN (grub_min (0x90000ull, grub_mmap_get_lower ())
 			 - truecryptmemsize, 64 * 1024);
 
   {
