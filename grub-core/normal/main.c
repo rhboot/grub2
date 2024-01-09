@@ -406,7 +406,7 @@ grub_try_normal_dev (const char *name, void *data)
 static grub_err_t
 grub_try_normal_discover (void)
 {
-  char *prefix = grub_env_get ("prefix");
+  const char *prefix = grub_env_get ("prefix");
   grub_err_t err = GRUB_ERR_FILE_NOT_FOUND;
 
   if (!prefix)
