@@ -143,7 +143,7 @@ int
 _asn1_append_sequence_set (asn1_node node, struct node_tail_cache_st *pcache)
 {
   asn1_node p, p2;
-  char temp[LTOSTR_MAX_SIZE];
+  char temp[LTOSTR_MAX_SIZE + 1];
   long n;
 
   if (!node || !(node->down))
