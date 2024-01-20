@@ -540,7 +540,6 @@ grub_guess_root_devices (const char *dir_in)
       for (cur = os_dev; *cur; cur++)
 	free (*cur);
       free (os_dev);
-      os_dev = 0;
     }
 
   if (stat (dir, &st) < 0)
