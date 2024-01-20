@@ -716,7 +716,6 @@ grub_jfs_find_file (struct grub_jfs_data *data, const char *path,
 	      grub_uint32_t dirino = grub_le_to_cpu32 (data->currinode.inode);
 
 	      grub_jfs_closedir (diro);
-	      diro = 0;
 
 	      if (grub_jfs_read_inode (data, ino, &data->currinode))
 		break;
