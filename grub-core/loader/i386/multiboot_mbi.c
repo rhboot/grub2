@@ -86,7 +86,7 @@ load_kernel (grub_file_t file, const char *filename,
 	return GRUB_ERR_NONE;
       }
       if (err == GRUB_ERR_UNKNOWN_OS && (header->flags & MULTIBOOT_AOUT_KLUDGE))
-	grub_errno = err = GRUB_ERR_NONE;
+	grub_errno = GRUB_ERR_NONE;
     }
   if (header->flags & MULTIBOOT_AOUT_KLUDGE)
     {
