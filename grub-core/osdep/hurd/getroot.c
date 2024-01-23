@@ -58,7 +58,7 @@ grub_util_find_hurd_root_device (const char *path)
   file_t file;
   error_t err;
   char *argz = NULL, *name = NULL, *ret;
-  size_t argz_len = 0;
+  mach_msg_type_number_t argz_len = 0;
   int i;
 
   file = file_name_lookup (path, 0, 0);
