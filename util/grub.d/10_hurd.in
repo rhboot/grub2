@@ -91,7 +91,14 @@ if ${at_least_one} ; then : ; else
   exit 0
 fi
 
-if ${all_of_them} && test -e /lib/ld.so.1 ; then : ; else
+if test -e '/lib/ld.so.1' ; then
+  LD_SO=/lib/ld.so.1
+fi
+if test -e '/lib/ld-x86-64.so.1' ; then
+  LD_SO=/lib/ld-x86-64.so.1
+fi
+
+if ${all_of_them} && test -n "$LD_SO" ; then : ; else
   gettext "Some Hurd stuff found, but not enough to boot." >&2
   echo >&2
   exit 1
@@ -210,7 +217,7 @@ EOF
 			$host_ports \\
 			--exec-server-task='\${exec-task}' -T typed '\${root}' \\
 			'\$(fs-task=task-create)' $resume_task
-	module		/lib/ld.so.1 exec /hurd/exec '\$(exec-task=task-create)'
+	module		$LD_SO exec /hurd/exec '\$(exec-task=task-create)'
 }
 EOF
 
