@@ -30,10 +30,13 @@
 #include <grub/reader.h>
 #include <grub/parser.h>
 #include <grub/verify.h>
+#include <grub/types.h>
 
 #ifdef GRUB_MACHINE_PCBIOS
 #include <grub/machine/memory.h>
 #endif
+
+static bool cli_disabled = false;
 
 grub_addr_t
 grub_modules_get_end (void)
@@ -299,6 +302,28 @@ grub_load_normal_mode (void)
   grub_command_execute ("normal", 0, 0);
 }
 
+bool
+grub_is_cli_disabled (void)
+{
+  return cli_disabled;
+}
+
+static void
+check_is_cli_disabled (void)
+{
+  struct grub_module_header *header;
+  header = 0;
+
+  FOR_MODULES (header)
+    {
+      if (header->type == OBJ_TYPE_DISABLE_CLI)
+	{
+	  cli_disabled = true;
+	  return;
+	}
+    }
+}
+
 static void
 reclaim_module_space (void)
 {
@@ -355,6 +380,9 @@ grub_main (void)
   grub_load_modules ();
 
   grub_boot_time ("After loading embedded modules.");
+
+  /* Check if the CLI should be disabled */
+  check_is_cli_disabled ();
 
   /* It is better to set the root device as soon as possible,
      for convenience.  */
