@@ -67,6 +67,8 @@
       N_("SBAT metadata"), 0 },						\
   { "disable-shim-lock", GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK, 0, 0,	\
       N_("disable shim_lock verifier"), 0 },				\
+  { "disable-cli", GRUB_INSTALL_OPTIONS_DISABLE_CLI, 0, 0,		\
+    N_("disabled command line interface access"), 0 },			\
   { "verbose", 'v', 0, 0,						\
     N_("print verbose messages."), 1 }
 
@@ -129,7 +131,8 @@ enum grub_install_options {
   GRUB_INSTALL_OPTIONS_INSTALL_CORE_COMPRESS,
   GRUB_INSTALL_OPTIONS_DTB,
   GRUB_INSTALL_OPTIONS_SBAT,
-  GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK
+  GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK,
+  GRUB_INSTALL_OPTIONS_DISABLE_CLI
 };
 
 extern char *grub_install_source_directory;
@@ -191,7 +194,8 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     const struct grub_install_image_target_desc *image_target,
 			     int note,
 			     grub_compression_t comp, const char *dtb_file,
-			     const char *sbat_path, const int disable_shim_lock);
+			     const char *sbat_path, const int disable_shim_lock,
+			     const int disable_cli);
 
 const struct grub_install_image_target_desc *
 grub_install_get_image_target (const char *arg);
