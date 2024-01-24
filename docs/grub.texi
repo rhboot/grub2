@@ -5948,8 +5948,10 @@ the GRUB command line, edit menu entries, and execute any menu entry.  If
 @samp{superusers} is set, then use of the command line and editing of menu
 entries are automatically restricted to superusers. Setting @samp{superusers}
 to empty string effectively disables both access to CLI and editing of menu
-entries. Note: The environment variable needs to be exported to also affect
-the section defined by the @samp{submenu} command (@pxref{submenu}).
+entries. Building a grub image with @samp{--disable-cli} option will also
+disable access to CLI and editing of menu entries, as well as disabling rescue
+mode. Note: The environment variable needs to be exported to also affect the
+section defined by the @samp{submenu} command (@pxref{submenu}).
 
 Other users may be allowed to execute specific menu entries by giving a list of
 usernames (as above) using the @option{--users} option to the

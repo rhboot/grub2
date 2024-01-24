@@ -464,6 +464,7 @@ static char **x509keys;
 static size_t nx509keys;
 static grub_compression_t compression;
 static size_t appsig_size;
+static int disable_cli;
 
 int
 grub_install_parse (int key, char *arg)
@@ -508,6 +509,9 @@ grub_install_parse (int key, char *arg)
 			  sizeof (x509keys[0])
 			  * (nx509keys + 1));
       x509keys[nx509keys++] = xstrdup (arg);
+      return 1;
+    case GRUB_INSTALL_OPTIONS_DISABLE_CLI:
+      disable_cli = 1;
       return 1;
 
     case GRUB_INSTALL_OPTIONS_VERBOSITY:
@@ -689,12 +693,13 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 		  " --dtb '%s' "
 		  "--sbat '%s' "
 		  "--format '%s' --compression '%s' "
-		  "--appended-signature-size %zu %s %s %s\n",
+		  "--appended-signature-size %zu %s %s %s %s\n",
 		  dir, prefix,
 		  outname, dtb ? : "", sbat ? : "", mkimage_target,
 		  compnames[compression], appsig_size,
 		  disable_shim_lock ? "--disable-shim-lock" : "",
-		  note ? "--note" : "", s);
+		  note ? "--note" : "",
+		  disable_cli ? " --disable-cli" : "", s);
   free (s);
 
   tgt = grub_install_get_image_target (mkimage_target);
@@ -707,7 +712,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 			       x509keys, nx509keys,
 			       config_path, tgt,
 			       note, appsig_size, compression, dtb, sbat,
-			       disable_shim_lock);
+			       disable_shim_lock, disable_cli);
   while (dc--)
     grub_install_pop_module ();
 }

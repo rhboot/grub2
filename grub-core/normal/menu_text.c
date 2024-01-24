@@ -178,21 +178,24 @@ command-line or ESC to discard edits and return to the GRUB menu."),
 
       grub_free (msg_translated);
 
-      if (nested)
+      if (!grub_is_cli_disabled ())
 	{
-	  ret += grub_print_message_indented_real
-	    (_("Press enter to boot the selected OS, "
-	       "`e' to edit the commands before booting "
-	       "or `c' for a command-line. ESC to return previous menu."),
-	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
-	}
-      else
-	{
-	  ret += grub_print_message_indented_real
-	    (_("Press enter to boot the selected OS, "
-	       "`e' to edit the commands before booting "
-	       "or `c' for a command-line."),
-	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+	  if (nested)
+	    {
+	      ret += grub_print_message_indented_real
+		(_("Press enter to boot the selected OS, "
+		   "`e' to edit the commands before booting "
+		   "or `c' for a command-line. ESC to return previous menu."),
+		 STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+	    }
+	  else
+	    {
+	      ret += grub_print_message_indented_real
+		(_("Press enter to boot the selected OS, "
+		   "`e' to edit the commands before booting "
+		   "or `c' for a command-line."),
+		 STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+	    }
 	}	
     }
   return ret;

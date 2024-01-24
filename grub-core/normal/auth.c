@@ -209,6 +209,9 @@ grub_auth_check_authentication (const char *userlist)
   char entered[GRUB_AUTH_MAX_PASSLEN];
   struct grub_auth_user *user;
 
+  if (grub_is_cli_disabled ())
+    return GRUB_ACCESS_DENIED;
+
   grub_memset (login, 0, sizeof (login));
 
   if (is_authenticated (userlist))
