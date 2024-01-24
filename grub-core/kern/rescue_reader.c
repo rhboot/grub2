@@ -78,6 +78,19 @@ grub_rescue_read_line (char **line, int cont,
 void __attribute__ ((noreturn))
 grub_rescue_run (void)
 {
+  /* Stall if the CLI has been disabled */
+  if (grub_is_cli_disabled ())
+    {
+      grub_printf ("Rescue mode has been disabled...\n");
+
+      do
+	{
+	  /* Do not optimize out the loop. */
+	  asm volatile ("");
+	}
+      while (1);
+    }
+
   grub_printf ("Entering rescue mode...\n");
 
   while (1)

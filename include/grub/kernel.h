@@ -33,6 +33,7 @@ enum
   OBJ_TYPE_DISABLE_SHIM_LOCK,
   OBJ_TYPE_GPG_PUBKEY,
   OBJ_TYPE_X509_PUBKEY,
+  OBJ_TYPE_DISABLE_CLI
 };
 
 /* The module header.  */
