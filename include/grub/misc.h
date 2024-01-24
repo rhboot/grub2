@@ -442,6 +442,8 @@ grub_uint64_t EXPORT_FUNC(grub_divmod64) (grub_uint64_t n,
 					  grub_uint64_t d,
 					  grub_uint64_t *r);
 
+extern bool EXPORT_FUNC(grub_is_cli_disabled) (void);
+
 /* Must match softdiv group in gentpl.py.  */
 #if !defined(GRUB_MACHINE_EMU) && (defined(__arm__) || defined(__ia64__) || \
     (defined(__riscv) && (__riscv_xlen == 32)))
