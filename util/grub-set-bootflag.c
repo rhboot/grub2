@@ -86,6 +86,17 @@ int main(int argc, char *argv[])
   len = strlen (bootflag);
 
   /*
+   * Exit calmly when not installed SUID root and invoked by non-root.  This
+   * allows installing user/grub-boot-success.service unconditionally while
+   * supporting non-SUID installation of the program for some limited usage.
+   */
+  if (geteuid())
+    {
+      printf ("grub-set-bootflag not running as root, no action taken\n");
+      return 0;
+    }
+
+  /*
    * setegid avoids the new grubenv's gid being that of the user.
    */
   if (setegid(0))
