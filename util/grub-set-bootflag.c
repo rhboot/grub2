@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/resource.h>
 
 #include "progname.h"
 
@@ -57,12 +59,17 @@ static void usage(FILE *out)
 int main(int argc, char *argv[])
 {
   /* NOTE buf must be at least the longest bootflag length + 4 bytes */
-  char env[GRUBENV_SIZE + 1], buf[64], *s;
+  char env[GRUBENV_SIZE + 1 + 2], buf[64], *s;
   /* +1 for 0 termination, +6 for "XXXXXX" in tmp filename */
   char env_filename[PATH_MAX + 1], tmp_filename[PATH_MAX + 6 + 1];
   const char *bootflag;
   int i, fd, len, ret;
   FILE *f;
+  struct rlimit rlim;
+
+  if (getrlimit(RLIMIT_FSIZE, &rlim) || rlim.rlim_cur < GRUBENV_SIZE || rlim.rlim_max < GRUBENV_SIZE)
+    return 1;
+  umask(077);
 
   if (argc != 2)
     {
@@ -94,20 +101,11 @@ int main(int argc, char *argv[])
   len = strlen (bootflag);
 
   /*
-   * Really become root. setuid avoids an user killing us, possibly leaking
-   * the tmpfile. setgid avoids the new grubenv's gid being that of the user.
+   * setegid avoids the new grubenv's gid being that of the user.
    */
-  ret = setuid(0);
-  if (ret)
+  if (setegid(0))
     {
-      perror ("Error setuid(0) failed");
-      return 1;
-    }
-
-  ret = setgid(0);
-  if (ret)
-    {
-      perror ("Error setgid(0) failed");
+      perror ("Error setegid(0) failed");
       return 1;
     }
 
@@ -136,6 +134,9 @@ int main(int argc, char *argv[])
 
   /* 0 terminate env */
   env[GRUBENV_SIZE] = 0;
+  /* not a valid flag value */
+  env[GRUBENV_SIZE + 1] = 0;
+  env[GRUBENV_SIZE + 2] = 0;
 
   if (strncmp (env, GRUB_ENVBLK_SIGNATURE, strlen (GRUB_ENVBLK_SIGNATURE)))
     {
@@ -171,6 +172,8 @@ int main(int argc, char *argv[])
 
   /* The grubenv is not 0 terminated, so memcpy the name + '=' , '1', '\n' */
   snprintf(buf, sizeof(buf), "%s=1\n", bootflag);
+  if (!memcmp(s, buf, len + 3))
+    return 0; /* nothing to do */
   memcpy(s, buf, len + 3);
 
 
