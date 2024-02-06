@@ -915,25 +915,6 @@ main (int argc, char *argv[])
 
   platform = grub_install_get_target (grub_install_source_directory);
 
-  switch (platform)
-    {
-    case GRUB_INSTALL_PLATFORM_ARM_EFI:
-    case GRUB_INSTALL_PLATFORM_ARM64_EFI:
-    case GRUB_INSTALL_PLATFORM_I386_EFI:
-    case GRUB_INSTALL_PLATFORM_IA64_EFI:
-    case GRUB_INSTALL_PLATFORM_LOONGARCH64_EFI:
-    case GRUB_INSTALL_PLATFORM_RISCV32_EFI:
-    case GRUB_INSTALL_PLATFORM_RISCV64_EFI:
-    case GRUB_INSTALL_PLATFORM_X86_64_EFI:
-      is_efi = 1;
-      grub_util_error (_("this utility cannot be used for EFI platforms"
-                         " because it does not support UEFI Secure Boot"));
-      break;
-    default:
-      is_efi = 0;
-      break;
-    }
-
   {
     char *platname = grub_install_get_platform_name (platform);
     fprintf (stderr, _("Installing for %s platform.\n"), platname);
@@ -1050,6 +1031,22 @@ main (int argc, char *argv[])
 
   switch (platform)
     {
+    case GRUB_INSTALL_PLATFORM_ARM_EFI:
+    case GRUB_INSTALL_PLATFORM_ARM64_EFI:
+    case GRUB_INSTALL_PLATFORM_I386_EFI:
+    case GRUB_INSTALL_PLATFORM_IA64_EFI:
+    case GRUB_INSTALL_PLATFORM_LOONGARCH64_EFI:
+    case GRUB_INSTALL_PLATFORM_RISCV32_EFI:
+    case GRUB_INSTALL_PLATFORM_RISCV64_EFI:
+    case GRUB_INSTALL_PLATFORM_X86_64_EFI:
+      is_efi = 1;
+      if (!force)
+        grub_util_error (_("This utility should not be used for EFI platforms"
+                          " because it does not support UEFI Secure Boot."
+                          " If you really wish to proceed, invoke the --force"
+                          " option.\nMake sure Secure Boot is disabled before"
+                          " proceeding"));
+      break;
     case GRUB_INSTALL_PLATFORM_I386_IEEE1275:
     case GRUB_INSTALL_PLATFORM_POWERPC_IEEE1275:
 #ifdef __linux__
@@ -1057,6 +1054,9 @@ main (int argc, char *argv[])
       if (update_nvram)
         try_open ("/dev/nvram");
 #endif
+      break;
+      /* pacify warning.  */
+    case GRUB_INSTALL_PLATFORM_MAX:
       break;
     default:
       break;
