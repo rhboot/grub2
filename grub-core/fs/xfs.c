@@ -902,6 +902,7 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 					grub_xfs_first_de(dir->data, dirblock);
 	    int entries = -1;
 	    char *end = dirblock + dirblk_size;
+	    grub_uint32_t magic;
 
 	    numread = grub_xfs_read_file (dir, 0, 0,
 					  blk << dirblk_log2,
@@ -911,6 +912,15 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	        grub_free (dirblock);
 	        return 0;
 	      }
+
+	    /*
+	     * If this data block isn't actually part of the extent list then
+	     * grub_xfs_read_file() returns a block of zeros. So, if the magic
+	     * number field is all zeros then this block should be skipped.
+	     */
+	    magic = *(grub_uint32_t *)(void *) dirblock;
+	    if (!magic)
+	      continue;
 
 	    /*
 	     * Leaf and tail information are only in the data block if the number
