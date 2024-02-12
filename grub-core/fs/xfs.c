@@ -107,6 +107,14 @@ GRUB_MOD_LICENSE ("GPLv3+");
 	 XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR | \
 	 XFS_SB_FEAT_INCOMPAT_NREXT64)
 
+/*
+ * Directory block magic
+*/
+#define XFS_DIR2_BLOCK_MAGIC  0x58443242	/* XD2B: single block dirs */
+#define	XFS_DIR2_DATA_MAGIC   0x58443244	/* XD2D: multiblock dirs */
+#define	XFS_DIR3_BLOCK_MAGIC  0x58444233	/* XDB3: single block dirs */
+#define	XFS_DIR3_DATA_MAGIC   0x58444433	/* XDD3: multiblock dirs */
+
 struct grub_xfs_sblock
 {
   grub_uint8_t magic[4];
@@ -934,6 +942,7 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	    /* Iterate over all entries within this block.  */
 	    while ((char *) direntry < (char *) end)
 	      {
+                grub_uint32_t dirblock_magic;
 		grub_uint8_t *freetag;
 		char *filename;
 
@@ -950,6 +959,17 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 
 		    continue;
 		  }
+
+    /* If the dirblock magic number doesn't match a valid number then break */
+    dirblock_magic = grub_be_to_cpu32(grub_get_unaligned32(dirblock));
+
+    if ((dirblock_magic != XFS_DIR2_BLOCK_MAGIC) &&
+      (dirblock_magic != XFS_DIR2_DATA_MAGIC) &&
+      (dirblock_magic != XFS_DIR3_BLOCK_MAGIC) &&
+      (dirblock_magic != XFS_DIR3_DATA_MAGIC))
+      {
+        break;
+      }
 
 		filename = (char *)(direntry + 1);
 		if (filename + direntry->len + 1 > (char *) end)
