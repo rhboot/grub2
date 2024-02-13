@@ -37,6 +37,7 @@
 #include <grub/linux.h>
 #include <grub/machine/kernel.h>
 #include <grub/safemath.h>
+#include <grub/efi/sb.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1164,6 +1165,9 @@ static grub_command_t cmd_linux, cmd_initrd;
 
 GRUB_MOD_INIT(linux)
 {
+  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
+    return;
+
   cmd_linux = grub_register_command ("linux", grub_cmd_linux,
 				     0, N_("Load Linux."));
   cmd_initrd = grub_register_command ("initrd", grub_cmd_initrd,
@@ -1173,6 +1177,9 @@ GRUB_MOD_INIT(linux)
 
 GRUB_MOD_FINI(linux)
 {
+  if (grub_efi_get_secureboot () == GRUB_EFI_SECUREBOOT_MODE_ENABLED)
+    return;
+
   grub_unregister_command (cmd_linux);
   grub_unregister_command (cmd_initrd);
 }
