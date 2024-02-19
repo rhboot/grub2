@@ -553,10 +553,18 @@ init_terminal (grub_gfxmenu_view_t view)
 static void
 init_background (grub_gfxmenu_view_t view)
 {
+  struct grub_video_bitmap *scaled_bitmap;
+
+  /*
+   * You don't have to scale a raw image if it's not present. This prevents
+   * setting grub_errno and disrupting a command execution.
+   */
+  if (view->raw_desktop_image == NULL)
+    return;
+
   if (view->scaled_desktop_image)
     return;
 
-  struct grub_video_bitmap *scaled_bitmap;
   if (view->desktop_image_scale_method ==
       GRUB_VIDEO_BITMAP_SELECTION_METHOD_STRETCH)
     grub_video_bitmap_create_scaled (&scaled_bitmap,
