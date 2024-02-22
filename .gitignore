@@ -11,7 +11,6 @@
 *.img
 *.log
 *.lst
-!/grub-core/extra_deps.lst
 *.marker
 *.mod
 *.o

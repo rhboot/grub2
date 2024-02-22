@@ -2598,4 +2598,5 @@ module = {
   name = bli;
   efi = commands/bli.c;
   enable = efi;
+  depends = part_gpt;
 };
