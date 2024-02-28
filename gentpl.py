@@ -642,6 +642,9 @@ def platform_values(defn, platform, suffix):
 def extra_dist(defn):
     return foreach_value(defn, "extra_dist", lambda value: value + " ")
 
+def extra_dep(defn):
+    return foreach_value(defn, "depends", lambda value: value + " ")
+
 def platform_sources(defn, p): return platform_values(defn, p, "")
 def platform_nodist_sources(defn, p): return platform_values(defn, p, "_nodist")
 
@@ -712,6 +715,10 @@ def module(defn, platform):
     gvar_add("MOD_FILES", name + ".mod")
     gvar_add("MARKER_FILES", name + ".marker")
     gvar_add("CLEANFILES", name + ".marker")
+
+    for dep in defn.find_all("depends"):
+        gvar_add("EXTRA_DEPS", "depends " + name + " " + dep + ":")
+
     output("""
 """ + name + """.marker: $(""" + cname(defn) + """_SOURCES) $(nodist_""" + cname(defn) + """_SOURCES)
 	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(""" + cname(defn) + """_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
