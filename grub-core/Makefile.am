@@ -456,8 +456,11 @@ crypto.lst: $(srcdir)/lib/libgcrypt-grub/cipher/crypto.lst
 platform_DATA += crypto.lst
 CLEANFILES += crypto.lst
 
-syminfo.lst: gensyminfo.sh kernel_syms.lst $(top_srcdir)/grub-core/extra_deps.lst $(MODULE_FILES)
-	cat kernel_syms.lst $(top_srcdir)/grub-core/extra_deps.lst > $@.new
+extra_deps.lst:
+	@echo $(EXTRA_DEPS) | sed "s/\s*:\s*/\n/g" > $@
+
+syminfo.lst: gensyminfo.sh kernel_syms.lst extra_deps.lst $(MODULE_FILES)
+	cat kernel_syms.lst extra_deps.lst > $@.new
 	for m in $(MODULE_FILES); do \
 	  sh $< $$m >> $@.new || exit 1; \
 	done
@@ -467,7 +470,7 @@ syminfo.lst: gensyminfo.sh kernel_syms.lst $(top_srcdir)/grub-core/extra_deps.ls
 moddep.lst: syminfo.lst genmoddep.awk video.lst
 	cat $< | sort | $(AWK) -f $(srcdir)/genmoddep.awk > $@ || (rm -f $@; exit 1)
 platform_DATA += moddep.lst
-CLEANFILES += config.log syminfo.lst moddep.lst
+CLEANFILES += config.log syminfo.lst moddep.lst extra_deps.lst
 
 $(MOD_FILES): %.mod : genmod.sh moddep.lst %.module$(EXEEXT) build-grub-module-verifier$(BUILD_EXEEXT)
 	TARGET_OBJ2ELF=@TARGET_OBJ2ELF@ sh $^ $@
