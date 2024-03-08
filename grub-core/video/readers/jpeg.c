@@ -332,6 +332,10 @@ grub_jpeg_decode_sof (struct grub_jpeg_data *data)
   if (grub_errno != GRUB_ERR_NONE)
     return grub_errno;
 
+  if (data->image_height != 0 || data->image_width != 0)
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+		       "jpeg: cannot have duplicate SOF0 markers");
+
   if (grub_jpeg_get_byte (data) != 8)
     return grub_error (GRUB_ERR_BAD_FILE_TYPE,
 		       "jpeg: only 8-bit precision is supported");
