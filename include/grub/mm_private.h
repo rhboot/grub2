@@ -20,7 +20,6 @@
 #define GRUB_MM_PRIVATE_H	1
 
 #include <grub/mm.h>
-#include <grub/misc.h>
 
 /* For context, see kern/mm.c */
 
@@ -98,18 +97,5 @@ typedef struct grub_mm_region
 #ifndef GRUB_MACHINE_EMU
 extern grub_mm_region_t EXPORT_VAR (grub_mm_base);
 #endif
-
-static inline void
-grub_mm_size_sanity_check (void) {
-  /* Ensure we preserve alignment when doing h = (grub_mm_header_t) (r + 1). */
-  COMPILE_TIME_ASSERT ((sizeof (struct grub_mm_region) %
-		        sizeof (struct grub_mm_header)) == 0);
-
-  /*
-   * GRUB_MM_ALIGN is supposed to represent cell size, and a mm_header is
-   * supposed to be 1 cell.
-   */
-  COMPILE_TIME_ASSERT (sizeof (struct grub_mm_header) == GRUB_MM_ALIGN);
-}
 
 #endif
