@@ -372,7 +372,6 @@ grub_try_normal_prefix (const char *prefix)
            file = grub_file_open (config, GRUB_FILE_TYPE_CONFIG);
            if (file)
              {
-               grub_env_set ("prefix", prefix);
                grub_file_close (file);
                err = GRUB_ERR_NONE;
              }

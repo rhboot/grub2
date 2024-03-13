@@ -52,6 +52,24 @@ u64at (void *ptr, grub_size_t ofs)
   return grub_le_to_cpu64 (grub_get_unaligned64 ((char *) ptr + ofs));
 }
 
+static grub_uint16_t
+first_attr_off (void *mft_buf_ptr)
+{
+  return u16at (mft_buf_ptr, 0x14);
+}
+
+static grub_uint16_t
+res_attr_data_off (void *res_attr_ptr)
+{
+  return u16at (res_attr_ptr, 0x14);
+}
+
+static grub_uint32_t
+res_attr_data_len (void *res_attr_ptr)
+{
+  return u32at (res_attr_ptr, 0x10);
+}
+
 grub_ntfscomp_func_t grub_ntfscomp_func;
 
 static grub_err_t
@@ -106,7 +124,7 @@ init_attr (struct grub_ntfs_attr *at, struct grub_ntfs_file *mft)
 {
   at->mft = mft;
   at->flags = (mft == &mft->data->mmft) ? GRUB_NTFS_AF_MMFT : 0;
-  at->attr_nxt = mft->buf + u16at (mft->buf, 0x14);
+  at->attr_nxt = mft->buf + first_attr_off (mft->buf);
   at->attr_end = at->emft_buf = at->edat_buf = at->sbuf = NULL;
 }
 
@@ -154,7 +172,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 		    return NULL;
 		}
 
-	      new_pos = &at->emft_buf[u16at (at->emft_buf, 0x14)];
+	      new_pos = &at->emft_buf[first_attr_off (at->emft_buf)];
 	      while (*new_pos != 0xFF)
 		{
 		  if ((*new_pos == *at->attr_cur)
@@ -184,7 +202,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
     }
   if (at->attr_end)
     {
-      grub_uint8_t *pa;
+      grub_uint8_t *pa, *pa_end;
 
       at->emft_buf = grub_malloc (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
       if (at->emft_buf == NULL)
@@ -209,11 +227,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	    }
 	  at->attr_nxt = at->edat_buf;
 	  at->attr_end = at->edat_buf + u32at (pa, 0x30);
+	  pa_end = at->edat_buf + n;
 	}
       else
 	{
-	  at->attr_nxt = at->attr_end + u16at (pa, 0x14);
+	  at->attr_nxt = at->attr_end + res_attr_data_off (pa);
 	  at->attr_end = at->attr_end + u32at (pa, 4);
+	  pa_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
 	}
       at->flags |= GRUB_NTFS_AF_ALST;
       while (at->attr_nxt < at->attr_end)
@@ -230,6 +250,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	  at->flags |= GRUB_NTFS_AF_GPOS;
 	  at->attr_cur = at->attr_nxt;
 	  pa = at->attr_cur;
+
+	  if ((pa >= pa_end) || (pa_end - pa < 0x18))
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "can\'t parse attribute list");
+	      return NULL;
+	    }
+
 	  grub_set_unaligned32 ((char *) pa + 0x10,
 				grub_cpu_to_le32 (at->mft->data->mft_start));
 	  grub_set_unaligned32 ((char *) pa + 0x14,
@@ -240,6 +267,13 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	    {
 	      if (*pa != attr)
 		break;
+
+              if ((pa >= pa_end) || (pa_end - pa < 0x18))
+                {
+	          grub_error (GRUB_ERR_BAD_FS, "can\'t parse attribute list");
+	          return NULL;
+	        }
+
 	      if (read_attr
 		  (at, pa + 0x10,
 		   u32at (pa, 0x10) * (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR),
@@ -383,9 +417,20 @@ read_data (struct grub_ntfs_attr *at, grub_uint8_t *pa, grub_uint8_t *dest,
 
   if (pa[8] == 0)
     {
-      if (ofs + len > u32at (pa, 0x10))
+      if (ofs + len > res_attr_data_len (pa))
 	return grub_error (GRUB_ERR_BAD_FS, "read out of range");
-      grub_memcpy (dest, pa + u32at (pa, 0x14) + ofs, len);
+
+      if (res_attr_data_len (pa) > (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute too large");
+
+      if (pa >= at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute out of range");
+
+      if (res_attr_data_off (pa) + res_attr_data_len (pa) >
+	  (grub_addr_t) at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR) - (grub_addr_t) pa)
+	return grub_error (GRUB_ERR_BAD_FS, "resident attribute out of range");
+
+      grub_memcpy (dest, pa + res_attr_data_off (pa) + ofs, len);
       return 0;
     }
 
@@ -529,7 +574,7 @@ init_file (struct grub_ntfs_file *mft, grub_uint64_t mftno)
 			   (unsigned long long) mftno);
 
       if (!pa[8])
-	mft->size = u32at (pa, 0x10);
+	mft->size = res_attr_data_len (pa);
       else
 	mft->size = u64at (pa, 0x30);
 
@@ -572,7 +617,7 @@ get_utf8 (grub_uint8_t *in, grub_size_t len)
 }
 
 static int
-list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos,
+list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos, grub_uint8_t *end_pos,
 	   grub_fshelp_iterate_dir_hook_t hook, void *hook_data)
 {
   grub_uint8_t *np;
@@ -583,12 +628,18 @@ list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos,
       grub_uint8_t namespace;
       char *ustr;
 
+      if ((pos >= end_pos) || (end_pos - pos < 0x52))
+        break;
+
       if (pos[0xC] & 2)		/* end signature */
 	break;
 
       np = pos + 0x50;
       ns = *(np++);
       namespace = *(np++);
+
+      if (2 * ns > end_pos - pos - 0x52)
+        break;
 
       /*
        *  Ignore files in DOS namespace, as they will reappear as Win32
@@ -768,14 +819,16 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 	  (u32at (cur_pos, 0x18) != 0x490024) ||
 	  (u32at (cur_pos, 0x1C) != 0x300033))
 	continue;
-      cur_pos += u16at (cur_pos, 0x14);
+      cur_pos += res_attr_data_off (cur_pos);
       if (*cur_pos != 0x30)	/* Not filename index */
 	continue;
       break;
     }
 
   cur_pos += 0x10;		/* Skip index root */
-  ret = list_file (mft, cur_pos + u16at (cur_pos, 0), hook, hook_data);
+  ret = list_file (mft, cur_pos + u16at (cur_pos, 0),
+                   at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR),
+                   hook, hook_data);
   if (ret)
     goto done;
 
@@ -795,7 +848,7 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 	{
           int is_resident = (cur_pos[8] == 0);
 
-          bitmap_len = ((is_resident) ? u32at (cur_pos, 0x10) :
+          bitmap_len = ((is_resident) ? res_attr_data_len (cur_pos) :
                         u32at (cur_pos, 0x28));
 
           bmp = grub_malloc (bitmap_len);
@@ -804,7 +857,26 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 
 	  if (is_resident)
 	    {
-              grub_memcpy (bmp, cur_pos + u16at (cur_pos, 0x14),
+              if (bitmap_len > (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap too large");
+		  goto done;
+		}
+
+              if (cur_pos >= at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap out of range");
+		  goto done;
+		}
+
+              if (res_attr_data_off (cur_pos) + res_attr_data_len (cur_pos) >
+		  (grub_addr_t) at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR) - (grub_addr_t) cur_pos)
+		{
+		  grub_error (GRUB_ERR_BAD_FS, "resident bitmap out of range");
+		  goto done;
+		}
+
+              grub_memcpy (bmp, cur_pos + res_attr_data_off (cur_pos),
                            bitmap_len);
 	    }
           else
@@ -862,6 +934,7 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 			     (const grub_uint8_t *) "INDX")))
 		goto done;
 	      ret = list_file (mft, &indx[0x18 + u16at (indx, 0x18)],
+			       indx + (mft->data->idx_size << GRUB_NTFS_BLK_SHR),
 			       hook, hook_data);
 	      if (ret)
 		goto done;
@@ -1154,13 +1227,29 @@ grub_ntfs_label (grub_device_t device, char **label)
 
   init_attr (&mft->attr, mft);
   pa = find_attr (&mft->attr, GRUB_NTFS_AT_VOLUME_NAME);
-  if ((pa) && (pa[8] == 0) && (u32at (pa, 0x10)))
+
+  if (pa >= mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+    {
+      grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
+      goto fail;
+    }
+
+  if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa < 0x16)
+    {
+      grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
+      goto fail;
+    }
+
+  if ((pa) && (pa[8] == 0) && (res_attr_data_len (pa)))
     {
       int len;
 
-      len = u32at (pa, 0x10) / 2;
-      pa += u16at (pa, 0x14);
-      *label = get_utf8 (pa, len);
+      len = res_attr_data_len (pa) / 2;
+      pa += res_attr_data_off (pa);
+      if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa >= 2 * len)
+        *label = get_utf8 (pa, len);
+      else
+        grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
     }
 
 fail:
