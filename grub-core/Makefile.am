@@ -460,6 +460,10 @@ extra_deps.lst:
 	@echo $(EXTRA_DEPS) | sed "s/\s*:\s*/\n/g" > $@
 
 syminfo.lst: gensyminfo.sh kernel_syms.lst extra_deps.lst $(MODULE_FILES)
+	if ! [ -f extra_deps.lst ] ; then \
+	  echo Missing extra_deps.lst ; \
+	  echo $(EXTRA_DEPS) | sed "s/\s*:\s*/\n/g" > extra_deps.lst ; \
+	fi
 	cat kernel_syms.lst extra_deps.lst > $@.new
 	for m in $(MODULE_FILES); do \
 	  sh $< $$m >> $@.new || exit 1; \
