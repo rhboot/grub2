@@ -69,7 +69,8 @@ enum {
   CMD_BLOCKLIST,
   CMD_TESTLOAD,
   CMD_ZFSINFO,
-  CMD_XNU_UUID
+  CMD_XNU_UUID,
+  CMD_ZFS_BOOTFS
 };
 #define BUF_SIZE  32256
 
@@ -441,6 +442,9 @@ fstest (int n)
     case CMD_ZFSINFO:
       execute_command ("zfsinfo", n, args);
       break;
+    case CMD_ZFS_BOOTFS:
+      execute_command ("zfs-bootfs", n, args);
+      break;
     case CMD_CP:
       cmd_cp (args[0], args[1]);
       break;
@@ -518,6 +522,7 @@ static struct argp_option options[] = {
   {N_("crc FILE"), 0, 0     , OPTION_DOC, N_("Get crc32 checksum of FILE."), 1},
   {N_("blocklist FILE"), 0, 0, OPTION_DOC, N_("Display blocklist of FILE."), 1},
   {N_("xnu_uuid DEVICE"), 0, 0, OPTION_DOC, N_("Compute XNU UUID of the device."), 1},
+  {N_("zfs-bootfs ZFS_DATASET"), 0, 0, OPTION_DOC, N_("Compute ZFS dataset bootpath."), 1},
 
   {"root",      'r', N_("DEVICE_NAME"), 0, N_("Set root device."),                 2},
   {"skip",      's', N_("NUM"),           0, N_("Skip N bytes from output file."),   2},
@@ -710,6 +715,11 @@ argp_parser (int key, char *arg, struct argp_state *state)
       else if (grub_strcmp (arg, "xnu_uuid") == 0)
 	{
 	  cmd = CMD_XNU_UUID;
+	  nparm = 0;
+	}
+      else if (grub_strcmp (arg, "zfs-bootfs") == 0)
+	{
+	  cmd = CMD_ZFS_BOOTFS;
 	  nparm = 0;
 	}
       else
