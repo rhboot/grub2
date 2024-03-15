@@ -714,12 +714,16 @@ module = {
   name = cmostest;
   common = commands/i386/cmostest.c;
   enable = cmos;
+  enable = i386_efi;
+  enable = x86_64_efi;
 };
 
 module = {
   name = cmosdump;
   common = commands/i386/cmosdump.c;
   enable = cmos;
+  enable = i386_efi;
+  enable = x86_64_efi;
 };
 
 module = {

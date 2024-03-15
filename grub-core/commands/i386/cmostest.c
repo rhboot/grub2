@@ -104,13 +104,13 @@ static grub_command_t cmd, cmd_clean, cmd_set;
 
 GRUB_MOD_INIT(cmostest)
 {
-  cmd = grub_register_command ("cmostest", grub_cmd_cmostest,
+  cmd = grub_register_command_lockdown ("cmostest", grub_cmd_cmostest,
 			       N_("BYTE:BIT"),
 			       N_("Test bit at BYTE:BIT in CMOS."));
-  cmd_clean = grub_register_command ("cmosclean", grub_cmd_cmosclean,
+  cmd_clean = grub_register_command_lockdown ("cmosclean", grub_cmd_cmosclean,
 				     N_("BYTE:BIT"),
 				     N_("Clear bit at BYTE:BIT in CMOS."));
-  cmd_set = grub_register_command ("cmosset", grub_cmd_cmosset,
+  cmd_set = grub_register_command_lockdown ("cmosset", grub_cmd_cmosset,
 				   N_("BYTE:BIT"),
 				   /* TRANSLATORS: A bit may be either set (1) or clear (0).  */
 				   N_("Set bit at BYTE:BIT in CMOS."));
