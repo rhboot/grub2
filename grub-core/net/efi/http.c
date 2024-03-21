@@ -131,14 +131,14 @@ static grub_efi_boolean_t request_callback_done;
 static grub_efi_boolean_t response_callback_done;
 
 static void
-grub_efi_http_request_callback (grub_efi_event_t event __attribute__ ((unused)),
+__grub_efi_api grub_efi_http_request_callback (grub_efi_event_t event __attribute__ ((unused)),
 				void *context __attribute__ ((unused)))
 {
   request_callback_done = 1;
 }
 
 static void
-grub_efi_http_response_callback (grub_efi_event_t event __attribute__ ((unused)),
+__grub_efi_api grub_efi_http_response_callback (grub_efi_event_t event __attribute__ ((unused)),
 				void *context __attribute__ ((unused)))
 {
   response_callback_done = 1;
