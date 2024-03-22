@@ -140,7 +140,6 @@ loop:
 	{
 	  grub_efi_handle_t handle = handles[i];
 	  grub_efi_status_t status;
-	  unsigned j;
 
 	  /* Skip already handled handles  */
 	  if (is_in_list (handle))
