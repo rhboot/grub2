@@ -706,7 +706,7 @@ grub_efi_service_binding (grub_efi_handle_t dev, grub_guid_t *service_binding_gu
   status = service->create_child(service, &child_dev);
   if (status != GRUB_EFI_SUCCESS)
     {
-      grub_error (GRUB_ERR_IO, N_("Failed to create child device of http service %x"), status);
+      grub_error (GRUB_ERR_IO, N_("Failed to create child device of http service %x"), (unsigned) status);
       return NULL;
     }
 
