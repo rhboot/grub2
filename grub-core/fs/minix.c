@@ -25,6 +25,7 @@
 #include <grub/dl.h>
 #include <grub/types.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -734,8 +735,11 @@ GRUB_MOD_INIT(minix)
 #endif
 #endif
 {
-  grub_minix_fs.mod = mod;
-  grub_fs_register (&grub_minix_fs);
+  if (!grub_is_lockdown ())
+    {
+      grub_minix_fs.mod = mod;
+      grub_fs_register (&grub_minix_fs);
+    }
   my_mod = mod;
 }
 
@@ -757,5 +761,6 @@ GRUB_MOD_FINI(minix)
 #endif
 #endif
 {
-  grub_fs_unregister (&grub_minix_fs);
+  if (!grub_is_lockdown ())
+    grub_fs_unregister (&grub_minix_fs);
 }
