@@ -27,6 +27,7 @@
 #include <grub/fshelp.h>
 #include <grub/ntfs.h>
 #include <grub/charset.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1388,12 +1389,16 @@ static struct grub_fs grub_ntfs_fs =
 
 GRUB_MOD_INIT (ntfs)
 {
-  grub_ntfs_fs.mod = mod;
-  grub_fs_register (&grub_ntfs_fs);
+  if (!grub_is_lockdown ())
+    {
+      grub_ntfs_fs.mod = mod;
+      grub_fs_register (&grub_ntfs_fs);
+    }
   my_mod = mod;
 }
 
 GRUB_MOD_FINI (ntfs)
 {
-  grub_fs_unregister (&grub_ntfs_fs);
+  if (!grub_is_lockdown ())
+    grub_fs_unregister (&grub_ntfs_fs);
 }

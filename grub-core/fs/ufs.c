@@ -25,6 +25,7 @@
 #include <grub/dl.h>
 #include <grub/types.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -899,8 +900,11 @@ GRUB_MOD_INIT(ufs1)
 #endif
 #endif
 {
-  grub_ufs_fs.mod = mod;
-  grub_fs_register (&grub_ufs_fs);
+  if (!grub_is_lockdown ())
+    {
+      grub_ufs_fs.mod = mod;
+      grub_fs_register (&grub_ufs_fs);
+    }
   my_mod = mod;
 }
 
@@ -914,6 +918,7 @@ GRUB_MOD_FINI(ufs1)
 #endif
 #endif
 {
-  grub_fs_unregister (&grub_ufs_fs);
+  if (!grub_is_lockdown ())
+    grub_fs_unregister (&grub_ufs_fs);
 }
 

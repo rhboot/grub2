@@ -26,6 +26,7 @@
 #include <grub/dl.h>
 #include <grub/i18n.h>
 #include <grub/cbfs_core.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -390,13 +391,17 @@ GRUB_MOD_INIT (cbfs)
 #if (defined (__i386__) || defined (__x86_64__)) && !defined (GRUB_UTIL) && !defined (GRUB_MACHINE_EMU) && !defined (GRUB_MACHINE_XEN)
   init_cbfsdisk ();
 #endif
-  grub_cbfs_fs.mod = mod;
-  grub_fs_register (&grub_cbfs_fs);
+  if (!grub_is_lockdown ())
+    {
+      grub_cbfs_fs.mod = mod;
+      grub_fs_register (&grub_cbfs_fs);
+    }
 }
 
 GRUB_MOD_FINI (cbfs)
 {
-  grub_fs_unregister (&grub_cbfs_fs);
+  if (!grub_is_lockdown ())
+    grub_fs_unregister (&grub_cbfs_fs);
 #if (defined (__i386__) || defined (__x86_64__)) && !defined (GRUB_UTIL) && !defined (GRUB_MACHINE_EMU) && !defined (GRUB_MACHINE_XEN)
   fini_cbfsdisk ();
 #endif

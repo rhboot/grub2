@@ -39,6 +39,7 @@
 #include <grub/types.h>
 #include <grub/fshelp.h>
 #include <grub/i18n.h>
+#include <grub/lockdown.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -1407,12 +1408,16 @@ static struct grub_fs grub_reiserfs_fs =
 
 GRUB_MOD_INIT(reiserfs)
 {
-  grub_reiserfs_fs.mod = mod;
-  grub_fs_register (&grub_reiserfs_fs);
+  if (!grub_is_lockdown ())
+    {
+      grub_reiserfs_fs.mod = mod;
+      grub_fs_register (&grub_reiserfs_fs);
+    }
   my_mod = mod;
 }
 
 GRUB_MOD_FINI(reiserfs)
 {
-  grub_fs_unregister (&grub_reiserfs_fs);
+  if (!grub_is_lockdown ())
+    grub_fs_unregister (&grub_reiserfs_fs);
 }
