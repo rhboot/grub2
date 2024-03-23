@@ -872,12 +872,12 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
       {
 	grub_dprintf ("efinet", "using ipv4 and dhcp\n");
 
-        struct grub_net_bootp_packet *dhcp_ack = &pxe_mode->dhcp_ack;
+        struct grub_net_bootp_packet *dhcp_ack = (struct grub_net_bootp_packet *) &pxe_mode->dhcp_ack;
 
         if (pxe_mode->proxy_offer_received)
           {
             grub_dprintf ("efinet", "proxy offer receive");
-            struct grub_net_bootp_packet *proxy_offer = &pxe_mode->proxy_offer;
+            struct grub_net_bootp_packet *proxy_offer =  (struct grub_net_bootp_packet *) &pxe_mode->proxy_offer;
 
             if (proxy_offer && dhcp_ack->boot_file[0] == '\0')
               {
