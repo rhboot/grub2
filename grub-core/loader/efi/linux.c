@@ -25,10 +25,12 @@
 #include <grub/loader.h>
 #include <grub/mm.h>
 #include <grub/types.h>
+#include <grub/cpu/linux.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
 #include <grub/efi/pe32.h>
+#include <grub/efi/linux.h>
 #include <grub/efi/sb.h>
 #include <grub/i18n.h>
 #include <grub/lib/cmdline.h>
@@ -86,6 +88,51 @@ grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
 static grub_efi_load_file2_t initrd_lf2 = {
   grub_efi_initrd_load_file2
 };
+
+#define SHIM_LOCK_GUID \
+ { 0x605dab50, 0xe046, 0x4300, {0xab, 0xb6, 0x3d, 0xd8, 0x10, 0xdd, 0x8b, 0x23} }
+
+struct grub_efi_shim_lock
+{
+  grub_efi_status_t (*verify) (void *buffer, grub_uint32_t size);
+};
+typedef struct grub_efi_shim_lock grub_efi_shim_lock_t;
+
+grub_efi_boolean_t
+grub_linuxefi_secure_validate (void *data, grub_uint32_t size)
+{
+  grub_guid_t guid = SHIM_LOCK_GUID;
+  grub_efi_shim_lock_t *shim_lock;
+
+  shim_lock = grub_efi_locate_protocol(&guid, NULL);
+
+  if (!shim_lock)
+    return 1;
+
+  if (shim_lock->verify(data, size) == GRUB_EFI_SUCCESS)
+    return 1;
+
+  return 0;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+
+typedef void (*handover_func) (void *, grub_efi_system_table_t *, void *);
+
+grub_err_t
+grub_efi_linux_boot (void *kernel_address, grub_off_t offset,
+		     void *kernel_params)
+{
+  handover_func hf;
+
+  hf = (handover_func)((char *)kernel_address + offset);
+  hf (grub_efi_image_handle, grub_efi_system_table, kernel_params);
+
+  return GRUB_ERR_BUG;
+}
+
+#pragma GCC diagnostic pop
 
 grub_err_t
 grub_arch_efi_linux_load_image_header (grub_file_t file,
