@@ -32,10 +32,19 @@
 #include <grub/env.h>
 #include <grub/cache.h>
 #include <grub/i18n.h>
+#include <grub/efi/sb.h>
 
 /* Platforms where modules are in a readonly area of memory.  */
 #if defined(GRUB_MACHINE_QEMU)
 #define GRUB_MODULES_MACHINE_READONLY
+#endif
+
+#ifdef GRUB_MACHINE_EMU
+#include <sys/mman.h>
+#endif
+
+#ifdef GRUB_MACHINE_EFI
+#include <grub/efi/efi.h>
 #endif
 
 
@@ -860,6 +869,19 @@ grub_dl_load_file (const char *filename)
   grub_ssize_t size;
   void *core = 0;
   grub_dl_t mod = 0;
+
+#ifdef GRUB_MACHINE_EFI
+  if (grub_efi_get_secureboot ())
+    {
+#if 0
+      /* This is an error, but grub2-mkconfig still generates a pile of
+       * insmod commands, so emitting it would be mostly just obnoxious. */
+      grub_error (GRUB_ERR_ACCESS_DENIED,
+		  "Secure Boot forbids loading module from %s", filename);
+#endif
+      return 0;
+    }
+#endif
 
   grub_boot_time ("Loading module %s", filename);
 
