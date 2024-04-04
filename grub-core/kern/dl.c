@@ -690,6 +690,38 @@ grub_dl_relocate_symbols (grub_dl_t mod, void *ehdr)
   return GRUB_ERR_NONE;
 }
 
+static void
+grub_dl_print_gdb_info (grub_dl_t mod, Elf_Ehdr *e)
+{
+  void *text, *data = NULL;
+  long idx;
+
+  idx = grub_dl_find_section_index (e, ".text");
+  if (idx < 0)
+    return;
+
+  text = grub_dl_get_section_addr (mod, idx);
+  if (!text)
+    return;
+
+  idx = grub_dl_find_section_index (e, ".data");
+  if (idx >= 0)
+    data = grub_dl_get_section_addr (mod, idx);
+
+  if (data)
+    grub_qdprintf ("gdb", "add-symbol-file \\\n"
+		          "/usr/lib/debug/usr/lib/grub/%s-%s/%s.debug "
+			  "\\\n %p -s .data %p\n",
+		  GRUB_TARGET_CPU, GRUB_PLATFORM,
+		  mod->name, text, data);
+  else
+    grub_qdprintf ("gdb", "add-symbol-file \\\n"
+			   "/usr/lib/debug/usr/lib/grub/%s-%s/%s.debug "
+			   "\\\n%p\n",
+		  GRUB_TARGET_CPU, GRUB_PLATFORM,
+		  mod->name, text);
+}
+
 static grub_err_t
 grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
 {
@@ -832,6 +864,8 @@ grub_dl_load_core_noinit (void *addr, grub_size_t size)
 
   grub_dprintf ("modules", "module name: %s\n", mod->name);
   grub_dprintf ("modules", "init function: %p\n", mod->init);
+
+  grub_dl_print_gdb_info (mod, e);
 
   if (grub_dl_add (mod))
     {

@@ -157,6 +157,7 @@ grub_efi_init (void)
   grub_efi_system_table->boot_services->set_watchdog_timer (0, 0, 0, NULL);
 
   grub_efi_env_init ();
+  grub_efi_print_gdb_info ();
   grub_efidisk_init ();
 
   grub_efi_register_debug_commands ();
