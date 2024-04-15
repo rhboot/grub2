@@ -20,6 +20,7 @@
 #ifndef GRUB_EFI_EFI_HEADER
 #define GRUB_EFI_EFI_HEADER	1
 
+#include <grub/efi/pe32.h>
 #include <grub/types.h>
 #include <grub/dl.h>
 #include <grub/efi/api.h>
@@ -36,7 +37,29 @@ struct linux_arch_kernel_header {
   struct grub_pe_image_header pe_image_header;
 };
 
-#define GRUB_EFI_GRUB_VARIABLE_GUID \
+struct grub_arm_linux_pe_header
+{
+  grub_uint32_t magic;
+  struct grub_pe32_coff_header coff;
+  struct grub_pe32_optional_header opt;
+};
+
+struct grub_arm64_linux_pe_header
+{
+  grub_uint32_t magic;
+  struct grub_pe32_coff_header coff;
+  struct grub_pe64_optional_header opt;
+};
+
+#if defined(__arm__)
+# define grub_armxx_linux_pe_header grub_arm_linux_pe_header
+#endif
+
+#if defined(__aarch64__)
+# define grub_armxx_linux_pe_header grub_arm64_linux_pe_header
+#endif
+
+#define GRUB_EFI_GRUB_VARIABLE_GUID             \
   { 0x91376aff, 0xcba6, 0x42be, \
     { 0x94, 0x9d, 0x06, 0xfd, 0xe8, 0x11, 0x28, 0xe8 } \
   }
@@ -173,8 +196,7 @@ grub_err_t EXPORT_FUNC(grub_efi_get_ram_base)(grub_addr_t *);
 #include <grub/file.h>
 grub_err_t grub_arch_efi_linux_load_image_header(grub_file_t file,
                                                 struct linux_arch_kernel_header *lh);
-grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
-                                           char *args);
+grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, char *args);
 
 grub_addr_t grub_efi_section_addr (const char *section);
 
