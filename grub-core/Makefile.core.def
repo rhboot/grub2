@@ -1902,13 +1902,14 @@ module = {
   riscv32 = loader/efi/linux.c;
   riscv64 = loader/efi/linux.c;
   i386_efi = loader/i386/efi/linux.c;
+  i386_efi = loader/efi/linux.c;
+  i386_efi = loader/i386/linux.c;
   x86_64_efi = loader/i386/efi/linux.c;
+  x86_64_efi = loader/efi/linux.c;
+  x86_64_efi = loader/i386/linux.c;
   emu = loader/emu/linux.c;
-  fdt = lib/fdt.c;
   common = loader/linux.c;
   common = lib/cmdline.c;
-  efi = loader/efi/linux.c;
-  efi = loader/i386/linux.c;
 };
 
 module = {
