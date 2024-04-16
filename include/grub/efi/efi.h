@@ -20,7 +20,6 @@
 #ifndef GRUB_EFI_EFI_HEADER
 #define GRUB_EFI_EFI_HEADER	1
 
-#include <grub/efi/pe32.h>
 #include <grub/types.h>
 #include <grub/dl.h>
 #include <grub/efi/api.h>
@@ -52,10 +51,12 @@ struct grub_arm64_linux_pe_header
 };
 
 #if defined(__arm__)
+# define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE32_MAGIC
 # define grub_armxx_linux_pe_header grub_arm_linux_pe_header
 #endif
 
 #if defined(__aarch64__)
+# define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE64_MAGIC
 # define grub_armxx_linux_pe_header grub_arm64_linux_pe_header
 #endif
 
