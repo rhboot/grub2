@@ -267,17 +267,19 @@ tftp_receive (grub_net_udp_socket_t sock __attribute__ ((unused)),
  * forward slashes to a single forward slash.
  */
 static void
-grub_normalize_filename (char *normalized, const char *filename)
+grub_normalize_filename (char *normalized, const char *filename, int c)
 {
   char *dest = normalized;
   const char *src = filename;
 
-  while (*src != '\0')
+  while (*src != '\0' && c > 0)
     {
       if (src[0] == '/' && src[1] == '/')
 	src++;
-      else
-	*dest++ = *src++;
+      else {
+        c--;
+        *dest++ = *src++;
+      }
     }
   *dest = '\0';
 }
@@ -288,7 +290,7 @@ tftp_open (struct grub_file *file, const char *filename)
   struct tftphdr *tftph;
   char *rrq;
   int i;
-  int rrqlen;
+  int rrqlen, rrqsize;
   int hdrlen;
   grub_uint8_t open_data[1500];
   struct grub_net_buff nb;
@@ -316,35 +318,43 @@ tftp_open (struct grub_file *file, const char *filename)
 
   tftph = (struct tftphdr *) nb.data;
 
-  rrq = (char *) tftph->u.rrq;
-  rrqlen = 0;
-
   tftph->opcode = grub_cpu_to_be16_compile_time (TFTP_RRQ);
+
+  rrq = (char *) tftph->u.rrq;
+  rrqsize = sizeof (tftph->u.rrq);
 
   /* Copy and normalize the filename to work-around issues on some tftp
      servers when file names are being matched for remapping. */
-  grub_normalize_filename (rrq, filename);
-  rrqlen += grub_strlen (rrq) + 1;
+  grub_normalize_filename (rrq, filename, rrqsize);
+
+  rrqlen = grub_strlen (rrq) + 1;
   rrq += grub_strlen (rrq) + 1;
 
-  grub_strcpy (rrq, "octet");
+  /* Verify there is enough space for the remaining components. */
   rrqlen += grub_strlen ("octet") + 1;
+  rrqlen += grub_strlen ("blksize") + 1;
+  rrqlen += grub_strlen ("1024") + 1;
+  rrqlen += grub_strlen ("tsize") + 1;
+  rrqlen += grub_strlen ("0") + 1;
+
+  if (rrqlen >= rrqsize) {
+    grub_free (data);
+    return grub_error (GRUB_ERR_BAD_FILENAME, N_("filename too long"));
+  }
+
+  grub_strcpy (rrq, "octet");
   rrq += grub_strlen ("octet") + 1;
 
   grub_strcpy (rrq, "blksize");
-  rrqlen += grub_strlen ("blksize") + 1;
   rrq += grub_strlen ("blksize") + 1;
 
   grub_strcpy (rrq, "1024");
-  rrqlen += grub_strlen ("1024") + 1;
   rrq += grub_strlen ("1024") + 1;
 
   grub_strcpy (rrq, "tsize");
-  rrqlen += grub_strlen ("tsize") + 1;
   rrq += grub_strlen ("tsize") + 1;
 
   grub_strcpy (rrq, "0");
-  rrqlen += grub_strlen ("0") + 1;
   rrq += grub_strlen ("0") + 1;
   hdrlen = sizeof (tftph->opcode) + rrqlen;
 
