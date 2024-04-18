@@ -177,7 +177,7 @@ typedef struct grub_dl_dep *grub_dl_dep_t;
 struct grub_dl
 {
   char *name;
-  int ref_count;
+  grub_uint64_t ref_count;
   int persistent;
   grub_dl_dep_t dep;
   grub_dl_segment_t segment;
@@ -207,9 +207,9 @@ grub_dl_t grub_dl_load_core (void *addr, grub_size_t size);
 grub_dl_t EXPORT_FUNC(grub_dl_load_core_noinit) (void *addr, grub_size_t size);
 int EXPORT_FUNC(grub_dl_unload) (grub_dl_t mod);
 extern void grub_dl_unload_unneeded (void);
-extern int EXPORT_FUNC(grub_dl_ref) (grub_dl_t mod);
-extern int EXPORT_FUNC(grub_dl_unref) (grub_dl_t mod);
-extern int EXPORT_FUNC(grub_dl_ref_count) (grub_dl_t mod);
+extern grub_uint64_t EXPORT_FUNC(grub_dl_ref) (grub_dl_t mod);
+extern grub_uint64_t EXPORT_FUNC(grub_dl_unref) (grub_dl_t mod);
+extern grub_uint64_t EXPORT_FUNC(grub_dl_ref_count) (grub_dl_t mod);
 
 extern grub_dl_t EXPORT_VAR(grub_dl_head);
 
