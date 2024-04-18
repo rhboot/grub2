@@ -215,8 +215,8 @@ GRUB_MOD_INIT(minicmd)
     grub_register_command ("help", grub_mini_cmd_help,
 			   0, N_("Show this message."));
   cmd_dump =
-    grub_register_command ("dump", grub_mini_cmd_dump,
-			   N_("ADDR [SIZE]"), N_("Show memory contents."));
+    grub_register_command_lockdown ("dump", grub_mini_cmd_dump,
+				    N_("ADDR [SIZE]"), N_("Show memory contents."));
   cmd_rmmod =
     grub_register_command ("rmmod", grub_mini_cmd_rmmod,
 			   N_("MODULE"), N_("Remove a module."));
