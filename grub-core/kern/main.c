@@ -18,6 +18,7 @@
  */
 
 #include <grub/kernel.h>
+#include <grub/stack_protector.h>
 #include <grub/misc.h>
 #include <grub/symbol.h>
 #include <grub/dl.h>
@@ -265,6 +266,16 @@ reclaim_module_space (void)
 void __attribute__ ((noreturn))
 grub_main (void)
 {
+#ifdef GRUB_STACK_PROTECTOR
+  /*
+   * This call should only be made from a function that does not return because
+   * functions that return will get instrumented to check that the stack cookie
+   * does not change and this call will change the stack cookie. Thus a stack
+   * guard failure will be triggered.
+   */
+  grub_update_stack_guard ();
+#endif
+
   /* First of all, initialize the machine.  */
   grub_machine_init ();
 
