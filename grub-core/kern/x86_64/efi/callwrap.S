@@ -127,3 +127,8 @@ FUNCTION(efi_wrap_10)
 	call *%rdi
 	addq $88, %rsp
 	ret
+
+/* An executable stack is not required for these functions. */
+#if defined (__linux__) && defined (__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
