@@ -316,7 +316,7 @@ and /etc/grub.d/* files or please file a bug report with
   else
     # none of the children aborted with error, install the new grub.cfg
     oldumask=$(umask)
-    umask 077
+    umask 177
     cat ${grub_cfg}.new > ${grub_cfg}
     umask $oldumask
     rm -f ${grub_cfg}.new
