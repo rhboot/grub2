@@ -82,15 +82,11 @@ get_card_packet (struct grub_net_card *dev)
   grub_ssize_t actual;
   int rc;
   struct grub_ofnetcard_data *data = dev->data;
-  grub_uint64_t start_time;
   struct grub_net_buff *nb;
 
-  start_time = grub_get_time_ms ();
-  do
-    rc = grub_ieee1275_read (data->handle, dev->rcvbuf, dev->rcvbufsize, &actual);
-  while ((actual <= 0 || rc < 0) && (grub_get_time_ms () - start_time < 200));
+  rc = grub_ieee1275_read (data->handle, dev->rcvbuf, dev->rcvbufsize, &actual);
 
-  if (actual <= 0)
+  if (actual <= 0 || rc < 0)
     return NULL;
 
   nb = grub_netbuff_alloc (actual + 2);
