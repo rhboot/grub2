@@ -17,6 +17,7 @@
  */
 
 #include <grub/cryptodisk.h>
+#include <grub/env.h>
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/dl.h>
@@ -1114,32 +1115,70 @@ grub_cryptodisk_scan_device_real (const char *name,
     if (!dev)
       continue;
 
-    if (!cargs->key_len)
+    if (cargs->key_len)
+      {
+	ret = cr->recover_key (source, dev, cargs);
+	if (ret != GRUB_ERR_NONE)
+	  goto error;
+      }
+    else
       {
 	/* Get the passphrase from the user, if no key data. */
-	askpass = 1;
-	part = grub_partition_get_name (source->partition);
-	grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
-		     source->partition != NULL ? "," : "",
-		     part != NULL ? part : N_("UNKNOWN"),
-		     dev->uuid);
-	grub_free (part);
+	unsigned long tries = 3;
+	const char *tries_env;
 
+	askpass = 1;
 	cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
 	if (cargs->key_data == NULL)
 	  goto error_no_close;
 
-	if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
+	tries_env = grub_env_get ("cryptodisk_passphrase_tries");
+	if (tries_env != NULL && tries_env[0] != '\0')
 	  {
-	    grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
-	    goto error;
-	  }
-	cargs->key_len = grub_strlen ((char *) cargs->key_data);
-      }
+	    unsigned long tries_env_val;
+	    const char *p;
 
-    ret = cr->recover_key (source, dev, cargs);
-    if (ret != GRUB_ERR_NONE)
-      goto error;
+	    tries_env_val = grub_strtoul (tries_env, &p, 0);
+	    if (*p == '\0' && tries_env_val != ~0UL)
+	      tries = tries_env_val;
+	    else
+	      grub_printf_ (N_("Invalid cryptodisk_passphrase_tries value `%s'. Defaulting to %lu.\n"),
+			    tries_env,
+			    tries);
+	  }
+
+	for (; tries > 0; tries--)
+	  {
+	    part = grub_partition_get_name (source->partition);
+	    grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+			 source->partition != NULL ? "," : "",
+			 part != NULL ? part : N_("UNKNOWN"),
+			 dev->uuid);
+	    grub_free (part);
+
+	    if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
+	      {
+		grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
+		goto error;
+	      }
+	    cargs->key_len = grub_strlen ((char *) cargs->key_data);
+
+	    ret = cr->recover_key (source, dev, cargs);
+	    if (ret == GRUB_ERR_NONE)
+	      break;
+	    if (ret != GRUB_ERR_ACCESS_DENIED || tries == 1)
+	      goto error;
+	    grub_puts_ (N_("Invalid passphrase."));
+
+	    /*
+	     * Since recover_key() calls a function that returns grub_errno,
+	     * a leftover error value from a previously rejected passphrase
+	     * will trigger a phantom failure. We therefore clear it before
+	     * trying a new passphrase.
+	     */
+	    grub_errno = GRUB_ERR_NONE;
+	  }
+      }
 
     ret = grub_cryptodisk_insert (dev, name, source);
     if (ret != GRUB_ERR_NONE)

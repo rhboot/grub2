@@ -3277,6 +3277,7 @@ These variables have special meaning to GRUB.
 * color_normal::
 * config_directory::
 * config_file::
+* cryptodisk_passphrase_tries::
 * debug::
 * default::
 * fallback::
@@ -3439,6 +3440,14 @@ current configuration file name (@pxref{config_file}).
 This variable is automatically set by GRUB to the name of configuration file that is being
 processed by commands @command{configfile} (@pxref{configfile}) or @command{normal}
 (@pxref{normal}).  It is restored to the previous value when command completes.
+
+
+@node cryptodisk_passphrase_tries
+@subsection cryptodisk_passphrase_tries
+
+When prompting the user for a cryptodisk passphrase, allow this many attempts
+before giving up. Defaults to @samp{3} if unset or set to an invalid value.
+(The user can give up early by entering an empty passphrase.)
 
 
 @node debug
