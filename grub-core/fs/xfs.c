@@ -327,6 +327,8 @@ static int grub_xfs_sb_valid(struct grub_xfs_data *data)
 	}
       return 1;
     }
+
+  grub_error (GRUB_ERR_BAD_FS, "unsupported XFS filesystem version");
   return 0;
 }
 
@@ -1068,7 +1070,7 @@ grub_xfs_mount (grub_disk_t disk)
   return data;
  fail:
 
-  if (grub_errno == GRUB_ERR_OUT_OF_RANGE)
+  if (grub_errno == GRUB_ERR_OUT_OF_RANGE || grub_errno == GRUB_ERR_NONE)
     grub_error (GRUB_ERR_BAD_FS, "not an XFS filesystem");
 
   grub_free (data);
