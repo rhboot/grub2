@@ -379,7 +379,7 @@ grub_hfs_mount (grub_disk_t disk)
      volume name.  */
   key.parent_dir = grub_cpu_to_be32_compile_time (1);
   key.strlen = data->sblock.volname[0];
-  grub_strcpy ((char *) key.str, (char *) (data->sblock.volname + 1));
+  grub_strlcpy ((char *) key.str, (char *) (data->sblock.volname + 1), sizeof (key.str));
 
   if (grub_hfs_find_node (data, (char *) &key, data->cat_root,
 			  0, (char *) &dir, sizeof (dir)) == 0)
