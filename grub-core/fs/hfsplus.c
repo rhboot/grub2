@@ -392,7 +392,7 @@ grub_hfsplus_mount (grub_disk_t disk)
 
  fail:
 
-  if (grub_errno == GRUB_ERR_OUT_OF_RANGE)
+  if (grub_errno == GRUB_ERR_OUT_OF_RANGE || grub_errno == GRUB_ERR_NONE)
     grub_error (GRUB_ERR_BAD_FS, "not a HFS+ filesystem");
 
   grub_free (data);
