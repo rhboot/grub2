@@ -551,6 +551,9 @@ grub_iso9660_mount (grub_disk_t disk)
   return data;
 
  fail:
+  if (grub_errno == GRUB_ERR_NONE)
+    grub_error (GRUB_ERR_BAD_FS, "not a ISO9660 filesystem");
+
   grub_free (data);
   return 0;
 }
