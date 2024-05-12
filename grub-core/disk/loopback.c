@@ -24,6 +24,7 @@
 #include <grub/mm.h>
 #include <grub/extcmd.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -33,6 +34,7 @@ struct grub_loopback
   grub_file_t file;
   struct grub_loopback *next;
   unsigned long id;
+  grub_uint64_t refcnt;
 };
 
 static struct grub_loopback *loopback_list;
@@ -64,6 +66,8 @@ delete_loopback (const char *name)
   if (! dev)
     return grub_error (GRUB_ERR_BAD_DEVICE, "device not found");
 
+  if (dev->refcnt > 0)
+    return grub_error (GRUB_ERR_STILL_REFERENCED, "device still referenced");
   /* Remove the device from the list.  */
   *prev = dev->next;
 
@@ -120,6 +124,7 @@ grub_cmd_loopback (grub_extcmd_context_t ctxt, int argc, char **args)
 
   newdev->file = file;
   newdev->id = last_id++;
+  newdev->refcnt = 0;
 
   /* Add the new entry to the list.  */
   newdev->next = loopback_list;
@@ -161,6 +166,9 @@ grub_loopback_open (const char *name, grub_disk_t disk)
   if (! dev)
     return grub_error (GRUB_ERR_UNKNOWN_DEVICE, "can't open device");
 
+  if (grub_add (dev->refcnt, 1, &dev->refcnt))
+    grub_fatal ("Reference count overflow");
+
   /* Use the filesize for the disk size, round up to a complete sector.  */
   if (dev->file->size != GRUB_FILE_SIZE_UNKNOWN)
     disk->total_sectors = ((dev->file->size + GRUB_DISK_SECTOR_SIZE - 1)
@@ -176,6 +184,15 @@ grub_loopback_open (const char *name, grub_disk_t disk)
   disk->data = dev;
 
   return 0;
+}
+
+static void
+grub_loopback_close (grub_disk_t disk)
+{
+  struct grub_loopback *dev = disk->data;
+
+  if (grub_sub (dev->refcnt, 1, &dev->refcnt))
+    grub_fatal ("Reference count underflow");
 }
 
 static grub_err_t
@@ -220,6 +237,7 @@ static struct grub_disk_dev grub_loopback_dev =
     .id = GRUB_DISK_DEVICE_LOOPBACK_ID,
     .disk_iterate = grub_loopback_iterate,
     .disk_open = grub_loopback_open,
+    .disk_close = grub_loopback_close,
     .disk_read = grub_loopback_read,
     .disk_write = grub_loopback_write,
     .next = 0
