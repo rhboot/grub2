@@ -524,7 +524,7 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
     }
 
   /* Make a table of values in order of bit lengths */
-  grub_memset (v, N_MAX, ARRAY_SIZE (v));
+  grub_memset (v, N_MAX, sizeof (v));
   p = b;
   i = 0;
   do
