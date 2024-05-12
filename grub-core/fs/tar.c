@@ -78,6 +78,7 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
   int reread = 0, have_longname = 0, have_longlink = 0;
 
   data->hofs = data->next_hofs;
+  *name = NULL;
 
   for (reread = 0; reread < 3; reread++)
     {
@@ -202,6 +203,10 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	}
       return GRUB_ERR_NONE;
     }
+
+  if (*name == NULL)
+    return grub_error (GRUB_ERR_BAD_FS, "invalid tar archive");
+
   return GRUB_ERR_NONE;
 }
 
