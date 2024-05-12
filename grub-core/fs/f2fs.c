@@ -871,6 +871,9 @@ grub_f2fs_mount (grub_disk_t disk)
   return data;
 
  fail:
+  if (grub_errno == GRUB_ERR_NONE)
+    grub_error (GRUB_ERR_BAD_FS, "not a F2FS filesystem");
+
   grub_free (data);
 
   return NULL;
