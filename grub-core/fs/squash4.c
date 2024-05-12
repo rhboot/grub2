@@ -1032,6 +1032,7 @@ static struct grub_fs grub_squash_fs =
 
 GRUB_MOD_INIT(squash4)
 {
+  grub_squash_fs.mod = mod;
   grub_fs_register (&grub_squash_fs);
 }
 

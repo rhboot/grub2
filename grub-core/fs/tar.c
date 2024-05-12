@@ -354,6 +354,7 @@ static struct grub_fs grub_cpio_fs = {
 
 GRUB_MOD_INIT (tar)
 {
+  grub_cpio_fs.mod = mod;
   grub_fs_register (&grub_cpio_fs);
 }
 

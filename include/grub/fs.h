@@ -23,6 +23,7 @@
 #include <grub/device.h>
 #include <grub/symbol.h>
 #include <grub/types.h>
+#include <grub/dl.h>
 
 #include <grub/list.h>
 /* For embedding types.  */
@@ -56,6 +57,9 @@ struct grub_fs
 
   /* My name.  */
   const char *name;
+
+  /* My module */
+  grub_dl_t mod;
 
   /* Call HOOK with each file under DIR.  */
   grub_err_t (*dir) (grub_device_t device, const char *path,

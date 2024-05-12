@@ -899,6 +899,7 @@ GRUB_MOD_INIT(ufs1)
 #endif
 #endif
 {
+  grub_ufs_fs.mod = mod;
   grub_fs_register (&grub_ufs_fs);
   my_mod = mod;
 }

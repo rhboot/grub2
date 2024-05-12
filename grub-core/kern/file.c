@@ -25,6 +25,7 @@
 #include <grub/fs.h>
 #include <grub/device.h>
 #include <grub/i18n.h>
+#include <grub/dl.h>
 
 void (*EXPORT_VAR (grub_grubnet_fini)) (void);
 
@@ -123,6 +124,9 @@ grub_file_open (const char *name, enum grub_file_type type)
 
   if (file->data == NULL)
     goto fail;
+
+  if (file->fs->mod)
+    grub_dl_ref (file->fs->mod);
 
   file->name = grub_strdup (name);
   grub_errno = GRUB_ERR_NONE;

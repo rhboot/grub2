@@ -998,6 +998,7 @@ static struct grub_fs grub_jfs_fs =
 
 GRUB_MOD_INIT(jfs)
 {
+  grub_jfs_fs.mod = mod;
   grub_fs_register (&grub_jfs_fs);
   my_mod = mod;
 }
