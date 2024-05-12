@@ -121,6 +121,9 @@ grub_file_open (const char *name, enum grub_file_type type)
   if ((file->fs->open) (file, file_name) != GRUB_ERR_NONE)
     goto fail;
 
+  if (file->data == NULL)
+    goto fail;
+
   file->name = grub_strdup (name);
   grub_errno = GRUB_ERR_NONE;
 
