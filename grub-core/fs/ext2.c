@@ -1131,6 +1131,7 @@ static struct grub_fs grub_ext2_fs =
 
 GRUB_MOD_INIT(ext2)
 {
+  grub_ext2_fs.mod = mod;
   grub_fs_register (&grub_ext2_fs);
   my_mod = mod;
 }

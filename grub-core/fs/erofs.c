@@ -991,6 +991,7 @@ static struct grub_fs grub_erofs_fs = {
 
 GRUB_MOD_INIT (erofs)
 {
+  grub_erofs_fs.mod = mod;
   grub_fs_register (&grub_erofs_fs);
 }
 

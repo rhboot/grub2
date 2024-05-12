@@ -192,6 +192,7 @@ static struct grub_fs grub_procfs_fs =
 
 GRUB_MOD_INIT (procfs)
 {
+  grub_procfs_fs.mod = mod;
   grub_disk_dev_register (&grub_procfs_dev);
   grub_fs_register (&grub_procfs_fs);
 }
