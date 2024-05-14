@@ -91,6 +91,28 @@ enum
 
 #define GRUB_NTFS_ATTRIBUTE_HEADER_SIZE 16
 
+/*
+ * To make attribute validation clearer the offsets for each value in the
+ * attribute headers are defined as macros.
+ *
+ * These offsets are all from:
+ * https://flatcap.github.io/linux-ntfs/ntfs/concepts/attribute_header.html
+ */
+
+/* These offsets are part of the attribute header. */
+#define GRUB_NTFS_ATTRIBUTE_LENGTH      4
+#define GRUB_NTFS_ATTRIBUTE_RESIDENT    8
+#define GRUB_NTFS_ATTRIBUTE_NAME_LENGTH 9
+#define GRUB_NTFS_ATTRIBUTE_NAME_OFFSET 10
+
+/* Offsets for values needed for resident data. */
+#define GRUB_NTFS_ATTRIBUTE_RES_LENGTH  16
+#define GRUB_NTFS_ATTRIBUTE_RES_OFFSET  20
+
+/* Offsets for values needed for non-resident data. */
+#define GRUB_NTFS_ATTRIBUTE_DATA_RUNS             32
+#define GRUB_NTFS_ATTRIBUTE_COMPRESSION_UNIT_SIZE 34
+
 enum
   {
     GRUB_NTFS_AF_ALST		= 1,
