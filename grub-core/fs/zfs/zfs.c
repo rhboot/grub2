@@ -291,6 +291,8 @@ static const char *spa_feature_names[] = {
   "com.delphix:embedded_data",
   "com.delphix:extensible_dataset",
   "org.open-zfs:large_blocks",
+  "com.klarasystems:vdev_zaps_v2",
+  "com.delphix:head_errlog",
   NULL
 };
 
