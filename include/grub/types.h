@@ -196,8 +196,8 @@ static inline grub_uint16_t grub_swap_bytes16(grub_uint16_t _x)
    return (grub_uint16_t) ((_x << 8) | (_x >> 8));
 }
 
-#define grub_swap_bytes16_compile_time(x) ((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8))
-#define grub_swap_bytes32_compile_time(x) ((((x) & 0xff) << 24) | (((x) & 0xff00) << 8) | (((x) & 0xff0000) >> 8) | (((x) & 0xff000000UL) >> 24))
+#define grub_swap_bytes16_compile_time(x) ((grub_uint16_t)((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8)))
+#define grub_swap_bytes32_compile_time(x) ((grub_uint32_t)((((x) & 0xff) << 24) | (((x) & 0xff00) << 8) | (((x) & 0xff0000) >> 8) | (((x) & 0xff000000UL) >> 24)))
 #define grub_swap_bytes64_compile_time(x)	\
 ({ \
    grub_uint64_t _x = (x); \
