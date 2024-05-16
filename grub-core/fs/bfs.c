@@ -808,7 +808,7 @@ find_file (const char *path, grub_disk_t disk,
     .disk = disk,
     .sb = sb,
   };
-  struct grub_fshelp_node *found;
+  struct grub_fshelp_node *found = NULL;
 
   err = read_extent (disk, sb, &sb->root_dir, 0, 0, &root.ino,
 		     sizeof (root.ino));
