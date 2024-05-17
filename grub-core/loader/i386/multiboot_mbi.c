@@ -69,7 +69,6 @@ static grub_err_t
 load_kernel (grub_file_t file, const char *filename,
 	     char *buffer, struct multiboot_header *header)
 {
-  grub_err_t err;
   mbi_load_data_t mld;
 
   mld.file = file;
@@ -81,12 +80,15 @@ load_kernel (grub_file_t file, const char *filename,
 
   if (grub_multiboot_quirks & GRUB_MULTIBOOT_QUIRK_BAD_KLUDGE)
     {
-      err = grub_multiboot_load_elf (&mld);
+      grub_err_t err = grub_multiboot_load_elf (&mld);
+
       if (err == GRUB_ERR_NONE) {
 	return GRUB_ERR_NONE;
       }
       if (err == GRUB_ERR_UNKNOWN_OS && (header->flags & MULTIBOOT_AOUT_KLUDGE))
-	grub_errno = GRUB_ERR_NONE;
+	grub_errno = err = GRUB_ERR_NONE;
+      if (err != GRUB_ERR_NONE)
+	return err;
     }
   if (header->flags & MULTIBOOT_AOUT_KLUDGE)
     {
@@ -97,6 +99,7 @@ load_kernel (grub_file_t file, const char *filename,
       grub_size_t code_size;
       void *source;
       grub_relocator_chunk_t ch;
+      grub_err_t err;
 
       if (header->bss_end_addr)
 	code_size = (header->bss_end_addr - header->load_addr);
