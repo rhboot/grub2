@@ -275,7 +275,7 @@ EOF
 	prepare_grub_to_access_device `${grub_probe} --target=device "$GRUB_BACKGROUND"`
 	cat << EOF
 insmod $reader
-background_image -m stretch `make_system_path_relative_to_its_root "$GRUB_BACKGROUND"`
+background_image -m stretch "`make_system_path_relative_to_its_root "$GRUB_BACKGROUND"`"
 EOF
     fi
 fi
