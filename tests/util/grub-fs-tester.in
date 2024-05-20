@@ -227,6 +227,10 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 	xsquash*)
 	    MINBLKSIZE=4096
 	    MAXBLKSIZE=1048576;;
+	x"erofs_"*)
+		MINBLKSIZE=4096
+		MAXBLKSIZE=4096
+		;;
 	xxfs|xf2fs)
 	    MINBLKSIZE=$SECSIZE
 	    # OS Limitation: GNU/Linux doesn't accept > 4096
@@ -382,8 +386,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    FSLABEL="g;/_é䏌䐓䏕䎛䎾䏴кит u"
 		    #FSLABEL="g;/_é莭莽😁кит u"
 		    ;;
-		# FS LIMITATION: reiserfs, extN and jfs label is at most 16 UTF-8 characters
-		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"luks"* | x"mdraid"* | x"jfs" | x"jfs_caseins")
+		# FS LIMITATION: reiserfs, extN, jfs and erofs label is at most 16 UTF-8 characters
+		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"luks"* | x"mdraid"* | x"jfs" | x"jfs_caseins" | x"erofs_"*)
 		    FSLABEL="g;/éт 莭😁";;
 		# FS LIMITATION: No underscore, space, semicolon, slash or international characters in UFS* in label. Limited to 32 UTF-8 characters
 		x"ufs1" | x"ufs1_sun" | x"ufs2")
@@ -661,7 +665,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"tarfs" | x"cpio_"*| x"ziso9660" | x"romfs" | x"squash4_"*\
 		    | x"iso9660" | xjoliet | xrockridge | xrockridge_joliet \
 		    | x"iso9660_1999" | xjoliet_1999 | xrockridge_1999 \
-		    | xrockridge_joliet_1999)
+		    | xrockridge_joliet_1999 | x"erofs_"*)
 		    MNTPOINTRW="$MASTER"
 		    MNTPOINTRO="$MASTER"
 		    mkdir -p "$MASTER";;
@@ -805,7 +809,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    "zfs" create "$FSLABEL"/"grub fs"
 		    sleep 1;;
-		x"tarfs" | x"cpio_"* | x"iso9660" | xjoliet | xrockridge | xrockridge_joliet | x"iso9660_1999" | xjoliet_1999 | xrockridge_1999 | xrockridge_joliet_1999 | x"ziso9660" | x"romfs" | x"squash4_"*)
+		x"tarfs" | x"cpio_"* | x"iso9660" | xjoliet | xrockridge | xrockridge_joliet | x"iso9660_1999" | xjoliet_1999 | xrockridge_1999 | xrockridge_joliet_1999 | x"ziso9660" | x"romfs" | x"squash4_"* | x"erofs_"*)
 		    INSTDEVICE=/dev/null;;
 		x"reiserfs")
 		    "mkfs.reiserfs" --format=3.6 -b $BLKSIZE -l "$FSLABEL" -q "${MOUNTDEVICE}" ;;
@@ -990,7 +994,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"zfs"*)
 		    OSDIR="grub fs/"
 		    GRUBDIR="($GRUBDEVICE)/grub fs@";;
-		x"tarfs" | x"cpio_"* | x"iso9660" | xjoliet | xrockridge | xrockridge_joliet | x"iso9660_1999" | xjoliet_1999 | xrockridge_1999 | xrockridge_joliet_1999 | x"ziso9660" | x"romfs" | x"squash4_"* | xafs)
+		x"tarfs" | x"cpio_"* | x"iso9660" | xjoliet | xrockridge | xrockridge_joliet | x"iso9660_1999" | xjoliet_1999 | xrockridge_1999 | xrockridge_joliet_1999 | x"ziso9660" | x"romfs" | x"squash4_"* | xafs | x"erofs_"*)
 		    ;;
 		*)
 		    if ! mount -t "$MOUNTFS" "${MOUNTDEVICE}" "$MNTPOINTRW" -o ${MOUNTOPTS}${SELINUXOPTS}rw  ; then
@@ -1116,6 +1120,18 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		xsquash4_*)
 		    echo mksquashfs "$MASTER" "${FSIMAGEP}0.img" -always-use-fragments -comp "${fs/squash4_/}" -b $BLKSIZE
 		    mksquashfs "$MASTER" "${FSIMAGEP}0.img" -always-use-fragments -comp "${fs/squash4_/}" -b $BLKSIZE ;;
+		x"erofs_compact")
+			echo mkfs.erofs -Eforce-inode-compact -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			mkfs.erofs -Eforce-inode-compact -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			;;
+		x"erofs_extended")
+			echo mkfs.erofs -Eforce-inode-extended -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			mkfs.erofs -Eforce-inode-extended -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			;;
+		x"erofs_chunk")
+			echo mkfs.erofs --chunksize=1048576 -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			mkfs.erofs --chunksize=1048576 -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			;;
 		x"bfs")
 		    sleep 1
 		    fusermount -u "$MNTPOINTRW"
@@ -1186,6 +1202,8 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"romfs")
 		    ;;
 		xsquash4_*)
+		    ;;
+		x"erofs_"*)
 		    ;;
 		xlvm*)
 		    vgchange -a y grub_test
@@ -1624,7 +1642,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			sleep 1;
 		    done
 		    sleep 5;;
-		x"tarfs" | x"cpio_"* | xrockridge | xjoliet | xrockridge_joliet | x"ziso9660" | x"romfs" | x"squash4_"* | xiso9660 | xiso9660_1999 | xrockridge_1999 | xjoliet_1999 | xrockridge_joliet_1999)
+		x"tarfs" | x"cpio_"* | xrockridge | xjoliet | xrockridge_joliet | x"ziso9660" | x"romfs" | x"squash4_"* | xiso9660 | xiso9660_1999 | xrockridge_1999 | xjoliet_1999 | xrockridge_joliet_1999 | x"erofs_"*)
 		    rm -rf "$MNTPOINTRW";;
 		x"afs")
 		    rm -rf "$MNTPOINTRO"
@@ -1651,7 +1669,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    ;;
 	    esac
 	    case x"$fs" in
-		x"tarfs" | x"cpio_"* | x"iso9660" | xrockridge | xjoliet | xrockridge_joliet | x"ziso9660" | x"romfs" | x"squash4_"* | x"iso9660_1999" | xrockridge_1999 | xjoliet_1999 | xrockridge_joliet_1999) ;;
+		x"tarfs" | x"cpio_"* | x"iso9660" | xrockridge | xjoliet | xrockridge_joliet | x"ziso9660" | x"romfs" | x"squash4_"* | x"iso9660_1999" | xrockridge_1999 | xjoliet_1999 | xrockridge_joliet_1999 | x"erofs_"*) ;;
 		*)
 		    for lodev in $LODEVICES; do
 			while ! losetup -d "$lodev"; do

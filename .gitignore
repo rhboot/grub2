@@ -104,6 +104,7 @@ widthspec.bin
 /docs/version-dev.texi
 /docs/version.texi
 /ehci_test
+/erofs_test
 /example_grub_script_test
 /example_scripted_test
 /example_unit_test
