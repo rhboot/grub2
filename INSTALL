@@ -77,15 +77,15 @@ Prerequisites for make-check:
 
 * If running a Linux kernel the following modules must be loaded:
   - fuse, loop
-  - btrfs, ext4, f2fs, fat, hfs, hfsplus, jfs, mac-roman, minix, nilfs2,
+  - btrfs, erofs, ext4, f2fs, fat, hfs, hfsplus, jfs, mac-roman, minix, nilfs2,
     reiserfs, udf, xfs
   - On newer kernels, the exfat kernel modules may be used instead of the
     exfat FUSE filesystem
 * The following are Debian named packages required mostly for the full
   suite of filesystem testing (but some are needed by other tests as well):
-  - btrfs-progs, dosfstools, e2fsprogs, exfat-utils, f2fs-tools, genromfs,
-    hfsprogs, jfsutils, nilfs-tools, ntfs-3g, reiserfsprogs, squashfs-tools,
-    reiserfsprogs, udftools, xfsprogs, zfs-fuse
+  - btrfs-progs, dosfstools, e2fsprogs, erofs-utils, exfat-utils, f2fs-tools,
+    genromfs, hfsprogs, jfsutils, nilfs-tools, ntfs-3g, reiserfsprogs,
+    squashfs-tools, reiserfsprogs, udftools, xfsprogs, zfs-fuse
   - exfat-fuse, if not using the exfat kernel module
   - gzip, lzop, xz-utils
   - attr, cpio, g++, gawk, parted, recode, tar, util-linux
