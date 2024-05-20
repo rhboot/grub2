@@ -32,6 +32,21 @@
 
 #define grub_cast(a, res)	grub_add ((a), 0, (res))
 
+/*
+ * It's caller's responsibility to check "align" does not equal 0 and
+ * is power of 2.
+ */
+#define ALIGN_UP_OVF(v, align, res) 			\
+({							\
+  bool __failed;					\
+  typeof(v) __a = ((typeof(v))(align) - 1);		\
+							\
+  __failed = grub_add (v, __a, res);			\
+  if (__failed == false)				\
+    *(res) &= ~__a;					\
+  __failed;						\
+})
+
 #else
 #error gcc 5.1 or newer or clang 8.0 or newer is required
 #endif
