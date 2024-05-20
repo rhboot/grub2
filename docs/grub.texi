@@ -1259,7 +1259,7 @@ need to write the whole thing by hand.
 
 @menu
 * Simple configuration::            Recommended for most users
-* Root Identifcation Heuristics::   Summary on how the root file system is identified.
+* Root Identification Heuristics::  Summary on how the root file system is identified.
 * Shell-like scripting::            For power users and developers
 * Multi-boot manual config::        For non-standard multi-OS scenarios
 * Embedded configuration::          Embedding a configuration file into GRUB
@@ -1509,7 +1509,7 @@ search for files.  This is usually more reliable, but in some cases it may
 not be appropriate.  To disable this use of UUIDs, set this option to
 @samp{true}. Setting this option to @samp{true}, will also set the options
 @samp{GRUB_DISABLE_LINUX_UUID} and @samp{GRUB_DISABLE_LINUX_PARTUUID} to
-@samp{true}, unless they have been explicilty set to @samp{false}.
+@samp{true}, unless they have been explicitly set to @samp{false}.
 
 @item GRUB_VIDEO_BACKEND
 If graphical video support is required, either because the @samp{gfxterm}
@@ -1642,8 +1642,8 @@ edit the scripts in @file{/etc/grub.d} directly.
 menu entries; simply type the menu entries you want to add at the end of
 that file, making sure to leave at least the first two lines intact.
 
-@node Root Identifcation Heuristics
-@section Root Identifcation Heuristics
+@node Root Identification Heuristics
+@section Root Identification Heuristics
 If the target operating system uses the Linux kernel, @command{grub-mkconfig}
 attempts to identify the root file system via a heuristic algoirthm.  This
 algorithm selects the identification method of the root file system by
@@ -2577,7 +2577,7 @@ value corresponds to a value on the client machine.
 @end example
 
 The UUID is the Client Machine Identifier Option Definition as specified in
-RFC 4578. The client will only attempt to loouk up a UUID config file if it
+RFC 4578. The client will only attempt to look up a UUID config file if it
 was provided by the DHCP server.
 
 The client will only attempt to look up an IPv6 address config once, however,
@@ -2986,12 +2986,12 @@ The device syntax is like this:
 driver in use. BIOS and EFI disks use either @samp{fd} or @samp{hd} followed
 by a digit, like @samp{fd0}, or @samp{cd}.
 AHCI, PATA (ata), crypto, USB use the name of driver followed by a number.
-Memdisk and host are limited to one disk and so it's refered just by driver
+Memdisk and host are limited to one disk and so it's referred just by driver
 name.
 RAID (md), ofdisk (ieee1275 and nand), LVM (lvm), LDM, virtio (vdsk)
 and arcdisk (arc) use intrinsic name of disk prefixed by driver name.
 Additionally just ``nand'' refers to the disk aliased as ``nand''.
-Conflicts are solved by suffixing a number if necessarry.
+Conflicts are solved by suffixing a number if necessary.
 Commas need to be escaped.
 Loopback uses whatever name specified to @command{loopback} command.
 Hostdisk uses names specified in device.map as long as it's of the form
@@ -4690,7 +4690,7 @@ However, this limitation can be worked around by using blocklist syntax. So
 for instance, @code{(hd1,gpt2)} can not be used, but @code{(hd1,gpt2)0+} will
 achieve the desired result.
 
-GRUB suports devices encrypted using LUKS, LUKS2 and geli. Note that necessary
+GRUB supports devices encrypted using LUKS, LUKS2 and geli. Note that necessary
 modules (@var{luks}, @var{luks2} and @var{geli}) have to be loaded manually
 before this command can be used. For LUKS2 only the PBKDF2 key derivation
 function is supported, as Argon2 is not yet supported.
@@ -6354,7 +6354,7 @@ Moreover all current input consumers are limited to ASCII.
 GRUB supports being translated. For this you need to have language *.mo files in $prefix/locale, load gettext module and set ``lang'' variable.
 
 @section Regexp
-Regexps work on unicode characters, however no attempt at checking cannonical
+Regexps work on unicode characters, however no attempt at checking canonical
 equivalence has been made. Moreover the classes like [:alpha:] match only
 ASCII subset.
 
@@ -6368,7 +6368,7 @@ matched as binary. Similar behaviour is for matching OSBundleRequired.
 Since IEEE1275 aliases and OSBundleRequired don't contain any non-ASCII it
 should never be a problem in practice.
 Case-sensitive identifiers are matched as raw strings, no canonical
-equivalence check is performed. Case-insenstive identifiers are matched
+equivalence check is performed. Case-insensitive identifiers are matched
 as RAW but additionally [a-z] is equivalent to [A-Z]. GRUB-defined
 identifiers use only ASCII and so should user-defined ones.
 Identifiers containing non-ASCII may work but aren't supported.
@@ -6656,7 +6656,7 @@ On EMU platform no serial port is available.
 Console charset refers only to firmware-assisted console. gfxterm is always
 Unicode (see Internationalisation section for its limitations). Serial is
 configurable to UTF-8 or ASCII (see Internationalisation). In case of qemu
-and coreboot ports the refered console is vga_text. Loongson always uses
+and coreboot ports the referred console is vga_text. Loongson always uses
 gfxterm.
 
 Most limited one is ASCII. CP437 provides additionally pseudographics.
@@ -6818,7 +6818,7 @@ Advanced operations for power users:
 @item x86: iorw (direct access to I/O ports)
 @end itemize
 
-Miscelaneous:
+Miscellaneous:
 @itemize
 @item cmos (x86-*, ieee1275, mips-qemu_mips, mips-loongson): cmostest
     (used on some laptops to check for special power-on key), cmosclean
