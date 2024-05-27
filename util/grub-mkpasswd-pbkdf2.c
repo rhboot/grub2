@@ -133,33 +133,23 @@ main (int argc, char *argv[])
       exit(1);
     }
 
-  buf = xmalloc (arguments.buflen);
-  salt = xmalloc (arguments.saltlen);
-
   printf ("%s", _("Enter password: "));
   if (!grub_password_get (pass1, GRUB_AUTH_MAX_PASSLEN))
-    {
-      free (buf);
-      free (salt);
-      grub_util_error ("%s", _("failure to read password"));
-    }
+    grub_util_error ("%s", _("failure to read password"));
   printf ("%s", _("Reenter password: "));
   if (!grub_password_get (pass2, GRUB_AUTH_MAX_PASSLEN))
-    {
-      free (buf);
-      free (salt);
-      grub_util_error ("%s", _("failure to read password"));
-    }
+    grub_util_error ("%s", _("failure to read password"));
 
   if (strcmp (pass1, pass2) != 0)
     {
       memset (pass1, 0, sizeof (pass1));
       memset (pass2, 0, sizeof (pass2));
-      free (buf);
-      free (salt);
       grub_util_error ("%s", _("passwords don't match"));
     }
   memset (pass2, 0, sizeof (pass2));
+
+  buf = xmalloc (arguments.buflen);
+  salt = xmalloc (arguments.saltlen);
 
   if (grub_get_random (salt, arguments.saltlen))
     {
