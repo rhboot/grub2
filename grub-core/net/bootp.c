@@ -1053,7 +1053,7 @@ grub_dhcp6_session_add (struct grub_net_network_level_interface *iface,
   grub_dhcp6_session_t se;
   struct grub_datetime date;
   grub_err_t err;
-  grub_int32_t t = 0;
+  grub_int64_t t = 0;
 
   se = grub_malloc (sizeof (*se));
 

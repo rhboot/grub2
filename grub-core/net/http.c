@@ -414,7 +414,7 @@ http_establish (struct grub_file *file, grub_off_t offset, int initial)
   grub_memcpy (ptr, "\r\n", 2);
 
   grub_dprintf ("http", "opening path %s on host %s TCP port %d\n",
-		data->filename, server, port ? port : HTTP_PORT);
+		data->filename, server, port ? port : (int) HTTP_PORT);
   data->sock = grub_net_tcp_open (server,
 				  port ? port : HTTP_PORT, http_receive,
 				  http_err, NULL,
