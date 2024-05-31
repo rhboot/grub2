@@ -628,9 +628,19 @@ susp_iterate_dir (struct grub_iso9660_susp_entry *entry,
 	 filename type is stored.  */
       /* FIXME: Fix this slightly improper cast.  */
       if (entry->data[0] & GRUB_ISO9660_RR_DOT)
-	ctx->filename = (char *) ".";
+	{
+	  if (ctx->filename_alloc)
+	    grub_free (ctx->filename);
+	  ctx->filename_alloc = 0;
+	  ctx->filename = (char *) ".";
+	}
       else if (entry->data[0] & GRUB_ISO9660_RR_DOTDOT)
-	ctx->filename = (char *) "..";
+	{
+	  if (ctx->filename_alloc)
+	    grub_free (ctx->filename);
+	  ctx->filename_alloc = 0;
+	  ctx->filename = (char *) "..";
+	}
       else if (entry->len >= 5)
 	{
 	  grub_size_t off = 0, csize = 1;
