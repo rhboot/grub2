@@ -481,6 +481,8 @@ grub_ext2_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       struct grub_ext4_extent *ext;
       int i;
       grub_disk_addr_t ret;
+      grub_uint16_t nent;
+      const grub_uint16_t max_inline_ext = sizeof (inode->blocks) / sizeof (*ext) - 1; /* Minus 1 extent header. */
 
       leaf = grub_ext4_find_leaf (data, (struct grub_ext4_extent_header *) inode->blocks.dir_blocks, fileblock);
       if (! leaf)
@@ -490,7 +492,13 @@ grub_ext2_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
         }
 
       ext = (struct grub_ext4_extent *) (leaf + 1);
-      for (i = 0; i < grub_le_to_cpu16 (leaf->entries); i++)
+
+      nent = grub_le_to_cpu16 (leaf->entries);
+
+      if (leaf->depth == 0)
+	nent = grub_min (nent, max_inline_ext);
+
+      for (i = 0; i < nent; i++)
         {
           if (fileblock < grub_le_to_cpu32 (ext[i].block))
             break;
