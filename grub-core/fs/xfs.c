@@ -568,6 +568,17 @@ grub_xfs_read_block (grub_fshelp_node_t node, grub_disk_addr_t fileblock)
       do
         {
           int i;
+	  grub_addr_t keys_end, data_end;
+
+	  if (grub_mul (sizeof (grub_uint64_t), nrec, &keys_end) ||
+	      grub_add ((grub_addr_t) keys, keys_end, &keys_end) ||
+	      grub_add ((grub_addr_t) node->data, node->data->data_size, &data_end) ||
+	      keys_end > data_end)
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "invalid number of XFS root keys");
+	      grub_free (leaf);
+	      return 0;
+	    }
 
           for (i = 0; i < nrec; i++)
             {
