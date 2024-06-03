@@ -292,6 +292,15 @@ grub_tpm_present (void)
 {
   grub_efi_handle_t tpm_handle;
   grub_efi_uint8_t protocol_version;
+  grub_efi_cc_protocol_t *cc;
+
+  /*
+   * When confidential computing measurement protocol is enabled
+   * we assume the TPM is present.
+   */
+  cc = grub_efi_locate_protocol (&cc_measurement_guid, NULL);
+  if (cc != NULL)
+    return 1;
 
   if (!grub_tpm_handle_find (&tpm_handle, &protocol_version))
     return 0;
