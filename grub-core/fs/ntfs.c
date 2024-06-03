@@ -139,6 +139,8 @@ free_attr (struct grub_ntfs_attr *at)
 static grub_uint8_t *
 find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 {
+  grub_uint8_t *mft_end;
+
   if (at->flags & GRUB_NTFS_AF_ALST)
     {
     retry:
@@ -191,7 +193,8 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
       return NULL;
     }
   at->attr_cur = at->attr_nxt;
-  while (*at->attr_cur != 0xFF)
+  mft_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
+  while (at->attr_cur < mft_end && *at->attr_cur != 0xFF)
     {
       at->attr_nxt += u16at (at->attr_cur, 4);
       if (*at->attr_cur == GRUB_NTFS_AT_ATTRIBUTE_LIST)
