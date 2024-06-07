@@ -38,7 +38,8 @@ grub_ns8250_spcr_init (void)
     grub_dprintf ("serial", "SPCR table revision %d < 2, continuing anyway\n",
 		  (int) spcr->hdr.revision);
   if (spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550 &&
-      spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550X)
+      spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550_DBGP &&
+      spcr->intf_type != GRUB_ACPI_SPCR_INTF_TYPE_16550_DBG2)
     return NULL;
   /* For now, we only support byte accesses. */
   if (spcr->base_addr.access_size != GRUB_ACPI_GENADDR_SIZE_BYTE &&
