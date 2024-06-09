@@ -181,8 +181,30 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	boot=cd
 	console=console
 	trim=1
-	pflash=/usr/share/qemu/OVMF32.fd
-	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	pflash=${srcdir}/OVMF32.fd
+	pflash_code=${srcdir}/OVMF32_CODE.fd
+	pflash_vars=${srcdir}/OVMF32_VARS.fd
+	if [ -f "$pflash" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	elif [ -f "$pflash_code" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+	    if [ -f "$pflash_vars" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    fi
+	else
+	    pflash=/usr/share/qemu/OVMF32.fd
+	    pflash_code=/usr/share/OVMF/OVMF32_CODE_4M.secboot.fd
+	    pflash_vars=/usr/share/OVMF/OVMF32_VARS_4M.fd
+	    if [ -f "$pflash" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	    elif [ -f "$pflash_code" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    else
+		echo "Firmware not found, please install either the appropriate Debian package or an appropriately named copy in the source directory." >&2
+		exit 1
+	    fi
+	fi
 	qemuopts="-machine q35 $qemuopts"
 	;;
     x86_64-efi)
@@ -190,16 +212,60 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	boot=cd
 	console=console
 	trim=1
-	pflash=/usr/share/qemu/OVMF.fd
-	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	pflash=${srcdir}/OVMF.fd
+	pflash_code=${srcdir}/OVMF_CODE.fd
+	pflash_vars=${srcdir}/OVMF_VARS.fd
+	if [ -f "$pflash" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	elif [ -f "$pflash_code" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+	    if [ -f "$pflash_vars" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    fi
+	else
+	    pflash=/usr/share/qemu/OVMF.fd
+	    pflash_code=/usr/share/OVMF/OVMF_CODE.fd
+	    pflash_vars=/usr/share/OVMF/OVMF_VARS.fd
+	    if [ -f "$pflash" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	    elif [ -f "$pflash_code" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    else
+		echo "Firmware not found, please install either the appropriate Debian package or an appropriately named copy in the source directory." >&2
+		exit 1
+	    fi
+	fi
 	;;
     arm64-efi)
 	qemu=qemu-system-aarch64
 	boot=hd
 	console=console
 	trim=1
-	pflash=/usr/share/qemu-efi-aarch64/QEMU_EFI.fd
-	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	pflash=${srcdir}/AAVMF.fd
+	pflash_code=${srcdir}/AAVMF_CODE.fd
+	pflash_vars=${srcdir}/AAVMF_VARS.fd
+	if [ -f "$pflash" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	elif [ -f "$pflash_code" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+	    if [ -f "$pflash_vars" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    fi
+	else
+	    pflash=/usr/share/qemu-efi-aarch64/QEMU_EFI.fd
+	    pflash_code=/usr/share/AAVMF/AAVMF_CODE.fd
+	    pflash_vars=/usr/share/AAVMF/AAVMF_VARS.fd
+	    if [ -f "$pflash" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	    elif [ -f "$pflash_code" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    else
+		echo "Firmware not found, please install either the appropriate Debian package or an appropriately named copy in the source directory." >&2
+		exit 1
+	    fi
+	fi
 	qemuopts="-machine virt -cpu cortex-a57 $qemuopts"
 	disk="device virtio-blk-device,drive=hd1 -drive if=none,id=hd1,file="
 	serial_port=
@@ -209,8 +275,30 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	boot=hd
 	console=console
 	trim=1
-	pflash=/usr/share/AAVMF/AAVMF32.fd
-	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	pflash=${srcdir}/AAVMF32.fd
+	pflash_code=${srcdir}/AAVMF32_CODE.fd
+	pflash_vars=${srcdir}/AAVMF32_VARS.fd
+	if [ -f "$pflash" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	elif [ -f "$pflash_code" ]; then
+	    qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+	    if [ -f "$pflash_vars" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    fi
+	else
+	    pflash=/usr/share/AAVMF/AAVMF32.fd
+	    pflash_code=/usr/share/AAVMF/AAVMF32_CODE.fd
+	    pflash_vars=/usr/share/AAVMF/AAVMF32_VARS.fd
+	    if [ -f "$pflash" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	    elif [ -f "$pflash_code" ]; then
+		qemuopts="-drive if=pflash,format=raw,unit=0,readonly=on,file=$pflash_code $qemuopts"
+		qemuopts="-drive if=pflash,format=raw,unit=1,snapshot=on,file=$pflash_vars $qemuopts"
+	    else
+		echo "Firmware not found, please install either the appropriate Debian package or an appropriately named copy in the source directory." >&2
+		exit 1
+	    fi
+	fi
 	qemuopts="-machine virt $qemuopts"
 	disk="device virtio-blk-device,drive=hd1 -drive if=none,id=hd1,file="
 	serial_port=efi0
