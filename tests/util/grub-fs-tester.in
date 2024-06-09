@@ -362,9 +362,9 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"f2fs")
 		    FSLABEL="grub_;/testé䏌䐓䏕киритiurewfceniuewruewnuuireurevueurnievrewfnerfcnevirivinrewvnirewnivrewiuvcrewvnuewvrrrewniuerwreiuviurewiuviurewnuvewnvrenurnunuvrevuurerejiremvreijnvvcreivire nverivnreivrevnureiorfnfrvoeoiroireoireoifrefoieroifoirvcreivire nverivnreivrevnureiorfnfrvoeoiroireoireoifrefoieroifoircreivire nverivnreivrevnureiorfnfrvoeoiroireoireoifrefoieroifoireoifoiq";;
 
-		# FS LIMITATION: exfat is at most 15 UTF-16 chars
+		# FS LIMITATION: exfat is at most 22 bytes of UTF-16 chars
 		x"exfat")
-		    FSLABEL="géт ;/莭莽😁кир";;
+		    FSLABEL="éт ;/莭莽😁";;
 		# FS LIMITATION: ntfs label is at most ?? UTF-16 chars
 		x"ntfs"*)
 		    FSLABEL="grub_;/testéтi u莭😁茝кириrewfceniuewruevrewnuuireurevueurnievrewfnerfcnevirivinrewvniwnivrewiuvcrewvnuewvrrrewniureifiuewifjiww";;
@@ -710,7 +710,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    MOUNTFS="btrfs"
 		    ;;
 		x"exfat")
-		    "mkfs.$fs" -s $((BLKSIZE/512)) -n "$FSLABEL" "${MOUNTDEVICE}"
+		    "mkfs.$fs" -c $SECSIZE -L "$FSLABEL" "${MOUNTDEVICE}"
 		    MOUNTOPTS="iocharset=utf8,"
 		    MOUNTFS="exfat-fuse";;
 		x"minix")
