@@ -360,6 +360,9 @@ halt_cmd=${halt_cmd}
 export halt_cmd
 enable_progress_indicator=0
 export enable_progress_indicator
+if [ "${grub_modinfo_platform}" == efi ]; then
+  gdbinfo
+fi
 EOF
 
 
