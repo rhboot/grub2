@@ -181,21 +181,26 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	boot=cd
 	console=console
 	trim=1
-	qemuopts="-bios OVMF-ia32.fd $qemuopts"
+	pflash=/usr/share/qemu/OVMF32.fd
+	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	qemuopts="-machine q35 $qemuopts"
 	;;
     x86_64-efi)
 	qemu=qemu-system-x86_64
 	boot=cd
 	console=console
 	trim=1
-	qemuopts="-bios OVMF.fd $qemuopts"
+	pflash=/usr/share/qemu/OVMF.fd
+	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
 	;;
     arm64-efi)
 	qemu=qemu-system-aarch64
 	boot=hd
 	console=console
 	trim=1
-	qemuopts="-machine virt -cpu cortex-a57 -bios /usr/share/qemu-efi/QEMU_EFI.fd $qemuopts"
+	pflash=/usr/share/qemu-efi-aarch64/QEMU_EFI.fd
+	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	qemuopts="-machine virt -cpu cortex-a57 $qemuopts"
 	disk="device virtio-blk-device,drive=hd1 -drive if=none,id=hd1,file="
 	serial_port=
 	;;
@@ -204,7 +209,9 @@ case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
 	boot=hd
 	console=console
 	trim=1
-	qemuopts="-machine virt -bios /usr/share/ovmf-arm/QEMU_EFI.fd $qemuopts"
+	pflash=/usr/share/AAVMF/AAVMF32.fd
+	qemuopts="-drive if=pflash,format=raw,unit=0,snapshot=on,file=$pflash $qemuopts"
+	qemuopts="-machine virt $qemuopts"
 	disk="device virtio-blk-device,drive=hd1 -drive if=none,id=hd1,file="
 	serial_port=efi0
 	;;
