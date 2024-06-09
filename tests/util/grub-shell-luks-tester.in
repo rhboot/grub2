@@ -162,6 +162,8 @@ get_random_bytes() {
 lukstestdir="`mktemp -d "${TMPDIR:-/tmp}/$(basename "$0").XXXXXXXXXX"`" || exit 20
 luksfile=$lukstestdir/luks.disk
 lukshdrfile=$lukstestdir/luks.header
+luksdiskfile=${detached_header:+$lukshdrfile}
+luksdiskfile=${luksdiskfile:-$luksfile}
 lukskeyfile=$lukstestdir/luks.key
 vfile=$lukstestdir/mnt/test.verify
 vtext="TEST VERIFIED"
@@ -193,7 +195,7 @@ truncate -s $disksize $luksfile || exit 21
 cryptsetup luksFormat -q $csopts $luksfile $lukskeyfile || exit 22
 
 # Run any cryptsetup scripts
-export luksdiskfile=${detached_header:+$lukshdrfile}${detached_header:-$luksfile}
+export luksdiskfile
 export lukskeyfile
 for csscript in $csscripts; do
     [ -f "$csscript" ] && . $csscript
