@@ -380,9 +380,16 @@ write_keymaps (FILE *in, FILE *out, const char *out_filename)
 	  char shift[64];
 	  char normalalt[64];
 	  char shiftalt[64];
-
-	  sscanf (line, "keycode %u = %60s %60s %60s %60s", &keycode_linux,
-		  normal, shift, normalalt, shiftalt);
+    
+    if (sscanf (line, "keycode %u = %60s %60s %60s %60s", &keycode_linux,
+      normal, shift, normalalt, shiftalt) != 5) {
+        /* Bail out since keycodes could not be read, this can happen 
+         * when the in FILE is coming from stdin and user fails to specify the keycode in 
+         * proper format
+        */
+        fprintf (stderr, "%s", _("ERROR: no valid keyboard layout found. Check the input.\n"));
+        exit (1);
+      }
 
 	  if (keycode_linux >= ARRAY_SIZE (linux_to_usb_map))
 	    {
