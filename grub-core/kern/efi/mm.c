@@ -150,7 +150,7 @@ grub_efi_allocate_pages_real (grub_efi_physical_address_t address,
 	 so reallocate another one.  */
       address = GRUB_EFI_MAX_USABLE_ADDRESS;
       status = b->allocate_pages (alloctype, memtype, pages, &address);
-      grub_efi_free_pages (0, pages);
+      b->free_pages (0, pages);
       if (status != GRUB_EFI_SUCCESS)
 	{
 	  grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
