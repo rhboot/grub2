@@ -95,8 +95,10 @@ grub_efi_drop_alloc (grub_efi_physical_address_t address,
 
   for (eap = NULL, ea = efi_allocated_memory; ea; eap = ea, ea = ea->next)
     {
-      if (ea->address != address || ea->pages != pages)
-         continue;
+      if (ea->address != address)
+	continue;
+      if (ea->pages != pages)
+	grub_fatal ("grub_efi_drop_alloc() called with wrong page count");
 
       /* Remove the current entry from the list. */
       if (eap)
