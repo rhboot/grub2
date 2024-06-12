@@ -595,6 +595,12 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		x"cpio_"* | x"tarfs" | x"squash4_"* | x"minix" | x"minix2" \
 		    | x"minix3" | xreiserfs_old)
 		    NOFSLABEL=y;;
+		x"erofs_"*)
+		    MKFS_EROFS_VERSION=$(mkfs.erofs -V 2>/dev/null | tr ' ' '\n' | grep '^[0-9]')
+		    # check if the version is at least 1.6
+		    if [ $(sort -V <(echo "$MKFS_EROFS_VERSION") <(echo "1.6") | head -n 1) != "1.6" ]; then
+			NOFSLABEL=y
+		    fi
 	    esac
 
 	    PDIRCOMPNUM=210
@@ -1121,16 +1127,34 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    echo mksquashfs "$MASTER" "${FSIMAGEP}0.img" -always-use-fragments -comp "${fs/squash4_/}" -b $BLKSIZE
 		    mksquashfs "$MASTER" "${FSIMAGEP}0.img" -always-use-fragments -comp "${fs/squash4_/}" -b $BLKSIZE ;;
 		x"erofs_compact")
-			echo mkfs.erofs -Eforce-inode-compact -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
-			mkfs.erofs -Eforce-inode-compact -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			cmd="mkfs.erofs"
+			if [ x"$NOFSLABEL" != xy ]; then
+				cmd="$cmd -L \"$FSLABEL\""
+			fi
+			cmd="$cmd -Eforce-inode-compact ${FSIMAGEP}0.img $MNTPOINTRW"
+			echo $cmd
+			eval $cmd
+			unset cmd
 			;;
 		x"erofs_extended")
-			echo mkfs.erofs -Eforce-inode-extended -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
-			mkfs.erofs -Eforce-inode-extended -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			cmd="mkfs.erofs"
+			if [ x"$NOFSLABEL" != xy ]; then
+				cmd="$cmd -L \"$FSLABEL\""
+			fi
+			cmd="$cmd -Eforce-inode-extended ${FSIMAGEP}0.img $MNTPOINTRW"
+			echo $cmd
+			eval $cmd
+			unset cmd
 			;;
 		x"erofs_chunk")
-			echo mkfs.erofs --chunksize=1048576 -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
-			mkfs.erofs --chunksize=1048576 -L "$FSLABEL" "${FSIMAGEP}0.img" "$MNTPOINTRW"
+			cmd="mkfs.erofs"
+			if [ x"$NOFSLABEL" != xy ]; then
+				cmd="$cmd -L \"$FSLABEL\""
+			fi
+			cmd="$cmd --chunksize=1048576 ${FSIMAGEP}0.img $MNTPOINTRW"
+			echo $cmd
+			eval $cmd
+			unset cmd
 			;;
 		x"bfs")
 		    sleep 1
