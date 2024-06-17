@@ -785,7 +785,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    sleep 1
 		    "zfs" create -o casesensitivity=insensitive "$FSLABEL"/"grub fs"
 		    sleep 1;;
-		x"zfs_lzjb" | xzfs_gzip | xzfs_zle)
+		x"zfs_lzjb" | xzfs_gzip | xzfs_zle | xzfs_zstd)
 		    "zpool" create -O compression=${fs/zfs_/} -R "$MNTPOINTRW" "$FSLABEL" "${MOUNTDEVICE}"
 		    sleep 1
 		    "zfs" create -o compression=${fs/zfs_/} "$FSLABEL"/"grub fs"
