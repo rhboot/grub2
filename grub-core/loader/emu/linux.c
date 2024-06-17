@@ -68,7 +68,7 @@ grub_linux_boot (void)
     }
 
   if (kexecute < 1)
-    grub_fatal (N_("use '"PACKAGE"-emu --kexec' to force a system restart"));
+    grub_fatal (N_("use '%s %s' to force a system restart"), program_name, "--kexec");
 
   grub_dprintf ("linux", "Performing 'systemctl kexec' (%s) ",
 		(kexecute==1) ? "do-or-die" : "just-in-case");

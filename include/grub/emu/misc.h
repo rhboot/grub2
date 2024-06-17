@@ -31,7 +31,7 @@
 #include <grub/util/misc.h>
 
 extern int verbosity;
-extern const char *program_name;
+extern const char *EXPORT_VAR(program_name);
 
 void grub_init_all (void);
 void grub_fini_all (void);
