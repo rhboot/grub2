@@ -1,6 +1,7 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
  *  Copyright (C) 2013-2015  Free Software Foundation, Inc.
+ *  Copyright (C) 2024       Canonical, Ltd.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,9 +19,11 @@
 
 #include <grub/fdt.h>
 #include <grub/mm.h>
+#include <grub/env.h>
 #include <grub/err.h>
 #include <grub/dl.h>
 #include <grub/command.h>
+#include <grub/extcmd.h>
 #include <grub/file.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/fdtload.h>
@@ -35,6 +38,13 @@ static void *fdt;
 #define FDT_ADDR_SIZE_EXTRA ((2 * grub_fdt_prop_entry_size (sizeof(grub_uint32_t))) + \
                              sizeof (FDT_ADDR_CELLS_STRING) + \
                              sizeof (FDT_SIZE_CELLS_STRING))
+
+static const struct grub_arg_option options_fdtdump[] = {
+  {"prop",	'p', 0, N_("Get property."), N_("prop"), ARG_TYPE_STRING},
+  {"set",       '\0', 0, N_("Store the value in the given variable name."),
+                         N_("variable"), ARG_TYPE_STRING},
+  {0, 0, 0, 0, 0, 0}
+};
 
 void *
 grub_fdt_load (grub_size_t additional_size)
@@ -167,10 +177,45 @@ out:
   return grub_errno;
 }
 
+static grub_err_t
+grub_cmd_fdtdump (grub_extcmd_context_t ctxt,
+                 int argc __attribute__ ((unused)),
+                 char **argv __attribute__ ((unused)))
+{
+  struct grub_arg_list *state = ctxt->state;
+  const char *value = NULL;
+  void *fw_fdt;
+
+  fw_fdt = grub_efi_get_firmware_fdt ();
+  if (fw_fdt == NULL)
+      return grub_error (GRUB_ERR_IO,
+                         N_("No device tree found"));
+
+  if (state[0].set)
+      value = grub_fdt_get_prop (fw_fdt, 0, state[0].arg, NULL);
+
+  if (value == NULL)
+    return grub_error (GRUB_ERR_OUT_OF_RANGE,
+                       N_("failed to retrieve the prop field"));
+
+  if (state[1].set)
+    grub_env_set (state[1].arg, value);
+  else
+    grub_printf ("%s\n", value);
+
+  return GRUB_ERR_NONE;
+}
+
 static grub_command_t cmd_devicetree;
+static grub_extcmd_t cmd_fdtdump;
 
 GRUB_MOD_INIT (fdt)
 {
+  cmd_fdtdump =
+    grub_register_extcmd ("fdtdump", grub_cmd_fdtdump, 0,
+                          N_("[-p] [--set variable]"),
+                          N_("Retrieve device tree information."),
+                          options_fdtdump);
   cmd_devicetree =
     grub_register_command_lockdown ("devicetree", grub_cmd_devicetree, 0,
 				    N_("Load DTB file."));
@@ -179,4 +224,5 @@ GRUB_MOD_INIT (fdt)
 GRUB_MOD_FINI (fdt)
 {
   grub_unregister_command (cmd_devicetree);
+  grub_unregister_extcmd (cmd_fdtdump);
 }

@@ -4373,6 +4373,7 @@ you forget a command, you can run the command @command{help}
 * eval::                        Evaluate agruments as GRUB commands
 * export::                      Export an environment variable
 * false::                       Do nothing, unsuccessfully
+* fdtdump::                     Retrieve device tree information
 * fwsetup::                     Reboot into the firmware setup menu
 * gdbinfo::                     Provide info for debugging with GDB
 * gettext::                     Translate a string
@@ -4901,6 +4902,31 @@ to subsidiary configuration files loaded using @command{configfile}.
 @deffn Command false
 Do nothing, unsuccessfully.  This is mainly useful in control constructs
 such as @code{if} and @code{while} (@pxref{Shell-like scripting}).
+@end deffn
+
+
+@node fdtdump
+@subsection fdtdump
+
+@deffn Command fdtdump @
+ [@option{--prop} @var{prop}] @
+ [@option{--set} @var{variable}]
+Retrieve device tree information.
+
+The @command{fdtdump} command returns the value of a property in the device
+tree provided by the firmware.  The @option{--prop} option determines which
+property to select.
+
+The default action is to print the value of the requested field to the console,
+but a variable name can be specified with @option{--set} to store the value
+instead of printing it.
+
+For example, this will store and then display the model string.
+
+@example
+fdtdump --prop model --set machine_model
+echo $machine_model
+@end example
 @end deffn
 
 
