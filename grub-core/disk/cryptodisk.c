@@ -1359,9 +1359,9 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 
       if (keyfile_offset > keyfile->size)
 	return grub_error (GRUB_ERR_OUT_OF_RANGE,
-			   N_("Keyfile offset, %llu, is greater than"
-			      "keyfile size, %" PRIuGRUB_UINT64_T),
-			   keyfile_offset, keyfile->size);
+			   N_("Keyfile offset, %llu, is greater than "
+			      "keyfile size, %llu"),
+			   keyfile_offset, (unsigned long long) keyfile->size);
 
       if (grub_file_seek (keyfile, (grub_off_t) keyfile_offset) == (grub_off_t) -1)
 	return grub_errno;
