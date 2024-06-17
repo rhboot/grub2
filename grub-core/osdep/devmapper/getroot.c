@@ -262,7 +262,7 @@ grub_util_pull_devmapper (const char *os_dev)
                                  params);
               cipher = grub_strndup (c, seek_head - c);
               if (cipher == NULL)
-                grub_util_error (_("could not strndup cipher of length `%" PRIuGRUB_SIZE "'"), (grub_size_t) (seek_head - c));
+                grub_util_error ("could not strndup cipher of length `%" PRIuGRUB_SIZE "'", (grub_size_t) (seek_head - c));
               remaining -= seek_head - c + 1;
               c = seek_head + 1;
 
@@ -273,7 +273,7 @@ grub_util_pull_devmapper (const char *os_dev)
                                  params);
               cipher_mode = grub_strndup (c, seek_head - c);
               if (cipher_mode == NULL)
-                grub_util_error (_("could not strndup cipher_mode of length `%" PRIuGRUB_SIZE "'"), (grub_size_t) (seek_head - c));
+                grub_util_error ("could not strndup cipher_mode of length `%" PRIuGRUB_SIZE "'", (grub_size_t) (seek_head - c));
 
               remaining -= seek_head - c + 1;
               c = seek_head + 1;
