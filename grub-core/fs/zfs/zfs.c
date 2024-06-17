@@ -57,6 +57,8 @@
 #include <grub/i18n.h>
 #include <grub/safemath.h>
 
+#include <zstd.h>
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 #define	ZPOOL_PROP_BOOTFS		"bootfs"
@@ -293,6 +295,7 @@ static const char *spa_feature_names[] = {
   "org.open-zfs:large_blocks",
   "com.klarasystems:vdev_zaps_v2",
   "com.delphix:head_errlog",
+  "org.freebsd:zstd_compress",
   NULL
 };
 
@@ -312,6 +315,40 @@ zlib_decompress (void *s, void *d,
     grub_error (GRUB_ERR_BAD_COMPRESSED_DATA,
 		"premature end of compressed");
   return grub_errno;
+}
+
+static grub_err_t
+zstd_decompress (void *ibuf, void *obuf, grub_size_t isize,
+		 grub_size_t osize)
+{
+  grub_size_t zstd_ret;
+  grub_uint32_t c_len;
+  grub_uint8_t *byte_buf = (grub_uint8_t *) ibuf;
+
+  if (isize < 8)
+      return grub_error (GRUB_ERR_BAD_COMPRESSED_DATA, "zstd data too short");
+
+  c_len = grub_be_to_cpu32 (grub_get_unaligned32 (byte_buf));
+
+  if (c_len > isize - 8)
+      return grub_error (GRUB_ERR_BAD_COMPRESSED_DATA,
+			 "zstd data announced size overflow");
+
+  /*
+   * ZFS uses non-stadard magic for zstd streams. Rather than adjusting
+   * library functions, replace non-standard magic with standard one.
+   */
+  byte_buf[4] = 0x28;
+  byte_buf[5] = 0xb5;
+  byte_buf[6] = 0x2f;
+  byte_buf[7] = 0xfd;
+  zstd_ret = ZSTD_decompress (obuf, osize, byte_buf + 4, c_len + 4);
+
+  if (ZSTD_isError (zstd_ret))
+    return grub_error (GRUB_ERR_BAD_COMPRESSED_DATA,
+		       "zstd data corrupted (error %d)", (int) zstd_ret);
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -364,6 +401,7 @@ static decomp_entry_t decomp_table[ZIO_COMPRESS_FUNCTIONS] = {
   {"gzip-9", zlib_decompress},  /* ZIO_COMPRESS_GZIP9 */
   {"zle", zle_decompress},      /* ZIO_COMPRESS_ZLE   */
   {"lz4", lz4_decompress},      /* ZIO_COMPRESS_LZ4   */
+  {"zstd", zstd_decompress},    /* ZIO_COMPRESS_ZSTD   */
 };
 
 static grub_err_t zio_read_data (blkptr_t * bp, grub_zfs_endian_t endian,
