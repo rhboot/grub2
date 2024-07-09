@@ -69,7 +69,7 @@ grub_start_image (grub_efi_handle_t handle)
 
   b = grub_efi_system_table->boot_services;
 
-  status = b->start_image (handle, &exit_data_size, &exit_data);
+  status = grub_efi_start_image (handle, &exit_data_size, &exit_data);
   if (status != GRUB_EFI_SUCCESS)
     {
       if (exit_data)
@@ -101,7 +101,6 @@ grub_chainloader_unload (void *context)
 {
   grub_efi_handle_t image_handle;
   grub_efi_loaded_image_t *loaded_image;
-  grub_efi_boot_services_t *b;
 
   image_handle = (grub_efi_handle_t) context;
 
@@ -109,8 +108,7 @@ grub_chainloader_unload (void *context)
   if (loaded_image != NULL)
     grub_free (loaded_image->load_options);
 
-  b = grub_efi_system_table->boot_services;
-  b->unload_image (image_handle);
+  grub_efi_unload_image (image_handle);
 
   grub_dl_unref (my_mod);
   return GRUB_ERR_NONE;
@@ -871,8 +869,8 @@ grub_load_image(grub_efi_device_path_t *file_path, void *boot_image,
 
   b = grub_efi_system_table->boot_services;
 
-  status = b->load_image (0, grub_efi_image_handle, file_path,
-                          boot_image, image_size, image_handle_out);
+  status = grub_efi_load_image (0, grub_efi_image_handle, file_path,
+				boot_image, image_size, image_handle_out);
   if (status != GRUB_EFI_SUCCESS)
     {
       if (status == GRUB_EFI_OUT_OF_RESOURCES)
@@ -1198,7 +1196,8 @@ fail:
   if (cmdline)
     grub_free (cmdline);
 
-  b->unload_image (image_handle);
+  if (image_handle != NULL)
+    grub_efi_unload_image (image_handle);
 
   grub_dl_unref (my_mod);
 
