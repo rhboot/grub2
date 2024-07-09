@@ -202,6 +202,43 @@ grub_err_t grub_arch_efi_linux_load_image_header(grub_file_t file,
                                                 struct linux_arch_kernel_header *lh);
 grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
 					  char *args, int nx_enabled);
+grub_efi_status_t
+EXPORT_FUNC (grub_efi_load_image) (grub_efi_boolean_t boot_policy,
+				   grub_efi_handle_t parent_image_handle,
+				   grub_efi_device_path_t *file_path,
+				   void *source_buffer, grub_efi_uintn_t source_size,
+				   grub_efi_handle_t *image_handle);
+
+grub_efi_status_t
+EXPORT_FUNC (grub_efi_start_image) (grub_efi_handle_t image_handle,
+				    grub_efi_uintn_t *exit_data_size,
+				    grub_efi_char16_t **exit_data);
+
+grub_efi_status_t
+EXPORT_FUNC (grub_efi_unload_image) (grub_efi_handle_t image_handle);
+
+typedef struct grub_efi_loader
+{
+  grub_efi_status_t (__grub_efi_api *load_image) (grub_efi_boolean_t boot_policy,
+				   grub_efi_handle_t parent_image_handle,
+				   grub_efi_device_path_t *file_path,
+				   void *source_buffer,
+				   grub_efi_uintn_t source_size,
+				   grub_efi_handle_t *image_handle);
+
+  grub_efi_status_t (__grub_efi_api *start_image) (grub_efi_handle_t image_handle,
+				    grub_efi_uintn_t *exit_data_size,
+				    grub_efi_char16_t **exit_data);
+
+  grub_efi_status_t (__grub_efi_api *unload_image) (grub_efi_handle_t image_handle);
+} grub_efi_loader_t;
+
+grub_err_t
+EXPORT_FUNC (grub_efi_register_loader) (const grub_efi_loader_t *loader);
+
+grub_err_t
+EXPORT_FUNC (grub_efi_unregister_loader) (const grub_efi_loader_t *loader);
+
 
 grub_addr_t grub_efi_section_addr (const char *section);
 
