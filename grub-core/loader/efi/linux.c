@@ -724,6 +724,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   void *kernel = NULL;
   grub_err_t err;
   int nx_supported = 1;
+  int nx_required = 0;
 
   grub_dl_ref (my_mod);
 
@@ -772,21 +773,23 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
 #if !defined(__i386__) && !defined(__x86_64__)
+  if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
     goto fail;
 #else
-    goto fallback;
-
-  if (!initrd_use_loadfile2)
+  if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE ||
+      !initrd_use_loadfile2)
     {
+      /* We cannot use the legacy loader when NX is required */
+      if (grub_efi_check_nx_required(&nx_required))
+        goto fail;
+
       /*
        * This is a EFI stub image but it is too old to implement the LoadFile2
        * based initrd loading scheme, and Linux/x86 does not support the DT
        * based method either. So fall back to the x86-specific loader that
        * enters Linux in EFI mode but without going through its EFI stub.
        */
-fallback:
       grub_file_close (file);
       return grub_cmd_linux_x86_legacy (cmd, argc, argv);
     }
