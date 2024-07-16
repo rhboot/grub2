@@ -114,6 +114,20 @@ do
     esac
 done
 
+os_name=$(grep '^ID=' /etc/os-release | sed 's/ID=//')
+if test "$os_name" = '"rhel"'; then
+  os_name=redhat
+elif test "$os_name" = '"centos"'; then
+  os_name=centos
+fi
+if test "x${grub_cfg}" = "x/boot/efi/EFI/$os_name/grub.cfg" &&\
+        mountpoint -q /boot/efi; then
+  gettext_printf "Running \`grub2-mkconfig -o %s' will overwrite the GRUB wrapper.\n" "$grub_cfg" 1>&2
+  gettext_printf "Please run \`grub2-mkconfig -o /boot/grub2/grub.cfg' instead to update grub.cfg.\n" 1>&2
+  gettext_printf "GRUB configuration file was not updated.\n" 1>&2
+  exit 1
+fi
+
 if [ "x$EUID" = "x" ] ; then
   EUID=`id -u`
 fi
