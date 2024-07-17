@@ -48,6 +48,22 @@ get_part_uuid (const char *device_name, char **part_uuid)
   if (device == NULL)
     return grub_error (grub_errno, N_("cannot open device: %s"), device_name);
 
+  if (device->disk == NULL)
+    {
+      grub_dprintf ("bli", "%s is not a disk device, partuuid skipped\n", device_name);
+      *part_uuid = NULL;
+      grub_device_close (device);
+      return GRUB_ERR_NONE;
+    }
+
+  if (device->disk->partition == NULL)
+    {
+      grub_dprintf ("bli", "%s has no partition, partuuid skipped\n", device_name);
+      *part_uuid = NULL;
+      grub_device_close (device);
+      return GRUB_ERR_NONE;
+    }
+
   disk = grub_disk_open (device->disk->name);
   if (disk == NULL)
     {
@@ -99,7 +115,7 @@ set_loader_device_part_uuid (void)
 
   status = get_part_uuid (device_name, &part_uuid);
 
-  if (status == GRUB_ERR_NONE)
+  if (status == GRUB_ERR_NONE && part_uuid)
     status = grub_efi_set_variable_to_string ("LoaderDevicePartUUID", &bli_vendor_guid, part_uuid,
 					      GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS |
 					      GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
@@ -117,4 +133,6 @@ GRUB_MOD_INIT (bli)
 				   GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS |
 				   GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
   set_loader_device_part_uuid ();
+  /* No error here is critical, other than being logged */
+  grub_print_error ();
 }
