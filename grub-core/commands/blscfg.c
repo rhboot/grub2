@@ -538,7 +538,7 @@ static int read_entry (
       char *separator;
 
       buf = grub_file_getline (f);
-      if (!buf)
+      if (!buf && grub_errno)
 	break;
 
       while (buf && buf[0] && (buf[0] == ' ' || buf[0] == '\t'))
