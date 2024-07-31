@@ -114,12 +114,7 @@ do
     esac
 done
 
-os_name=$(grep '^ID=' /etc/os-release | sed 's/ID=//')
-if test "$os_name" = '"rhel"'; then
-  os_name=redhat
-elif test "$os_name" = '"centos"'; then
-  os_name=centos
-fi
+os_name=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/' -e 's/\"//g')
 if test "x${grub_cfg}" = "x/boot/efi/EFI/$os_name/grub.cfg" &&\
         mountpoint -q /boot/efi; then
   gettext_printf "Running \`grub2-mkconfig -o %s' will overwrite the GRUB wrapper.\n" "$grub_cfg" 1>&2
