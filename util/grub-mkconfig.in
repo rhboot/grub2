@@ -115,8 +115,7 @@ do
 done
 
 os_name=$(grep ^ID= /etc/os-release | sed -e 's/^ID=//' -e 's/rhel/redhat/' -e 's/\"//g')
-if test "x${grub_cfg}" = "x/boot/efi/EFI/$os_name/grub.cfg" &&\
-        mountpoint -q /boot/efi; then
+if test -s "${grub_cfg}" && test "x${grub_cfg}" = "x/boot/efi/EFI/$os_name/grub.cfg"; then
   gettext_printf "Running \`grub2-mkconfig -o %s' will overwrite the GRUB wrapper.\n" "$grub_cfg" 1>&2
   gettext_printf "Please run \`grub2-mkconfig -o /boot/grub2/grub.cfg' instead to update grub.cfg.\n" 1>&2
   gettext_printf "GRUB configuration file was not updated.\n" 1>&2
