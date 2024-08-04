@@ -3878,15 +3878,405 @@ using BIOS or EFI functions (no ATA, USB or IEEE1275).
 @node Modules
 @chapter Modules
 
-In this chapter, we list all modules that are available in GRUB (currently incomplete).
+In this chapter, we list all modules that are available in GRUB.
 
 Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 
 @menu
-* bli::
+* acpi_module::
+* adler32_module::
+* affs_module::
+* afs_module::
+* afsplitter_module::
+* ahci_module::
+* all_video_module::
+* aout_module::
+* appleldr_module::
+* archelp_module::
+* at_keyboard_module::
+* ata_module::
+* backtrace_module::
+* bfs_module::
+* biosdisk_module::
+* bitmap_module::
+* bitmap_scale_module::
+* bli_module::
+* blocklist_module::
+* boot_module::
+* boottime_module::
+* bsd_module::
+* bswap_test_module::
+* btrfs_module::
+* bufio_module::
+* cacheinfo_module::
+* cat_module::
+* cbfs_module::
+* cbls_module::
+* cbmemc_module::
+* cbtable_module::
+* cbtime_module::
+* chain_module::
+* cmdline_cat_test_module::
+* cmosdump_module::
+* cmostest_module::
+* cmp_module::
+* cmp_test_module::
+* configfile_module::
+* cpio_module::
+* cpio_be_module::
+* cpuid_module::
+* crc64_module::
+* crypto_module::
+* cryptodisk_module::
+* cs5536_module::
+* ctz_test_module::
+* date_module::
+* datehook_module::
+* datetime_module::
+* disk_module::
+* diskfilter_module::
+* div_module::
+* div_test_module::
+* dm_nv_module::
+* drivemap_module::
+* echo_module::
+* efi_gop_module::
+* efi_uga_module::
+* efiemu_module::
+* efifwsetup_module::
+* efinet_module::
+* efitextmode_module::
+* ehci_module::
+* elf_module::
+* emunet_module::
+* emupci_module::
+* erofs_module::
+* escc_module::
+* eval_module::
+* exfat_module::
+* exfctest_module::
+* ext2_module::
+* extcmd_module::
+* f2fs_module::
+* fat_module::
+* fdt_module::
+* file_module::
+* fixvideo_module::
+* font_module::
+* freedos_module::
+* fshelp_module::
+* functional_test_module::
+* gcry_arcfour_module::
+* gcry_blowfish_module::
+* gcry_camellia_module::
+* gcry_cast5_module::
+* gcry_crc_module::
+* gcry_des_module::
+* gcry_dsa_module::
+* gcry_idea_module::
+* gcry_md4_module::
+* gcry_md5_module::
+* gcry_rfc2268_module::
+* gcry_rijndael_module::
+* gcry_rmd160_module::
+* gcry_rsa_module::
+* gcry_seed_module::
+* gcry_serpent_module::
+* gcry_sha1_module::
+* gcry_sha256_module::
+* gcry_sha512_module::
+* gcry_tiger_module::
+* gcry_twofish_module::
+* gcry_whirlpool_module::
+* gdb_module::
+* geli_module::
+* gettext_module::
+* gfxmenu_module::
+* gfxterm_module::
+* gfxterm_background_module::
+* gfxterm_menu_module::
+* gptsync_module::
+* gzio_module::
+* halt_module::
+* hashsum_module::
+* hdparm_module::
+* hello_module::
+* help_module::
+* hexdump_module::
+* hfs_module::
+* hfsplus_module::
+* hfspluscomp_module::
+* http_module::
+* ieee1275_fb_module::
+* iorw_module::
+* iso9660_module::
+* jfs_module::
+* jpeg_module::
+* json_module::
+* keylayouts_module::
+* keystatus_module::
+* ldm_module::
+* legacy_password_test_module::
+* legacycfg_module::
+* linux_module::
+* linux16_module::
+* loadbios_module::
+* loadenv_module::
+* loopback_module::
+* ls_module::
+* lsacpi_module::
+* lsapm_module::
+* lsdev_module::
+* lsefi_module::
+* lsefimmap_module::
+* lsefisystab_module::
+* lsmmap_module::
+* lspci_module::
+* lssal_module::
+* lsspd_module::
+* lsxen_module::
+* luks_module::
+* luks2_module::
+* lvm_module::
+* lzopio_module::
+* macbless_module::
+* macho_module::
+* mda_text_module::
+* mdraid09_module::
+* mdraid09_be_module::
+* mdraid1x_module::
+* memdisk_module::
+* memrw_module::
+* memtools_module::
+* minicmd_module::
+* minix_module::
+* minix2_module::
+* minix2_be_module::
+* minix3_module::
+* minix3_be_module::
+* minix_be_module::
+* mmap_module::
+* morse_module::
+* mpi_module::
+* msdospart_module::
+* mul_test_module::
+* multiboot_module::
+* multiboot2_module::
+* nand_module::
+* nativedisk_module::
+* net_module::
+* newc_module::
+* nilfs2_module::
+* normal_module::
+* ntfs_module::
+* ntfscomp_module::
+* ntldr_module::
+* odc_module::
+* offsetio_module::
+* ofnet_module::
+* ohci_module::
+* part_acorn_module::
+* part_amiga_module::
+* part_apple_module::
+* part_bsd_module::
+* part_dfly_module::
+* part_dvh_module::
+* part_gpt_module::
+* part_msdos_module::
+* part_plan_module::
+* part_sun_module::
+* part_sunpc_module::
+* parttool_module::
+* password_module::
+* password_pbkdf2_module::
+* pata_module::
+* pbkdf2_module::
+* pbkdf2_test_module::
+* pci_module::
+* pcidump_module::
+* pgp_module::
+* plainmount_module::
+* plan9_module::
+* play_module::
+* png_module::
+* priority_queue_module::
+* probe_module::
+* procfs_module::
+* progress_module::
+* pxe_module::
+* pxechain_module::
+* raid5rec_module::
+* raid6rec_module::
+* random_module::
+* rdmsr_module::
+* read_module::
+* reboot_module::
+* regexp_module::
+* reiserfs_module::
+* relocator_module::
+* romfs_module::
+* scsi_module::
+* sdl_module::
+* search_module::
+* search_fs_file_module::
+* search_fs_uuid_module::
+* search_label_module::
+* sendkey_module::
+* serial_module::
+* setjmp_module::
+* setjmp_test_module::
+* setpci_module::
+* sfs_module::
+* shift_test_module::
+* signature_test_module::
+* sleep_module::
+* sleep_test_module::
+* smbios_module::
+* spkmodem_module::
+* squash4_module::
+* strtoull_test_module::
+* suspend_module::
+* syslinuxcfg_module::
+* tar_module::
+* terminal_module::
+* terminfo_module::
+* test_module::
+* test_blockarg_module::
+* testload_module::
+* testspeed_module::
+* tftp_module::
+* tga_module::
+* time_module::
+* tpm_module::
+* tr_module::
+* trig_module::
+* true_module::
+* truecrypt_module::
+* ubootnet_module::
+* udf_module::
+* ufs1_module::
+* ufs1_be_module::
+* ufs2_module::
+* uhci_module::
+* usb_module::
+* usb_keyboard_module::
+* usbms_module::
+* usbserial_common_module::
+* usbserial_ftdi_module::
+* usbserial_pl2303_module::
+* usbserial_usbdebug_module::
+* usbtest_module::
+* vbe_module::
+* verifiers_module::
+* vga_module::
+* vga_text_module::
+* video_module::
+* video_bochs_module::
+* video_cirrus_module::
+* video_colors_module::
+* video_fb_module::
+* videoinfo_module::
+* videotest_module::
+* videotest_checksum_module::
+* wrmsr_module::
+* xen_boot_module::
+* xfs_module::
+* xnu_module::
+* xnu_uuid_module::
+* xnu_uuid_test_module::
+* xzio_module::
+* zfs_module::
+* zfscrypt_module::
+* zfsinfo_module::
+* zstd_module::
+
 @end menu
 
-@node bli
+@node acpi_module
+@section acpi
+This module provides the command @command{acpi} for loading / replacing Advanced
+Configuration and Power Interface (ACPI) tables. Please @pxref{acpi} for more
+information.
+
+@node adler32_module
+@section adler32
+This module provides the library implementation for the adler32 checksum.
+This is used as part of LZO decompression / compression.
+
+@node affs_module
+@section affs
+This module provides support for the Amiga Fast FileSystem (AFFS).
+
+@node afs_module
+@section afs
+This module provides support for the AtheOS File System (AFS).
+
+@node afsplitter_module
+@section afsplitter
+This module provides library support for the Anti forensic information splitter
+(AFS) operation @code{AF_merge}. This is used by LUKS and LUKS2.
+
+@node ahci_module
+@section ahci
+This module provides support for the Advanced Host Controller Interface protocol
+to access disks supporting this standard. AHCI is often an option for Serial
+ATA (SATA) controllers  (meant to replace the older IDE protocol).
+
+@node all_video_module
+@section all_video
+This is a "dummy module" with no actual function except to load all other video
+modules as dependencies (a convenient way to load all video modules).
+
+@node aout_module
+@section aout
+This module provides support for loading files packaged in the "a.out" format.
+The "a.out" format is considered to be an older format than some alternatives
+such as "ELF", for example support for the "a.out" format was removed from the
+Linux kernel in 5.18.
+
+@node appleldr_module
+@section appleldr
+This module provides support for loading files on a BIOS / EFI based Apple Mac
+computer (Intel based Macs).
+
+@node archelp_module
+@section archelp
+This module provides Archive Helper functions for archive based file systems
+such as TAR and CPIO archives.
+
+@node at_keyboard_module
+@section at_keyboard
+This module provides support for the AT keyboard input for the GRUB terminal.
+
+@node ata_module
+@section ata
+This modules provides support for direct ATA and ATAPI access to compatible
+disks.
+
+@node backtrace_module
+@section backtrace
+This module provides the command @command{backtrace} for printing a backtrace
+to the terminal for the current call stack.
+
+@node bfs_module
+@section bfs
+This module provides support for the BeOS "Be File System" (BFS).
+
+@node biosdisk_module
+@section biosdisk
+This module provides support for booting from a bootable removable disk such
+as a CD-ROM, BD-ROM, etc.
+
+@node bitmap_module
+@section bitmap
+This module provides support for reading and interacting with bitmap image
+files.
+
+@node bitmap_scale_module
+@section bitmap_scale
+This module provides support for scaling bitmap image files.
+
+@node bli_module
 @section bli
 This module provides basic support for the Boot Loader Interface. The Boot
 Loader Interface specifies a set of EFI variables that are used to communicate
@@ -3906,6 +4296,1638 @@ A string identifying GRUB as the active bootloader including the version
 number is stored in @code{LoaderInfo}.
 
 This module is only available on UEFI platforms.
+
+@node blocklist_module
+@section blocklist
+This module provides support for the command @command{blocklist} to list
+blocks for a given file. Please @pxref{blocklist} for more information.
+
+@node boot_module
+@section boot
+This module provides support for the command @command{boot} to boot an
+operating system. Please @pxref{boot} for more information.
+
+@node boottime_module
+@section boottime
+This module provides support for the command @command{boottime} to display
+time taken to perform various GRUB operations. This module is only available
+when GRUB is built with the conditional compile option @code{BOOT_TIME_STATS}.
+
+@node bsd_module
+@section bsd
+This module provides support for loading BSD operating system images via
+commands such as: @command{kfreebsd_loadenv}, @command{kfreebsd_module_elf},
+@command{kfreebsd_module}, @command{kfreebsd}, @command{knetbsd_module_elf},
+@command{knetbsd_module}, @command{knetbsd}, @command{kopenbsd}, and
+@command{kopenbsd_ramdisk}. Please @pxref{Loader commands} for more info.
+
+@node bswap_test_module
+@section bswap_test
+This module is intended for performing a functional test of the byte swapping
+functionality of GRUB.
+
+@node btrfs_module
+@section btrfs
+This module provides support for the B-Tree File System (BTRFS).
+
+@node bufio_module
+@section bufio
+This module is a library module for support buffered I/O of files to support
+file reads performed in other modules.
+
+@node cacheinfo_module
+@section cacheinfo
+This module provides support for the command @command{cacheinfo} which provides
+statistics on disk cache accesses. This module is only built if
+@code{DISK_CACHE_STATS} is enabled.
+
+@node cat_module
+@section cat
+This module provides support for the command @command{cat} which outputs the
+content of a file to the terminal. Please @pxref{cat} for more info.
+
+@node cbfs_module
+@section cbfs
+This module provides support for the Coreboot File System (CBFS) which is an
+archive based file system.
+
+@node cbls_module
+@section cbls
+This module provides support for the command @command{lscoreboot} to list the
+Coreboot tables.
+
+@node cbmemc_module
+@section cbmemc
+This module provides support for the command @command{cbmemc} to show the
+content of the Coreboot Memory console.
+
+@node cbtable_module
+@section cbtable
+This module provides support for accessing the Coreboot tables.
+
+@node cbtime_module
+@section cbtime
+This module provides support for the command @command{coreboot_boottime} to show
+the Coreboot boot time statistics.
+
+@node chain_module
+@section chain
+This module provides support for the command @command{chainloader} to boot
+another bootloader. Please @pxref{chainloader} for more information.
+
+@node cmdline_cat_test_module
+@section cmdline_cat_test
+This module is intended for performing a functional test of the @command{cat}
+command of GRUB.
+
+@node cmosdump_module
+@section cmosdump
+This module provides support for the command @command{cmosdump} to show a raw
+dump of the CMOS contents. Please @pxref{cmosdump} for more information.
+
+@node cmostest_module
+@section cmostest
+This module provides support for the commands @command{cmostest},
+@command{cmosclean}, and @command{cmosset} to interact with a CMOS.
+@xref{cmostest} / @pxref{cmosclean} for more information.
+
+@node cmp_module
+@section cmp
+This module provides support for the command @command{cmp} to compare the
+content of two files. @xref{cmp} for more information.
+
+@node cmp_test_module
+@section cmp_test
+This module is intended for performing a functional test of relational
+operations in GRUB. Note that this module is *not* associated with the
+@command{cmp} command and does not test the @command{cmp} command.
+
+@node configfile_module
+@section configfile
+This module provides support for the commands: @command{configfile},
+@command{source}, @command{extract_entries_source},
+@command{extract_entries_configfile}, @command{.} (dot command).
+@xref{configfile} / @pxref{source}.
+
+@node cpio_module
+@section cpio
+This module provides support for the CPIO archive file format. This module is
+for the "bin" version of CPIO (default of GNU CPIO) supporting around 2GB.
+
+@node cpio_be_module
+@section cpio_be
+This module provides support for the CPIO archive file format in big-endian
+format. This module is for the "bin" version of CPIO (default of GNU CPIO)
+supporting around 2GB.
+
+@node cpuid_module
+@section cpuid
+This module provides support for the command @command{cpuid} to test for
+various CPU features. @xref{cpuid} for more information.
+
+@node crc64_module
+@section crc64
+This module provides support for the CRC64 operation.
+
+@node crypto_module
+@section crypto
+This module provides library support for various base cryptography operations
+in GRUB.
+
+@node cryptodisk_module
+@section cryptodisk
+This module provides support for the command @command{cryptomount} to interact
+with encrypted file systems. @xref{cryptomount} for more information.
+
+@node cs5536_module
+@section cs5536
+This module provides support for the AMD Geode CS5536 companion device.
+
+@node ctz_test_module
+@section ctz_test
+This module is intended for performing a functional test of the ctz functions
+in GRUB used to Count Trailing Zeros.
+
+@node date_module
+@section date
+This module provides support for the command @command{date} to get the date/time
+or set the date/time. @xref{date} for more information.
+
+@node datehook_module
+@section datehook
+This module provides support for populating / providing the environment
+variables @code{YEAR}, @code{MONTH}, @code{DAY}, @code{HOUR}, @code{MINUTE},
+@code{SECOND}, @code{WEEKDAY}.
+
+@node datetime_module
+@section datetime
+This module provides library support for getting and setting the date / time
+from / to a hardware clock device.
+
+@node disk_module
+@section disk
+This module provides library support for writing to a storage disk.
+
+@node diskfilter_module
+@section diskfilter
+This module provides library support for reading a disk RAID array.
+
+@node div_module
+@section div
+This module provides library support for some operations such as divmod.
+
+@node div_test_module
+@section div_test
+This module is intended for performing a functional test of the divmod function
+in GRUB.
+
+@node dm_nv_module
+@section dm_nv
+This module provides support for handling some Nvidia "fakeraid" disk devices.
+
+@node drivemap_module
+@section drivemap
+This module provides support for the @command{drivemap} to manage BIOS drive
+mappings. @xref{drivemap} for more information.
+
+@node echo_module
+@section echo
+This module provides support for the @command{echo} to display a line of text.
+@xref{echo} for more information.
+
+@node efi_gop_module
+@section efi_gop
+This module provides support for the UEFI video output protocol "Graphics
+Output Protocol" (GOP).
+
+@node efi_uga_module
+@section efi_uga
+This module provides support for the EFI video protocol "Universal Graphic
+Adapter" (UGA).
+
+@node efiemu_module
+@section efiemu
+This module provides support for the commands @command{efiemu_loadcore},
+@command{efiemu_prepare}, and @command{efiemu_unload}. This provides an EFI
+emulation.
+
+@node efifwsetup_module
+@section efifwsetup
+This modules provides support for the command @command{fwsetup} to reboot into
+the firmware setup menu. @xref{fwsetup} for more information.
+
+@node efinet_module
+@section efinet
+This module provides support for UEFI Network Booting for loading images and
+data from the network.
+
+@node efitextmode_module
+@section efitextmode
+This module provides support for command @command{efitextmode} to get and set
+output mode resolution. @xref{efitextmode} for more information.
+
+@node ehci_module
+@section ehci
+This module provides support for the USB Enhanced Host Controller Interface
+(EHCI) specification (USB 2.0).
+
+@node elf_module
+@section elf
+This module provides support for loading Executable and Linkable Format (ELF)
+files.
+
+@node emunet_module
+@section emunet
+This module provides support for an emulated network card in GRUB.
+
+@node emupci_module
+@section emupci
+This module provides support for an emulated PCI bus in GRUB.
+
+@node erofs_module
+@section erofs
+This module provides support for the Enhanced Read Only File System (EROFS).
+
+@node escc_module
+@section escc
+This module provides support for the "mac-io" terminal device on PowerPC.
+
+@node eval_module
+@section eval
+This module provides support for command @command{eval} to evaluate the provided
+input as a sequence of GRUB commands. @xref{eval} for more information.
+
+@node exfat_module
+@section exfat
+This module provides support for the Extensible File Allocation Table (exFAT)
+file system in GRUB.
+
+@node exfctest_module
+@section exfctest
+This module is intended to provide an Example Functional Test of GRUB functions
+to use as a template for developing other GRUB functional tests.
+
+@node ext2_module
+@section ext2
+This module provides support for the Extended File System versions 2, 3, and 4
+(ext2, ext3, and ext4) file systems in GRUB.
+
+@node extcmd_module
+@section extcmd
+This module is a support module to provide wrapper functions for registering
+other module commands depending on the state of the lockdown variable.
+
+@node f2fs_module
+@section f2fs
+This module provides support for the Flash-Friendly File System (F2FS) in GRUB.
+
+@node fat_module
+@section fat
+This module provides support for the File Allocation Table 12-bit, 16-bit, and
+32-bit (FAT12, FAT16, and FAT32) file systems in GRUB.
+
+@node fdt_module
+@section fdt
+This module provides support for the commands @command{fdtdump} and
+@command{devicetree} to dump the contents of a device tree blob (.dtb) to the
+console and to load a device tree blob (.dtb) from a filesystem, for
+later use by a Linux kernel, respectively. @xref{devicetree} and
+@pxref{fdtdump} for more information.
+
+@node file_module
+@section file
+This module provides support for the command @command{file} to test if the
+provided filename is of the specified type. @xref{file} for more information.
+
+@node fixvideo_module
+@section fixvideo
+This module provides support for the command @command{fix_video} to fix video
+problems in specific PCIe video devices by "patching" specific device register
+settings. Currently supports Intel 945GM (PCI ID @code{0x27a28086}) and Intel
+965GM (PCI ID @code{0x2a028086}).
+
+@node font_module
+@section font
+This module provides support for the commands @command{loadfont} and
+@command{lsfonts} to load a given font or list the loaded fonts. @xref{loadfont}
+and @pxref{lsfonts} for more information.
+
+@node freedos_module
+@section freedos
+This module provides support for command @command{freedos} for loading a FreeDOS
+kernel.
+
+@node fshelp_module
+@section fshelp
+This module provides support functions (helper functions) for file systems.
+
+@node functional_test_module
+@section functional_test
+This module provides support for running the GRUB functional tests using
+commands @command{functional_test} and @command{all_functional_test}.
+
+@node gcry_arcfour_module
+@section gcry_arcfour
+This module provides support for the arcfour stream cipher also known as RC4.
+If security is a concern, RC4 / arcfour cipher is consider broken (multiple
+known vulnerabilities make this insecure).
+This GRUB module is based on libgcrypt.
+
+@node gcry_blowfish_module
+@section gcry_blowfish
+This module provides support for the Blowfish cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_camellia_module
+@section gcry_camellia
+This module provides support for the Camellia cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_cast5_module
+@section gcry_cast5
+This module provides support for the CAST5 (RFC2144, also known as CAST-128)
+cipher. This GRUB module is based on libgcrypt.
+
+@node gcry_crc_module
+@section gcry_crc
+This module provides support for the CRC32, CRC32 RFC1510, and CRC24 RFC2440
+cyclic redundancy checks.
+This GRUB module is based on libgcrypt.
+
+@node gcry_des_module
+@section gcry_des
+This module provides support for the Data Encryption Standard (DES) and
+Triple-DES ciphers.
+If security is a concern, DES has known vulnerabilities and is not recommended,
+and Triple-DES is no longer recommended by NIST.
+This GRUB module is based on libgcrypt.
+
+@node gcry_dsa_module
+@section gcry_dsa
+This module provides support for the Digital Signature Algorithm (DSA) cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_idea_module
+@section gcry_idea
+This module provides support for the International Data Encryption Algorithm
+(IDEA) cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_md4_module
+@section gcry_md4
+This module provides support for the Message Digest 4 (MD4) message digest.
+If security is a concern, MD4 has known vulnerabilities and is not recommended.
+This GRUB module is based on libgcrypt.
+
+@node gcry_md5_module
+@section gcry_md5
+This module provides support for the Message Digest 5 (MD5) message digest.
+If security is a concern, MD5 has known vulnerabilities and is not recommended.
+This GRUB module is based on libgcrypt.
+
+@node gcry_rfc2268_module
+@section gcry_rfc2268
+This module provides support for the RFC2268 (RC2 / Ron's Cipher 2) cipher.
+If security is a concern, RC2 has known vulnerabilities and is not recommended.
+This GRUB module is based on libgcrypt.
+
+@node gcry_rijndael_module
+@section gcry_rijndael
+This module provides support for the Advanced Encryption Standard (AES-128,
+AES-192, and AES-256) ciphers.
+This GRUB module is based on libgcrypt.
+
+@node gcry_rmd160_module
+@section gcry_rmd160
+This module provides support for the RIPEMD-160 message digest.
+This GRUB module is based on libgcrypt.
+
+@node gcry_rsa_module
+@section gcry_rsa
+This module provides support for the Rivest–Shamir–Adleman (RSA) cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_seed_module
+@section gcry_seed
+This module provides support for the SEED cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_serpent_module
+@section gcry_serpent
+This module provides support for the Serpent (128, 192, and 256) ciphers.
+This GRUB module is based on libgcrypt.
+
+@node gcry_sha1_module
+@section gcry_sha1
+This module provides support for the Secure Hash Algorithm 1 (SHA-1) message
+digest.
+If security is a concern, SHA-1 has known vulnerabilities and is not
+recommended.
+This GRUB module is based on libgcrypt.
+
+@node gcry_sha256_module
+@section gcry_sha256
+This module provides support for the Secure Hash Algorithm 2 (224 and 256 bit)
+(SHA-224 / SHA-256) message digests.
+This GRUB module is based on libgcrypt.
+
+@node gcry_sha512_module
+@section gcry_sha512
+This module provides support for the Secure Hash Algorithm 2 (384 and 512 bit)
+(SHA-384 / SHA-512) message digests.
+This GRUB module is based on libgcrypt.
+
+@node gcry_tiger_module
+@section gcry_tiger
+This module provides support for the Tiger, Tiger 1, and Tiger 2 message
+digests.
+This GRUB module is based on libgcrypt.
+
+@node gcry_twofish_module
+@section gcry_twofish
+This module provides support for the Twofish (128 and 256) ciphers.
+This GRUB module is based on libgcrypt.
+
+@node gcry_whirlpool_module
+@section gcry_whirlpool
+This module provides support for the Whirlpool message digest.
+This GRUB module is based on libgcrypt.
+
+@node gdb_module
+@section gdb
+This module provides support for remotely debugging GRUB using the GNU
+Debugger (GDB) over serial. This is typically done when troubleshooting GRUB
+during development and not required for normal GRUB operation. This module adds
+support for commands required by the GDB remote debug function including
+@command{gdbstub} to start GDB stub on given serial port,
+@command{gdbstub_break} to break into GDB, @command{gdbstub_stop} to stop the
+GDB stub.
+
+@node geli_module
+@section geli
+This module provides support for the GEOM ELI (GELI) disk encryption /
+decryption protocol used by FreeBSD. This module supports the following ciphers
+using the associated "gcry" modules: DES, Triple-DES, Blowfish, CAST5, AES, and
+Camellia 128.
+
+@node gettext_module
+@section gettext
+This module provides support for the @command{gettext} command to support
+translating information displayed / output by GRUB. @xref{gettext} for more
+information.
+
+@node gfxmenu_module
+@section gfxmenu
+This module provides support for displaying a graphical menu / user interface
+from GRUB. This includes features such as graphical font support, theme support,
+image support, and icon support.
+
+@node gfxterm_module
+@section gfxterm
+This module provides support for displaying a graphical terminal interface from
+GRUB.
+
+@node gfxterm_background_module
+@section gfxterm_background
+This module provides support for setting the gfxterm background color and
+background image using commands @command{background_color} and
+@command{background_image}. @xref{background_color} and @pxref{background_image}
+for more information.
+
+@node gfxterm_menu_module
+@section gfxterm_menu
+This module is intended for performing a functional test of the gfxmenu function
+in GRUB.
+
+@node gptsync_module
+@section gptsync
+This module provides support for the @command{gptsync} command.. @xref{gptsync}
+for more information.
+
+@node gzio_module
+@section gzio
+This module provides support for decompression (inflate) of files compressed
+with the GZ compression algorithm. This supports only the "DEFLATE" method for
+GZIP. Unsupported flags (will result in failure to inflate) include:
+@code{GRUB_GZ_CONTINUATION}, @code{GRUB_GZ_ENCRYPTED},
+@code{GRUB_GZ_RESERVED}, and @code{GRUB_GZ_EXTRA_FIELD}.
+
+@node halt_module
+@section halt
+This module provides support for the @command{halt} command to shutdown / halt
+the system. @xref{halt} for more information.
+
+@node hashsum_module
+@section hashsum
+This module provide support for the commands @command{hashsum},
+@command{md5sum}, @command{sha1sum}, @command{sha256sum}, @command{sha512sum},
+and @command{crc} to calculate or check hashes of files using various methods.
+@xref{hashsum}, @pxref{md5sum} @pxref{sha1sum}, @pxref{sha256sum},
+@pxref{sha512sum}, and @pxref{crc}.
+
+@node hdparm_module
+@section hdparm
+This module provides support for the @command{hdparm} command to get or set
+various ATA disk parameters. This includes controlling Advanced Power Management
+(APM), displaying power mode, freezing ATA security settings until reset,
+displaying SMART status, controlling automatic acoustic management, setting
+standby timeout, setting the drive to standby mode, setting the drive to sleep
+mode, displaying the drive identification and settings, and enable/disable
+SMART.
+
+@node hello_module
+@section hello
+This provides support for the @command{hello} command to simply output
+"Hello World". This is intended for testing GRUB module loading / functionality.
+
+@node help_module
+@section help
+This module provides support for the @command{help} command to output help
+text. @xref{help} for more information.
+
+@node hexdump_module
+@section hexdump
+This module provides support for the @command{hexdump} command to dump the
+contents of a file in hexadecimal. @xref{hexdump} for more information.
+
+@node hfs_module
+@section hfs
+This module provides support for the Hierarchical File System (HFS) file system
+in GRUB.
+
+@node hfsplus_module
+@section hfsplus
+This module provides support for the Hierarchical File System Plus (HFS+) file
+system in GRUB.
+
+@node hfspluscomp_module
+@section hfspluscomp
+This module provides support for the Hierarchical File System Plus Compressed
+(HFS+ Compressed) file system in GRUB.
+
+@node http_module
+@section http
+This module provides support for getting data over the HTTP network protocol in
+GRUB (using the HTTP GET method). This may be used, for example, to obtain
+an operating system over HTTP (network boot).
+
+@node ieee1275_fb_module
+@section ieee1275_fb
+This module provides support for the IEEE1275 video driver output for PowerPC
+with a IEEE-1275 platform.
+
+@node iorw_module
+@section iorw
+This module provides support for commands @command{inb}, @command{inw},
+@command{inl}, @command{outb}, @command{outw}, and @command{outl} to read /
+write data to physical I/O ports. The "in" commands accept one
+parameter to specify the source port. The "out" commands require either two
+or three parameters, with the order: port, value, <optional mask>.
+
+@node iso9660_module
+@section iso9660
+This module provides support for the ISO9660 file system (often associated with
+optical disks such as CD-ROMs and DVD-ROMs, with extensions:
+System Use Sharing Protocol (SUSP), Rock Ridge (UNIX style permissions and
+longer names)
+
+@node jfs_module
+@section jfs
+This module provides support for the Journaled File System (JFS) file system.
+
+@node jpeg_module
+@section jpeg
+This module provides support for reading JPEG image files in GRUB, such as
+to support displaying a JPEG image as a background image of the gfxmenu.
+
+@node json_module
+@section json
+This module provides library support for parsing / processing JavaScript Object
+Notation (JSON) formatted data. This is used, for example, to support LUKS2
+disk encryption / decryption as metadata is encoded in JSON.
+
+@node keylayouts_module
+@section keylayouts
+This module provides support for the @command{keymap} command. This command
+accepts one parameter to specify either the @var{layout_name} or the
+@var{filename}.
+When specifying the @var{layout_name}, this command will attempt to open the
+GRUB keymap file based on the following logic:
+
+Get the "prefix" from environment variable @var{prefix}
+
+Open keymap file @var{prefix}/layouts/@var{layout_name}.gkb
+
+When specifying the @var{filename}, the full path to the ".gkb" file should be
+provided. The ".gkb" file can be generated by grub-kbdcomp.
+
+@node keystatus_module
+@section keystatus
+This module provides support for the @command{keystatus} command to check key
+modifier status. @xref{keystatus} for more information.
+
+@node ldm_module
+@section ldm
+This module provides support for the Logical Disk Manager (LDM) disk format.
+LDM is used to add support for logical volumes most often with Microsoft
+Windows systems. A logical volume can be defined to span more than one physical
+disk.
+
+@node legacy_password_test_module
+@section legacy_password_test
+This module is intended for performing a functional test of the legacy password
+function in GRUB.
+
+@node legacycfg_module
+@section legacycfg
+This module provides support for commands @command{legacy_source},
+@command{legacy_configfile}, @command{extract_legacy_entries_source},
+@command{extract_legacy_entries_configfile}, @command{legacy_kernel},
+@command{legacy_initrd}, @command{legacy_initrd_nounzip},
+@command{legacy_password}, and @command{legacy_check_password}. For new uses /
+configurations of GRUB other commands / modules offer the modern equivalents.
+
+@node linux_module
+@section linux
+This module provides support for the commands @command{linux} and
+@command{initrd} to load Linux and an Initial RAM Disk respectively.
+@xref{linux} and @pxref{initrd} for more information.
+
+@node linux16_module
+@section linux16
+This module provides support for the commands @command{linux16} and
+@command{initrd16} to load Linux in 16-bit mode and an Initial RAM Disk
+in 16-bit mode respectively.
+@xref{linux16} and @pxref{initrd16} for more information.
+
+@node loadbios_module
+@section loadbios
+This module provides support for the commands @command{fakebios} and
+@command{loadbios}. These commands may only be useful on platforms with
+issues requiring work-arounds. Command @command{fakebios} is used to create
+BIOS-like structures for backward compatibility with existing OS. Command
+@command{loadbios} is used to load a BIOS dump.
+
+@node loadenv_module
+@section loadenv
+This module provides support for commands @command{load_env},
+@command{list_env}, and @command{save_env}. These commands can be used to
+load environment variables from a file, list environment variables in a file,
+and save environment variables to a file. @xref{load_env}, @pxref{list_env}, and
+@pxref{save_env}.
+
+@node loopback_module
+@section loopback
+This module provides support for the @command{loopback} command.
+@xref{loopback} for more information.
+
+@node ls_module
+@section ls
+This module provides support for the @command{ls} command.
+@xref{ls} for more information.
+
+@node lsacpi_module
+@section lsacpi
+This module provides support for the @command{lsacpi} command. This command
+can be used to display Advanced Configuration and Power Interface (ACPI) tables.
+
+@node lsapm_module
+@section lsapm
+This module provides support for the @command{lsapm} command. This command
+can be used to display Advanced power management (APM) information.
+
+@node lsdev_module
+@section lsdev
+This module provides support for the @command{lsdev} command. This command
+can be used on MIPS Advanced RISC Computing (ARC) platforms to display devices.
+
+@node lsefi_module
+@section lsefi
+This module provides support for the @command{lsefi} command. This command
+can be used on EFI platforms to display EFI handles.
+
+@node lsefimmap_module
+@section lsefimmap
+This module provides support for the @command{lsefimmap} command. This command
+can be used on EFI platforms to display the EFI memory map.
+
+@node lsefisystab_module
+@section lsefisystab
+This module provides support for the @command{lsefisystab} command. This
+command can be used on EFI platforms to display the EFI system tables.
+
+@node lsmmap_module
+@section lsmmap
+This module provides support for the @command{lsmmap} command. This
+command can be used to display the memory map provided by firmware.
+
+@node lspci_module
+@section lspci
+This module provides support for the @command{lspci} command. This
+command can be used to display the PCI / PCIe devices.
+
+@node lssal_module
+@section lssal
+This module provides support for the @command{lsefisystab} command. This
+command can be used on Itanium (IA-64) EFI platforms to display the EFI
+System Abstraction Layer system table.
+
+@node lsspd_module
+@section lsspd
+This module provides support for the @command{lsspd} command. This
+command can be used on MIPS Loongson platforms to display the DDR RAM Serial
+Presence Detect (SPD) EEPROM data.
+
+@node lsxen_module
+@section lsxen
+This module provides support for the commands @command{xen_ls} and
+@command{xen_cat} on Xen platforms to list Xen storage.
+
+@node luks_module
+@section luks
+This module provides support for the Linux Unified Key Setup (LUKS) (version 1)
+disk encryption / decryption protocol.
+
+@node luks2_module
+@section luks2
+This module provides support for the Linux Unified Key Setup 2 (LUKS2)
+disk encryption / decryption protocol.
+
+@node lvm_module
+@section lvm
+This module provides support for reading Logical Volume Management "logical"
+disks. For example, a single "logical" disk may be mapped to span more than one
+physical disk. This would be used when booting from a LVM formatted disk as may
+be setup in Linux.
+
+@node lzopio_module
+@section lzopio
+This module provides support for decompressing LZO / LZOP compressed files /
+archives.
+
+@node macbless_module
+@section macbless
+This module provides support for commands @command{mactelbless} and
+@command{macppcbless} for "blessing" a bootloader on Intel / PPC based MACs
+using the HFS or HFS+ file system. On HFS / HFS+ - "blessing" makes a file
+run as the bootloader.
+
+@node macho_module
+@section macho
+This module provides support for Mach Object (Mach-O) object / executable files
+in GRUB often used in MacOS.
+
+@node mda_text_module
+@section mda_text
+This module provides support for the Monochrome Display Adapter (MDA) terminal
+output device. MDA is a predecessor to VGA.
+
+@node mdraid09_module
+@section mdraid09
+This module provides support for handling Linux compatible "version 0.9"
+software-based RAID disks in little-endian format. The "version 0.9" format
+was largely replaced around the year 2009 with the "version 1.x" format
+(@pxref{mdraid1x_module} for more information).
+
+@node mdraid09_be_module
+@section mdraid09_be
+This module provides support for handling Linux compatible "version 0.9"
+software-based RAID disks in bid-endian format. The "version 0.9" format
+was largely replaced around the year 2009 with the "version 1.x" format
+(@pxref{mdraid1x_module} for more information).
+
+@node mdraid1x_module
+@section mdraid1x
+This module provides support for handling Linux compatible "version 1.x"
+software-based RAID disks. This includes the current version used by Linux
+at the time of writing.
+
+@node memdisk_module
+@section memdisk
+This module provides support for a memdisk device. A memdisk is a memory mapped
+emulated disk likely only possible in legacy environment such as with a legacy
+BIOS operating in 16-bit mode.
+
+@node memrw_module
+@section memrw
+This module provides support for commands @command{read_byte},
+@command{read_word}, @command{read_dword}, @command{write_byte},
+@command{write_word}, and @command{write_dword} to read /
+write data to physical memory (addresses). The "read" commands accept one
+parameter to specify the source address. The "write" commands require either two
+or three parameters, with the order: address, value, <optional mask>.
+
+@node memtools_module
+@section memtools
+This module provides support for GRUB development / debugging commands
+@command{lsmem}, @command{lsfreemem}, and @command{stress_big_allocs}.
+
+@node minicmd_module
+@section minicmd
+This module provides support for a subset of commands for GRUB rescue mode
+including: @command{cat}, @command{help}, @command{dump}, @command{rmmod},
+@command{lsmod}, and @command{exit}. The version of the commands in this module
+are similar to their full-fledged counterparts implemented in other GRUB
+modules.
+
+@node minix_module
+@section minix
+This module provides support for the Minix filesystem, version 1.
+
+@node minix2_module
+@section minix2
+This module provides support for the Minix filesystem, version 2.
+
+@node minix2_be_module
+@section minix2_be
+This module provides support for the Minix filesystem, version 2 big-endian.
+
+@node minix3_module
+@section minix3
+This module provides support for the Minix filesystem, version 3.
+
+@node minix3_be_module
+@section minix3_be
+This module provides support for the Minix filesystem, version 3 big-endian.
+
+@node minix_be_module
+@section minix_be
+This module provides support for the Minix filesystem, version 1 big-endian.
+
+@node mmap_module
+@section mmap
+This module provides support for mapping or unmapping devices or files into
+memory as well as commands @command{badram} and @command{cutmem}.
+@xref{badram} and @ref{cutmem}.
+
+@node morse_module
+@section morse
+This module provides support for outputting terminal output via Morse code
+to an audio speaker output.
+
+@node mpi_module
+@section mpi
+This module provides support for multi-precision-integers (MPIs) in GRUB. MPIs
+are used by the crypto functions as many depend on mathematics of large numbers.
+This GRUB module is based on libgcrypt.
+
+@node msdospart_module
+@section msdospart
+This module provides support for modifying MSDOS formatted disk partitions
+through the separate @command{parttool} command.
+
+@node mul_test_module
+@section mul_test
+This module is intended for performing a functional test of the multiplication
+operations in GRUB.
+
+@node multiboot_module
+@section multiboot
+This module provides support for commands @command{multiboot} and
+@command{module} to load a multiboot kernel and load a multiboot module,
+respectively. @xref{multiboot} and @ref{module} for more information. This
+is for loading data formatted per the GNU Multiboot specification.
+
+@node multiboot2_module
+@section multiboot2
+This module provides support for commands @command{multiboot2} and
+@command{module2} to load a multiboot kernel and load a multiboot module,
+respectively. This is for loading data formatted per the GNU Multiboot
+specification.
+
+@node nand_module
+@section nand
+This module provides support for accessing an IEEE-1275 compliant NAND disk
+from GRUB.
+
+@node nativedisk_module
+@section nativedisk
+This module provides support for the @command{nativedisk} command.
+@xref{nativedisk} for more information.
+
+@node net_module
+@section net
+This module provides support for networking protocols including ARP, BOOTP,
+DNS, Ethernet, ICMPv6, ICMP, IP, TCP, and UDP. Support is included for both
+IPv4 and IPv6.
+This includes the following commands:
+@itemize @bullet
+@item
+@command{net_bootp} - @pxref{net_bootp}
+
+@item
+@command{net_dhcp} - @pxref{net_dhcp}
+
+@item
+@command{net_get_dhcp_option} - @pxref{net_get_dhcp_option}
+
+@item
+@command{net_nslookup} - @pxref{net_nslookup}
+
+@item
+@command{net_add_dns} - @pxref{net_add_dns}
+
+@item
+@command{net_del_dns} - @pxref{net_del_dns}
+
+@item
+@command{net_ls_dns} - @pxref{net_ls_dns}
+
+@item
+@command{net_add_addr} - @pxref{net_add_addr}
+
+@item
+@command{net_ipv6_autoconf} - @pxref{net_ipv6_autoconf}
+
+@item
+@command{net_del_addr} - @pxref{net_del_addr}
+
+@item
+@command{net_add_route} - @pxref{net_add_route}
+
+@item
+@command{net_del_route} - @pxref{net_del_route}
+
+@item
+@command{net_set_vlan} - @pxref{net_set_vlan}
+
+@item
+@command{net_ls_routes} - @pxref{net_ls_routes}
+
+@item
+@command{net_ls_cards} - @pxref{net_ls_cards}
+
+@item
+@command{net_ls_addr} - @pxref{net_ls_addr}
+
+@end itemize
+
+@node newc_module
+@section newc
+This module provides support for accessing a CPIO archive as a file system
+from GRUB. This module is for the following newer variants of the CPIO archive
+supported by GNU CPIO (but GNU CPIO defaults to the "bin" format which is
+handled by the module @ref{cpio_module}).
+
+These are the variants supported by this module:
+
+@itemize @bullet
+@item
+"newc" - SVR4 portable format without CRC. GNU file utility will identify these
+as something like "ASCII cpio archive (SVR4 with no CRC)"
+
+@item
+‘crc’  - SVR4 portable format with CRC. GNU file utility will identify these as
+something like "ASCII cpio archive (SVR4 with CRC)"
+
+@end itemize
+
+@node nilfs2_module
+@section nilfs2
+This module provides support for the New Implementation of Log filesystem
+(nilfs2).
+
+@node normal_module
+@section normal
+This module provides support for the normal mode in GRUB. @xref{normal} for
+more information.
+
+@node ntfs_module
+@section ntfs
+This module provides support for the New Technology File System (NTFS) in GRUB.
+
+@node ntfscomp_module
+@section ntfscomp
+This module provides support for compression with the New Technology File
+System (NTFS) in GRUB.
+
+@node ntldr_module
+@section ntldr
+This module provides support for the @command{ntldr} command. This is may be
+used to boot a Windows boot loader such as NTLDR or BootMGR.
+
+@node odc_module
+@section odc
+This module provides support for accessing a CPIO archive as a file system
+from GRUB. This module is for "odc" variant of the CPIO archive
+supported by GNU CPIO (but GNU CPIO defaults to the "bin" format which is
+handled by the module @ref{cpio_module}).
+
+GNU file utility will identify these as something like "ASCII cpio archive
+(pre-SVR4 or odc)"
+
+@node offsetio_module
+@section offsetio
+This module provides support for reading from a file / archive at specified
+offsets in GRUB.
+
+@node ofnet_module
+@section ofnet
+This module provides support for the Open Firmware (IEEE-1275) network device
+support in GRUB.
+
+@node ohci_module
+@section ohci
+This module provides support for the Open Host Controller Interface (OHCI) for
+USB 1 / USB 1.1 support in GRUB.
+
+@node part_acorn_module
+@section part_acorn
+This module provides support for reading from disks partitioned with the
+Acorn Disc Filing System (ADFS) used on RiscOS.
+
+@node part_amiga_module
+@section part_amiga
+This module provides support for reading from disks partitioned with the
+Amiga partition table.
+
+@node part_apple_module
+@section part_apple
+This module provides support for reading from disks partitioned with the
+Macintosh partition table.
+
+@node part_bsd_module
+@section part_bsd
+This module provides support for reading from disks partitioned with BSD
+style partition tables.
+
+@node part_dfly_module
+@section part_dfly
+This module provides support for reading from disks partitioned with the
+DragonFly BSD partition table.
+
+@node part_dvh_module
+@section part_dvh
+This module provides support for reading from disks partitioned with the
+SGI Disk Volume Header partition table.
+
+@node part_gpt_module
+@section part_gpt
+This module provides support for reading from disks partitioned with the
+GUID Partition Tables (GPT) partition table.
+
+@node part_msdos_module
+@section part_msdos
+This module provides support for reading from disks partitioned with the
+MSDOS (Master Boot Record / MBR) style partition tables.
+
+@node part_plan_module
+@section part_plan
+This module provides support for reading from disk partitioned with the
+Plan9 style partition table.
+
+@node part_sun_module
+@section part_sun
+This module provides support for reading from disk partitioned with the
+Sun style partition table.
+
+@node part_sunpc_module
+@section part_sunpc
+This module provides support for reading from disk partitioned with the
+Sun PC style partition table.
+
+@node parttool_module
+@section parttool
+This module provides support for the @command{parttool} command. @xref{parttool}
+for more information.
+
+@node password_module
+@section password
+This module provides support for the @command{password} command. Please note
+that this uses the password in plain text, if security is a concern consider
+using @ref{password_pbkdf2_module} instead. @xref{password} for more
+information.
+
+@node password_pbkdf2_module
+@section password_pbkdf2
+This module provides support for the @command{password_pbkdf2} command.
+@xref{password_pbkdf2} for more information.
+
+@node pata_module
+@section pata
+This module provides support for Parallel ATA (PATA) disk device interfaces.
+
+@node pbkdf2_module
+@section pbkdf2
+This module provides support for the Password-Based Key Derivation Function 2
+(PBKDF2) / PKCS#5 PBKDF2 as per RFC 2898.
+
+@node pbkdf2_test_module
+@section pbkdf2_test
+This module is intended for performing a functional test of the PBKDF2
+operation in GRUB.
+
+@node pci_module
+@section pci
+This module provides support for generic Peripheral Component Interconnect (PCI)
+bus in GRUB.
+
+@node pcidump_module
+@section pcidump
+This module provides support for the @command{pcidump} command in GRUB to dump
+the PCI configuration registers in hexadecimal of a specified PCI device
+(vendor / device ID) or by position on the bus.
+
+@node pgp_module
+@section pgp
+This module provides support for the commands: @command{verify_detached},
+@command{trust}, @command{list_trusted}, @command{distrust} associated with
+digital signature checking via the "Open Pretty Good Privacy" (PGP) protocol /
+RFC 4880 using a provided public key. This module also uses / sets
+environment variable @code{check_signatures}. @xref{verify_detached},
+@ref{trust}, @ref{list_trusted}, @ref{distrust}, and @ref{check_signatures}.
+
+@node plainmount_module
+@section plainmount
+This module provides support for accessing / mounting partitions encrypted
+by "cryptsetup" operating in "plain mode". @xref{plainmount} for more
+information.
+
+@node plan9_module
+@section plan9
+This module provides support for the @command{plan9} command to load a Plan9
+kernel.
+
+@node play_module
+@section play
+This module provides support for the @command{play} command to play a tune
+through the PC speaker. @xref{play} for more information.
+
+@node png_module
+@section png
+This module provides support for reading Portable Network Graphics (PNG) image
+files in GRUB.
+
+@node priority_queue_module
+@section priority_queue
+This module provides support for a priority queue function within GRUB such as
+to support networking functions.
+
+@node probe_module
+@section probe
+This module provides support for the @command{probe} command to retrieve device
+information. @xref{probe} for more information.
+
+@node procfs_module
+@section procfs
+This module provides support for a Proc File System to provide a file system
+like interface to some GRUB internal data.
+
+@node progress_module
+@section progress
+This module provides support for showing file loading progress to the
+terminal.
+
+@node pxe_module
+@section pxe
+This module provides support for Preboot Execution Environment (PXE) network
+boot services as a file system driver for other GRUB modules.
+
+@node pxechain_module
+@section pxechain
+This module provides support for the @command{pxechainloader} command to load
+another bootloader by PXE.
+
+@node raid5rec_module
+@section raid5rec
+This module provides support for recovering from faulty RAID4/5 disk arrays
+
+@node raid6rec_module
+@section raid6rec
+This module provides support for recovering from faulty RAID6 disk arrays.
+
+@node random_module
+@section random
+This module provides support for library functions to get random data via
+the hardware ACPI Power Management Timer and the TSC time source (Timestamp
+Counter).
+
+@node rdmsr_module
+@section rdmsr
+This module provides support for the @command{rdmsr} command to read CPU
+Model Specific Registers. @xref{rdmsr} for more information.
+
+@node read_module
+@section read
+This module provides support for the @command{read} command for getting user
+input. @xref{read} for more information.
+
+@node reboot_module
+@section reboot
+This module provides support for the @command{reboot} command to reboot the
+computer. @xref{reboot} for more information.
+
+@node regexp_module
+@section regexp
+This module provides support for the @command{regexp} command to check if a
+regular expression matches a string. This module also provides support for the
+GRUB script wildcard translator. @xref{regexp} for more information.
+
+@node reiserfs_module
+@section reiserfs
+This module provides support for the ReiserFS File System in GRUB.
+
+@node relocator_module
+@section relocator
+This module provides support for relocating the image / executable being loaded
+to the expected memory location(s) and jumping to (invoking) the executable.
+
+@node romfs_module
+@section romfs
+This module provides support for the Read-Only Memory File System (ROMFS).
+
+@node scsi_module
+@section scsi
+This module provides support for the Small Computer System Interface (SCSI)
+protocol used for some types of disk communication include some modern ones
+such as USB Mass Storage Devices supporting "USB Attached SCSI" (UAS).
+
+@node sdl_module
+@section sdl
+This module provides support for Simple DirectMedia Layer (SDL) video / image
+output from the grub-emu tool used to preview the GRUB menu from a running
+Operating System such as Linux (useful to test GRUB menu configuration changes
+without rebooting). When available in the compilation target environment, SDL2
+will be used instead of SDL1.
+
+@node search_module
+@section search
+This module provides support for the @command{search} command to search devices
+by file, filesystem label, or filesystem UUID. @xref{search} for more
+information.
+
+@node search_fs_file_module
+@section search_fs_file
+This module provides support for the @command{search.file} command which
+is an alias for the corresponding @command{search} command. @xref{search} for
+more information.
+
+@node search_fs_uuid_module
+@section search_fs_uuid
+This module provides support for the @command{search.fs_uuid} command which
+is an alias for the corresponding @command{search} command. @xref{search} for
+more information.
+
+@node search_label_module
+@section search_label
+This module provides support for the @command{search.fs_label} command which
+is an alias for the corresponding @command{search} command. @xref{search} for
+more information.
+
+@node sendkey_module
+@section sendkey
+This module provides support for the @command{sendkey} command to send
+emulated keystrokes. @xref{sendkey} for more information.
+
+@node serial_module
+@section serial
+This module provides support for the @command{serial} command and associated
+driver support for communication over a serial interface from GRUB.
+@xref{serial} for more information.
+
+@node setjmp_module
+@section setjmp
+This module provides support for the @code{setjmp} and @code{longjmp} functions
+used within GRUB.
+
+@node setjmp_test_module
+@section setjmp_test
+This module is intended for performing a functional test of the @code{setjmp}
+and @code{longjmp} functions in GRUB.
+
+@node setpci_module
+@section setpci
+This module provides support for the @command{setpci} command to get / set
+values from / to specified PCI / PCIe devices.
+
+@node sfs_module
+@section sfs
+This module provides support for the Amiga Smart File System (SFS) in GRUB.
+
+@node shift_test_module
+@section shift_test
+This module is intended for performing a functional test of the bit-wise shift
+operations in GRUB.
+
+@node signature_test_module
+@section signature_test
+This module is intended for performing a functional test of the digital
+signature verification functions in GRUB.
+
+@node sleep_module
+@section sleep
+This module provides support for the @command{sleep} command to wait a specified
+number of seconds in GRUB. @xref{sleep} for more information.
+
+@node sleep_test_module
+@section sleep_test
+This module is intended for performing a functional test of the sleep function
+in GRUB.
+
+@node smbios_module
+@section smbios
+This module provides support for the @command{smbios} command to retrieve SMBIOS
+information in GRUB. @xref{smbios} for more information.
+
+@node spkmodem_module
+@section spkmodem
+This module provides support for outputting GRUB console information over an
+audio output. This output can be fed into another computer's sound input
+and decoded using the @code{spkmodem_recv} utility. Note that this will slow
+down GRUB's performance.
+
+@node squash4_module
+@section squash4
+This module provides support for the SquashFS compressed read-only file system
+in GRUB.
+
+@node strtoull_test_module
+@section strtoull_test
+This module is intended for performing a functional test of the strtoull
+function in GRUB.
+
+@node suspend_module
+@section suspend
+This module provides support for the @command{suspend} command in GRUB to
+return to IEEE1275 prompt on "Open Firmware" systems.
+
+@node syslinuxcfg_module
+@section syslinuxcfg
+This module provides support for commands @command{syslinux_source},
+@command{syslinux_configfile}, @command{extract_syslinux_entries_source},
+and @command{extract_syslinux_entries_configfile} in GRUB. These commands
+can be used to parse and display GRUB menu entries based on a Syslinux based
+configuration (used for SYSLINUX, ISOLINUX, and PXELINUX). It can also
+be used to execute the Syslinux loader from GRUB.
+
+@node tar_module
+@section tar
+This module provides support for the GNU Tar and POSIX Tar file archives as a
+file system in GRUB.
+
+@node terminal_module
+@section terminal
+This module provides support for the commands @command{terminal_input} and
+@command{terminal_output} in GRUB. @xref{terminal_input} and
+@ref{terminal_output} for more information.
+
+@node terminfo_module
+@section terminfo
+This module provides support for the @command{terminfo} command in GRUB to
+set various terminal modes / options. @xref{terminfo} for more information.
+
+@node test_module
+@section test
+This module provides support for the commands @command{test} and @command{[}.
+These commands can be used to evaluate (test) an expression. @xref{test} for
+more information.
+
+@node test_blockarg_module
+@section test_blockarg
+This module is intended for performing a functional test of the "block" command
+argument function in GRUB internal functions via a test command
+@command{test_blockarg}.
+
+@node testload_module
+@section testload
+This module is intended for performing a functional test of some file reading /
+seeking functions in GRUB internals via a test command @command{testload}.
+
+@node testspeed_module
+@section testspeed
+This module provides support for the @command{testspeed} command to test and
+print file read speed of a specified file.
+
+@node tftp_module
+@section tftp
+This module provides support for the Trivial File Transfer Protocol (TFTP) for
+receiving files via the network to GRUB. TFTP may be used along with PXE for
+network booting for example.
+
+@node tga_module
+@section tga
+This module provides support for reading Truevision Graphics Adapter (TGA)
+image files in GRUB.
+
+@node time_module
+@section time
+This module provides support for the @command{time} command to measure the
+time taken by a given command and output it to the terminal.
+
+@node tpm_module
+@section tpm
+This module provides support for interacting with a Trusted Platform Module
+(TPM) with GRUB to perform Measured Boot. @xref{Measured Boot} for more
+information.
+
+@node tr_module
+@section tr
+This module provides support for the @command{tr} command in GRUB. This can be
+used to translate characters in a string according to the provided arguments.
+For example this can be used to convert upper-case to lower-case and visa-versa.
+
+@node trig_module
+@section trig
+This module provides support for internal trig functions @code{grub_cos} and
+@code{grub_sin} using lookup based computation. Currently these trig functions
+are used by the gfxmenu circular progress bar.
+
+@node true_module
+@section true
+This module provides support for the commands @command{true} and
+@command{false}. @xref{true} and @ref{false} for more information.
+
+@node truecrypt_module
+@section truecrypt
+This module provides support for the @command{truecrypt} command. This can be
+used to load a Truecrypt ISO image.
+
+@node ubootnet_module
+@section ubootnet
+This module provides support for configuring network interfaces in GRUB using
+information provided by a U-Boot bootloader.
+
+@node udf_module
+@section udf
+This module provides support for the Universal Disk Format (UDF) used on some
+newer optical disks.
+
+@node ufs1_module
+@section ufs1
+This module provides support for the Unix File System version 1 in GRUB.
+
+@node ufs1_be_module
+@section ufs1_be
+This module provides support for the Unix File System version 1 (big-endian) in
+GRUB.
+
+@node ufs2_module
+@section ufs2
+This module provides support for the Unix File System version 2 in GRUB.
+
+@node uhci_module
+@section uhci
+This module provides support for the Universal Host Controller Interface (UHCI)
+for USB 1.x.
+
+@node usb_module
+@section usb
+This module provides support for USB interfaces, USB hubs, and USB transfers
+in GRUB.
+
+@node usb_keyboard_module
+@section usb_keyboard
+This module provides support for a USB keyboard in GRUB.
+
+@node usbms_module
+@section usbms
+This module provides support for USB Mass Storage devices in GRUB.
+
+@node usbserial_common_module
+@section usbserial_common
+This module provides support for common operations needed to support USB Serial
+port adapters in GRUB (to support a model / type specific USB to serial
+adapter defined in another module).
+
+@node usbserial_ftdi_module
+@section usbserial_ftdi
+This module provides support for USB to serial adapters with vendor ID 0x0403
+and product ID 0x6001 (often associated with FTDI devices).
+
+@node usbserial_pl2303_module
+@section usbserial_pl2303
+This module provides support for USB to serial adapters with vendor ID 0x067b
+and product ID 0x2303 (PL2303 USB to Serial adapter).
+
+@node usbserial_usbdebug_module
+@section usbserial_usbdebug
+This module provides support for debugging GRUB via a "USB 2.0 Debug Cable".
+The USB 2.0 specification includes a "USB2 Debug Device Functional
+Specification" that this driver is intended to support for GRUB. This may
+integrate with GDB server function in GRUB (@pxref{gdb_module}).
+
+@node usbtest_module
+@section usbtest
+This module provides support for the @command{usb} command in GRUB to test USB
+functionality by iterating through all connected USB devices and printing
+information for each to the terminal.
+
+@node vbe_module
+@section vbe
+This module provides support for the VESA BIOS Extension (VBE) Video Driver in
+GRUB.
+
+@node verifiers_module
+@section verifiers
+This module is a built-in kernel module to provide a framework for GRUB file
+verifiers and string verifiers.
+
+@node vga_module
+@section vga
+This module provides support for the Video Graphics Array (VGA) Video Driver in
+GRUB.
+
+@node vga_text_module
+@section vga_text
+This module provides support for the Video Graphics Array (VGA) terminal
+output device.
+
+@node video_module
+@section video
+This module provides support for video output support functions within GRUB.
+
+@node video_bochs_module
+@section video_bochs
+This module provides support for the Bochs PCI Video Driver (also known as
+Bochs Graphics Adapter / BGA) in GRUB.
+
+@node video_cirrus_module
+@section video_cirrus
+This module provides support for the Cirrus CLGD 5446 PCI Video Driver (Cirrus
+Video) in GRUB.
+
+@node video_colors_module
+@section video_colors
+This module provides support for interpreting named colors and parsing RBG
+hexadecimal values.
+
+@node video_fb_module
+@section video_fb
+This module provides support for video frame buffer (FB) support in GRUB.
+
+@node videoinfo_module
+@section videoinfo
+This module provides support for the @command{videoinfo} command and (depending
+on architecture) the @command{vbeinfo} command. @xref{videoinfo} for more
+information.
+
+@node videotest_module
+@section videotest
+This module provides support for the @command{videotest} command and (depending
+on architecture) the @command{vbetest} to test the video subsystem in the
+specified width and height.
+
+@node videotest_checksum_module
+@section videotest_checksum
+This module is intended for performing a functional test of the video
+functions in GRUB by displaying a test image and capturing a checksum.
+
+@node wrmsr_module
+@section wrmsr
+This module provides support for the @command{wrmsr} command to write to CPU
+model-specific registers. @xref{wrmsr} for more information.
+
+@node xen_boot_module
+@section xen_boot
+This module provides support for the commands @command{xen_hypervisor} and
+@command{xen_module} to load a XEN hypervisor and module respectively.
+
+@node xfs_module
+@section xfs
+This module provides support for the XFS file system in GRUB.
+
+@node xnu_module
+@section xnu
+This module provides support for the commands: @command{xnu_devprop_load},
+@command{xnu_kernel}, @command{xnu_kernel64}, @command{xnu_mkext},
+@command{xnu_kext}, @command{xnu_kextdir}, @command{xnu_ramdisk},
+@command{xnu_splash}, and @command{xnu_resume} (only for emulated machine).
+These commands support loading and interacting with a XNU (MacOS / Apple) based
+system / kernel.
+
+@node xnu_uuid_module
+@section xnu_uuid
+This module provides support for the @command{xnu_uuid} command to transform
+a 64-bit UUID to a format suitable for XNU.
+
+@node xnu_uuid_test_module
+@section xnu_uuid_test
+This module is intended for performing a functional test of the XNU UUID
+conversion function.
+
+@node xzio_module
+@section xzio
+This module provides support for decompression of XZ compressed data.
+
+@node zfs_module
+@section zfs
+This module provides support for the ZFS file system in GRUB.
+
+@node zfscrypt_module
+@section zfscrypt
+This module provides support for the @command{zfskey} to import a decryption
+key as well as decryption support for encrypted ZFS file systems.
+
+@node zfsinfo_module
+@section zfsinfo
+This module provides support for the commands @command{zfsinfo} to output ZFS
+info about a device and @command{zfs-bootfs} to output ZFS-BOOTFSOBJ or store
+it into a variable.
+
+@node zstd_module
+@section zstd
+This module provides support for the Zstandard (zstd) decompression algorithm
+in GRUB.
 
 @node Commands
 @chapter Available commands
@@ -4374,6 +6396,7 @@ you forget a command, you can run the command @command{help}
 * export::                      Export an environment variable
 * false::                       Do nothing, unsuccessfully
 * fdtdump::                     Retrieve device tree information
+* file::                        Test the provided file against a type
 * fwsetup::                     Reboot into the firmware setup menu
 * gdbinfo::                     Provide info for debugging with GDB
 * gettext::                     Translate a string
@@ -4927,6 +6950,94 @@ For example, this will store and then display the model string.
 fdtdump --prop model --set machine_model
 echo $machine_model
 @end example
+@end deffn
+
+
+@node file
+@subsection file
+
+@deffn Command file is_file_type filename
+
+The @command{file} command tests whether the provided @var{filename} is the
+type provided by @var{is_file_type}. When the @command{file} is of type
+@var{is_file_type} this command will return 0, otherwise it will return
+non-zero (no output is provided to the terminal).
+
+@var{is_file_type} may be one of the following options:
+@itemize @bullet
+@item
+@option{--is-i386-xen-pae-domu} Check if @var{filename} can be booted as i386
+PAE Xen unprivileged guest kernel
+@item
+@option{--is-x86_64-xen-domu} Check if @var{filename} can be booted as x86_64
+Xen unprivileged guest kernel
+@item
+@option{--is-x86-xen-dom0} Check if @var{filename} can be used as Xen x86
+privileged guest kernel
+@item
+@option{--is-x86-multiboot} Check if @var{filename} can be used as x86
+multiboot kernel
+@item
+@option{--is-x86-multiboot2} Check if @var{filename} can be used as x86
+multiboot2 kernel
+@item
+@option{--is-arm-linux} Check if @var{filename} is ARM Linux
+@item
+@option{--is-arm64-linux} Check if @var{filename} is ARM64 Linux
+@item
+@option{--is-ia64-linux} Check if @var{filename} is IA64 Linux
+@item
+@option{--is-mips-linux} Check if @var{filename} is MIPS Linux
+@item
+@option{--is-mipsel-linux} Check if @var{filename} is MIPSEL Linux
+@item
+@option{--is-sparc64-linux} Check if @var{filename} is SPARC64 Linux
+@item
+@option{--is-powerpc-linux} Check if @var{filename} is POWERPC Linux
+@item
+@option{--is-x86-linux} Check if @var{filename} is x86 Linux
+@item
+@option{--is-x86-linux32} Check if @var{filename} is x86 Linux supporting
+32-bit protocol
+@item
+@option{--is-x86-kfreebsd} Check if @var{filename} is x86 kFreeBSD
+@item
+@option{--is-i386-kfreebsd} Check if @var{filename} is i386 kFreeBSD
+@item
+@option{--is-x86_64-kfreebsd} Check if @var{filename} is x86_64 kFreeBSD
+@item
+@option{--is-x86-knetbsd} Check if @var{filename} is x86 kNetBSD
+@item
+@option{--is-i386-knetbsd} Check if @var{filename} is i386 kNetBSD
+@item
+@option{--is-x86_64-knetbsd} Check if @var{filename} is x86_64 kNetBSD
+@item
+@option{--is-i386-efi} Check if @var{filename} is i386 EFI file
+@item
+@option{--is-x86_64-efi} Check if @var{filename} is x86_64 EFI file
+@item
+@option{--is-ia64-efi} Check if @var{filename} is IA64 EFI file
+@item
+@option{--is-arm64-efi} Check if @var{filename} is ARM64 EFI file
+@item
+@option{--is-arm-efi} Check if @var{filename} is ARM EFI file
+@item
+@option{--is-riscv32-efi} Check if @var{filename} is RISC-V 32bit EFI file
+@item
+@option{--is-riscv64-efi} Check if @var{filename} is RISC-V 64bit EFI file
+@item
+@option{--is-hibernated-hiberfil} Check if @var{filename} is hiberfil.sys in
+hibernated state
+@item
+@option{--is-x86_64-xnu} Check if @var{filename} is x86_64 XNU (Mac OS X kernel)
+@item
+@option{--is-i386-xnu} Check if @var{filename} is i386 XNU (Mac OS X kernel)
+@item
+@option{--is-xnu-hibr} Check if @var{filename} is XNU (Mac OS X kernel)
+hibernated image
+@item
+@option{--is-x86-bios-bootsector} Check if @var{filename} is BIOS bootsector
+@end itemize
 @end deffn
 
 
@@ -6223,7 +8334,6 @@ GRUB shell may provide more information on parameters and usage.
 @item @command{extract_syslinux_entries_configfile} - Execute syslinux config in new context taking only menu entries
 @item @command{extract_syslinux_entries_source} - Execute syslinux config in same context taking only menu entries
 @item @command{fakebios} - Create BIOS-like structures for backward compatibility with existing OS.
-@item @command{file} - Check if FILE is of specified type.
 @item @command{fix_video} - Fix video problem.
 @item @command{fpswa} - Display FPSWA version.
 @item @command{functional_test} - Run all loaded functional tests.
