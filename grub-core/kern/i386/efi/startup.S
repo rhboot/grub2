@@ -34,3 +34,8 @@ _start:
 	movl	%eax, EXT_C(grub_efi_system_table)
 	call	EXT_C(grub_main)
 	ret
+
+/* An executable stack is not required for these functions. */
+#if defined (__linux__) && defined (__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
