@@ -37,7 +37,6 @@ GRUB_MOD_LICENSE ("GPLv3+");
 struct ignored_feature_lv
 {
   struct grub_diskfilter_lv *lv;
-  char *cache_pool;
   char *origin;
   struct ignored_feature_lv *next;
 };
@@ -127,7 +126,6 @@ grub_lvm_free_ignored_feature_lvs (struct ignored_feature_lv *ignored_feature_lv
 	}
       grub_free (ignored_feature->lv);
       grub_free (ignored_feature->origin);
-      grub_free (ignored_feature->cache_pool);
       grub_free (ignored_feature);
     }
 }
@@ -856,28 +854,6 @@ grub_lvm_detect (grub_disk_t disk,
 
 		      skip_lv = 1;
 
-		      p2 = grub_strstr (p, "cache_pool = \"");
-		      if (!p2)
-			goto ignored_feature_lv_fail;
-
-		      p2 = grub_strchr (p2, '"');
-		      if (!p2)
-			goto ignored_feature_lv_fail;
-
-		      p3 = ++p2;
-		      if (p3 == mda_end)
-			goto ignored_feature_lv_fail;
-		      p3 = grub_strchr (p3, '"');
-		      if (!p3)
-			goto ignored_feature_lv_fail;
-
-		      sz = p3 - p2;
-
-		      ignored_feature->cache_pool = grub_malloc (sz + 1);
-		      if (!ignored_feature->cache_pool)
-			goto ignored_feature_lv_fail;
-		      grub_memcpy (ignored_feature->cache_pool, p2, sz);
-		      ignored_feature->cache_pool[sz] = '\0';
 
 		      p2 = grub_strstr (p, "origin = \"");
 		      if (!p2)
@@ -910,7 +886,6 @@ grub_lvm_detect (grub_disk_t disk,
 		      if (ignored_feature)
 			{
 			  grub_free (ignored_feature->origin);
-			  grub_free (ignored_feature->cache_pool);
 			  if (ignored_feature->lv)
 			    {
 			      grub_free (ignored_feature->lv->fullname);
