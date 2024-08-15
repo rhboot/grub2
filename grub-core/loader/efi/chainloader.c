@@ -185,7 +185,6 @@ make_file_path (grub_efi_device_path_t *dp, const char *filename)
   /* Fill the file path for the directory.  */
   d = (grub_efi_device_path_t *) ((char *) file_path
 				  + ((char *) d - (char *) dp));
-  grub_efi_print_device_path (d);
   if (copy_file_path ((grub_efi_file_path_device_path_t *) d,
 		      dir_start, dir_end - dir_start) != GRUB_ERR_NONE)
     {
@@ -272,9 +271,6 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
       file_path = make_file_path (dp, filename);
       if (file_path == NULL)
 	goto fail;
-
-      grub_printf ("file path: ");
-      grub_efi_print_device_path (file_path);
     }
 
   size = grub_file_size (file);
