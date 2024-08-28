@@ -159,7 +159,7 @@ grub_net_arp_receive (struct grub_net_buff *nb, struct grub_net_card *card,
   sender_addr.option = 0;
   target_addr.option = 0;
 
-  grub_memcpy(&target_addr.ipv4, tmp_ptr, pln);
+  grub_memcpy(&sender_addr.ipv4, tmp_ptr, pln);
   tmp_ptr += pln;
 
   grub_net_link_layer_add_address (card, &sender_addr, &sender_mac_addr, 1);
