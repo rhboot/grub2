@@ -38,6 +38,7 @@
 #endif
 
 static bool cli_disabled = false;
+static bool cli_need_auth = false;
 
 grub_addr_t
 grub_modules_get_end (void)
@@ -245,6 +246,17 @@ bool
 grub_is_cli_disabled (void)
 {
   return cli_disabled;
+}
+
+bool
+grub_is_cli_need_auth (void)
+{
+  return cli_need_auth;
+}
+
+void grub_cli_set_auth_needed (void)
+{
+  cli_need_auth = true;
 }
 
 static void
