@@ -188,27 +188,27 @@ typedef struct {
 
 struct grub_efi_http {
   grub_efi_status_t
-  (*get_mode_data) (struct grub_efi_http *this,
+  (__grub_efi_api *get_mode_data) (struct grub_efi_http *this,
                     grub_efi_http_config_data_t *http_config_data);
 
   grub_efi_status_t
-  (*configure) (struct grub_efi_http *this,
+  (__grub_efi_api *configure) (struct grub_efi_http *this,
                 grub_efi_http_config_data_t *http_config_data);
 
   grub_efi_status_t
-  (*request) (struct grub_efi_http *this,
+  (__grub_efi_api *request) (struct grub_efi_http *this,
               grub_efi_http_token_t *token);
 
   grub_efi_status_t
-  (*cancel) (struct grub_efi_http *this,
+  (__grub_efi_api *cancel) (struct grub_efi_http *this,
              grub_efi_http_token_t *token);
 
   grub_efi_status_t
-  (*response) (struct grub_efi_http *this,
+  (__grub_efi_api *response) (struct grub_efi_http *this,
                grub_efi_http_token_t *token);
 
   grub_efi_status_t
-  (*poll) (struct grub_efi_http *this);
+  (__grub_efi_api *poll) (struct grub_efi_http *this);
 };
 typedef struct grub_efi_http grub_efi_http_t;
 
