@@ -216,12 +216,15 @@ grub_fs_blocklist_read (grub_file_t file, char *buf, grub_size_t len)
   grub_disk_addr_t sector;
   grub_off_t offset;
   grub_ssize_t ret = 0;
+  grub_disk_t disk = file->device->disk;
 
   if (len > file->size - file->offset)
     len = file->size - file->offset;
 
   sector = (file->offset >> GRUB_DISK_SECTOR_BITS);
   offset = (file->offset & (GRUB_DISK_SECTOR_SIZE - 1));
+  disk->read_hook = file->read_hook;
+  disk->read_hook_data = file->read_hook_data;
   for (p = file->data; p->length && len > 0; p++)
     {
       if (sector < p->length)
@@ -233,9 +236,12 @@ grub_fs_blocklist_read (grub_file_t file, char *buf, grub_size_t len)
 	       >> GRUB_DISK_SECTOR_BITS) > p->length - sector)
 	    size = ((p->length - sector) << GRUB_DISK_SECTOR_BITS) - offset;
 
-	  if (grub_disk_read (file->device->disk, p->offset + sector, offset,
+	  if (grub_disk_read (disk, p->offset + sector, offset,
 			      size, buf) != GRUB_ERR_NONE)
-	    return -1;
+	    {
+	      ret = -1;
+	      break;
+	    }
 
 	  ret += size;
 	  len -= size;
@@ -245,6 +251,8 @@ grub_fs_blocklist_read (grub_file_t file, char *buf, grub_size_t len)
       else
 	sector -= p->length;
     }
+  disk->read_hook = NULL;
+  disk->read_hook_data = NULL;
 
   return ret;
 }
