@@ -123,7 +123,7 @@ struct grub_efi_dhcp4_config_data {
   grub_efi_uint32_t request_try_count;
   grub_efi_uint32_t *request_timeout;
   grub_efi_ipv4_address_t client_address;
-  grub_efi_status_t (*dhcp4_callback) (
+  grub_efi_status_t (__grub_efi_api *dhcp4_callback) (
     grub_efi_dhcp4_protocol_t *this,
     void *context,
     grub_efi_dhcp4_state_t current_state,
@@ -153,27 +153,27 @@ struct grub_efi_dhcp4_mode_data {
 typedef struct grub_efi_dhcp4_mode_data grub_efi_dhcp4_mode_data_t;
 
 struct grub_efi_dhcp4_protocol {
-  grub_efi_status_t (*get_mode_data) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *get_mode_data) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_dhcp4_mode_data_t *dhcp4_mode_data);
-  grub_efi_status_t (*configure) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *configure) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_dhcp4_config_data_t *dhcp4_cfg_data);
-  grub_efi_status_t (*start) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *start) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_event_t completion_event);
-  grub_efi_status_t (*renew_rebind) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *renew_rebind) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_boolean_t rebind_request,
 	      grub_efi_event_t completion_event);
-  grub_efi_status_t (*release) (grub_efi_dhcp4_protocol_t *this);
-  grub_efi_status_t (*stop) (grub_efi_dhcp4_protocol_t *this);
-  grub_efi_status_t (*build) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *release) (grub_efi_dhcp4_protocol_t *this);
+  grub_efi_status_t (__grub_efi_api *stop) (grub_efi_dhcp4_protocol_t *this);
+  grub_efi_status_t (__grub_efi_api *build) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_dhcp4_packet_t *seed_packet,
 	      grub_efi_uint32_t delete_count,
 	      grub_efi_uint8_t *delete_list,
 	      grub_efi_uint32_t append_count,
 	      grub_efi_dhcp4_packet_option_t *append_list[],
 	      grub_efi_dhcp4_packet_t **new_packet);
-  grub_efi_status_t (*transmit_receive) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *transmit_receive) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_dhcp4_transmit_receive_token_t *token);
-  grub_efi_status_t (*parse) (grub_efi_dhcp4_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *parse) (grub_efi_dhcp4_protocol_t *this,
 	      grub_efi_dhcp4_packet_t *packet,
 	      grub_efi_uint32_t *option_count,
 	      grub_efi_dhcp4_packet_option_t *packet_option_list[]);
@@ -289,7 +289,7 @@ struct grub_efi_dhcp6_mode_data {
 typedef struct grub_efi_dhcp6_mode_data grub_efi_dhcp6_mode_data_t;
 
 struct grub_efi_dhcp6_config_data {
-  grub_efi_status_t (*dhcp6_callback) (grub_efi_dhcp6_protocol_t this,
+  grub_efi_status_t (__grub_efi_api *dhcp6_callback) (grub_efi_dhcp6_protocol_t this,
 		void *context,
 		grub_efi_dhcp6_state_t current_state,
 		grub_efi_dhcp6_event_t dhcp6_event,
@@ -308,33 +308,33 @@ struct grub_efi_dhcp6_config_data {
 typedef struct grub_efi_dhcp6_config_data grub_efi_dhcp6_config_data_t;
 
 struct grub_efi_dhcp6_protocol {
-  grub_efi_status_t (*get_mode_data) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *get_mode_data) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_dhcp6_mode_data_t *dhcp6_mode_data,
 	    grub_efi_dhcp6_config_data_t *dhcp6_config_data);
-  grub_efi_status_t (*configure) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *configure) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_dhcp6_config_data_t *dhcp6_cfg_data);
-  grub_efi_status_t (*start) (grub_efi_dhcp6_protocol_t *this);
-  grub_efi_status_t (*info_request) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *start) (grub_efi_dhcp6_protocol_t *this);
+  grub_efi_status_t (__grub_efi_api *info_request) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_boolean_t send_client_id,
 	    grub_efi_dhcp6_packet_option_t *option_request,
 	    grub_efi_uint32_t option_count,
 	    grub_efi_dhcp6_packet_option_t *option_list[],
 	    grub_efi_dhcp6_retransmission_t *retransmission,
 	    grub_efi_event_t timeout_event,
-	    grub_efi_status_t (*reply_callback) (grub_efi_dhcp6_protocol_t *this,
+	    grub_efi_status_t (__grub_efi_api *reply_callback) (grub_efi_dhcp6_protocol_t *this,
 		    void *context,
 		    grub_efi_dhcp6_packet_t *packet),
 	    void *callback_context);
-  grub_efi_status_t (*renew_rebind) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *renew_rebind) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_boolean_t rebind_request);
-  grub_efi_status_t (*decline) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *decline) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_uint32_t address_count,
 	    grub_efi_ipv6_address_t *addresses);
-  grub_efi_status_t (*release) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *release) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_uint32_t address_count,
 	    grub_efi_ipv6_address_t *addresses);
-  grub_efi_status_t (*stop) (grub_efi_dhcp6_protocol_t *this);
-  grub_efi_status_t (*parse) (grub_efi_dhcp6_protocol_t *this,
+  grub_efi_status_t (__grub_efi_api *stop) (grub_efi_dhcp6_protocol_t *this);
+  grub_efi_status_t (__grub_efi_api *parse) (grub_efi_dhcp6_protocol_t *this,
 	    grub_efi_dhcp6_packet_t *packet,
 	    grub_efi_uint32_t *option_count,
 	    grub_efi_dhcp6_packet_option_t *packet_option_list[]);

@@ -553,7 +553,7 @@ handle_image (struct grub_secureboot_chainloader_context *load_context)
   grub_uint32_t buffer_size;
   int found_entry_point = 0;
   int rc;
-  grub_efi_status_t (*entry_point) (grub_efi_handle_t image_handle, grub_efi_system_table_t *system_table);
+  grub_efi_status_t (__grub_efi_api *entry_point) (grub_efi_handle_t image_handle, grub_efi_system_table_t *system_table);
 
   b = grub_efi_system_table->boot_services;
 

@@ -1094,11 +1094,11 @@ typedef struct grub_efi_bios_device_path grub_efi_bios_device_path_t;
 struct grub_efi_service_binding;
 
 typedef grub_efi_status_t
-(*grub_efi_service_binding_create_child) (struct grub_efi_service_binding *this,
+(__grub_efi_api *grub_efi_service_binding_create_child) (struct grub_efi_service_binding *this,
                                           grub_efi_handle_t *child_handle);
 
 typedef grub_efi_status_t
-(*grub_efi_service_binding_destroy_child) (struct grub_efi_service_binding *this,
+(__grub_efi_api *grub_efi_service_binding_destroy_child) (struct grub_efi_service_binding *this,
                                            grub_efi_handle_t *child_handle);
 
 typedef struct grub_efi_service_binding
@@ -1754,12 +1754,12 @@ typedef struct grub_efi_pxe_mode
 typedef struct grub_efi_pxe
 {
   grub_uint64_t rev;
-  grub_efi_status_t (*start) (struct grub_efi_pxe *this, grub_efi_boolean_t use_ipv6);
+  grub_efi_status_t (__grub_efi_api *start) (struct grub_efi_pxe *this, grub_efi_boolean_t use_ipv6);
   void (*stop) (void);
-  grub_efi_status_t (*dhcp) (struct grub_efi_pxe *this,
+  grub_efi_status_t (__grub_efi_api *dhcp) (struct grub_efi_pxe *this,
 			    grub_efi_boolean_t sort_offers);
   void (*discover) (void);
-  grub_efi_status_t (*mtftp) (struct grub_efi_pxe *this,
+  grub_efi_status_t (__grub_efi_api *mtftp) (struct grub_efi_pxe *this,
 			    grub_efi_pxe_base_code_tftp_opcode_t operation,
 			    void *buffer_ptr,
 			    grub_efi_boolean_t overwrite,
@@ -1775,7 +1775,7 @@ typedef struct grub_efi_pxe
   void (*setipfilter) (void);
   void (*arp) (void);
   void (*setparams) (void);
-  grub_efi_status_t (*set_station_ip) (struct grub_efi_pxe *this,
+  grub_efi_status_t (__grub_efi_api *set_station_ip) (struct grub_efi_pxe *this,
 			    grub_efi_pxe_ip_address_t *new_station_ip,
 			    grub_efi_pxe_ip_address_t *new_subnet_mask);
   void (*setpackets) (void);
@@ -2054,21 +2054,21 @@ typedef enum grub_efi_ip4_config2_data_type grub_efi_ip4_config2_data_type_t;
 
 struct grub_efi_ip4_config2_protocol
 {
-  grub_efi_status_t (*set_data) (struct grub_efi_ip4_config2_protocol *this,
+  grub_efi_status_t (__grub_efi_api *set_data) (struct grub_efi_ip4_config2_protocol *this,
 				 grub_efi_ip4_config2_data_type_t data_type,
 				 grub_efi_uintn_t data_size,
 				 void *data);
 
-  grub_efi_status_t (*get_data) (struct grub_efi_ip4_config2_protocol *this,
+  grub_efi_status_t (__grub_efi_api *get_data) (struct grub_efi_ip4_config2_protocol *this,
 				 grub_efi_ip4_config2_data_type_t data_type,
 				 grub_efi_uintn_t *data_size,
 				 void *data);
 
-  grub_efi_status_t (*register_data_notify) (struct grub_efi_ip4_config2_protocol *this,
+  grub_efi_status_t (__grub_efi_api *register_data_notify) (struct grub_efi_ip4_config2_protocol *this,
 					     grub_efi_ip4_config2_data_type_t data_type,
 					     grub_efi_event_t event);
 
-  grub_efi_status_t (*unregister_datanotify) (struct grub_efi_ip4_config2_protocol *this,
+  grub_efi_status_t (__grub_efi_api *unregister_datanotify) (struct grub_efi_ip4_config2_protocol *this,
 					     grub_efi_ip4_config2_data_type_t data_type,
 					     grub_efi_event_t event);
 };
@@ -2126,21 +2126,21 @@ typedef enum grub_efi_ip6_config_data_type grub_efi_ip6_config_data_type_t;
 
 struct grub_efi_ip6_config_protocol
 {
-  grub_efi_status_t (*set_data) (struct grub_efi_ip6_config_protocol *this,
+  grub_efi_status_t (__grub_efi_api *set_data) (struct grub_efi_ip6_config_protocol *this,
 				 grub_efi_ip6_config_data_type_t data_type,
 				 grub_efi_uintn_t data_size,
 				 void *data);
 
-  grub_efi_status_t (*get_data) (struct grub_efi_ip6_config_protocol *this,
+  grub_efi_status_t (__grub_efi_api *get_data) (struct grub_efi_ip6_config_protocol *this,
 				 grub_efi_ip6_config_data_type_t data_type,
 				 grub_efi_uintn_t *data_size,
 				 void *data);
 
-  grub_efi_status_t (*register_data_notify) (struct grub_efi_ip6_config_protocol *this,
+  grub_efi_status_t (__grub_efi_api *register_data_notify) (struct grub_efi_ip6_config_protocol *this,
 					     grub_efi_ip6_config_data_type_t data_type,
 					     grub_efi_event_t event);
 
-  grub_efi_status_t (*unregister_datanotify) (struct grub_efi_ip6_config_protocol *this,
+  grub_efi_status_t (__grub_efi_api *unregister_datanotify) (struct grub_efi_ip6_config_protocol *this,
 					     grub_efi_ip6_config_data_type_t data_type,
 					     grub_efi_event_t event);
 };
@@ -2191,17 +2191,17 @@ typedef struct grub_efi_ip6_config_manual_address grub_efi_ip6_config_manual_add
 
 struct grub_efi_memory_attribute_protocol
 {
-  grub_efi_status_t (*get_memory_attributes) (
+  grub_efi_status_t (__grub_efi_api *get_memory_attributes) (
 			    struct grub_efi_memory_attribute_protocol *this,
 			    grub_efi_physical_address_t base_address,
 			    grub_efi_uint64_t length,
 			    grub_efi_uint64_t *attributes);
-  grub_efi_status_t (*set_memory_attributes) (
+  grub_efi_status_t (__grub_efi_api *set_memory_attributes) (
 			    struct grub_efi_memory_attribute_protocol *this,
 			    grub_efi_physical_address_t base_address,
 			    grub_efi_uint64_t length,
 			    grub_efi_uint64_t attributes);
-  grub_efi_status_t (*clear_memory_attributes) (
+  grub_efi_status_t (__grub_efi_api *clear_memory_attributes) (
 			    struct grub_efi_memory_attribute_protocol *this,
 			    grub_efi_physical_address_t base_address,
 			    grub_efi_uint64_t length,
