@@ -33,7 +33,7 @@
 struct grub_efi_edid_override;
 
 typedef grub_efi_status_t
-(*grub_efi_edid_override_get_edid) (struct grub_efi_edid_override *this,
+(__grub_efi_api *grub_efi_edid_override_get_edid) (struct grub_efi_edid_override *this,
 				    grub_efi_handle_t *childhandle,
 				    grub_efi_uint32_t *attributes,
 				    grub_efi_uintn_t *edidsize,
