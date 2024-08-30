@@ -880,6 +880,8 @@ module = {
   enable = efi;
   enable = i386_pc;
   enable = emu;
+  enable = xen;
+  enable = i386_xen_pvh;
 };
 
 module = {
