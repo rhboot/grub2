@@ -802,6 +802,17 @@ if test "x$target_cpu" = xmips || test "x$target_cpu" = xmipsel ; then
   if test "x$grub_cv_cc_mflush_func" = xyes; then
     TARGET_CFLAGS="$TARGET_CFLAGS -mflush-func=grub_red_herring"
   fi
+
+  AC_CACHE_CHECK([whether -mno-gpopt works], [grub_cv_cc_mno_gpopt], [
+    CFLAGS="$TARGET_CFLAGS -mno-gpopt -Werror"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+	[grub_cv_cc_mno_gpopt=yes],
+	[grub_cv_cc_mno_gpopt=no])
+  ])
+
+  if test "x$grub_cv_cc_mno_gpopt" = xyes; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -mno-gpopt"
+  fi
 fi
 
 
