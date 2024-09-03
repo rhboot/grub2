@@ -536,7 +536,7 @@ image = {
 
 image = {
   name = xz_decompress;
-  mips = boot/mips/startup_raw.S;
+  mips_head = boot/mips/startup_raw.S;
   common = boot/decompressor/minilib.c;
   common = boot/decompressor/xz.c;
   common = lib/xzembed/xz_dec_bcj.c;
@@ -554,7 +554,7 @@ image = {
 
 image = {
   name = none_decompress;
-  mips = boot/mips/startup_raw.S;
+  mips_head = boot/mips/startup_raw.S;
   common = boot/decompressor/none.c;
 
   cppflags = '-DGRUB_EMBED_DECOMPRESSOR=1';

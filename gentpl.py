@@ -634,7 +634,7 @@ def extra_dist(defn):
 def extra_dep(defn):
     return foreach_value(defn, "depends", lambda value: value + " ")
 
-def platform_sources(defn, p): return platform_values(defn, p, "")
+def platform_sources(defn, p): return platform_values(defn, p, "_head") + platform_values(defn, p, "")
 def platform_nodist_sources(defn, p): return platform_values(defn, p, "_nodist")
 
 def platform_startup(defn, p): return platform_specific_values(defn, p, "_startup", "startup")
@@ -660,7 +660,7 @@ def first_time(defn, snippet):
 def is_platform_independent(defn):
     if 'enable' in defn:
         return False
-    for suffix in [ "", "_nodist" ]:
+    for suffix in [ "", "_head", "_nodist" ]:
         template = platform_values(defn, GRUB_PLATFORMS[0], suffix)
         for platform in GRUB_PLATFORMS[1:]:
             if template != platform_values(defn, platform, suffix):
