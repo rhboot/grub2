@@ -241,6 +241,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   grub_error (GRUB_ERR_BAD_OS, "start_image() returned 0x%" PRIxGRUB_EFI_UINTN_T, status);
   grub_efi_free_pages ((grub_addr_t) loaded_image->load_options,
 		       GRUB_EFI_BYTES_TO_PAGES (len));
+  loaded_image->load_options = NULL;
 unload:
   b->unload_image (image_handle);
 
