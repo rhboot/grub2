@@ -353,7 +353,7 @@ static noinline_for_stack size_t bcj_sparc(
  * avoid pointers to static data (at least on x86).
  */
 static void bcj_apply(struct xz_dec_bcj *s,
-		uint8_t *buf, size_t *pos, size_t size)
+		      uint8_t *buf __attribute__((unused)), size_t *pos, size_t size __attribute__((unused)))
 {
 	size_t filtered;
 
