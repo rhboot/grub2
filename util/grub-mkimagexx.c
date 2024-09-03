@@ -2431,6 +2431,8 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
   if (!is_relocatable (image_target))
     {
       Elf_Addr current_address = layout->kernel_size;
+      Elf_Addr bss_start = layout->kernel_size;
+      bool is_first = true;
 
       for (i = 0, s = smd.sections;
 	   i < smd.num_sections;
@@ -2453,6 +2455,12 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
 	      current_address = grub_host_to_target_addr (s->sh_addr)
 		- image_target->link_addr;
 
+	    if (is_first == true)
+	      {
+		bss_start = current_address;
+		is_first = false;
+	      }
+
 	    smd.vaddrs[i] = current_address
 	      + image_target->vaddr_offset;
 	    current_address += grub_host_to_target_addr (s->sh_size);
@@ -2460,6 +2468,16 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
       current_address = ALIGN_UP (current_address + image_target->vaddr_offset,
 				  image_target->section_align)
 	- image_target->vaddr_offset;
+
+      if (image_target->id == IMAGE_YEELOONG_FLASH
+	  || image_target->id == IMAGE_FULOONG2F_FLASH
+	  || image_target->id == IMAGE_LOONGSON_ELF
+	  || image_target->id == IMAGE_QEMU_MIPS_FLASH
+	  || image_target->id == IMAGE_MIPS_ARC)
+	{
+	  layout->kernel_size = bss_start;
+	}
+
       layout->bss_size = current_address - layout->kernel_size;
     }
   else
