@@ -22,7 +22,7 @@
 	.p2align	2
 
 VARIABLE(grub_relocator_backward_start)
-	/* mov imm32, %rax */
+	/* mov imm64, %rax */
 	.byte	0x48
 	.byte	0xb8
 VARIABLE(grub_relocator_backward_dest)
