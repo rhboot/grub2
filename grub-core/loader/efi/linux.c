@@ -216,7 +216,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 
   grub_dprintf ("linux", "linux command line: '%s'\n", args);
 
-  /* Convert command line to UCS-2 */
+  /* Convert command line to UTF-16. */
   loaded_image = grub_efi_get_loaded_image (image_handle);
   if (loaded_image == NULL)
     {
