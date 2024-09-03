@@ -357,13 +357,13 @@ erofs_map_blocks_flatmode (grub_fshelp_node_t node,
     {
       if (grub_add (erofs_iloc (node), erofs_inode_size (node), &map->m_pa) ||
 	  grub_add (map->m_pa, erofs_inode_xattr_ibody_size (node), &map->m_pa) ||
-	  grub_add (map->m_pa, map->m_la % blocksz, &map->m_pa))
+	  grub_add (map->m_pa, map->m_la & (blocksz - 1), &map->m_pa))
 	return grub_error (GRUB_ERR_OUT_OF_RANGE, "m_pa overflow when handling tailpacking");
       if (grub_sub (file_size, map->m_la, &map->m_plen))
 	return grub_error (GRUB_ERR_OUT_OF_RANGE, "m_plen overflow when handling tailpacking");
 
       /* No overflow as map->m_plen <= UINT64_MAX - blocksz + 1. */
-      if (((map->m_pa % blocksz) + map->m_plen) > blocksz)
+      if (((map->m_pa & (blocksz - 1)) + map->m_plen) > blocksz)
 	return grub_error (GRUB_ERR_BAD_FS,
                            "inline data cross block boundary @ inode %" PRIuGRUB_UINT64_T,
                            node->ino);
