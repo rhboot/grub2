@@ -26,21 +26,21 @@ VARIABLE(grub_relocator_backward_start)
 	.byte	0x48
 	.byte	0xb8
 VARIABLE(grub_relocator_backward_dest)
-	.long	0, 0
+	.quad	0
 	movq	%rax, %rdi
 
 	/* mov imm64, %rax */
 	.byte	0x48
 	.byte	0xb8
 VARIABLE(grub_relocator_backward_src)
-	.long	0, 0
+	.quad	0
 	movq	%rax, %rsi
 
 	/* mov imm64, %rcx */
 	.byte	0x48
 	.byte	0xb9
 VARIABLE(grub_relocator_backward_chunk_size)
-	.long	0, 0
+	.quad	0
 
 	add	%rcx, %rsi
 	add	%rcx, %rdi
@@ -62,21 +62,21 @@ VARIABLE(grub_relocator_forward_start)
 	.byte	0x48
 	.byte	0xb8
 VARIABLE(grub_relocator_forward_dest)
-	.long	0, 0
+	.quad	0
 	movq	%rax, %rdi
 
 	/* mov imm64, %rax */
 	.byte	0x48
 	.byte	0xb8
 VARIABLE(grub_relocator_forward_src)
-	.long	0, 0
+	.quad	0
 	movq	%rax, %rsi
 
 	/* mov imm64, %rcx */
 	.byte	0x48
 	.byte	0xb9
 VARIABLE(grub_relocator_forward_chunk_size)
-	.long	0, 0
+	.quad	0
 
 	/* Forward copy.  */
 	cld
