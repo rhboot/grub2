@@ -1875,7 +1875,7 @@ AC_ARG_WITH([unifont],
 
 if test "x$with_unifont" = x; then
   # search in well-known directories
-  for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz; do
+  for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz otf otf.gz; do
     for dir in . /usr/src /usr/share/fonts/X11/misc /usr/share/fonts/unifont /usr/share/fonts/uni /usr/share/fonts/truetype/unifont /usr/share/fonts/misc /usr/pkg/share/fonts/X11/misc /usr/local/share/fonts/gnu-unifont /usr/local/share/fonts/unifont; do
       if test -f "$dir/unifont.$ext"; then
         md5="$(md5sum "$dir/unifont.$ext"|awk '{ print $1; }')"
