@@ -32,8 +32,7 @@ gettext_printf "Adding boot menu entry for UEFI Firmware Settings ...\n" >&2
 
 cat << EOF
 if [ "\$grub_platform" = "efi" ]; then
-	fwsetup --is-supported
-	if [ "\$?" = 0 ]; then
+	if [ fwsetup --is-supported ]; then
 		menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
 			fwsetup
 		}
