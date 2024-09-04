@@ -19,6 +19,8 @@ set -e
 
 cat << EOF
 if [ "\$grub_platform" = "efi" ]; then
-  insmod bli
+        if [ ! insmod bli ]; then
+                echo "bli module not available"
+        fi
 fi
 EOF
