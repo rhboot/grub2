@@ -4527,11 +4527,12 @@ files.
 
 @node emunet_module
 @section emunet
-This module provides support for an emulated network card in GRUB.
+This module provides support for networking in GRUB on the emu platform.
 
 @node emupci_module
 @section emupci
-This module provides support for an emulated PCI bus in GRUB.
+This module provides support for accessing the PCI bus in GRUB on the emu
+platform.
 
 @node erofs_module
 @section erofs
@@ -4773,8 +4774,8 @@ image support, and icon support.
 
 @node gfxterm_module
 @section gfxterm
-This module provides support for displaying a graphical terminal interface from
-GRUB.
+This module provides support for displaying a terminal and menu interface from
+GRUB using graphics mode.
 
 @node gfxterm_background_module
 @section gfxterm_background
@@ -5094,8 +5095,7 @@ at the time of writing.
 @node memdisk_module
 @section memdisk
 This module provides support for a memdisk device. A memdisk is a memory mapped
-emulated disk likely only possible in legacy environment such as with a legacy
-BIOS operating in 16-bit mode.
+emulated disk.
 
 @node memrw_module
 @section memrw
@@ -5464,8 +5464,7 @@ like interface to some GRUB internal data.
 
 @node progress_module
 @section progress
-This module provides support for showing file loading progress to the
-terminal.
+This module provides support for showing file loading progress to the terminal.
 
 @node pxe_module
 @section pxe
