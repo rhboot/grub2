@@ -236,6 +236,7 @@ grub_efi_linux_boot (grub_addr_t k_address, grub_size_t k_size,
   grub_dprintf ("linux", "kernel_address: %p handover_offset: %p params: %p\n",
 		(void *)k_address, (void *)h_offset, k_params);
 
+  grub_efi_check_nx_required(&nx_required);
 
   if (nx_required && !nx_supported)
     return grub_error (GRUB_ERR_BAD_OS, N_("kernel does not support NX loading required by policy"));
