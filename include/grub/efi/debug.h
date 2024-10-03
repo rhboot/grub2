@@ -27,7 +27,7 @@
 void grub_efi_register_debug_commands (void);
 
 static inline void
-grub_efi_print_gdb_info (void)
+grub_efi_print_gdb_info (bool debug)
 {
   grub_addr_t text;
 
@@ -35,7 +35,10 @@ grub_efi_print_gdb_info (void)
   if (!text)
     return;
 
-  grub_printf ("dynamic_load_symbols %p\n", (void *)text);
+  if (debug)
+    grub_qdprintf ("gdb", "dynamic_load_symbols %p\n", (void *)text);
+  else
+    grub_printf ("dynamic_load_symbols %p\n", (void *)text);
 }
 
 #endif /* ! GRUB_EFI_DEBUG_HEADER */
