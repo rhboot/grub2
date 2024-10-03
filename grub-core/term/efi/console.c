@@ -432,7 +432,7 @@ grub_console_cls (struct grub_term_output *term __attribute__ ((unused)))
   grub_efi_simple_text_output_interface_t *o;
   grub_efi_int32_t orig_attr;
 
-  if (grub_efi_is_finished || text_mode != GRUB_TEXT_MODE_AVAILABLE)
+  if (grub_prepare_for_text_output (term) != GRUB_ERR_NONE)
     return;
 
   o = grub_efi_system_table->con_out;

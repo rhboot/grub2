@@ -881,13 +881,14 @@ show_menu (grub_menu_t menu, int nested, int autobooted)
       if (! e)
 	continue; /* Menu is empty.  */
 
-      grub_cls ();
-
       if (auto_boot)
 	grub_menu_execute_with_fallback (menu, e, autobooted,
 					 &execution_callback, &notify_boot);
       else
-	grub_menu_execute_entry (e, 0);
+	{
+	  grub_cls ();
+	  grub_menu_execute_entry (e, 0);
+	}
       if (autobooted)
 	break;
     }
