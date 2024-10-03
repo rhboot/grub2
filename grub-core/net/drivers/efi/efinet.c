@@ -276,7 +276,8 @@ grub_efinet_findcards (void)
 	      || GRUB_EFI_DEVICE_PATH_SUBTYPE (child) == GRUB_EFI_IPV6_DEVICE_PATH_SUBTYPE)
 	  && parent
 	  && GRUB_EFI_DEVICE_PATH_TYPE (parent) == GRUB_EFI_MESSAGING_DEVICE_PATH_TYPE
-	  && GRUB_EFI_DEVICE_PATH_SUBTYPE (parent) == GRUB_EFI_MAC_ADDRESS_DEVICE_PATH_SUBTYPE)
+	  && (GRUB_EFI_DEVICE_PATH_SUBTYPE (parent) == GRUB_EFI_MAC_ADDRESS_DEVICE_PATH_SUBTYPE
+	      || GRUB_EFI_DEVICE_PATH_SUBTYPE (parent) == GRUB_EFI_VLAN_DEVICE_PATH_SUBTYPE))
 	continue;
 
       net = grub_efi_open_protocol (*handle, &net_io_guid,
@@ -389,6 +390,15 @@ grub_efi_net_config_real (grub_efi_handle_t hnd, char **device,
 	dup_ldp->type = GRUB_EFI_END_DEVICE_PATH_TYPE;
 	dup_ldp->subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
 	dup_ldp->length = sizeof (*dup_ldp);
+
+	dup_ldp = grub_efi_find_last_device_path (dup_dp);
+	if (GRUB_EFI_DEVICE_PATH_SUBTYPE (dup_ldp) == GRUB_EFI_VLAN_DEVICE_PATH_SUBTYPE)
+	  {
+	    dup_ldp->type = GRUB_EFI_END_DEVICE_PATH_TYPE;
+	    dup_ldp->subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
+	    dup_ldp->length = sizeof (*dup_ldp);
+	  }
+
 	match = grub_efi_compare_device_paths (dup_dp, cdp) == 0;
 	grub_free (dup_dp);
 	if (!match)
