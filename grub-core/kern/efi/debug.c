@@ -26,7 +26,7 @@ grub_cmd_gdbinfo (struct grub_command *cmd __attribute__ ((unused)),
 		  int argc __attribute__ ((unused)),
 		  char **args __attribute__ ((unused)))
 {
-  grub_efi_print_gdb_info ();
+  grub_efi_print_gdb_info (false);
   return 0;
 }
 
