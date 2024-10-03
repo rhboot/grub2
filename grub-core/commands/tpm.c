@@ -36,6 +36,16 @@ grub_tpm_verify_init (grub_file_t io,
 {
   *context = io->name;
   *flags |= GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
+
+  /*
+   * The loopback image is mapped as a disk allowing it to function like
+   * a block device. However, we measure files read from the block device
+   * not the device itself. For example, we don't measure block devices like
+   * hd0 disk directly. This process is crucial to prevent out-of-memory
+   * errors as loopback images are inherently large.
+   */
+  if ((type & GRUB_FILE_TYPE_MASK) == GRUB_FILE_TYPE_LOOPBACK)
+    *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
   return GRUB_ERR_NONE;
 }
 
