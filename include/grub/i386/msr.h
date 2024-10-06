@@ -19,6 +19,35 @@
 #ifndef GRUB_I386_MSR_H
 #define GRUB_I386_MSR_H 1
 
+#include <grub/err.h>
+#include <grub/i386/cpuid.h>
+#include <grub/types.h>
+
+static inline grub_err_t
+grub_cpu_is_msr_supported (void)
+{
+  grub_uint32_t eax, ebx, ecx, edx;
+
+  /*
+   * The CPUID instruction should be used to determine whether MSRs
+   * are supported, CPUID.01H:EDX[5] = 1.
+   */
+  if (!grub_cpu_is_cpuid_supported ())
+    return GRUB_ERR_BAD_DEVICE;
+
+  grub_cpuid (0, eax, ebx, ecx, edx);
+
+  if (eax < 1)
+    return GRUB_ERR_BAD_DEVICE;
+
+  grub_cpuid (1, eax, ebx, ecx, edx);
+
+  if (!(edx & (1 << 5)))
+    return GRUB_ERR_BAD_DEVICE;
+
+  return GRUB_ERR_NONE;
+}
+
 /*
  * TODO: Add a general protection exception handler.
  *       Accessing a reserved or unimplemented MSR address results in a GP#.

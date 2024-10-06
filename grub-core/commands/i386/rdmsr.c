@@ -42,27 +42,16 @@ static const struct grub_arg_option options[] =
 static grub_err_t
 grub_cmd_msr_read (grub_extcmd_context_t ctxt, int argc, char **argv)
 {
-  grub_uint32_t manufacturer[3], max_cpuid, a, b, c, features, addr;
+  grub_err_t err;
+  grub_uint32_t addr;
   grub_uint64_t value;
   const char *ptr;
   char buf[sizeof("1122334455667788")];
 
-  /*
-   * The CPUID instruction should be used to determine whether MSRs
-   * are supported. (CPUID.01H:EDX[5] = 1)
-   */
-  if (! grub_cpu_is_cpuid_supported ())
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
+  err = grub_cpu_is_msr_supported ();
 
-  grub_cpuid (0, max_cpuid, manufacturer[0], manufacturer[2], manufacturer[1]);
-
-  if (max_cpuid < 1)
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
-
-  grub_cpuid (1, a, b, c, features);
-
-  if (!(features & (1 << 5)))
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
+  if (err != GRUB_ERR_NONE)
+    return grub_error (err, N_("RDMSR is unsupported"));
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));

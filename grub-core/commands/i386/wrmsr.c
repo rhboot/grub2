@@ -36,26 +36,15 @@ static grub_command_t cmd_write;
 static grub_err_t
 grub_cmd_msr_write (grub_command_t cmd __attribute__ ((unused)), int argc, char **argv)
 {
-  grub_uint32_t manufacturer[3], max_cpuid, a, b, c, features, addr;
+  grub_err_t err;
+  grub_uint32_t addr;
   grub_uint64_t value;
   const char *ptr;
 
-  /*
-   * The CPUID instruction should be used to determine whether MSRs
-   * are supported. (CPUID.01H:EDX[5] = 1)
-   */
-  if (!grub_cpu_is_cpuid_supported ())
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
+  err = grub_cpu_is_msr_supported ();
 
-  grub_cpuid (0, max_cpuid, manufacturer[0], manufacturer[2], manufacturer[1]);
-
-  if (max_cpuid < 1)
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
-
-  grub_cpuid (1, a, b, c, features);
-
-  if (!(features & (1 << 5)))
-    return grub_error (GRUB_ERR_BUG, N_("unsupported instruction"));
+  if (err != GRUB_ERR_NONE)
+    return grub_error (err, N_("WRMSR is unsupported"));
 
   if (argc != 2)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("two arguments expected"));
