@@ -76,7 +76,7 @@ grub_cmd_msr_read (grub_extcmd_context_t ctxt, int argc, char **argv)
   if (*ptr != '\0')
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("invalid argument"));
 
-  value = grub_msr_read (addr);
+  value = grub_rdmsr (addr);
 
   if (ctxt->state[0].set)
     {

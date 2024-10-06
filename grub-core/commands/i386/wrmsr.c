@@ -77,7 +77,7 @@ grub_cmd_msr_write (grub_command_t cmd __attribute__ ((unused)), int argc, char 
   if (*ptr != '\0')
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("invalid argument"));
 
-  grub_msr_write (addr, value);
+  grub_wrmsr (addr, value);
 
   return GRUB_ERR_NONE;
 }

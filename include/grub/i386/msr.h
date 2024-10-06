@@ -25,7 +25,7 @@
  */
 
 static inline grub_uint64_t
-grub_msr_read (grub_uint32_t msr_id)
+grub_rdmsr (grub_uint32_t msr_id)
 {
   grub_uint32_t low, high;
 
@@ -35,7 +35,7 @@ grub_msr_read (grub_uint32_t msr_id)
 }
 
 static inline void
-grub_msr_write(grub_uint32_t msr_id, grub_uint64_t msr_value)
+grub_wrmsr (grub_uint32_t msr_id, grub_uint64_t msr_value)
 {
   grub_uint32_t low = msr_value, high = msr_value >> 32;
 
