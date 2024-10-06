@@ -16,8 +16,8 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GRUB_RDMSR_H
-#define GRUB_RDMSR_H 1
+#ifndef GRUB_I386_MSR_H
+#define GRUB_I386_MSR_H 1
 
 /*
  * TODO: Add a general protection exception handler.
@@ -31,7 +31,15 @@ grub_msr_read (grub_uint32_t msr_id)
 
   asm volatile ("rdmsr" : "=a" (low), "=d" (high) : "c" (msr_id));
 
-  return ((grub_uint64_t)high << 32) | low;
+  return ((grub_uint64_t) high << 32) | low;
 }
 
-#endif /* GRUB_RDMSR_H */
+static inline void
+grub_msr_write(grub_uint32_t msr_id, grub_uint64_t msr_value)
+{
+  grub_uint32_t low = msr_value, high = msr_value >> 32;
+
+  asm volatile ("wrmsr" : : "c" (msr_id), "a" (low), "d" (high));
+}
+
+#endif /* GRUB_I386_MSR_H */

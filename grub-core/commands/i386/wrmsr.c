@@ -27,7 +27,7 @@
 #include <grub/lockdown.h>
 #include <grub/i18n.h>
 #include <grub/i386/cpuid.h>
-#include <grub/i386/wrmsr.h>
+#include <grub/i386/msr.h>
 
 GRUB_MOD_LICENSE("GPLv3+");
 

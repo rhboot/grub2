@@ -26,7 +26,7 @@
 #include <grub/extcmd.h>
 #include <grub/i18n.h>
 #include <grub/i386/cpuid.h>
-#include <grub/i386/rdmsr.h>
+#include <grub/i386/msr.h>
 
 GRUB_MOD_LICENSE("GPLv3+");
 
