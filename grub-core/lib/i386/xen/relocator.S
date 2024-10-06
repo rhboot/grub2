@@ -75,10 +75,10 @@ VARIABLE(grub_relocator_xen_mfn_list)
 	.long	0
 	movl    0(%eax, %ebp, 4), %ecx	/* mfn */
 	movl	%ebp, %ebx
-	shll	$PAGE_SHIFT, %ebx	/* virtual address (1:1 mapping) */
+	shll	$GRUB_PAGE_SHIFT, %ebx	/* virtual address (1:1 mapping) */
 	movl    %ecx, %edx
-	shll    $PAGE_SHIFT,  %ecx	/* prepare pte low part */
-	shrl    $(32 - PAGE_SHIFT),  %edx	/* pte high part */
+	shll    $GRUB_PAGE_SHIFT,  %ecx	/* prepare pte low part */
+	shrl    $(32 - GRUB_PAGE_SHIFT),  %edx	/* pte high part */
 	orl     $(GRUB_PAGE_PRESENT | GRUB_PAGE_USER), %ecx	/* pte low */
 	movl    $UVMF_INVLPG, %esi
 	movl    $__HYPERVISOR_update_va_mapping, %eax

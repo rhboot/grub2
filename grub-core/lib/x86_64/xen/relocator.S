@@ -60,9 +60,9 @@ LOCAL(cont):
 	jz	3f
 2:
 	movq	%r12, %rdi
-	shlq	$PAGE_SHIFT, %rdi	/* virtual address (1:1 mapping) */
+	shlq	$GRUB_PAGE_SHIFT, %rdi	/* virtual address (1:1 mapping) */
 	movq    (%rbx, %r12, 8), %rsi	/* mfn */
-	shlq    $PAGE_SHIFT,  %rsi
+	shlq    $GRUB_PAGE_SHIFT,  %rsi
 	orq     $(GRUB_PAGE_PRESENT | GRUB_PAGE_USER), %rsi	/* Build pte */
 	movq    $UVMF_INVLPG, %rdx
 	movq    %rcx, %r9	/* %rcx clobbered by hypercall */
