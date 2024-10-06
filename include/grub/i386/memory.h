@@ -21,6 +21,7 @@
 #define GRUB_MEMORY_CPU_HEADER	1
 
 #define GRUB_PAGE_SHIFT		12
+#define GRUB_PAGE_SIZE		(1UL << GRUB_PAGE_SHIFT)
 
 /* The flag for protected mode.  */
 #define GRUB_MEMORY_CPU_CR0_PE_ON		0x1
