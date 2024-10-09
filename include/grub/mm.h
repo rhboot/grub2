@@ -23,6 +23,7 @@
 #include <grub/err.h>
 #include <grub/types.h>
 #include <grub/symbol.h>
+#include <grub/err.h>
 #include <config.h>
 
 #ifndef NULL
@@ -55,6 +56,40 @@ void *EXPORT_FUNC(grub_realloc) (void *ptr, grub_size_t size);
 #ifndef GRUB_MACHINE_EMU
 void *EXPORT_FUNC(grub_memalign) (grub_size_t align, grub_size_t size);
 #endif
+
+typedef grub_uint64_t grub_mem_attr_t;
+
+#define GRUB_MEM_ATTR_R	((grub_mem_attr_t) 0x0000000000000004)
+#define GRUB_MEM_ATTR_W	((grub_mem_attr_t) 0x0000000000000002)
+#define GRUB_MEM_ATTR_X	((grub_mem_attr_t) 0x0000000000000001)
+
+#ifdef GRUB_MACHINE_EFI
+grub_err_t EXPORT_FUNC(grub_get_mem_attrs) (grub_addr_t addr,
+					    grub_size_t size,
+					    grub_mem_attr_t *attrs);
+grub_err_t EXPORT_FUNC(grub_update_mem_attrs) (grub_addr_t addr,
+					       grub_size_t size,
+					       grub_mem_attr_t set_attrs,
+					       grub_mem_attr_t clear_attrs);
+#else /* !GRUB_MACHINE_EFI */
+static inline grub_err_t
+grub_get_mem_attrs (grub_addr_t addr __attribute__((__unused__)),
+		    grub_size_t size __attribute__((__unused__)),
+		    grub_mem_attr_t *attrs)
+{
+  *attrs = GRUB_MEM_ATTR_R | GRUB_MEM_ATTR_W | GRUB_MEM_ATTR_X;
+  return GRUB_ERR_NONE;
+}
+
+static inline grub_err_t
+grub_update_mem_attrs (grub_addr_t addr __attribute__((__unused__)),
+		       grub_size_t size __attribute__((__unused__)),
+		       grub_mem_attr_t set_attrs __attribute__((__unused__)),
+		       grub_mem_attr_t clear_attrs __attribute__((__unused__)))
+{
+  return GRUB_ERR_NONE;
+}
+#endif /* GRUB_MACHINE_EFI */
 
 void grub_mm_check_real (const char *file, int line);
 #define grub_mm_check() grub_mm_check_real (GRUB_FILE, __LINE__);
