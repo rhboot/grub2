@@ -635,6 +635,94 @@ grub_dl_relocate_symbols (grub_dl_t mod, void *ehdr)
   return GRUB_ERR_NONE;
 }
 
+/* Only define this on EFI to save space in core. */
+#ifdef GRUB_MACHINE_EFI
+static grub_err_t
+grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
+{
+  unsigned i;
+  const Elf_Shdr *s;
+  const Elf_Ehdr *e = ehdr;
+  grub_err_t err;
+#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
+  !defined (__loongarch__)
+  grub_size_t arch_addralign = GRUB_DL_ALIGN;
+  grub_addr_t tgaddr;
+  grub_size_t tgsz;
+#endif
+
+  for (i = 0, s = (const Elf_Shdr *) ((const char *) e + e->e_shoff);
+       i < e->e_shnum;
+       i++, s = (const Elf_Shdr *) ((const char *) s + e->e_shentsize))
+    {
+      grub_dl_segment_t seg;
+      grub_uint64_t set_attrs = GRUB_MEM_ATTR_R;
+      grub_uint64_t clear_attrs = GRUB_MEM_ATTR_W | GRUB_MEM_ATTR_X;
+
+      for (seg = mod->segment; seg; seg = seg->next)
+	/* Does this ELF section's index match GRUB DL segment? */
+	if (seg->section == s->sh_info)
+	  break;
+
+      /* No GRUB DL segment found for this ELF section, skip it. */
+      if (!seg)
+	continue;
+
+      if (seg->size == 0 || !(s->sh_flags & SHF_ALLOC))
+	continue;
+
+      if (s->sh_flags & SHF_WRITE)
+	{
+	  set_attrs |= GRUB_MEM_ATTR_W;
+	  clear_attrs &= ~GRUB_MEM_ATTR_W;
+	}
+
+      if (s->sh_flags & SHF_EXECINSTR)
+	{
+	  set_attrs |= GRUB_MEM_ATTR_X;
+	  clear_attrs &= ~GRUB_MEM_ATTR_X;
+	}
+
+      err = grub_update_mem_attrs ((grub_addr_t) seg->addr, seg->size,
+				   set_attrs, clear_attrs);
+      if (err != GRUB_ERR_NONE)
+	return err;
+    }
+
+#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
+  !defined (__loongarch__)
+  tgaddr = grub_min ((grub_addr_t) mod->tramp, (grub_addr_t) mod->got);
+  tgsz = grub_max ((grub_addr_t) mod->trampptr, (grub_addr_t) mod->gotptr) - tgaddr;
+
+  if (tgsz)
+    {
+      tgsz = ALIGN_UP (tgsz, arch_addralign);
+
+      if (tgaddr < (grub_addr_t) mod->base ||
+	  tgsz > (grub_addr_t) -1 - tgaddr ||
+	  tgaddr + tgsz > (grub_addr_t) mod->base + mod->sz)
+	return grub_error (GRUB_ERR_BUG,
+			   "BUG: trying to protect pages outside of module "
+			   "allocation (\"%s\"): module base %p, size 0x%"
+			   PRIxGRUB_SIZE "; tramp/GOT base 0x%" PRIxGRUB_ADDR
+			   ", size 0x%" PRIxGRUB_SIZE,
+			   mod->name, mod->base, mod->sz, tgaddr, tgsz);
+      err = grub_update_mem_attrs (tgaddr, tgsz, GRUB_MEM_ATTR_R | GRUB_MEM_ATTR_X, GRUB_MEM_ATTR_W);
+      if (err != GRUB_ERR_NONE)
+	return err;
+    }
+#endif
+
+  return GRUB_ERR_NONE;
+}
+#else
+static grub_err_t
+grub_dl_set_mem_attrs (grub_dl_t mod __attribute__ ((unused)), void *ehdr __attribute__ ((unused)))
+{
+  return GRUB_ERR_NONE;
+}
+#endif
+
 /* Load a module from core memory.  */
 grub_dl_t
 grub_dl_load_core_noinit (void *addr, grub_size_t size)
@@ -681,7 +769,8 @@ grub_dl_load_core_noinit (void *addr, grub_size_t size)
       || grub_dl_resolve_dependencies (mod, e)
       || grub_dl_load_segments (mod, e)
       || grub_dl_resolve_symbols (mod, e)
-      || grub_dl_relocate_symbols (mod, e))
+      || grub_dl_relocate_symbols (mod, e)
+      || grub_dl_set_mem_attrs (mod, e))
     {
       mod->fini = 0;
       grub_dl_unload (mod);
