@@ -198,7 +198,6 @@ legacy_file (const char *filename)
       const char **args = grub_malloc (sizeof (args[0]));
       if (!args)
 	{
-	  grub_file_close (file);
 	  grub_free (suffix);
 	  grub_free (entrysrc);
 	  return grub_errno;
