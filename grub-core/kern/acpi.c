@@ -75,7 +75,7 @@ grub_acpi_xsdt_find_table (struct grub_acpi_table_header *xsdt, const char *sig)
     return 0;
 
   ptr = (grub_unaligned_uint64_t *) (xsdt + 1);
-  s = (xsdt->length - sizeof (*xsdt)) / sizeof (grub_uint32_t);
+  s = (xsdt->length - sizeof (*xsdt)) / sizeof (grub_uint64_t);
   for (; s; s--, ptr++)
     {
       struct grub_acpi_table_header *tbl;
