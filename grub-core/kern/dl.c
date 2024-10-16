@@ -646,7 +646,7 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
   grub_err_t err;
 #if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
   !defined (__loongarch__)
-  grub_size_t arch_addralign = GRUB_DL_ALIGN;
+  grub_size_t arch_addralign = DL_ALIGN;
   grub_addr_t tgaddr;
   grub_size_t tgsz;
 #endif
