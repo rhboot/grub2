@@ -212,24 +212,26 @@ iterate_device (const char *name, void *data)
                     struct uuid_context uuid_ctx;
                     int ret = 0;
 
-                    get_device_uuid(name, &quid_name);
-                    if (!grub_strcmp(quid_name, ctx->key))
+                    if (get_device_uuid(name, &quid_name))
                       {
-                        uuid_ctx.name = name;
-                        uuid_ctx.uuid = quid_name;
+                      if (!grub_strcmp(quid_name, ctx->key))
+                        {
+                          uuid_ctx.name = name;
+                          uuid_ctx.uuid = quid_name;
 
-                        ret = grub_device_iterate (check_for_duplicate, &uuid_ctx);
+                          ret = grub_device_iterate (check_for_duplicate, &uuid_ctx);
 
-                        if (ret)
-                          {
-                            grub_printf("Duplicated media UUID found, rebooting ...\n");
-                            grub_sleep(10);
-                            grub_reboot();
-                          }
-                      }
+                          if (ret)
+                            {
+                              grub_printf("Duplicated media UUID found, rebooting ...\n");
+                              grub_sleep(10);
+                              grub_reboot();
+                            }
+                        }
 
-                    if (quid_name) grub_free (quid_name);
+                      if (quid_name) grub_free (quid_name);
 
+                    }
                   }
               }
 	  }
