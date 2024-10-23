@@ -51,12 +51,12 @@ grub_mkimage_load_image64 (const char *kernel_path,
 			   const struct grub_install_image_target_desc *image_target);
 void
 grub_mkimage_generate_elf32 (const struct grub_install_image_target_desc *image_target,
-			     int note, size_t appsig_size, char **core_img, size_t *core_size,
+			     int note, size_t appsig_size, char *sbat, char **core_img, size_t *core_size,
 			     Elf32_Addr target_addr,
 			     struct grub_mkimage_layout *layout);
 void
 grub_mkimage_generate_elf64 (const struct grub_install_image_target_desc *image_target,
-			     int note, size_t appsig_size, char **core_img, size_t *core_size,
+			     int note, size_t appsig_size, char *sbat, char **core_img, size_t *core_size,
 			     Elf64_Addr target_addr,
 			     struct grub_mkimage_layout *layout);
 
