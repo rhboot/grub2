@@ -377,14 +377,14 @@ grub_menu_execute_entry(grub_menu_entry_t entry, int auto_boot)
   if (ptr && ptr[0] && ptr[1])
     grub_env_set ("default", ptr + 1);
 
-  grub_script_execute_new_scope (entry->sourcecode, entry->argc, entry->args);
+  err = grub_script_execute_new_scope (entry->sourcecode, entry->argc, entry->args);
 
   if (errs_before != grub_err_printed_errors)
     grub_wait_after_message ();
 
   errs_before = grub_err_printed_errors;
 
-  if (grub_errno == GRUB_ERR_NONE && grub_loader_is_loaded ())
+  if (err == GRUB_ERR_NONE && grub_loader_is_loaded ())
     /* Implicit execution of boot, only if something is loaded.  */
     err = grub_command_execute ("boot", 0, 0);
 
