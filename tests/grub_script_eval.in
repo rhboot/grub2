@@ -4,3 +4,11 @@ eval echo "Hello world"
 valname=tst
 eval $valname=hi
 echo $tst
+
+if eval "
+false
+"; then
+  echo should have failed
+else
+  echo failed as expected
+fi
