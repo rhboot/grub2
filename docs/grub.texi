@@ -2680,6 +2680,9 @@ The default interface's MAC address.  Read-only.  This is alias for the
 The default server used by network drives (@pxref{Device syntax}).  Read-write,
 although setting this is only useful before opening a network device.
 
+@item pxe_default_server
+This performs the same function as @samp{net_default_server}.
+
 @end table
 
 
@@ -3310,8 +3313,6 @@ These variables have special meaning to GRUB.
 * net_default_server::
 * pager::
 * prefix::
-* pxe_blksize::
-* pxe_default_gateway::
 * pxe_default_server::
 * root::
 * shim_lock::
@@ -3753,18 +3754,6 @@ The location of the @samp{/boot/grub} directory as an absolute file name
 on information provided by @command{grub-install}.  GRUB modules are
 dynamically loaded from this directory, so it must be set correctly in order
 for many parts of GRUB to work.
-
-
-@node pxe_blksize
-@subsection pxe_blksize
-
-@xref{Network}.
-
-
-@node pxe_default_gateway
-@subsection pxe_default_gateway
-
-@xref{Network}.
 
 
 @node pxe_default_server
