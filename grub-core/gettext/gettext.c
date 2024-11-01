@@ -520,6 +520,10 @@ GRUB_MOD_INIT (gettext)
 
 GRUB_MOD_FINI (gettext)
 {
+  grub_register_variable_hook ("locale_dir", NULL, NULL);
+  grub_register_variable_hook ("secondary_locale_dir", NULL, NULL);
+  grub_register_variable_hook ("lang", NULL, NULL);
+
   grub_gettext_delete_list (&main_context);
   grub_gettext_delete_list (&secondary_context);
 
