@@ -690,7 +690,9 @@ GRUB_MOD_FINI(normal)
   grub_xputs = grub_xputs_saved;
 
   grub_set_history (0);
-  grub_register_variable_hook ("pager", 0, 0);
+  grub_register_variable_hook ("pager", NULL, NULL);
+  grub_register_variable_hook ("color_normal", NULL, NULL);
+  grub_register_variable_hook ("color_highlight", NULL, NULL);
   grub_fs_autoload_hook = 0;
   grub_unregister_command (cmd_clear);
 }
