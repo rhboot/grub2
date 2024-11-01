@@ -982,6 +982,8 @@ GRUB_MOD_INIT(pgp)
 
 GRUB_MOD_FINI(pgp)
 {
+  grub_register_variable_hook ("check_signatures", NULL, NULL);
+  grub_env_unset ("check_signatures");
   grub_verifier_unregister (&grub_pubkey_verifier);
   grub_unregister_extcmd (cmd);
   grub_unregister_extcmd (cmd_trust);
