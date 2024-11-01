@@ -668,7 +668,7 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
 
       for (seg = mod->segment; seg; seg = seg->next)
 	/* Does this ELF section's index match GRUB DL segment? */
-	if (seg->section == s->sh_info)
+	if (seg->section == i)
 	  break;
 
       /* No GRUB DL segment found for this ELF section, skip it. */
