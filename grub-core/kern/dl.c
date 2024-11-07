@@ -623,6 +623,9 @@ grub_dl_relocate_symbols (grub_dl_t mod, void *ehdr)
 	grub_dl_segment_t seg;
 	grub_err_t err;
 
+	if (!(s->sh_flags & SHF_INFO_LINK))
+	  continue;
+
 	/* Find the target segment.  */
 	for (seg = mod->segment; seg; seg = seg->next)
 	  if (seg->section == s->sh_info)
