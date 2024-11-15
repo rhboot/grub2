@@ -1,0 +1,129 @@
+From c0f39b9eae745a36c44fc0dfa106675405ea154f Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 16 Aug 2024 14:18:44 +0800
+Subject: [PATCH 08/13] asn1_test: rename the main functions to the test names
+
+This commit changes the main functions in the testcases to the test
+names so that the real 'main' test function can invokes them.
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/tests/asn1/tests/CVE-2018-1000654.c   | 2 +-
+ grub-core/tests/asn1/tests/Test_overflow.c      | 2 +-
+ grub-core/tests/asn1/tests/Test_simple.c        | 2 +-
+ grub-core/tests/asn1/tests/Test_strings.c       | 2 +-
+ grub-core/tests/asn1/tests/object-id-decoding.c | 2 +-
+ grub-core/tests/asn1/tests/object-id-encoding.c | 2 +-
+ grub-core/tests/asn1/tests/octet-string.c       | 2 +-
+ grub-core/tests/asn1/tests/reproducers.c        | 2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/grub-core/tests/asn1/tests/CVE-2018-1000654.c b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+index 98c2a8b8c..a935ab541 100644
+--- a/grub-core/tests/asn1/tests/CVE-2018-1000654.c
++++ b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+@@ -27,7 +27,7 @@
+ #include "CVE-2018-1000654-2_asn1_tab.h"
+ 
+ int
+-main (int argc, char *argv[])
++test_CVE_2018_1000654 (void)
+ {
+   int result, verbose = 0;
+   asn1_node definitions = NULL;
+diff --git a/grub-core/tests/asn1/tests/Test_overflow.c b/grub-core/tests/asn1/tests/Test_overflow.c
+index 73e9d8c68..bc28d0826 100644
+--- a/grub-core/tests/asn1/tests/Test_overflow.c
++++ b/grub-core/tests/asn1/tests/Test_overflow.c
+@@ -23,7 +23,7 @@
+ #include "asn1_test.h"
+ 
+ int
+-main (int argc, char **argv)
++test_overflow (void)
+ {
+   /* Test that values larger than long are rejected.  This has worked
+      fine with all versions of libtasn1. */
+diff --git a/grub-core/tests/asn1/tests/Test_simple.c b/grub-core/tests/asn1/tests/Test_simple.c
+index 3aa8ce21b..12993bfba 100644
+--- a/grub-core/tests/asn1/tests/Test_simple.c
++++ b/grub-core/tests/asn1/tests/Test_simple.c
+@@ -73,7 +73,7 @@ static const struct tv tv[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_simple (void)
+ {
+   int result;
+   unsigned char der[100];
+diff --git a/grub-core/tests/asn1/tests/Test_strings.c b/grub-core/tests/asn1/tests/Test_strings.c
+index c49229af9..2538f2558 100644
+--- a/grub-core/tests/asn1/tests/Test_strings.c
++++ b/grub-core/tests/asn1/tests/Test_strings.c
+@@ -70,7 +70,7 @@ static const struct tv ber[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_strings (void)
+ {
+   int ret;
+   unsigned char tl[ASN1_MAX_TL_SIZE];
+diff --git a/grub-core/tests/asn1/tests/object-id-decoding.c b/grub-core/tests/asn1/tests/object-id-decoding.c
+index 0a77db752..fdbb8ea21 100644
+--- a/grub-core/tests/asn1/tests/object-id-decoding.c
++++ b/grub-core/tests/asn1/tests/object-id-decoding.c
+@@ -70,7 +70,7 @@ static const struct tv tv[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_object_id_decoding (void)
+ {
+   char str[128];
+   int ret, ret_len;
+diff --git a/grub-core/tests/asn1/tests/object-id-encoding.c b/grub-core/tests/asn1/tests/object-id-encoding.c
+index e32835830..a497015e3 100644
+--- a/grub-core/tests/asn1/tests/object-id-encoding.c
++++ b/grub-core/tests/asn1/tests/object-id-encoding.c
+@@ -80,7 +80,7 @@ static const struct tv tv[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_object_id_encoding (void)
+ {
+   unsigned char der[128];
+   int ret, der_len, i, j;
+diff --git a/grub-core/tests/asn1/tests/octet-string.c b/grub-core/tests/asn1/tests/octet-string.c
+index 8e803af41..8c49c6e0c 100644
+--- a/grub-core/tests/asn1/tests/octet-string.c
++++ b/grub-core/tests/asn1/tests/octet-string.c
+@@ -108,7 +108,7 @@ static const struct tv tv[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_octet_string (void)
+ {
+   unsigned char str[100];
+   unsigned char der[100];
+diff --git a/grub-core/tests/asn1/tests/reproducers.c b/grub-core/tests/asn1/tests/reproducers.c
+index ce24e0991..e843b74b9 100644
+--- a/grub-core/tests/asn1/tests/reproducers.c
++++ b/grub-core/tests/asn1/tests/reproducers.c
+@@ -49,7 +49,7 @@ const asn1_static_node tab[] = {
+ };
+ 
+ int
+-main (int argc, char *argv[])
++test_reproducers (void)
+ {
+   int result, verbose = 0;
+   asn1_node definitions = NULL;
+-- 
+2.43.0
+
