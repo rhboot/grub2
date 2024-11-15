@@ -6431,6 +6431,8 @@ you forget a command, you can run the command @command{help}
 * smbios::                      Retrieve SMBIOS information
 * source::                      Read a configuration file in same context
 * test::                        Check file types and compare values
+* tpm2_key_protector_init::     Initialize the TPM2 key protector
+* tpm2_key_protector_clear::    Clear the TPM2 key protector
 * true::                        Do nothing, successfully
 * trust::                       Add public key to list of trusted keys
 * unset::                       Unset an environment variable
@@ -7989,6 +7991,58 @@ either @var{expression1} or @var{expression2} is true
 @end table
 @end deffn
 
+@node tpm2_key_protector_init
+@subsection tpm2_key_protector_init
+
+@deffn Command tpm2_key_protector_init [@option{-m} mode] | [@option{-p} pcrlist] | [@option{-b} pcrbank] | [ [@option{-T} tpm2key_file] | [@option{-k} keyfile] ] | [@option{-s} handle] | [@option{-a} srk_type] | [@option{-n} nv_index]
+Initialize the TPM2 key protector to unseal the key for the @command{cryptomount}
+(@pxref{cryptomount}) command. There are two supported modes,
+SRK(@kbd{srk}) and NV index(@kbd{nv}), to be specified by the option
+@option{-m}. The default mode is SRK. The main difference between SRK mode
+and NV index mode is the storage of the sealed key. For SRK mode, the sealed
+key is stored in a file while NV index mode stores the sealed key in the
+non-volatile memory inside TPM with a given NV index.
+
+The @option{-p} and @option{-b} options are used to supply the PCR list and
+bank that the key is sealed with. The PCR list is a comma-separated list, e.g.,
+'0,2,4,7,9', to represent the involved PCRs, and the default is '7'. The PCR
+bank is chosen by selecting a hash algorithm. The current supported PCR banks
+are SHA1, SHA256, SHA384, and SHA512, and the default is SHA256.
+
+Some options are only available for the specific mode. The SRK-specific
+options are @option{-T}, @option{-k}, @option{-a}, and @option{-s}. On the
+other hand, the NV index-specific option is @option{-n}.
+
+The key file for SRK mode can be supplied with either @option{-T} or
+@option{-k}. The @option{-T} option is for the path to the key file in
+TPM 2.0 Key File format. Since the parameters for the TPM commands are written
+in the file, there is no need to set the PCR list(@option{-p}) and
+bank(@option{-b}) when using the @option{-T} option. The @option{-k} option
+is for the key file in the raw format, and the @option{-p} and @option{-b}
+options are necessary for the non-default PCR list or bank. In general,
+TPM 2.0 Key File format is preferred due to the simplified GRUB command
+options and the authorized policy support
+
+Besides the key file, there are two options, @option{-a} and @option{-s}, to
+tweak the TPM Storage Root Key (SRK). The SRK can be either created at
+runtime or stored in the non-volatile memory. When creating SRK at runtime,
+GRUB provides the SRK template to the TPM to create the key. There are two SRK
+templates for the @option{-a} option, ECC and RSA, and the default is ECC.
+If the SRK is stored in a specific handle, e.g. @code{0x81000001}, the
+@option{-s} option can be used to set the handle to notify GRUB to load
+the SRK from the given handle.
+
+The only NV index-specific option is the @option{-n} option which is used to
+set the NV index containing the sealed key. Then GRUB can load the sealed
+key and unseal it with the given PCR list and bank.
+@end deffn
+
+@node tpm2_key_protector_clear
+@subsection tpm2_key_protector_clear
+
+@deffn Command tpm2_key_protector_clear
+Clear the TPM2 key protector if previously initialized.
+@end deffn
 
 @node true
 @subsection true
@@ -8517,6 +8571,7 @@ environment variables and commands are listed in the same order.
 * Secure Boot Advanced Targeting::   Embedded information for generation number based revocation
 * Measured Boot::                    Measuring boot components
 * Lockdown::                         Lockdown when booting on a secure setup
+* TPM2 key protector::               Managing disk key with TPM2 key protector
 @end menu
 
 @node Authentication and authorisation
@@ -8759,6 +8814,310 @@ be restricted and some operations/commands cannot be executed.
 
 The @samp{lockdown} variable is set to @samp{y} when the GRUB is locked down.
 Otherwise it does not exit.
+
+@node TPM2 key protector
+@section TPM2 key protector in GRUB
+
+TPM2 key protector extends measured boot to unlock the encrypted partition
+without user intervention. It uses the TPM Storage Root Key (SRK) to seal
+the disk key with a given set of PCR values. If the system state matches,
+i.e. PCR values match the sealed PCR set, TPM2 key protector unseals the
+disk key for @command{cryptomount} (@pxref{cryptomount}) to unlock the
+encrypted partition. In case the unsealed key fails to unlock the
+partition, @command{cryptomount} falls back to the passphrase prompt.
+
+Please note that TPM2 key protector uses the SRK in the owner hierarchy
+@emph{without} authorization. If the owner hierarchy is password-protected,
+TPM2 key protector may fail to unseal the key due to the absence of the
+password. For the systems that already enable the password protection for the
+owner hierarchy, the following command removes the password protection with
+the existing password.
+
+@example
+# @kbd{tpm2_changeauth -c owner -p password}
+@end example
+
+There are two supported modes to store the sealed key, SRK and NV index.
+The details will be addressed in later sections.
+
+TPM2 key protector is currently only supported on EFI and EMU platforms.
+
+@subsection TPM PCR usage
+
+Since TPM2 key protector relies on PCRs to check the system state, it is
+important to decide which PCRs to seal the key with. The following table
+lists uses of PCRs and the measured objects on EFI platforms.
+
+@multitable @columnfractions 0.1 0.2 0.7
+@headitem PCR @tab Used by @tab Measured Objects
+@item 0
+@tab Firmware
+@tab Core system firmware executable code
+@item 1
+@tab Firmware
+@tab Core system firmware data/host platform configuration; typically
+contains serial and model numbers
+@item 2
+@tab Firmware
+@tab Extended or pluggable executable code; includes option ROMs on
+pluggable hardware
+@item 3
+@tab Firmware
+@tab Extended or pluggable firmware data; includes information about
+pluggable hardware
+@item 4
+@tab Firmware
+@tab Boot loader and additional drivers; binaries and extensions loaded
+by the boot loader
+@item 5
+@tab Firmware
+@tab GPT/Partition table
+@item 7
+@tab Firmware
+@tab SecureBoot state
+@item 8
+@tab GRUB
+@tab Commands and kernel command line
+@item 9
+@tab GRUB
+@tab All files read (including kernel image)
+@item 9
+@tab Linux Kernel
+@tab All passed initrds (when the new LOAD_FILE2 initrd protocol is used)
+@item 10
+@tab Linux Kernel
+@tab Protection of the IMA measurement log
+@item 14
+@tab shim
+@tab “MOK” certificates and hashes
+@end multitable
+
+PCR 0, 2, 4, and 7 can be used to check the integrity of the firmware code
+and bootloaders. PCR 8 and 9 are useful to check the file and data processed
+by GRUB. PCRs 10, 11, 12, 13, and 15 are controlled by the operating system,
+so those PCRs are usually still in the initial state when GRUB is running.
+
+In general, it is nice to include PCR 0, 2, 4, and 7 to ensure the integrity
+of the firmware and bootloaders. For PCR 8 and 9, a sophisticated tool is
+required to examine the GRUB configuration files and the files to be loaded
+to calculate the correct PCR values.
+
+Please note that PCRs are sensitive to any change, so an update of a component
+could invalidate the sealed key, due to the so-called PCR brittleness. For the
+bootloader update, PCR 4 may be affected. This can be mitigated by extracting
+the events from the TPM event log and predict the value with the updated
+bootloader binary. On the other hand, it is difficult to predict PCR 0~7 after
+a firmware update since the content of the code and the order of drivers may
+not follow the TPM event log from the previous firmware version, so it is
+necessary to reboot the system to update the measurement results of PCR 0~7
+and seal or sign the sealed key again.
+
+Reference: @url{https://uapi-group.org/specifications/specs/linux_tpm_pcr_registry/, Linux TPM PCR Registry}
+
+@subsection Setting up the extra disk key
+
+Instead of using the existing password, it is recommended to seal a new
+random disk key and use the existing password for recovery.
+
+Here are the sample commands to create a 128 random bytes key file and
+enroll the key into the target partition (sda2).
+
+@example
+# @kbd{dd if=/dev/urandom of=luks.key bs=1 count=128}
+# @kbd{cryptsetup luksAddKey /dev/sda2 luks.key --pbkdf=pbkdf2 --hash=sha512}
+@end example
+
+@subsection SRK mode
+
+To unlock the partition with SRK mode, assume that the sealed key is in
+@file{(hd0,gpt1)/efi/grub/sealed.tpm}, the following GRUB commands
+unseal the disk key with SRK mode and supply it to @command{cryptomount}.
+
+@example
+grub> @kbd{tpm2_key_protector_init -T (hd0,gpt1)/efi/grub/sealed.tpm}
+grub> @kbd{cryptomount -u <UUID> -P tpm2}
+@end example
+
+There are two programs to create the sealed key for SRK mode: @command{grub-protect}
+and @command{pcr-oracle} (@url{https://github.com/okirch/pcr-oracle}).
+
+The following sample command uses @command{grub-protect} to seal the random
+key, @file{luks.key}, with PCR 0, 2, 4 and 7 in TPM 2.0 Key File format.
+
+@example
+@group
+# @kbd{grub-protect --action=add \
+               --protector=tpm2 \
+               --tpm2-pcrs=0,2,4,7 \
+               --tpm2key \
+               --tpm2-keyfile=luks.key \
+               --tpm2-outfile=/boot/efi/efi/grub/sealed.tpm}
+@end group
+@end example
+
+@command{grub-protect} only seals the key with the current PCR values.
+Therefore, when a boot component, such as shim or GRUB, is updated, it is
+necessary to reboot the system to update the measurement results and seal
+the key again. That means the random disk key has to be stored in cleartext
+for the next key sealing. Besides this, the measurement result of some PCRs
+may differ between boot time and OS runtime. For example, PCR 9 measures the
+files loaded by GRUB including the Linux kernel and initrd. To unlock the disk
+containing the kernel and initrd, the key has to be sealed with PCR 9 value
+before loading the kernel and initrd. However, PCR 9 changes after GRUB
+loading the kernel and initrd, so PCR 9 at OS runtime cannot be used directly
+for key sealing.
+
+To solve these problems, @command{pcr-oracle} takes a different approach. It
+reads the TPM eventlog and predicts the PCR values. Besides,
+@command{pcr-oracle} also supports ``authorized policy'' which allows the
+PCR policy to be updated with a valid signature, so that the user only seals
+the random disk key once. If at some later time the PCR values change due to
+an update of the system firmware, bootloader, or config file, the user just
+needs to update the signature of the PCR policy.
+
+To seal the key with the authorized policy, the first thing is to generate
+the RSA policy key, @file{policy-key.pem}, and the authorized policy file,
+@file{authorized.policy}. In this example, PCR 0, 2, 4, 7 and 9 are chosen
+for key sealing.
+
+@example
+@group
+# @kbd{pcr-oracle --rsa-generate-key \
+             --private-key policy-key.pem \
+             --auth authorized.policy \
+             create-authorized-policy 0,2,4,7,9}
+@end group
+@end example
+
+Then, we seal the random disk key, @file{luks.key}, with the authorized
+policy file and save the sealed key in @file{sealed.key}.
+
+@example
+@group
+# @kbd{pcr-oracle --key-format tpm2.0 \
+             --auth authorized.policy \
+             --input luks.key \
+             --output sealed.key \
+             seal-secret}
+@end group
+@end example
+
+Since we now have the sealed key, we can remove the random disk key file
+@file{luks.key}.
+
+The last step is to sign the predicted PCR policy and save the final key
+file, @file{sealed.tpm}.
+
+@example
+@group
+# @kbd{pcr-oracle --key-format tpm2.0 \
+             --private-key policy-key.pem \
+             --from eventlog \
+             --stop-event "grub-file=grub.cfg" \
+             --after \
+             --input sealed.key \
+             --output /boot/efi/efi/grub/sealed.tpm \
+             sign 0,2,4,7,9}
+@end group
+@end example
+
+Here we also set a stop event for the prediction. With
+@kbd{--stop-event grub-file=grub.cfg --after}, @command{pcr-oracle} stops
+the calculation of PCR values right after GRUB loads @file{grub.cfg}.
+
+When/After the shim or GRUB are updated, it only requires to run the last
+@command{pcr-oracle} command to update the predicted PCR policy.
+
+@subsection NV index mode
+
+Instead of storing the sealed key in a file, NV index mode uses the TPM
+non-volatile memory to store the sealed key.
+
+The following sample commands use tpm2-tools (@url{https://github.com/tpm2-software/tpm2-tools})
+commands to seal @file{luks.key} into the specific NV index: @kbd{0x81000000}.
+
+First, we need to create the object file for the primary key, i.e. storage
+root key (SRK) with the default key settings in GRUB: SHA256 hash algorithm
+and ECC key algorithm.
+
+@example
+# @kbd{tpm2_createprimary -C o -g sha256 -G ecc -c primary.ctx}
+@end example
+
+The next commands collect the current values of PCR 0, 2, 4, and 7 and saves
+them in @file{pcr.dat}.
+
+@example
+# @kbd{tpm2_startauthsession -S session.dat}
+# @kbd{tpm2_policypcr -S session.dat -l sha256:0,2,4,7 -f pcrs.dat -L policy.dat}
+# @kbd{tpm2_flushcontext session.dat}
+@end example
+
+The last commands seal @file{luks.key} with the primary key and stores the
+result in @kbd{0x81000000}.
+
+@example
+# @kbd{cat luks.key | tpm2_create -C primary.ctx -u key.pub -r key.priv -L policy.dat -i-}
+# @kbd{tpm2_load -C primary.ctx -u key.pub -r key.priv -n sealing.name -c sealing.ctx}
+# @kbd{tpm2_evictcontrol -C o -c sealing.ctx 0x81000000}
+@end example
+
+To unseal the key, we have to specify the mode @kbd{nv}, the NV index
+@kbd{0x81000000}, and the PCRs @kbd{0,2,4,7} for the @command{tpm2_key_protector_init}
+command.
+
+@example
+grub> @kbd{tpm2_key_protector_init --mode=nv --nvindex=0x81000000 --pcrs=0,2,4,7}
+grub> @kbd{cryptomount -u <UUID> --protector tpm2}
+@end example
+
+@subsection Setting up software TPM for EMU platform
+
+In order to test TPM2 key protector and TPM2 Software Stack (TSS2), it is
+useful to set up a software TPM (swtpm) instance and run the commands on the
+EMU platform.
+
+Here are the commands to start a swtpm instance which provides a character
+device interface. To store the TPM states, the directory, @file{swtpm-state},
+is created before the @command{swtpm} command.  All the messages are stored
+in @file{swtpm.log} including the name of the character device.
+
+@example
+# @kbd{mkdir swtpm-state}
+@group
+# @kbd{swtpm chardev --vtpm-proxy --tpmstate dir=swtpm-state \
+        --tpm2 --ctrl type=unixio,path="swtpm-state/ctrl" \
+        --flags startup-clear --daemon > swtpm.log}
+@end group
+@end example
+
+Then, we extract the name of the character device from @file{swtpm.log} and
+save it to the variable, @samp{tpm2dev}.
+
+@example
+# @kbd{tpm2dev=$(grep "New TPM device" swtpm.log | cut -d' ' -f 4)}
+@end example
+
+Now we can start @kbd{grub-emu} with @kbd{--tpm-device $tpm2dev} to interact
+with the swtpm instance.
+
+@example
+# @kbd{grub-emu --tpm-device $tpm2dev}
+@end example
+
+On the host, the tpm2-tools commands can interact with the swtpm instance by
+setting @samp{TPM2TOOLS_TCTI}.
+
+@example
+# @kbd{export TPM2TOOLS_TCTI="device:$tpm2dev"}
+@end example
+
+When the test is done, use @kbd{swtpm_ioctl} to send the shutdown
+command through the swtpm control channel.
+
+@example
+# @kbd{swtpm_ioctl -s --unix swtpm-state/ctrl}
+@end example
 
 @node Platform limitations
 @chapter Platform limitations
@@ -9200,6 +9559,7 @@ bootability on other machines.
 * Invoking grub-mkrescue::      Make a GRUB rescue image
 * Invoking grub-mount::         Mount a file system using GRUB
 * Invoking grub-probe::         Probe device information for GRUB
+* Invoking grub-protect::       Protect a disk key with a key protector
 * Invoking grub-script-check::  Check GRUB script file for syntax errors
 @end menu
 
@@ -9580,6 +9940,171 @@ System device name for the whole disk.
 @itemx --verbose
 Print verbose messages.
 @end table
+
+
+@node Invoking grub-protect
+@section Invoking grub-protect
+
+The program @command{grub-protect} protects a disk encryption key with
+a specified key protector.
+
+@table @option
+@item --help
+Print a summary of the command-line options and exit.
+
+@item --version
+Print the version number of GRUB and exit.
+
+@item -a add|remove
+@itemx --action=add|remove
+Add or remove a key protector to or from a key.
+
+@item -p @var{protector}
+@itemx --protector=@var{protector}
+Set the key protector. Currently, @samp{tpm2} is the only supported key
+protector.
+
+@item --tpm2-asymmetric=@var{type}
+Choose the the type of SRK. The valid options are @samp{RSA} (@samp{RSA2048})
+and @samp{ECC} (@samp{ECC_NIST_P256}).(default: @samp{ECC})
+
+@item --tpm2-bank=@var{alg}
+Choose bank of PCRs used to authorize key release: @samp{SHA1}, @samp{SHA256},
+@samp{SHA384}, or @samp{SHA512}. (default: @samp{SHA256})
+
+@item --tpm2-device=@var{device}
+Set the path to the TPM2 device. (default: @samp{/dev/tpm0})
+
+@item --tpm2-evict
+Evict a previously persisted SRK from the TPM, if any.
+
+@item --tpm2-keyfile=@var{file}
+Set the path to a file that contains the cleartext key to protect.
+
+@item --tpm2-outfile=@var{file}
+Set the path to the file that will contain the key after sealing
+(must be accessible to GRUB during boot).
+
+@item --tpm2-pcrs=@var{pcrs}
+Set a comma-separated list of PCRs used to authorize key release e.g., @samp{7,11}.
+Please be aware that PCR 0~7 are used by the firmware and the measurement result
+may change after a firmware update (for baremetal systems) or a package
+(OVMF/SLOF) update in the VM host. This may lead to the failure of key
+unsealing. (default: @samp{7})
+
+@item --tpm2-srk=@var{handle}
+Set the SRK handle, e.g. @samp{0x81000000}, if the SRK is to be made persistent.
+
+@item --tpm2key
+Use TPM 2.0 Key File format.
+
+@end table
+
+Before sealing the key, please check the TPM PCR usage
+(@pxref{TPM2 key protector, TPM PCR usage}) to choose a proper set of PCRs.
+
+Assume that there is a key file, @file{luks.key}, to be sealed with PCR 0, 2,
+4, and 7, and here is the @command{grub-protect} command to create the sealed
+key file:
+
+@example
+@group
+# @kbd{grub-protect --action=add \
+               --protector=tpm2 \
+               --tpm2-pcrs=0,2,4,7 \
+               --tpm2key \
+               --tpm2-keyfile=luks.key \
+               --tpm2-outfile=/boot/efi/efi/grub/sealed.tpm}
+@end group
+@end example
+
+Then, GRUB can unlock the target partition with the following commands:
+
+@example
+grub> @kbd{tpm2_key_protector_init -T (hd0,gpt1)/efi/grub/sealed.tpm}
+grub> @kbd{cryptomount -u <UUID> -P tpm2}
+@end example
+
+In most of cases, the user only needs to create the key with the `add' action.
+If auto-unlocking is unwanted, just remove the file and the
+@command{tpm2_key_protector_init} command and invoke the @command{cryptomount}
+command without @kbd{-P tpm2}.
+
+The only use case for the `remove' action is when the SRK is made persistent.
+
+There are two supported SRKs in @command{grub-protect}: @samp{RSA} and @samp{ECC}.
+Due to slower key generation, some users of the @samp{RSA} SRK may prefer
+making it persistent so that the TPM can skip the SRK generation when GRUB tries
+to unseal the key.
+
+The available persistent handles can be checked with @command{tpm2_getcap}.
+
+@example
+@group
+# @kbd{tpm2_getcap properties-variable}
+...
+TPM2_PT_HR_PERSISTENT: 0x0
+TPM2_PT_HR_PERSISTENT_AVAIL: 0x41
+...
+@end group
+@end example
+
+In this system, there is no persistent handle. A TPM handle is an unsigned
+32-bit integer, and the persistent handles starts with @samp{0x81}. Here
+we choose the well-known persistent handle: @samp{0x81000000}.
+
+@example
+@group
+# @kbd{grub-protect --action=add \
+               --protector=tpm2 \
+               --tpm2-pcrs=0,2,4,7 \
+               --tpm2-asymmetric=RSA \
+               --tpm2-srk=0x81000000 \
+               --tpm2key \
+               --tpm2-keyfile=luks.key \
+               --tpm2-outfile=/boot/efi/efi/grub/sealed.tpm}
+@end group
+@end example
+
+The additional @kbd{--tpm2-asymmetric=RSA} and @kbd{--tpm2-srk=0x81000000}
+options are used to make the key sealed with the RSA SRK and store the SRK
+in @samp{0x81000000}.
+
+For the @command{tpm2_key_protector_init} command, the additional @kbd{-s 0x81000000}
+informs the TPM2 key protector to fetch the SRK from @samp{0x81000000}.
+
+@example
+grub> @kbd{tpm2_key_protector_init -s 0x81000000 -T (hd0,gpt1)/efi/grub/sealed.tpm}
+grub> @kbd{cryptomount -u <UUID> -P tpm2}
+@end example
+
+After making the SRK handle persistent, we can check the status of the
+persistent handles with @command{tpm2_getcap}.
+
+@example
+@group
+# @kbd{tpm2_getcap properties-variable}
+...
+TPM2_PT_HR_PERSISTENT: 0x1
+TPM2_PT_HR_PERSISTENT_AVAIL: 0x40
+...
+# @kbd{tpm2_getcap handles-persistent}
+- 0x81000000
+@end group
+@end example
+
+The sealed key can be removed once the user does not want to use the TPM2 key
+protector anymore. Here is the command to remove the persistent SRK handle
+(@samp{0x81000000}) with @kbd{--tpm2-srk} and @kbd{--tpm2-evict}.
+
+@example
+@group
+# @kbd{grub-protect --action=remove \
+               --protector=tpm2 \
+               --tpm2-srk 0x81000000 \
+               --tpm2-evict}
+@end group
+@end example
 
 
 @node Invoking grub-script-check
