@@ -84,6 +84,27 @@ memchr (const void *s, int c, grub_size_t n)
   return grub_memchr (s, c, n);
 }
 
+static inline char *
+strncat (char *dest, const char *src, grub_size_t n)
+{
+  const char *end;
+  char *str = dest;
+  grub_size_t src_len;
+
+  dest += grub_strlen (dest);
+
+  end = grub_memchr (src, '\0', n);
+  if (end != NULL)
+    src_len = (grub_size_t) (end - src);
+  else
+    src_len = n;
+
+  dest[src_len] = '\0';
+  grub_memcpy (dest, src, src_len);
+
+  return str;
+}
+
 #define memcmp grub_memcmp
 #define memcpy grub_memcpy
 #define memmove grub_memmove
