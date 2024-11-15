@@ -1,0 +1,71 @@
+From b5efa707619fde1921a3cbd83f4ee95a7d995fa0 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Tue, 20 Aug 2024 16:26:45 +0800
+Subject: [PATCH 03/13] libtasn1: replace strcat() with _asn1_str_cat()
+
+strcat() is not available in GRUB. This commit replaces strcat() and
+_asn1_strcat() with the bounds-checking _asn1_str_cat().
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/lib/libtasn1-grub/lib/decoding.c | 8 ++++----
+ grub-core/lib/libtasn1-grub/lib/element.c  | 2 +-
+ grub-core/lib/libtasn1-grub/lib/int.h      | 1 -
+ 3 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/grub-core/lib/libtasn1-grub/lib/decoding.c b/grub-core/lib/libtasn1-grub/lib/decoding.c
+index bf9cb13ac..51859fe36 100644
+--- a/grub-core/lib/libtasn1-grub/lib/decoding.c
++++ b/grub-core/lib/libtasn1-grub/lib/decoding.c
+@@ -2016,8 +2016,8 @@ asn1_expand_octet_string (asn1_node_const definitions, asn1_node * element,
+ 	  (p2->type & CONST_ASSIGN))
+ 	{
+ 	  strcpy (name, definitions->name);
+-	  strcat (name, ".");
+-	  strcat (name, p2->name);
++	  _asn1_str_cat (name, sizeof (name), ".");
++	  _asn1_str_cat (name, sizeof (name), p2->name);
+ 
+ 	  len = sizeof (value);
+ 	  result = asn1_read_value (definitions, name, value, &len);
+@@ -2034,8 +2034,8 @@ asn1_expand_octet_string (asn1_node_const definitions, asn1_node * element,
+ 	      if (p2)
+ 		{
+ 		  strcpy (name, definitions->name);
+-		  strcat (name, ".");
+-		  strcat (name, p2->name);
++		  _asn1_str_cat (name, sizeof (name), ".");
++		  _asn1_str_cat (name, sizeof (name), p2->name);
+ 
+ 		  result = asn1_create_element (definitions, name, &aux);
+ 		  if (result == ASN1_SUCCESS)
+diff --git a/grub-core/lib/libtasn1-grub/lib/element.c b/grub-core/lib/libtasn1-grub/lib/element.c
+index bc4c3c8d7..8694fecb9 100644
+--- a/grub-core/lib/libtasn1-grub/lib/element.c
++++ b/grub-core/lib/libtasn1-grub/lib/element.c
+@@ -688,7 +688,7 @@ asn1_write_value (asn1_node node_root, const char *name,
+                 return ASN1_MEM_ERROR; \
+         } else { \
+                 /* this strcat is checked */ \
+-                if (ptr) _asn1_strcat (ptr, data); \
++                if (ptr) _asn1_str_cat ((char *)ptr, ptr_size, (const char *)data); \
+         }
+ 
+ /**
+diff --git a/grub-core/lib/libtasn1-grub/lib/int.h b/grub-core/lib/libtasn1-grub/lib/int.h
+index d94d51c8c..cadd80df6 100644
+--- a/grub-core/lib/libtasn1-grub/lib/int.h
++++ b/grub-core/lib/libtasn1-grub/lib/int.h
+@@ -115,7 +115,6 @@ extern const tag_and_class_st _asn1_tags[];
+ # define _asn1_strtoul(n,e,b) strtoul((const char *) n, e, b)
+ # define _asn1_strcmp(a,b) strcmp((const char *)a, (const char *)b)
+ # define _asn1_strcpy(a,b) strcpy((char *)a, (const char *)b)
+-# define _asn1_strcat(a,b) strcat((char *)a, (const char *)b)
+ 
+ # if SIZEOF_UNSIGNED_LONG_INT == 8
+ #  define _asn1_strtou64(n,e,b) strtoul((const char *) n, e, b)
+-- 
+2.43.0
+
