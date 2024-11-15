@@ -1,0 +1,173 @@
+From 759bc707a924f89b0d32ba7be2f54e100f1d57b7 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 16 Aug 2024 14:26:38 +0800
+Subject: [PATCH 10/13] asn1_test: remove 'verbose' and the unnecessary
+ printf()
+
+This commit removes the 'verbose' variables and the unnecessary printf()
+to simplify the output.
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/tests/asn1/tests/CVE-2018-1000654.c | 11 +----
+ grub-core/tests/asn1/tests/Test_overflow.c    | 40 +++----------------
+ grub-core/tests/asn1/tests/reproducers.c      |  8 +---
+ 3 files changed, 7 insertions(+), 52 deletions(-)
+
+diff --git a/grub-core/tests/asn1/tests/CVE-2018-1000654.c b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+index 2085b3cd3..81448cde8 100644
+--- a/grub-core/tests/asn1/tests/CVE-2018-1000654.c
++++ b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+@@ -29,15 +29,10 @@
+ int
+ test_CVE_2018_1000654 (void)
+ {
+-  int result, verbose = 0;
++  int result;
+   asn1_node definitions = NULL;
+   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
+ 
+-  if (argc > 1)
+-    verbose = 1;
+-
+-  printf ("Test 1\n");
+-
+   result =
+     asn1_array2tree (CVE_2018_1000654_1_asn1_tab, &definitions,
+ 		     errorDescription);
+@@ -50,8 +45,6 @@ test_CVE_2018_1000654 (void)
+ 
+   asn1_delete_structure (&definitions);
+ 
+-  printf ("Test 2\n");
+-
+   result =
+     asn1_array2tree (CVE_2018_1000654_2_asn1_tab, &definitions,
+ 		     errorDescription);
+@@ -64,7 +57,5 @@ test_CVE_2018_1000654 (void)
+ 
+   asn1_delete_structure (&definitions);
+ 
+-  if (verbose)
+-    printf ("Success\n");
+   return 0;
+ }
+diff --git a/grub-core/tests/asn1/tests/Test_overflow.c b/grub-core/tests/asn1/tests/Test_overflow.c
+index bc28d0826..9f9578a1f 100644
+--- a/grub-core/tests/asn1/tests/Test_overflow.c
++++ b/grub-core/tests/asn1/tests/Test_overflow.c
+@@ -27,11 +27,6 @@ test_overflow (void)
+ {
+   /* Test that values larger than long are rejected.  This has worked
+      fine with all versions of libtasn1. */
+-  int verbose = 0;
+-
+-  if (argc > 1)
+-    verbose = 1;
+-
+   {
+     unsigned char der[] = "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
+     long l;
+@@ -39,12 +34,7 @@ test_overflow (void)
+ 
+     l = asn1_get_length_der (der, sizeof der, &len);
+ 
+-    if (l == -2L)
+-      {
+-	if (verbose)
+-	  puts ("OK: asn1_get_length_der bignum");
+-      }
+-    else
++    if (l != -2L)
+       {
+ 	printf ("ERROR: asn1_get_length_der bignum (l %ld len %d)\n", l, len);
+ 	return 1;
+@@ -65,12 +55,7 @@ test_overflow (void)
+ 
+       l = asn1_get_length_der (der, der_len, &len);
+ 
+-      if (l == -2L)
+-	{
+-	  if (verbose)
+-	    puts ("OK: asn1_get_length_der intnum");
+-	}
+-      else
++      if (l != -2L)
+ 	{
+ 	  printf ("ERROR: asn1_get_length_der intnum (l %ld len %d)\n", l,
+ 		  len);
+@@ -92,12 +77,7 @@ test_overflow (void)
+     der_len = sizeof (der);
+     l = asn1_get_length_der (der, der_len, &len);
+ 
+-    if (l == -4L)
+-      {
+-	if (verbose)
+-	  puts ("OK: asn1_get_length_der overflow-small");
+-      }
+-    else
++    if (l != -4L)
+       {
+ 	printf ("ERROR: asn1_get_length_der overflow-small (l %ld len %d)\n",
+ 		l, len);
+@@ -119,12 +99,7 @@ test_overflow (void)
+     der_len = sizeof (der);
+     l = asn1_get_length_der (der, der_len, &len);
+ 
+-    if (l == -4L)
+-      {
+-	if (verbose)
+-	  puts ("OK: asn1_get_length_der overflow-large1");
+-      }
+-    else
++    if (l != -4L)
+       {
+ 	printf ("ERROR: asn1_get_length_der overflow-large1 (l %ld len %d)\n",
+ 		l, len);
+@@ -146,12 +121,7 @@ test_overflow (void)
+     der_len = sizeof (der);
+     l = asn1_get_length_der (der, der_len, &len);
+ 
+-    if (l == -2L)
+-      {
+-	if (verbose)
+-	  puts ("OK: asn1_get_length_der overflow-large2");
+-      }
+-    else
++    if (l != -2L)
+       {
+ 	printf ("ERROR: asn1_get_length_der overflow-large2 (l %ld len %d)\n",
+ 		l, len);
+diff --git a/grub-core/tests/asn1/tests/reproducers.c b/grub-core/tests/asn1/tests/reproducers.c
+index 54a243d51..fa3cea762 100644
+--- a/grub-core/tests/asn1/tests/reproducers.c
++++ b/grub-core/tests/asn1/tests/reproducers.c
+@@ -51,13 +51,10 @@ const asn1_static_node tab[] = {
+ int
+ test_reproducers (void)
+ {
+-  int result, verbose = 0;
++  int result;
+   asn1_node definitions = NULL;
+   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
+ 
+-  if (argc > 1)
+-    verbose = 1;
+-
+   result = asn1_array2tree (endless_asn1_tab, &definitions, errorDescription);
+   if (result != ASN1_SUCCESS)
+     {
+@@ -79,8 +76,5 @@ test_reproducers (void)
+ 
+   asn1_delete_structure (&definitions);
+ 
+-  if (verbose)
+-    printf ("Success\n");
+-
+   return 0;
+ }
+-- 
+2.43.0
+
