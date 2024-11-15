@@ -2568,6 +2568,17 @@ module = {
 };
 
 module = {
+  name = tss2;
+  common = lib/tss2/buffer.c;
+  common = lib/tss2/tss2_mu.c;
+  common = lib/tss2/tpm2_cmd.c;
+  common = lib/tss2/tss2.c;
+  efi = lib/efi/tcg2.c;
+  enable = efi;
+  cppflags = '-I$(srcdir)/lib/tss2';
+};
+
+module = {
   name = tr;
   common = commands/tr.c;
 };
