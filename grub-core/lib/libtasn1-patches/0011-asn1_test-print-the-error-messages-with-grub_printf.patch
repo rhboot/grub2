@@ -1,0 +1,485 @@
+From af5f0a651de09e44e78177b988857acd3208c4b6 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 16 Aug 2024 15:00:42 +0800
+Subject: [PATCH 11/13] asn1_test: print the error messages with grub_printf()
+
+This commit replaces printf() and fprintf() with grub_printf() to print
+the error messages for the testcases. Besides, asn1_strerror() is used
+to convert the result code to strings instead of asn1_perror().
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/tests/asn1/tests/CVE-2018-1000654.c |  8 +--
+ grub-core/tests/asn1/tests/Test_overflow.c    | 14 ++---
+ grub-core/tests/asn1/tests/Test_simple.c      | 21 ++++----
+ grub-core/tests/asn1/tests/Test_strings.c     | 21 +++-----
+ .../tests/asn1/tests/object-id-decoding.c     | 16 +++---
+ .../tests/asn1/tests/object-id-encoding.c     | 26 ++++-----
+ grub-core/tests/asn1/tests/octet-string.c     | 54 ++++++++-----------
+ grub-core/tests/asn1/tests/reproducers.c      |  6 +--
+ 8 files changed, 67 insertions(+), 99 deletions(-)
+
+diff --git a/grub-core/tests/asn1/tests/CVE-2018-1000654.c b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+index 81448cde8..b78667900 100644
+--- a/grub-core/tests/asn1/tests/CVE-2018-1000654.c
++++ b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+@@ -38,8 +38,8 @@ test_CVE_2018_1000654 (void)
+ 		     errorDescription);
+   if (result != ASN1_RECURSION)
+     {
+-      asn1_perror (result);
+-      printf ("ErrorDescription = %s\n\n", errorDescription);
++      grub_printf ("Error: %s\nErrorDescription = %s\n\n",
++		   asn1_strerror (result), errorDescription);
+       return 1;
+     }
+ 
+@@ -50,8 +50,8 @@ test_CVE_2018_1000654 (void)
+ 		     errorDescription);
+   if (result != ASN1_RECURSION)
+     {
+-      asn1_perror (result);
+-      printf ("ErrorDescription = %s\n\n", errorDescription);
++      grub_printf ("Error: %s\nErrorDescription = %s\n\n",
++		   asn1_strerror (result), errorDescription);
+       return 1;
+     }
+ 
+diff --git a/grub-core/tests/asn1/tests/Test_overflow.c b/grub-core/tests/asn1/tests/Test_overflow.c
+index 9f9578a1f..ffac8507a 100644
+--- a/grub-core/tests/asn1/tests/Test_overflow.c
++++ b/grub-core/tests/asn1/tests/Test_overflow.c
+@@ -36,7 +36,7 @@ test_overflow (void)
+ 
+     if (l != -2L)
+       {
+-	printf ("ERROR: asn1_get_length_der bignum (l %ld len %d)\n", l, len);
++	grub_printf ("ERROR: asn1_get_length_der bignum (l %ld len %d)\n", l, len);
+ 	return 1;
+       }
+   }
+@@ -57,8 +57,7 @@ test_overflow (void)
+ 
+       if (l != -2L)
+ 	{
+-	  printf ("ERROR: asn1_get_length_der intnum (l %ld len %d)\n", l,
+-		  len);
++	  grub_printf ("ERROR: asn1_get_length_der intnum (l %ld len %d)\n", l, len);
+ 	  return 1;
+ 	}
+     }
+@@ -79,8 +78,7 @@ test_overflow (void)
+ 
+     if (l != -4L)
+       {
+-	printf ("ERROR: asn1_get_length_der overflow-small (l %ld len %d)\n",
+-		l, len);
++	grub_printf ("ERROR: asn1_get_length_der overflow-small (l %ld len %d)\n", l, len);
+ 	return 1;
+       }
+   }
+@@ -101,8 +99,7 @@ test_overflow (void)
+ 
+     if (l != -4L)
+       {
+-	printf ("ERROR: asn1_get_length_der overflow-large1 (l %ld len %d)\n",
+-		l, len);
++	grub_printf ("ERROR: asn1_get_length_der overflow-large1 (l %ld len %d)\n", l, len);
+ 	return 1;
+       }
+   }
+@@ -123,8 +120,7 @@ test_overflow (void)
+ 
+     if (l != -2L)
+       {
+-	printf ("ERROR: asn1_get_length_der overflow-large2 (l %ld len %d)\n",
+-		l, len);
++	grub_printf ("ERROR: asn1_get_length_der overflow-large2 (l %ld len %d)\n", l, len);
+ 	return 1;
+       }
+   }
+diff --git a/grub-core/tests/asn1/tests/Test_simple.c b/grub-core/tests/asn1/tests/Test_simple.c
+index 12993bfba..dc70db191 100644
+--- a/grub-core/tests/asn1/tests/Test_simple.c
++++ b/grub-core/tests/asn1/tests/Test_simple.c
+@@ -94,7 +94,7 @@ test_simple (void)
+     result = asn1_encode_simple_der (etype, my_str, my_str_len, tl, &tl_len);
+     if (result != ASN1_VALUE_NOT_VALID)
+       {
+-	fprintf (stderr, "asn1_encode_simple_der out of range etype\n");
++	grub_printf ("asn1_encode_simple_der out of range etype\n");
+ 	return 1;
+       }
+   }
+@@ -105,7 +105,7 @@ test_simple (void)
+   result = asn1_get_bit_der (der, 0, &ret_len, str, str_size, &bit_len);
+   if (result != ASN1_GENERIC_ERROR)
+     {
+-      fprintf (stderr, "asn1_get_bit_der zero\n");
++      grub_printf ("asn1_get_bit_der zero\n");
+       return 1;
+     }
+ 
+@@ -129,7 +129,7 @@ test_simple (void)
+ 
+       if (der_len != tv[i].derlen || memcmp (der, tv[i].der, der_len) != 0)
+ 	{
+-	  fprintf (stderr, "asn1_bit_der iter %lu\n", (unsigned long) i);
++	  grub_printf ("asn1_bit_der iter %lu\n", (unsigned long) i);
+ 	  return 1;
+ 	}
+ 
+@@ -140,8 +140,7 @@ test_simple (void)
+       if (result != ASN1_SUCCESS || ret_len != tv[i].derlen
+ 	  || bit_len != tv[i].bitlen)
+ 	{
+-	  fprintf (stderr, "asn1_get_bit_der iter %lu, err: %d\n",
+-		   (unsigned long) i, result);
++	  grub_printf ("asn1_get_bit_der iter %lu, err: %d\n", (unsigned long) i, result);
+ 	  return 1;
+ 	}
+     }
+@@ -163,7 +162,7 @@ test_simple (void)
+   if (result != ASN1_SUCCESS || ret_len != 5
+       || bit_len != 18 || memcmp (str, "\x6e\x5d\xc0", 3) != 0)
+     {
+-      fprintf (stderr, "asn1_get_bit_der example\n");
++      grub_printf ("asn1_get_bit_der example\n");
+       return 1;
+     }
+ 
+@@ -171,7 +170,7 @@ test_simple (void)
+   asn1_bit_der (str, bit_len, der, &der_len);
+   if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+-      fprintf (stderr, "asn1_bit_der example roundtrip\n");
++      grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+     }
+ 
+@@ -184,7 +183,7 @@ test_simple (void)
+   if (result != ASN1_SUCCESS || ret_len != 5
+       || bit_len != 18 || memcmp (str, "\x6e\x5d\xe0", 3) != 0)
+     {
+-      fprintf (stderr, "asn1_get_bit_der example padded\n");
++      grub_printf ("asn1_get_bit_der example padded\n");
+       return 1;
+     }
+ 
+@@ -192,7 +191,7 @@ test_simple (void)
+   asn1_bit_der (str, bit_len, der, &der_len);
+   if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+-      fprintf (stderr, "asn1_bit_der example roundtrip\n");
++      grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+     }
+ 
+@@ -206,7 +205,7 @@ test_simple (void)
+   if (result != ASN1_SUCCESS || ret_len != 6
+       || bit_len != 18 || memcmp (str, "\x6e\x5d\xc0", 3) != 0)
+     {
+-      fprintf (stderr, "asn1_get_bit_der example long form\n");
++      grub_printf ("asn1_get_bit_der example long form\n");
+       return 1;
+     }
+ 
+@@ -214,7 +213,7 @@ test_simple (void)
+   asn1_bit_der (str, bit_len, der, &der_len);
+   if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+-      fprintf (stderr, "asn1_bit_der example roundtrip\n");
++      grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+     }
+ 
+diff --git a/grub-core/tests/asn1/tests/Test_strings.c b/grub-core/tests/asn1/tests/Test_strings.c
+index 2538f2558..65c30937f 100644
+--- a/grub-core/tests/asn1/tests/Test_strings.c
++++ b/grub-core/tests/asn1/tests/Test_strings.c
+@@ -89,17 +89,14 @@ test_strings (void)
+ 				    tl, &tl_len);
+       if (ret != ASN1_SUCCESS)
+ 	{
+-	  fprintf (stderr, "Encoding error in %u: %s\n", i,
+-		   asn1_strerror (ret));
++	  grub_printf ("Encoding error in %u: %s\n", i, asn1_strerror (ret));
+ 	  return 1;
+ 	}
+       der_len = tl_len + tv[i].str_len;
+ 
+       if (der_len != tv[i].der_len || memcmp (tl, tv[i].der, tl_len) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "DER encoding differs in %u! (size: %u, expected: %u)\n",
+-		   i, der_len, tv[i].der_len);
++	  grub_printf ("DER encoding differs in %u! (size: %u, expected: %u)\n", i, der_len, tv[i].der_len);
+ 	  return 1;
+ 	}
+ 
+@@ -109,16 +106,13 @@ test_strings (void)
+ 				&str_len);
+       if (ret != ASN1_SUCCESS)
+ 	{
+-	  fprintf (stderr, "Decoding error in %u: %s\n", i,
+-		   asn1_strerror (ret));
++	  grub_printf ("Decoding error in %u: %s\n", i, asn1_strerror (ret));
+ 	  return 1;
+ 	}
+ 
+       if (str_len != tv[i].str_len || memcmp (str, tv[i].str, str_len) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "DER decoded data differ in %u! (size: %u, expected: %u)\n",
+-		   i, der_len, tv[i].str_len);
++	  grub_printf ("DER decoded data differ in %u! (size: %u, expected: %u)\n", i, der_len, tv[i].str_len);
+ 	  return 1;
+ 	}
+     }
+@@ -132,16 +126,13 @@ test_strings (void)
+ 				&str_len, NULL);
+       if (ret != ASN1_SUCCESS)
+ 	{
+-	  fprintf (stderr, "BER decoding error in %u: %s\n", i,
+-		   asn1_strerror (ret));
++	  grub_printf ("BER decoding error in %u: %s\n", i, asn1_strerror (ret));
+ 	  return 1;
+ 	}
+ 
+       if (str_len != ber[i].str_len || memcmp (b, ber[i].str, str_len) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "BER decoded data differ in %u! (size: %u, expected: %u)\n",
+-		   i, str_len, ber[i].str_len);
++	  grub_printf ("BER decoded data differ in %u! (size: %u, expected: %u)\n", i, str_len, ber[i].str_len);
+ 	  return 1;
+ 	}
+       free (b);
+diff --git a/grub-core/tests/asn1/tests/object-id-decoding.c b/grub-core/tests/asn1/tests/object-id-decoding.c
+index fdbb8ea21..c087b46e3 100644
+--- a/grub-core/tests/asn1/tests/object-id-decoding.c
++++ b/grub-core/tests/asn1/tests/object-id-decoding.c
+@@ -85,10 +85,8 @@ test_object_id_decoding (void)
+ 				sizeof (str));
+       if (ret != tv[i].expected_error)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: asn1_get_object_id_der iter %lu: got '%s' expected %d\n",
+-		   __LINE__, (unsigned long) i, asn1_strerror (ret),
+-		   tv[i].expected_error);
++	  grub_printf ("%d: asn1_get_object_id_der iter %lu: got '%s' expected %d\n",
++		       __LINE__, (unsigned long) i, asn1_strerror (ret), tv[i].expected_error);
+ 	  return 1;
+ 	}
+ 
+@@ -97,17 +95,15 @@ test_object_id_decoding (void)
+ 
+       if (ret_len != tv[i].der_len - 1)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: iter %lu: error in DER, length returned is %d, had %d\n",
+-		   __LINE__, (unsigned long) i, ret_len, tv[i].der_len - 1);
++	  grub_printf ("%d: iter %lu: error in DER, length returned is %d, had %d\n",
++		       __LINE__, (unsigned long) i, ret_len, tv[i].der_len - 1);
+ 	  return 1;
+ 	}
+ 
+       if (strcmp (tv[i].oid, str) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: strcmp iter %lu: got invalid OID: %s, expected: %s\n",
+-		   __LINE__, (unsigned long) i, str, tv[i].oid);
++	  grub_printf ("%d: strcmp iter %lu: got invalid OID: %s, expected: %s\n",
++		       __LINE__, (unsigned long) i, str, tv[i].oid);
+ 	  return 1;
+ 	}
+ 
+diff --git a/grub-core/tests/asn1/tests/object-id-encoding.c b/grub-core/tests/asn1/tests/object-id-encoding.c
+index a497015e3..e3da092cc 100644
+--- a/grub-core/tests/asn1/tests/object-id-encoding.c
++++ b/grub-core/tests/asn1/tests/object-id-encoding.c
+@@ -93,33 +93,29 @@ test_object_id_encoding (void)
+ 	{
+ 	  if (ret == tv[i].expected_error)
+ 	    continue;
+-	  fprintf (stderr,
+-		   "%d: iter %lu, encoding of OID failed: %s\n",
+-		   __LINE__, (unsigned long) i, asn1_strerror (ret));
++	  grub_printf ("%d: iter %lu, encoding of OID failed: %s\n",
++		       __LINE__, (unsigned long) i, asn1_strerror (ret));
+ 	  return 1;
+ 	}
+       else if (ret != tv[i].expected_error)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: iter %lu, encoding of OID %s succeeded when expecting failure\n",
+-		   __LINE__, (unsigned long) i, tv[i].oid);
++	  grub_printf ("%d: iter %lu, encoding of OID %s succeeded when expecting failure\n",
++		       __LINE__, (unsigned long) i, tv[i].oid);
+ 	  return 1;
+ 	}
+ 
+       if (der_len != tv[i].der_len || memcmp (der, tv[i].der, der_len) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: iter %lu, re-encoding of OID %s resulted to different string (%d vs %d bytes)\n",
+-		   __LINE__, (unsigned long) i, tv[i].oid, der_len,
+-		   tv[i].der_len);
+-	  fprintf (stderr, "\nGot:\t\t");
++	  grub_printf ("%d: iter %lu, re-encoding of OID %s resulted to different string (%d vs %d bytes)\n",
++		   __LINE__, (unsigned long) i, tv[i].oid, der_len, tv[i].der_len);
++	  grub_printf ("\nGot:\t\t");
+ 	  for (j = 0; j < der_len; j++)
+-	    fprintf (stderr, "%.2x", der[j]);
++	    grub_printf ("%.2x", der[j]);
+ 
+-	  fprintf (stderr, "\nExpected:\t");
++	  grub_printf ("\nExpected:\t");
+ 	  for (j = 0; j < tv[i].der_len; j++)
+-	    fprintf (stderr, "%.2x", tv[i].der[j]);
+-	  fprintf (stderr, "\n");
++	    grub_printf ("%.2x", tv[i].der[j]);
++	  grub_printf ("\n");
+ 
+ 	  return 1;
+ 	}
+diff --git a/grub-core/tests/asn1/tests/octet-string.c b/grub-core/tests/asn1/tests/octet-string.c
+index 8c49c6e0c..d3a35dff8 100644
+--- a/grub-core/tests/asn1/tests/octet-string.c
++++ b/grub-core/tests/asn1/tests/octet-string.c
+@@ -131,9 +131,8 @@ test_octet_string (void)
+ 				sizeof (str), &str_size);
+ 	  if (ret != tv[i].expected_error)
+ 	    {
+-	      fprintf (stderr,
+-		       "%d: asn1_get_octet_der: %s: got %d expected %d\n",
+-		       __LINE__, tv[i].name, ret, tv[i].expected_error);
++	      grub_printf ("%d: asn1_get_octet_der: %s: got %d expected %d\n",
++			   __LINE__, tv[i].name, ret, tv[i].expected_error);
+ 	      return 1;
+ 	    }
+ 	  if (tv[i].expected_error)
+@@ -141,27 +140,25 @@ test_octet_string (void)
+ 
+ 	  if (ret_len != tv[i].der_len - 1)
+ 	    {
+-	      fprintf (stderr,
+-		       "%d: error in DER, length returned is %d, had %d\n",
+-		       __LINE__, ret_len, tv[i].der_len - 1);
++	      grub_printf ("%d: error in DER, length returned is %d, had %d\n",
++			   __LINE__, ret_len, tv[i].der_len - 1);
+ 	      return 1;
+ 	    }
+ 
+ 	  if (str_size != tv[i].len
+ 	      || memcmp (tv[i].string, str, tv[i].len) != 0)
+ 	    {
+-	      fprintf (stderr,
+-		       "%d: memcmp: %s: got invalid decoding\n",
+-		       __LINE__, tv[i].name);
++	      grub_printf ("%d: memcmp: %s: got invalid decoding\n",
++			   __LINE__, tv[i].name);
+ 
+-	      fprintf (stderr, "\nGot:\t\t");
++	      grub_printf ("\nGot:\t\t");
+ 	      for (j = 0; j < str_size; j++)
+-		fprintf (stderr, "%.2x", str[j]);
++		grub_printf ("%.2x", str[j]);
+ 
+-	      fprintf (stderr, "\nExpected:\t");
++	      grub_printf ("\nExpected:\t");
+ 	      for (j = 0; j < tv[i].len; j++)
+-		fprintf (stderr, "%.2x", tv[i].string[j]);
+-	      fprintf (stderr, "\n");
++		grub_printf ("%.2x", tv[i].string[j]);
++	      grub_printf ("\n");
+ 	      return 1;
+ 	    }
+ 
+@@ -172,8 +169,7 @@ test_octet_string (void)
+ 	  if (der_len != tv[i].der_len - 1
+ 	      || memcmp (tv[i].der_str + 1, der, tv[i].der_len - 1) != 0)
+ 	    {
+-	      fprintf (stderr,
+-		       "encoding: %s: got invalid encoding\n", tv[i].name);
++	      grub_printf ("encoding: %s: got invalid encoding\n", tv[i].name);
+ 	      return 1;
+ 	    }
+ 	}
+@@ -185,10 +181,9 @@ test_octet_string (void)
+ 				(unsigned int *) &der_len);
+       if (ret != tv[i].expected_error)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: asn1_decode_simple_ber: %s: got %s expected %s\n",
+-		   __LINE__, tv[i].name, asn1_strerror (ret),
+-		   asn1_strerror (tv[i].expected_error));
++	  grub_printf ("%d: asn1_decode_simple_ber: %s: got %s expected %s\n",
++		       __LINE__, tv[i].name, asn1_strerror (ret),
++		       asn1_strerror (tv[i].expected_error));
+ 	  return 1;
+ 	}
+       if (tv[i].expected_error)
+@@ -196,25 +191,22 @@ test_octet_string (void)
+ 
+       if (der_len != tv[i].der_len)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: error: %s: DER, length returned is %d, had %d\n",
+-		   __LINE__, tv[i].name, der_len, tv[i].der_len);
++	  grub_printf ("%d: error: %s: DER, length returned is %d, had %d\n",
++		       __LINE__, tv[i].name, der_len, tv[i].der_len);
+ 	  return 1;
+ 	}
+ 
+       if (str_size != tv[i].len || memcmp (tv[i].string, tmp, tv[i].len) != 0)
+ 	{
+-	  fprintf (stderr,
+-		   "%d: memcmp: %s: got invalid decoding\n",
+-		   __LINE__, tv[i].name);
+-	  fprintf (stderr, "\nGot:\t\t");
++	  grub_printf ("%d: memcmp: %s: got invalid decoding\n", __LINE__, tv[i].name);
++	  grub_printf ("\nGot:\t\t");
+ 	  for (j = 0; j < str_size; j++)
+-	    fprintf (stderr, "%.2x", tmp[j]);
++	    grub_printf ("%.2x", tmp[j]);
+ 
+-	  fprintf (stderr, "\nExpected:\t");
++	  grub_printf ("\nExpected:\t");
+ 	  for (j = 0; j < tv[i].len; j++)
+-	    fprintf (stderr, "%.2x", tv[i].string[j]);
+-	  fprintf (stderr, "\n");
++	    grub_printf ("%.2x", tv[i].string[j]);
++	  grub_printf ("\n");
+ 	  return 1;
+ 	}
+       free (tmp);
+diff --git a/grub-core/tests/asn1/tests/reproducers.c b/grub-core/tests/asn1/tests/reproducers.c
+index fa3cea762..0e3c9fd65 100644
+--- a/grub-core/tests/asn1/tests/reproducers.c
++++ b/grub-core/tests/asn1/tests/reproducers.c
+@@ -58,8 +58,7 @@ test_reproducers (void)
+   result = asn1_array2tree (endless_asn1_tab, &definitions, errorDescription);
+   if (result != ASN1_SUCCESS)
+     {
+-      asn1_perror (result);
+-      printf ("ErrorDescription = %s\n\n", errorDescription);
++      grub_printf ("Error: %s\nErrorDescription = %s\n\n", asn1_strerror (result), errorDescription);
+       return 1;
+     }
+ 
+@@ -69,8 +68,7 @@ test_reproducers (void)
+   result = asn1_array2tree (tab, &definitions, errorDescription);
+   if (result != ASN1_SUCCESS)
+     {
+-      asn1_perror (result);
+-      printf ("ErrorDescription = %s\n\n", errorDescription);
++      grub_printf ("Error: %s\nErrorDescription = %s\n\n", asn1_strerror (result), errorDescription);
+       return 1;
+     }
+ 
+-- 
+2.43.0
+
