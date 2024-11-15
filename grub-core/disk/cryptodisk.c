@@ -1167,6 +1167,10 @@ grub_cryptodisk_scan_device_real (const char *name,
 	  ret = cr->recover_key (source, dev, cargs);
 	  if (ret != GRUB_ERR_NONE)
 	    {
+	      /* Reset key data to trigger the passphrase prompt later */
+	      cargs->key_data = NULL;
+	      cargs->key_len = 0;
+
 	      part = grub_partition_get_name (source->partition);
 	      grub_dprintf ("cryptodisk",
 			    "recovered a key from key protector %s but it "
@@ -1192,7 +1196,6 @@ grub_cryptodisk_scan_device_real (const char *name,
 		  source->name, source->partition != NULL ? "," : "",
 		  part != NULL ? part : N_("UNKNOWN"), dev->uuid);
       grub_free (part);
-      goto error;
     }
 
   if (cargs->key_len)
@@ -1206,6 +1209,24 @@ grub_cryptodisk_scan_device_real (const char *name,
       /* Get the passphrase from the user, if no key data. */
       unsigned long tries = 3;
       const char *tries_env;
+
+      /*
+       * Print the error from key protectors and clear grub_errno.
+       *
+       * Since '--protector' cannot coexist with '--password' and
+       * '--key-file', in case key protectors fail, only
+       * "cargs->key_len == 0" is expected, so cryptomount falls back
+       * here to request the passphrase.
+       *
+       * To avoid the error from key protectors stops the further code,
+       * print the error to notify the user why key protectors fail and
+       * clear grub_errno to have a fresh start.
+       */
+      if (grub_errno != GRUB_ERR_NONE)
+	{
+	  grub_print_error ();
+	  grub_errno = GRUB_ERR_NONE;
+	}
 
       askpass = 1;
       cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
