@@ -1290,6 +1290,12 @@ script = {
   common = tests/asn1_test.in;
 };
 
+script = {
+  testcase = native;
+  name = tpm2_key_protector_test;
+  common = tests/tpm2_key_protector_test.in;
+};
+
 program = {
   testcase = native;
   name = example_unit_test;
