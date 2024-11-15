@@ -1,0 +1,4 @@
+[NAME]
+grub-protect \- protect a disk key with a key protector
+[DESCRIPTION]
+grub-protect helps to protect a disk encryption key with a specified key protector.

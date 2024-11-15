@@ -169,6 +169,8 @@ widthspec.bin
 /grub-ofpathname.exe
 /grub-probe
 /grub-probe.exe
+/grub-protect
+/grub-protect.exe
 /grub-reboot
 /grub-render-label
 /grub-render-label.exe

@@ -76,6 +76,7 @@ grub_TRANSFORM([grub-mkpasswd-pbkdf2])
 grub_TRANSFORM([grub-mkrelpath])
 grub_TRANSFORM([grub-mkrescue])
 grub_TRANSFORM([grub-probe])
+grub_TRANSFORM([grub-protect])
 grub_TRANSFORM([grub-reboot])
 grub_TRANSFORM([grub-script-check])
 grub_TRANSFORM([grub-set-default])
@@ -2068,6 +2069,29 @@ fi
 AC_SUBST([LIBZFS])
 AC_SUBST([LIBNVPAIR])
 
+AC_ARG_ENABLE([grub-protect],
+	      [AS_HELP_STRING([--enable-grub-protect],
+                             [build and install the `grub-protect' utility (default=guessed)])])
+if test x"$enable_grub_protect" = xno ; then
+  grub_protect_excuse="explicitly disabled"
+fi
+
+LIBTASN1=
+if test x"$grub_protect_excuse" = x ; then
+  AC_CHECK_LIB([tasn1], [asn1_write_value], [LIBTASN1="-ltasn1"], [grub_protect_excuse="need libtasn1 library"])
+fi
+AC_SUBST([LIBTASN1])
+
+if test x"$enable_grub_protect" = xyes && test x"$grub_protect_excuse" != x ; then
+  AC_MSG_ERROR([grub-protect was explicitly requested but can't be compiled ($grub_protect_excuse)])
+fi
+if test x"$grub_protect_excuse" = x ; then
+enable_grub_protect=yes
+else
+enable_grub_protect=no
+fi
+AC_SUBST([enable_grub_protect])
+
 LIBS=""
 
 AC_SUBST([FONT_SOURCE])
@@ -2184,6 +2208,7 @@ AM_CONDITIONAL([COND_GRUB_EMU_SDL], [test x$enable_grub_emu_sdl = xyes])
 AM_CONDITIONAL([COND_GRUB_EMU_PCI], [test x$enable_grub_emu_pci = xyes])
 AM_CONDITIONAL([COND_GRUB_MKFONT], [test x$enable_grub_mkfont = xyes])
 AM_CONDITIONAL([COND_GRUB_MOUNT], [test x$enable_grub_mount = xyes])
+AM_CONDITIONAL([COND_GRUB_PROTECT], [test x$enable_grub_protect = xyes])
 AM_CONDITIONAL([COND_HAVE_FONT_SOURCE], [test x$FONT_SOURCE != x])
 if test x$FONT_SOURCE != x ; then
    HAVE_FONT_SOURCE=1
@@ -2310,6 +2335,11 @@ if [ x"$grub_mount_excuse" = x ]; then
 echo grub-mount: Yes
 else
 echo grub-mount: No "($grub_mount_excuse)"
+fi
+if [ x"$grub_protect_excuse" = x ]; then
+echo grub-protect: Yes
+else
+echo grub-protect: No "($grub_protect_excuse)"
 fi
 if [ x"$starfield_excuse" = x ]; then
 echo starfield theme: Yes

@@ -209,6 +209,32 @@ program = {
 };
 
 program = {
+  name = grub-protect;
+  mansection = 1;
+
+  common = grub-core/kern/emu/argp_common.c;
+  common = grub-core/osdep/init.c;
+  common = grub-core/lib/tss2/buffer.c;
+  common = grub-core/lib/tss2/tss2_mu.c;
+  common = grub-core/lib/tss2/tpm2_cmd.c;
+  common = grub-core/commands/tpm2_key_protector/args.c;
+  common = grub-core/commands/tpm2_key_protector/tpm2key_asn1_tab.c;
+  common = util/grub-protect.c;
+  common = util/probe.c;
+
+  cflags = '-I$(srcdir)/grub-core/lib/tss2 -I$(srcdir)/grub-core/commands/tpm2_key_protector';
+
+  ldadd = libgrubmods.a;
+  ldadd = libgrubgcry.a;
+  ldadd = libgrubkern.a;
+  ldadd = grub-core/lib/gnulib/libgnu.a;
+  ldadd = '$(LIBTASN1)';
+  ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBUTIL) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM)';
+
+  condition = COND_GRUB_PROTECT;
+};
+
+program = {
   name = grub-mkrelpath;
   mansection = 1;
 
