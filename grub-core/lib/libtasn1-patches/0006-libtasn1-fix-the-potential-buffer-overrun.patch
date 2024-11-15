@@ -1,0 +1,36 @@
+From f629f58b01b3e88052be5e50f51a667181203e05 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Mon, 8 Apr 2024 14:57:21 +0800
+Subject: [PATCH 06/13] libtasn1: fix the potential buffer overrun
+
+In _asn1_tag_der(), the first while loop for the long form may end up
+with a 'k' value with 'ASN1_MAX_TAG_SIZE' and cause the buffer overrun
+in the second while loop. This commit tweaks the conditional check to
+avoid producing a too large 'k'.
+
+This is a quick fix and may differ from the official upstream fix.
+
+libtasn1 issue: https://gitlab.com/gnutls/libtasn1/-/issues/49
+
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/lib/libtasn1-grub/lib/coding.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/grub-core/lib/libtasn1-grub/lib/coding.c b/grub-core/lib/libtasn1-grub/lib/coding.c
+index 5d03bca9d..0458829a5 100644
+--- a/grub-core/lib/libtasn1-grub/lib/coding.c
++++ b/grub-core/lib/libtasn1-grub/lib/coding.c
+@@ -143,7 +143,7 @@ _asn1_tag_der (unsigned char class, unsigned int tag_value,
+ 	  temp[k++] = tag_value & 0x7F;
+ 	  tag_value >>= 7;
+ 
+-	  if (k > ASN1_MAX_TAG_SIZE - 1)
++	  if (k >= ASN1_MAX_TAG_SIZE - 1)
+ 	    break;		/* will not encode larger tags */
+ 	}
+       *ans_len = k + 1;
+-- 
+2.43.0
+
