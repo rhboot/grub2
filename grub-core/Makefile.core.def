@@ -2621,3 +2621,18 @@ module = {
   /* -Wno-type-limits comes from configure.ac of libtasn1 */
   cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB) -I$(srcdir)/lib/libtasn1-grub -I$(srcdir)/lib/libtasn1-grub/lib -Wno-type-limits';
 };
+
+module = {
+  name = asn1_test;
+  common = tests/asn1/tests/CVE-2018-1000654.c;
+  common = tests/asn1/tests/object-id-decoding.c;
+  common = tests/asn1/tests/object-id-encoding.c;
+  common = tests/asn1/tests/octet-string.c;
+  common = tests/asn1/tests/reproducers.c;
+  common = tests/asn1/tests/Test_overflow.c;
+  common = tests/asn1/tests/Test_simple.c;
+  common = tests/asn1/tests/Test_strings.c;
+  common = tests/asn1/asn1_test.c;
+  cflags = '-Wno-uninitialized';
+  cppflags = '-I$(srcdir)/lib/libtasn1-grub -I$(srcdir)/tests/asn1/';
+};
