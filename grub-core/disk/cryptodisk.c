@@ -27,6 +27,7 @@
 #include <grub/file.h>
 #include <grub/procfs.h>
 #include <grub/partition.h>
+#include <grub/key_protector.h>
 
 #ifdef GRUB_UTIL
 #include <grub/emu/hostdisk.h>
@@ -45,7 +46,8 @@ enum
     OPTION_KEYFILE,
     OPTION_KEYFILE_OFFSET,
     OPTION_KEYFILE_SIZE,
-    OPTION_HEADER
+    OPTION_HEADER,
+    OPTION_PROTECTOR
   };
 
 static const struct grub_arg_option options[] =
@@ -59,6 +61,8 @@ static const struct grub_arg_option options[] =
     {"keyfile-offset", 'O', 0, N_("Key file offset (bytes)"), 0, ARG_TYPE_INT},
     {"keyfile-size", 'S', 0, N_("Key file data size (bytes)"), 0, ARG_TYPE_INT},
     {"header", 'H', 0, N_("Read header from file"), 0, ARG_TYPE_STRING},
+    {"protector", 'P', GRUB_ARG_OPTION_REPEATABLE,
+     N_("Unlock volume(s) using key protector(s)."), 0, ARG_TYPE_STRING},
     {0, 0, 0, 0, 0, 0}
   };
 
@@ -1062,6 +1066,7 @@ grub_cryptodisk_scan_device_real (const char *name,
   grub_err_t ret = GRUB_ERR_NONE;
   grub_cryptodisk_t dev;
   grub_cryptodisk_dev_t cr;
+  int i;
   struct cryptodisk_read_hook_ctx read_hook_data = {0};
   int askpass = 0;
   char *part = NULL;
@@ -1114,79 +1119,151 @@ grub_cryptodisk_scan_device_real (const char *name,
       goto error_no_close;
     if (!dev)
       continue;
-
-    if (cargs->key_len)
-      {
-	ret = cr->recover_key (source, dev, cargs);
-	if (ret != GRUB_ERR_NONE)
-	  goto error;
-      }
-    else
-      {
-	/* Get the passphrase from the user, if no key data. */
-	unsigned long tries = 3;
-	const char *tries_env;
-
-	askpass = 1;
-	cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
-	if (cargs->key_data == NULL)
-	  goto error_no_close;
-
-	tries_env = grub_env_get ("cryptodisk_passphrase_tries");
-	if (tries_env != NULL && tries_env[0] != '\0')
-	  {
-	    unsigned long tries_env_val;
-	    const char *p;
-
-	    tries_env_val = grub_strtoul (tries_env, &p, 0);
-	    if (*p == '\0' && tries_env_val != ~0UL)
-	      tries = tries_env_val;
-	    else
-	      grub_printf_ (N_("Invalid cryptodisk_passphrase_tries value `%s'. Defaulting to %lu.\n"),
-			    tries_env,
-			    tries);
-	  }
-
-	for (; tries > 0; tries--)
-	  {
-	    part = grub_partition_get_name (source->partition);
-	    grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
-			 source->partition != NULL ? "," : "",
-			 part != NULL ? part : N_("UNKNOWN"),
-			 dev->uuid);
-	    grub_free (part);
-
-	    if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
-	      {
-		grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
-		goto error;
-	      }
-	    cargs->key_len = grub_strlen ((char *) cargs->key_data);
-
-	    ret = cr->recover_key (source, dev, cargs);
-	    if (ret == GRUB_ERR_NONE)
-	      break;
-	    if (ret != GRUB_ERR_ACCESS_DENIED || tries == 1)
-	      goto error;
-	    grub_puts_ (N_("Invalid passphrase."));
-
-	    /*
-	     * Since recover_key() calls a function that returns grub_errno,
-	     * a leftover error value from a previously rejected passphrase
-	     * will trigger a phantom failure. We therefore clear it before
-	     * trying a new passphrase.
-	     */
-	    grub_errno = GRUB_ERR_NONE;
-	  }
-      }
-
-    ret = grub_cryptodisk_insert (dev, name, source);
-    if (ret != GRUB_ERR_NONE)
-      goto error;
-
-    goto cleanup;
+    break;
   }
-  grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk module can handle this device");
+
+  if (dev == NULL)
+    {
+      grub_error (GRUB_ERR_BAD_MODULE,
+		  "no cryptodisk module can handle this device");
+      goto error_no_close;
+    }
+
+  if (cargs->protectors)
+    {
+      for (i = 0; cargs->protectors[i]; i++)
+	{
+	  if (cargs->key_cache[i].invalid)
+	    continue;
+
+	  if (cargs->key_cache[i].key == NULL)
+	    {
+	      ret = grub_key_protector_recover_key (cargs->protectors[i],
+						    &cargs->key_cache[i].key,
+						    &cargs->key_cache[i].key_len);
+	      if (ret != GRUB_ERR_NONE)
+		{
+		  if (grub_errno)
+		    {
+		      grub_print_error ();
+		      grub_errno = GRUB_ERR_NONE;
+		    }
+
+		  grub_dprintf ("cryptodisk",
+				"failed to recover a key from key protector "
+				"%s, will not try it again for any other "
+				"disks, if any, during this invocation of "
+				"cryptomount\n",
+				cargs->protectors[i]);
+
+		  cargs->key_cache[i].invalid = 1;
+		  continue;
+		}
+	    }
+
+	  cargs->key_data = cargs->key_cache[i].key;
+	  cargs->key_len = cargs->key_cache[i].key_len;
+
+	  ret = cr->recover_key (source, dev, cargs);
+	  if (ret != GRUB_ERR_NONE)
+	    {
+	      part = grub_partition_get_name (source->partition);
+	      grub_dprintf ("cryptodisk",
+			    "recovered a key from key protector %s but it "
+			    "failed to unlock %s%s%s (%s)\n",
+			    cargs->protectors[i], source->name,
+			    source->partition != NULL ? "," : "",
+			    part != NULL ? part : N_("UNKNOWN"), dev->uuid);
+	      grub_free (part);
+	      continue;
+	    }
+	  else
+	    {
+	      ret = grub_cryptodisk_insert (dev, name, source);
+	      if (ret != GRUB_ERR_NONE)
+		goto error;
+	      goto cleanup;
+	    }
+	}
+
+      part = grub_partition_get_name (source->partition);
+      grub_error (GRUB_ERR_ACCESS_DENIED,
+		  N_("no key protector provided a usable key for %s%s%s (%s)"),
+		  source->name, source->partition != NULL ? "," : "",
+		  part != NULL ? part : N_("UNKNOWN"), dev->uuid);
+      grub_free (part);
+      goto error;
+    }
+
+  if (cargs->key_len)
+    {
+      ret = cr->recover_key (source, dev, cargs);
+      if (ret != GRUB_ERR_NONE)
+	goto error;
+    }
+  else
+    {
+      /* Get the passphrase from the user, if no key data. */
+      unsigned long tries = 3;
+      const char *tries_env;
+
+      askpass = 1;
+      cargs->key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
+      if (cargs->key_data == NULL)
+	goto error_no_close;
+
+      tries_env = grub_env_get ("cryptodisk_passphrase_tries");
+      if (tries_env != NULL && tries_env[0] != '\0')
+	{
+	  unsigned long tries_env_val;
+	  const char *p;
+
+	  tries_env_val = grub_strtoul (tries_env, &p, 0);
+	  if (*p == '\0' && tries_env_val != ~0UL)
+	    tries = tries_env_val;
+	  else
+	    grub_printf_ (N_("Invalid cryptodisk_passphrase_tries value `%s'. Defaulting to %lu.\n"),
+			  tries_env,
+			  tries);
+	}
+
+      for (; tries > 0; tries--)
+	{
+	  part = grub_partition_get_name (source->partition);
+	  grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+			source->partition != NULL ? "," : "",
+			part != NULL ? part : N_("UNKNOWN"),
+			dev->uuid);
+	  grub_free (part);
+
+	  if (!grub_password_get ((char *) cargs->key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
+	    {
+	      grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
+	      goto error;
+	    }
+	  cargs->key_len = grub_strlen ((char *) cargs->key_data);
+
+	  ret = cr->recover_key (source, dev, cargs);
+	  if (ret == GRUB_ERR_NONE)
+	    break;
+	  if (ret != GRUB_ERR_ACCESS_DENIED || tries == 1)
+	    goto error;
+	  grub_puts_ (N_("Invalid passphrase."));
+
+	  /*
+	   * Since recover_key() calls a function that returns grub_errno,
+	   * a leftover error value from a previously rejected passphrase
+	   * will trigger a phantom failure. We therefore clear it before
+	   * trying a new passphrase.
+	   */
+	  grub_errno = GRUB_ERR_NONE;
+	}
+    }
+
+  ret = grub_cryptodisk_insert (dev, name, source);
+  if (ret != GRUB_ERR_NONE)
+    goto error;
+
   goto cleanup;
 
  error:
@@ -1298,6 +1375,20 @@ grub_cryptodisk_scan_device (const char *name,
   return ret;
 }
 
+static void
+grub_cryptodisk_clear_key_cache (struct grub_cryptomount_args *cargs)
+{
+  int i;
+
+  if (cargs->key_cache == NULL || cargs->protectors == NULL)
+    return;
+
+  for (i = 0; cargs->protectors[i]; i++)
+    grub_free (cargs->key_cache[i].key);
+
+  grub_free (cargs->key_cache);
+}
+
 static grub_err_t
 grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 {
@@ -1309,6 +1400,14 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (grub_cryptodisk_list == NULL)
     return grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk modules loaded");
+
+  if (state[OPTION_PASSWORD].set && state[OPTION_PROTECTOR].set) /* password and key protector */
+    return grub_error (GRUB_ERR_BAD_ARGUMENT,
+		       "a password and a key protector cannot both be set");
+
+  if (state[OPTION_KEYFILE].set && state[OPTION_PROTECTOR].set) /* key file and key protector */
+    return grub_error (GRUB_ERR_BAD_ARGUMENT,
+		       "a key file and a key protector cannot both be set");
 
   if (state[OPTION_PASSWORD].set) /* password */
     {
@@ -1402,6 +1501,15 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	return grub_errno;
     }
 
+  if (state[OPTION_PROTECTOR].set) /* key protector(s) */
+    {
+      cargs.key_cache = grub_zalloc (state[OPTION_PROTECTOR].set * sizeof (*cargs.key_cache));
+      if (cargs.key_cache == NULL)
+	return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+			   "no memory for key protector key cache");
+      cargs.protectors = state[OPTION_PROTECTOR].args;
+    }
+
   if (state[OPTION_UUID].set) /* uuid */
     {
       int found_uuid;
@@ -1410,6 +1518,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       dev = grub_cryptodisk_get_by_uuid (args[0]);
       if (dev)
 	{
+	  grub_cryptodisk_clear_key_cache (&cargs);
 	  grub_dprintf ("cryptodisk",
 			"already mounted as crypto%lu\n", dev->id);
 	  return GRUB_ERR_NONE;
@@ -1418,6 +1527,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       cargs.check_boot = state[OPTION_BOOT].set;
       cargs.search_uuid = args[0];
       found_uuid = grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
+      grub_cryptodisk_clear_key_cache (&cargs);
 
       if (found_uuid)
 	return GRUB_ERR_NONE;
@@ -1437,6 +1547,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
     {
       cargs.check_boot = state[OPTION_BOOT].set;
       grub_device_iterate (&grub_cryptodisk_scan_device, &cargs);
+      grub_cryptodisk_clear_key_cache (&cargs);
       return GRUB_ERR_NONE;
     }
   else
@@ -1460,6 +1571,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
       disk = grub_disk_open (diskname);
       if (!disk)
 	{
+	  grub_cryptodisk_clear_key_cache (&cargs);
 	  if (disklast)
 	    *disklast = ')';
 	  return grub_errno;
@@ -1470,12 +1582,14 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 	{
 	  grub_dprintf ("cryptodisk", "already mounted as crypto%lu\n", dev->id);
 	  grub_disk_close (disk);
+	  grub_cryptodisk_clear_key_cache (&cargs);
 	  if (disklast)
 	    *disklast = ')';
 	  return GRUB_ERR_NONE;
 	}
 
       dev = grub_cryptodisk_scan_device_real (diskname, disk, &cargs);
+      grub_cryptodisk_clear_key_cache (&cargs);
 
       grub_disk_close (disk);
       if (disklast)
@@ -1629,6 +1743,7 @@ GRUB_MOD_INIT (cryptodisk)
   cmd = grub_register_extcmd ("cryptomount", grub_cmd_cryptomount, 0,
 			      N_("[ [-p password] | [-k keyfile"
 				 " [-O keyoffset] [-S keysize] ] ] [-H file]"
+				 " [-P protector [-P protector ...]]"
 				 " <SOURCE|-u UUID|-a|-b>"),
 			      N_("Mount a crypto device."), options);
   grub_procfs_register ("luks_script", &luks_script);
