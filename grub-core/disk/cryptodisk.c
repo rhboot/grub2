@@ -1405,7 +1405,11 @@ grub_cryptodisk_clear_key_cache (struct grub_cryptomount_args *cargs)
     return;
 
   for (i = 0; cargs->protectors[i]; i++)
-    grub_free (cargs->key_cache[i].key);
+    {
+      if (cargs->key_cache[i].key)
+	grub_memset (cargs->key_cache[i].key, 0, cargs->key_cache[i].key_len);
+      grub_free (cargs->key_cache[i].key);
+    }
 
   grub_free (cargs->key_cache);
 }
