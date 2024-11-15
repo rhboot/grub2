@@ -1,0 +1,33 @@
+From 93453558fbe34634096770933b3dc40c9199dfb4 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Tue, 20 Aug 2024 16:14:51 +0800
+Subject: [PATCH 02/13] libtasn1: replace strcat() with strcpy() in
+ _asn1_str_cat()
+
+strcat() is not available in GRUB. This commit replaces strcat() with
+strcpy() in _asn1_str_cat() as the preparation to replace other strcat()
+with the bounds-checking _asn1_str_cat().
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/lib/libtasn1-grub/lib/gstr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/grub-core/lib/libtasn1-grub/lib/gstr.c b/grub-core/lib/libtasn1-grub/lib/gstr.c
+index eef419554..a9c16f5d3 100644
+--- a/grub-core/lib/libtasn1-grub/lib/gstr.c
++++ b/grub-core/lib/libtasn1-grub/lib/gstr.c
+@@ -36,7 +36,7 @@ _asn1_str_cat (char *dest, size_t dest_tot_size, const char *src)
+ 
+   if (dest_tot_size - dest_size > str_size)
+     {
+-      strcat (dest, src);
++      strcpy (dest + dest_size, src);
+     }
+   else
+     {
+-- 
+2.43.0
+
