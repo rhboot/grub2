@@ -506,6 +506,7 @@ to update it.
 * Gnulib::
 * jsmn::
 * minilzo::
+* libtasn1::
 @end menu
 
 @node Gnulib
@@ -595,6 +596,40 @@ rm -r grub-core/lib/minilzo/*
 cp minilzo-2.10/*.[hc] grub-core/lib/minilzo
 rm -r minilzo-2.10*
 @end example
+
+@node libtasn1
+@section libtasn1
+
+libtasn1 is a library providing Abstract Syntax Notation One (ASN.1, as
+specified by the X.680 ITU-T recommendation) parsing and structures management,
+and Distinguished Encoding Rules (DER, as per X.690) encoding and decoding
+functions.
+
+To upgrade to a new version of the libtasn1 library, download the release
+tarball and copy the files into the target directory:
+
+@example
+curl -L -O https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.19.0.tar.gz
+tar xvzf libtasn1-4.19.0.tar.gz
+rm -rf grub-core/lib/libtasn1
+mkdir -p grub-core/lib/libtasn1/lib
+mkdir -p grub-core/lib/libtasn1/tests
+cp libtasn1-4.19.0/@lbracechar{}README.md,COPYING@rbracechar{} grub-core/lib/libtasn1
+cp libtasn1-4.19.0/lib/@lbracechar{}coding.c,decoding.c,element.c,element.h,errors.c,gstr.c,gstr.h,int.h,parser_aux.c,parser_aux.h,structure.c,structure.h@rbracechar{} grub-core/lib/libtasn1/lib
+cp libtasn1-4.19.0/lib/includes/libtasn1.h grub-core/lib/libtasn1
+cp libtasn1-4.19.0/tests/@lbracechar{}CVE-2018-1000654-1_asn1_tab.h,CVE-2018-1000654-2_asn1_tab.h,CVE-2018-1000654.c,object-id-decoding.c,object-id-encoding.c,octet-string.c,reproducers.c,Test_overflow.c,Test_simple.c,Test_strings.c@rbracechar{} grub-core/lib/libtasn1/tests
+rm -rf libtasn1-4.19.0*
+@end example
+
+After upgrading the library, it may be necessary to apply the patches in
+@file{grub-core/lib/libtasn1-patches/} to adjust the code to be compatible with
+GRUB. These patches were needed to use the current version of libtasn1. The
+existing patches may not apply cleanly, apply at all, or even be needed for a
+newer version of the library, and other patches may be needed due to changes in
+the newer version. If existing patches need to be refreshed to apply cleanly,
+please include updated patches as part of the a patch set sent to the list.
+If new patches are needed or existing patches are not needed, also please send
+additions or removals as part of any patch set upgrading libtasn1.
 
 @node Debugging
 @chapter Debugging
