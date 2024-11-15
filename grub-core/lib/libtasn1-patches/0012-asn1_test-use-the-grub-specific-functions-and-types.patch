@@ -1,0 +1,263 @@
+From 392da24a8a4b2ab94a93e9e0f74db027a3a9374d Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 16 Aug 2024 15:46:59 +0800
+Subject: [PATCH 12/13] asn1_test: use the grub-specific functions and types
+
+This commit converts functions and types to the grub-specific ones:
+
+LONG_MAX -> GRUB_LONG_MAX
+INT_MAX -> GRUB_INT_MAX
+UINT_MAX -> GRUB_UINT_MAX
+size_t -> grub_size_t
+memcmp() -> grub_memcmp()
+memcpy() -> grub_memcpy()
+free() -> grub_free()
+strcmp() -> grub_strcmp()
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/tests/asn1/tests/Test_overflow.c    |  4 ++--
+ grub-core/tests/asn1/tests/Test_simple.c      | 22 +++++++++----------
+ grub-core/tests/asn1/tests/Test_strings.c     |  8 +++----
+ .../tests/asn1/tests/object-id-decoding.c     |  4 ++--
+ .../tests/asn1/tests/object-id-encoding.c     |  2 +-
+ grub-core/tests/asn1/tests/octet-string.c     | 10 ++++-----
+ 6 files changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/grub-core/tests/asn1/tests/Test_overflow.c b/grub-core/tests/asn1/tests/Test_overflow.c
+index ffac8507a..65843abf6 100644
+--- a/grub-core/tests/asn1/tests/Test_overflow.c
++++ b/grub-core/tests/asn1/tests/Test_overflow.c
+@@ -43,9 +43,9 @@ test_overflow (void)
+ 
+   /* Test that values larger than int but smaller than long are
+      rejected.  This limitation was introduced with libtasn1 2.12. */
+-  if (LONG_MAX > INT_MAX)
++  if (GRUB_LONG_MAX > GRUB_INT_MAX)
+     {
+-      unsigned long num = ((long) UINT_MAX) << 2;
++      unsigned long num = ((long) GRUB_UINT_MAX) << 2;
+       unsigned char der[20];
+       int der_len;
+       long l;
+diff --git a/grub-core/tests/asn1/tests/Test_simple.c b/grub-core/tests/asn1/tests/Test_simple.c
+index dc70db191..19613cae8 100644
+--- a/grub-core/tests/asn1/tests/Test_simple.c
++++ b/grub-core/tests/asn1/tests/Test_simple.c
+@@ -81,7 +81,7 @@ test_simple (void)
+   int der_len = sizeof (der);
+   int str_size = sizeof (str);
+   int ret_len, bit_len;
+-  size_t i;
++  grub_size_t i;
+ 
+   {
+     unsigned int etype = 38;
+@@ -127,7 +127,7 @@ test_simple (void)
+       }
+ #endif
+ 
+-      if (der_len != tv[i].derlen || memcmp (der, tv[i].der, der_len) != 0)
++      if (der_len != tv[i].derlen || grub_memcmp (der, tv[i].der, der_len) != 0)
+ 	{
+ 	  grub_printf ("asn1_bit_der iter %lu\n", (unsigned long) i);
+ 	  return 1;
+@@ -155,12 +155,12 @@ test_simple (void)
+ 
+   /* 03 04 06 6e 5d c0  DER encoding */
+ 
+-  memcpy (der, "\x04\x06\x6e\x5d\xc0", 5);
++  grub_memcpy (der, "\x04\x06\x6e\x5d\xc0", 5);
+   der_len = 5;
+ 
+   result = asn1_get_bit_der (der, der_len, &ret_len, str, str_size, &bit_len);
+   if (result != ASN1_SUCCESS || ret_len != 5
+-      || bit_len != 18 || memcmp (str, "\x6e\x5d\xc0", 3) != 0)
++      || bit_len != 18 || grub_memcmp (str, "\x6e\x5d\xc0", 3) != 0)
+     {
+       grub_printf ("asn1_get_bit_der example\n");
+       return 1;
+@@ -168,7 +168,7 @@ test_simple (void)
+ 
+   der_len = sizeof (der);
+   asn1_bit_der (str, bit_len, der, &der_len);
+-  if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
++  if (der_len != 5 || grub_memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+       grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+@@ -176,12 +176,12 @@ test_simple (void)
+ 
+   /* 03 04 06 6e 5d e0 padded with "100000" */
+ 
+-  memcpy (der, "\x04\x06\x6e\x5d\xe0", 5);
++  grub_memcpy (der, "\x04\x06\x6e\x5d\xe0", 5);
+   der_len = 5;
+ 
+   result = asn1_get_bit_der (der, der_len, &ret_len, str, str_size, &bit_len);
+   if (result != ASN1_SUCCESS || ret_len != 5
+-      || bit_len != 18 || memcmp (str, "\x6e\x5d\xe0", 3) != 0)
++      || bit_len != 18 || grub_memcmp (str, "\x6e\x5d\xe0", 3) != 0)
+     {
+       grub_printf ("asn1_get_bit_der example padded\n");
+       return 1;
+@@ -189,7 +189,7 @@ test_simple (void)
+ 
+   der_len = sizeof (der);
+   asn1_bit_der (str, bit_len, der, &der_len);
+-  if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
++  if (der_len != 5 || grub_memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+       grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+@@ -197,13 +197,13 @@ test_simple (void)
+ 
+   /* 03 81 04 06 6e 5d c0 long form of length octets */
+ 
+-  memcpy (der, "\x81\x04\x06\x6e\x5d\xc0", 6);
++  grub_memcpy (der, "\x81\x04\x06\x6e\x5d\xc0", 6);
+   der_len = 6;
+ 
+   result = asn1_get_bit_der (der, der_len, &ret_len, str, str_size, &bit_len);
+ 
+   if (result != ASN1_SUCCESS || ret_len != 6
+-      || bit_len != 18 || memcmp (str, "\x6e\x5d\xc0", 3) != 0)
++      || bit_len != 18 || grub_memcmp (str, "\x6e\x5d\xc0", 3) != 0)
+     {
+       grub_printf ("asn1_get_bit_der example long form\n");
+       return 1;
+@@ -211,7 +211,7 @@ test_simple (void)
+ 
+   der_len = sizeof (der);
+   asn1_bit_der (str, bit_len, der, &der_len);
+-  if (der_len != 5 || memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
++  if (der_len != 5 || grub_memcmp (der, "\x04\x06\x6e\x5d\xc0", 5) != 0)
+     {
+       grub_printf ("asn1_bit_der example roundtrip\n");
+       return 1;
+diff --git a/grub-core/tests/asn1/tests/Test_strings.c b/grub-core/tests/asn1/tests/Test_strings.c
+index 65c30937f..c7c1afa1b 100644
+--- a/grub-core/tests/asn1/tests/Test_strings.c
++++ b/grub-core/tests/asn1/tests/Test_strings.c
+@@ -94,7 +94,7 @@ test_strings (void)
+ 	}
+       der_len = tl_len + tv[i].str_len;
+ 
+-      if (der_len != tv[i].der_len || memcmp (tl, tv[i].der, tl_len) != 0)
++      if (der_len != tv[i].der_len || grub_memcmp (tl, tv[i].der, tl_len) != 0)
+ 	{
+ 	  grub_printf ("DER encoding differs in %u! (size: %u, expected: %u)\n", i, der_len, tv[i].der_len);
+ 	  return 1;
+@@ -110,7 +110,7 @@ test_strings (void)
+ 	  return 1;
+ 	}
+ 
+-      if (str_len != tv[i].str_len || memcmp (str, tv[i].str, str_len) != 0)
++      if (str_len != tv[i].str_len || grub_memcmp (str, tv[i].str, str_len) != 0)
+ 	{
+ 	  grub_printf ("DER decoded data differ in %u! (size: %u, expected: %u)\n", i, der_len, tv[i].str_len);
+ 	  return 1;
+@@ -130,12 +130,12 @@ test_strings (void)
+ 	  return 1;
+ 	}
+ 
+-      if (str_len != ber[i].str_len || memcmp (b, ber[i].str, str_len) != 0)
++      if (str_len != ber[i].str_len || grub_memcmp (b, ber[i].str, str_len) != 0)
+ 	{
+ 	  grub_printf ("BER decoded data differ in %u! (size: %u, expected: %u)\n", i, str_len, ber[i].str_len);
+ 	  return 1;
+ 	}
+-      free (b);
++      grub_free (b);
+     }
+ 
+ 
+diff --git a/grub-core/tests/asn1/tests/object-id-decoding.c b/grub-core/tests/asn1/tests/object-id-decoding.c
+index c087b46e3..91af8cde5 100644
+--- a/grub-core/tests/asn1/tests/object-id-decoding.c
++++ b/grub-core/tests/asn1/tests/object-id-decoding.c
+@@ -74,7 +74,7 @@ test_object_id_decoding (void)
+ {
+   char str[128];
+   int ret, ret_len;
+-  size_t i;
++  grub_size_t i;
+ 
+   for (i = 0; i < sizeof (tv) / sizeof (tv[0]); i++)
+     {
+@@ -100,7 +100,7 @@ test_object_id_decoding (void)
+ 	  return 1;
+ 	}
+ 
+-      if (strcmp (tv[i].oid, str) != 0)
++      if (grub_strcmp (tv[i].oid, str) != 0)
+ 	{
+ 	  grub_printf ("%d: strcmp iter %lu: got invalid OID: %s, expected: %s\n",
+ 		       __LINE__, (unsigned long) i, str, tv[i].oid);
+diff --git a/grub-core/tests/asn1/tests/object-id-encoding.c b/grub-core/tests/asn1/tests/object-id-encoding.c
+index e3da092cc..f8f98ff17 100644
+--- a/grub-core/tests/asn1/tests/object-id-encoding.c
++++ b/grub-core/tests/asn1/tests/object-id-encoding.c
+@@ -104,7 +104,7 @@ test_object_id_encoding (void)
+ 	  return 1;
+ 	}
+ 
+-      if (der_len != tv[i].der_len || memcmp (der, tv[i].der, der_len) != 0)
++      if (der_len != tv[i].der_len || grub_memcmp (der, tv[i].der, der_len) != 0)
+ 	{
+ 	  grub_printf ("%d: iter %lu, re-encoding of OID %s resulted to different string (%d vs %d bytes)\n",
+ 		   __LINE__, (unsigned long) i, tv[i].oid, der_len, tv[i].der_len);
+diff --git a/grub-core/tests/asn1/tests/octet-string.c b/grub-core/tests/asn1/tests/octet-string.c
+index d3a35dff8..dcf0fb808 100644
+--- a/grub-core/tests/asn1/tests/octet-string.c
++++ b/grub-core/tests/asn1/tests/octet-string.c
+@@ -116,7 +116,7 @@ test_octet_string (void)
+   int str_size = sizeof (str);
+   unsigned char *tmp = NULL;
+   int ret, ret_len, j;
+-  size_t i;
++  grub_size_t i;
+ 
+   for (i = 0; i < sizeof (tv) / sizeof (tv[0]); i++)
+     {
+@@ -146,7 +146,7 @@ test_octet_string (void)
+ 	    }
+ 
+ 	  if (str_size != tv[i].len
+-	      || memcmp (tv[i].string, str, tv[i].len) != 0)
++	      || grub_memcmp (tv[i].string, str, tv[i].len) != 0)
+ 	    {
+ 	      grub_printf ("%d: memcmp: %s: got invalid decoding\n",
+ 			   __LINE__, tv[i].name);
+@@ -167,7 +167,7 @@ test_octet_string (void)
+ 	  asn1_octet_der (str, str_size, der, &der_len);
+ 
+ 	  if (der_len != tv[i].der_len - 1
+-	      || memcmp (tv[i].der_str + 1, der, tv[i].der_len - 1) != 0)
++	      || grub_memcmp (tv[i].der_str + 1, der, tv[i].der_len - 1) != 0)
+ 	    {
+ 	      grub_printf ("encoding: %s: got invalid encoding\n", tv[i].name);
+ 	      return 1;
+@@ -196,7 +196,7 @@ test_octet_string (void)
+ 	  return 1;
+ 	}
+ 
+-      if (str_size != tv[i].len || memcmp (tv[i].string, tmp, tv[i].len) != 0)
++      if (str_size != tv[i].len || grub_memcmp (tv[i].string, tmp, tv[i].len) != 0)
+ 	{
+ 	  grub_printf ("%d: memcmp: %s: got invalid decoding\n", __LINE__, tv[i].name);
+ 	  grub_printf ("\nGot:\t\t");
+@@ -209,7 +209,7 @@ test_octet_string (void)
+ 	  grub_printf ("\n");
+ 	  return 1;
+ 	}
+-      free (tmp);
++      grub_free (tmp);
+       tmp = NULL;
+ 
+     }
+-- 
+2.43.0
+
