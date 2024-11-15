@@ -2579,6 +2579,17 @@ module = {
 };
 
 module = {
+  name = tpm2_key_protector;
+  common = commands/tpm2_key_protector/args.c;
+  common = commands/tpm2_key_protector/module.c;
+  common = commands/tpm2_key_protector/tpm2key.c;
+  common = commands/tpm2_key_protector/tpm2key_asn1_tab.c;
+  /* The plaform support of tpm2_key_protector depends on the tcg2 implementation in tss2. */
+  enable = efi;
+  cppflags = '-I$(srcdir)/lib/tss2 -I$(srcdir)/lib/libtasn1-grub';
+};
+
+module = {
   name = tr;
   common = commands/tr.c;
 };

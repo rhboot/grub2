@@ -1,0 +1,49 @@
+--
+-- GRUB: GRand Unified Bootloader
+-- Copyright (C) 2024 Free Software Foundation, Inc.
+--
+-- GRUB is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- GRUB is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
+--
+-- This file describes TPM 2.0 Key File format for libtasn1.
+--  To generate tpm2key_asn1_tab.c: asn1Parser tpm2key.asn
+--
+TPM2KEY {}
+DEFINITIONS IMPLICIT TAGS ::=
+
+BEGIN
+
+TPMPolicy ::= SEQUENCE {
+    CommandCode   [0] EXPLICIT INTEGER,
+    CommandPolicy [1] EXPLICIT OCTET STRING
+}
+
+TPMAuthPolicy ::= SEQUENCE {
+    Name    [0] EXPLICIT UTF8String OPTIONAL,
+    Policy  [1] EXPLICIT SEQUENCE OF TPMPolicy
+}
+
+TPMKey ::= SEQUENCE {
+    type        OBJECT IDENTIFIER,
+    emptyAuth   [0] EXPLICIT BOOLEAN OPTIONAL,
+    policy      [1] EXPLICIT SEQUENCE OF TPMPolicy OPTIONAL,
+    secret      [2] EXPLICIT OCTET STRING OPTIONAL,
+    authPolicy  [3] EXPLICIT SEQUENCE OF TPMAuthPolicy OPTIONAL,
+    description [4] EXPLICIT UTF8String OPTIONAL,
+    rsaParent   [5] EXPLICIT BOOLEAN OPTIONAL,
+    parent      INTEGER,
+    pubkey      OCTET STRING,
+    privkey     OCTET STRING
+}
+
+END
