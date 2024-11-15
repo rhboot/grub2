@@ -344,7 +344,7 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
 
           if (grub_strncmp (prefix + 1, "tftp", sizeof ("tftp") - 1) == 0 &&
               !disable_net_search)
-            grub_net_search_config_file (config);
+            grub_net_search_config_file (config, config_len);
 
 	  grub_enter_normal_mode (config);
 	  grub_free (config);
