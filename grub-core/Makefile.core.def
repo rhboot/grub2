@@ -2606,3 +2606,18 @@ module = {
   enable = efi;
   depends = part_gpt;
 };
+
+module = {
+  name = asn1;
+  common = lib/libtasn1-grub/lib/decoding.c;
+  common = lib/libtasn1-grub/lib/coding.c;
+  common = lib/libtasn1-grub/lib/element.c;
+  common = lib/libtasn1-grub/lib/structure.c;
+  common = lib/libtasn1-grub/lib/parser_aux.c;
+  common = lib/libtasn1-grub/lib/gstr.c;
+  common = lib/libtasn1-grub/lib/errors.c;
+  common = lib/libtasn1_wrap/wrap.c;
+  cflags = '$(CFLAGS_POSIX) $(CFLAGS_GNULIB)';
+  /* -Wno-type-limits comes from configure.ac of libtasn1 */
+  cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB) -I$(srcdir)/lib/libtasn1-grub -I$(srcdir)/lib/libtasn1-grub/lib -Wno-type-limits';
+};
