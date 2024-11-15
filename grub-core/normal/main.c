@@ -349,7 +349,7 @@ grub_try_normal_prefix (const char *prefix)
 	  return err;
 
 	grub_snprintf (config, config_len, "%s/grub.cfg", prefix);
-	err = grub_net_search_configfile (config);
+	err = grub_net_search_configfile (config, config_len);
       }
 
     if (err != GRUB_ERR_NONE)

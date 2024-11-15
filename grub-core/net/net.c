@@ -1940,9 +1940,9 @@ grub_net_restore_hw (void)
 }
 
 grub_err_t
-grub_net_search_configfile (char *config)
+grub_net_search_configfile (char *config, grub_size_t config_buf_len)
 {
-  grub_size_t config_len;
+  grub_size_t config_len, suffix_len;
   char *suffix;
 
   auto int search_through (grub_size_t num_tries, grub_size_t slice_size);
@@ -1979,6 +1979,7 @@ grub_net_search_configfile (char *config)
   config_len = grub_strlen (config);
   config[config_len] = '-';
   suffix = config + config_len + 1;
+  suffix_len = config_buf_len - (config_len + 1);
 
   struct grub_net_network_level_interface *inf;
   FOR_NET_NETWORK_LEVEL_INTERFACES (inf)
@@ -2004,7 +2005,7 @@ grub_net_search_configfile (char *config)
 
       if (client_uuid)
         {
-          grub_strcpy (suffix, client_uuid);
+          grub_strlcpy (suffix, client_uuid, suffix_len);
           if (search_through (1, 0) == 0) return GRUB_ERR_NONE;
         }
 
