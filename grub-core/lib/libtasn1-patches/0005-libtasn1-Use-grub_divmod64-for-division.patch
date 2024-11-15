@@ -1,0 +1,31 @@
+From 5ee39f0bb8b0b713f766c0fc83439d83ac2c0bf2 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Tue, 25 Jun 2024 16:32:50 +0800
+Subject: [PATCH 05/13] libtasn1: Use grub_divmod64() for division
+
+Replace a 64-bit division with a call to grub_divmod64(), preventing
+creation of __udivdi3() calls on 32-bit platforms.
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/lib/libtasn1-grub/lib/parser_aux.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/grub-core/lib/libtasn1-grub/lib/parser_aux.c b/grub-core/lib/libtasn1-grub/lib/parser_aux.c
+index c05bd2339..e4e4c0556 100644
+--- a/grub-core/lib/libtasn1-grub/lib/parser_aux.c
++++ b/grub-core/lib/libtasn1-grub/lib/parser_aux.c
+@@ -632,7 +632,7 @@ _asn1_ltostr (int64_t v, char str[LTOSTR_MAX_SIZE])
+   count = 0;
+   do
+     {
+-      d = val / 10;
++      d = grub_divmod64(val, 10, NULL);
+       r = val - d * 10;
+       temp[start + count] = '0' + (char) r;
+       count++;
+-- 
+2.43.0
+
