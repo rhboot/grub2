@@ -1,0 +1,78 @@
+From 103ec39de5277e2683099017959415e107b885a5 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 16 Aug 2024 15:32:39 +0800
+Subject: [PATCH 09/13] asn1_test: return either 0 or 1 to reflect the results
+
+Some testcases use exit() to end the test. Since all the asn1 testcases
+are invoked as functions, this commit replaces exit() with return to
+reflect the test results, so that the main test function can check the
+results.
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Signed-off-by: Gary Lin <glin@suse.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/tests/asn1/tests/CVE-2018-1000654.c | 6 +++---
+ grub-core/tests/asn1/tests/reproducers.c      | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/grub-core/tests/asn1/tests/CVE-2018-1000654.c b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+index a935ab541..2085b3cd3 100644
+--- a/grub-core/tests/asn1/tests/CVE-2018-1000654.c
++++ b/grub-core/tests/asn1/tests/CVE-2018-1000654.c
+@@ -45,7 +45,7 @@ test_CVE_2018_1000654 (void)
+     {
+       asn1_perror (result);
+       printf ("ErrorDescription = %s\n\n", errorDescription);
+-      exit (1);
++      return 1;
+     }
+ 
+   asn1_delete_structure (&definitions);
+@@ -59,12 +59,12 @@ test_CVE_2018_1000654 (void)
+     {
+       asn1_perror (result);
+       printf ("ErrorDescription = %s\n\n", errorDescription);
+-      exit (1);
++      return 1;
+     }
+ 
+   asn1_delete_structure (&definitions);
+ 
+   if (verbose)
+     printf ("Success\n");
+-  exit (0);
++  return 0;
+ }
+diff --git a/grub-core/tests/asn1/tests/reproducers.c b/grub-core/tests/asn1/tests/reproducers.c
+index e843b74b9..54a243d51 100644
+--- a/grub-core/tests/asn1/tests/reproducers.c
++++ b/grub-core/tests/asn1/tests/reproducers.c
+@@ -63,7 +63,7 @@ test_reproducers (void)
+     {
+       asn1_perror (result);
+       printf ("ErrorDescription = %s\n\n", errorDescription);
+-      exit (EXIT_FAILURE);
++      return 1;
+     }
+ 
+   asn1_delete_structure (&definitions);
+@@ -74,7 +74,7 @@ test_reproducers (void)
+     {
+       asn1_perror (result);
+       printf ("ErrorDescription = %s\n\n", errorDescription);
+-      exit (EXIT_FAILURE);
++      return 1;
+     }
+ 
+   asn1_delete_structure (&definitions);
+@@ -82,5 +82,5 @@ test_reproducers (void)
+   if (verbose)
+     printf ("Success\n");
+ 
+-  exit (EXIT_SUCCESS);
++  return 0;
+ }
+-- 
+2.43.0
+
