@@ -28,6 +28,8 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <grub/mm.h>
 #include <grub/err.h>
@@ -40,6 +42,8 @@
 
 int verbosity;
 int kexecute;
+
+static int grub_util_tpm_fd = -1;
 
 void
 grub_util_warn (const char *fmt, ...)
@@ -229,4 +233,51 @@ int
 grub_util_get_kexecute (void)
 {
   return kexecute;
+}
+
+grub_err_t
+grub_util_tpm_open (const char *tpm_dev)
+{
+  if (grub_util_tpm_fd != -1)
+    return GRUB_ERR_NONE;
+
+  grub_util_tpm_fd = open (tpm_dev, O_RDWR);
+  if (grub_util_tpm_fd == -1)
+    grub_util_error (_("cannot open TPM device '%s': %s"), tpm_dev, strerror (errno));
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_util_tpm_close (void)
+{
+  int err;
+
+  if (grub_util_tpm_fd == -1)
+    return GRUB_ERR_NONE;
+
+  err = close (grub_util_tpm_fd);
+  if (err != GRUB_ERR_NONE)
+    grub_util_error (_("cannot close TPM device: %s"), strerror (errno));
+
+  grub_util_tpm_fd = -1;
+  return GRUB_ERR_NONE;
+}
+
+grub_size_t
+grub_util_tpm_read (void *output, grub_size_t size)
+{
+  if (grub_util_tpm_fd == -1)
+    return -1;
+
+  return read (grub_util_tpm_fd, output, size);
+}
+
+grub_size_t
+grub_util_tpm_write (const void *input, grub_size_t size)
+{
+  if (grub_util_tpm_fd == -1)
+    return -1;
+
+  return write (grub_util_tpm_fd, input, size);
 }

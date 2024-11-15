@@ -55,7 +55,7 @@
 static jmp_buf main_env;
 
 /* Store the prefix specified by an argument.  */
-static char *root_dev = NULL, *dir = NULL;
+static char *root_dev = NULL, *dir = NULL, *tpm_dev = NULL;
 
 grub_addr_t grub_modbase = 0;
 
@@ -108,6 +108,7 @@ static struct argp_option options[] = {
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   {"hold",     'H', N_("SECS"),      OPTION_ARG_OPTIONAL, N_("wait until a debugger will attach"), 0},
   {"kexec",       'X', 0,      0, N_("use kexec to boot Linux kernels via systemctl (pass twice to enable dangerous fallback to non-systemctl)."), 0},
+  {"tpm-device",  't', N_("DEV"), 0, N_("set TPM device."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -167,6 +168,10 @@ argp_parser (int key, char *arg, struct argp_state *state)
       break;
     case 'X':
       grub_util_set_kexecute ();
+      break;
+    case 't':
+      free (tpm_dev);
+      tpm_dev = xstrdup (arg);
       break;
 
     case ARGP_KEY_ARG:
@@ -276,6 +281,9 @@ main (int argc, char *argv[])
 
   dir = xstrdup (dir);
 
+  if (tpm_dev)
+    grub_util_tpm_open (tpm_dev);
+
   /* Start GRUB!  */
   if (setjmp (main_env) == 0)
     grub_main ();
@@ -283,6 +291,7 @@ main (int argc, char *argv[])
   grub_fini_all ();
   grub_hostfs_fini ();
   grub_host_fini ();
+  grub_util_tpm_close ();
 
   grub_machine_fini (GRUB_LOADER_FLAG_NORETURN);
 

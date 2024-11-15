@@ -75,4 +75,9 @@ grub_util_fopen (const char *path, const char *mode);
 
 int grub_util_file_sync (FILE *f);
 
+grub_err_t grub_util_tpm_open (const char *tpm_dev);
+grub_err_t grub_util_tpm_close (void);
+grub_size_t EXPORT_FUNC(grub_util_tpm_read) (void *output, grub_size_t size);
+grub_size_t EXPORT_FUNC(grub_util_tpm_write) (const void *input, grub_size_t size);
+
 #endif /* GRUB_EMU_MISC_H */

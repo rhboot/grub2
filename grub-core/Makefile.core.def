@@ -2574,7 +2574,9 @@ module = {
   common = lib/tss2/tpm2_cmd.c;
   common = lib/tss2/tss2.c;
   efi = lib/efi/tcg2.c;
+  emu = lib/tss2/tcg2_emu.c;
   enable = efi;
+  enable = emu;
   cppflags = '-I$(srcdir)/lib/tss2';
 };
 
@@ -2586,6 +2588,7 @@ module = {
   common = commands/tpm2_key_protector/tpm2key_asn1_tab.c;
   /* The plaform support of tpm2_key_protector depends on the tcg2 implementation in tss2. */
   enable = efi;
+  enable = emu;
   cppflags = '-I$(srcdir)/lib/tss2 -I$(srcdir)/lib/libtasn1-grub';
 };
 
