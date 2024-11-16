@@ -28,6 +28,9 @@
 
 grub_partition_map_t grub_partition_map_list;
 
+#define MAX_RECURSION_DEPTH	32
+static unsigned int recursion_depth = 0;
+
 /*
  * Checks that disk->partition contains part.  This function assumes that the
  * start of part is relative to the start of disk->partition.  Returns 1 if
@@ -208,7 +211,12 @@ part_iterate (grub_disk_t dsk, const grub_partition_t partition, void *data)
       FOR_PARTITION_MAPS(partmap)
       {
 	grub_err_t err;
-	err = partmap->iterate (dsk, part_iterate, ctx);
+	recursion_depth++;
+	if (recursion_depth <= MAX_RECURSION_DEPTH)
+	  err = partmap->iterate (dsk, part_iterate, ctx);
+	else
+	  err = grub_error (GRUB_ERR_RECURSION_DEPTH, "maximum recursion depth exceeded");
+	recursion_depth--;
 	if (err)
 	  grub_errno = GRUB_ERR_NONE;
 	if (ctx->ret)
