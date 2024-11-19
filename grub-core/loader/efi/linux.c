@@ -688,7 +688,7 @@ parse_pe_header (void *kernel, grub_uint64_t *total_size,
 		 grub_uint32_t *alignment, grub_uint32_t *code_size)
 {
   struct linux_arch_kernel_header *lh = kernel;
-  struct grub_armxx_linux_pe_header *pe;
+  struct grub_efixx_linux_pe_header *pe;
   grub_uint16_t i;
   struct grub_pe32_section_table *sections;
 
