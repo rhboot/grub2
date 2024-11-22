@@ -25,6 +25,7 @@
 #include <grub/mm.h>
 #include <grub/dl.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -76,6 +77,7 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 {
   struct head hd;
   int reread = 0, have_longname = 0, have_longlink = 0;
+  grub_size_t sz;
 
   data->hofs = data->next_hofs;
   *name = NULL;
@@ -98,7 +100,11 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	{
 	  grub_err_t err;
 	  grub_size_t namesize = read_number (hd.size, sizeof (hd.size));
-	  *name = grub_malloc (namesize + 1);
+
+	  if (grub_add (namesize, 1, &sz))
+	    return grub_error (GRUB_ERR_BAD_FS, N_("name size overflow"));
+
+	  *name = grub_malloc (sz);
 	  if (*name == NULL)
 	    return grub_errno;
 	  err = grub_disk_read (data->disk, 0,
@@ -118,15 +124,19 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	{
 	  grub_err_t err;
 	  grub_size_t linksize = read_number (hd.size, sizeof (hd.size));
-	  if (data->linkname_alloc < linksize + 1)
+
+	  if (grub_add (linksize, 1, &sz))
+	    return grub_error (GRUB_ERR_BAD_FS, N_("link size overflow"));
+
+	  if (data->linkname_alloc < sz)
 	    {
 	      char *n;
-	      n = grub_calloc (2, linksize + 1);
+	      n = grub_calloc (2, sz);
 	      if (!n)
 		return grub_errno;
 	      grub_free (data->linkname);
 	      data->linkname = n;
-	      data->linkname_alloc = 2 * (linksize + 1);
+	      data->linkname_alloc = 2 * (sz);
 	    }
 
 	  err = grub_disk_read (data->disk, 0,
@@ -149,7 +159,10 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	  while (extra_size < sizeof (hd.prefix)
 		 && hd.prefix[extra_size])
 	    extra_size++;
-	  *name = grub_malloc (sizeof (hd.name) + extra_size + 2);
+
+	  if (grub_add (sizeof (hd.name) + 2, extra_size, &sz))
+	    return grub_error (GRUB_ERR_BAD_FS, N_("long name size overflow"));
+	  *name = grub_malloc (sz);
 	  if (*name == NULL)
 	    return grub_errno;
 	  if (hd.prefix[0])
