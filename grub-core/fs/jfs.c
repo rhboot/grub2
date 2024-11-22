@@ -41,6 +41,12 @@ GRUB_MOD_LICENSE ("GPLv3+");
 
 #define GRUB_JFS_TREE_LEAF	2
 
+/*
+ * Define max entries stored in-line in an inode.
+ * https://jfs.sourceforge.net/project/pub/jfslayout.pdf
+ */
+#define GRUB_JFS_INODE_INLINE_ENTRIES	8
+
 struct grub_jfs_sblock
 {
   /* The magic for JFS.  It should contain the string "JFS1".  */
@@ -203,9 +209,9 @@ struct grub_jfs_inode
 	grub_uint8_t freecnt;
 	grub_uint8_t freelist;
 	grub_uint32_t idotdot;
-	grub_uint8_t sorted[8];
+	grub_uint8_t sorted[GRUB_JFS_INODE_INLINE_ENTRIES];
       } header;
-      struct grub_jfs_leaf_dirent dirents[8];
+      struct grub_jfs_leaf_dirent dirents[GRUB_JFS_INODE_INLINE_ENTRIES];
     } GRUB_PACKED dir;
     /* Fast symlink.  */
     struct
@@ -453,6 +459,13 @@ grub_jfs_opendir (struct grub_jfs_data *data, struct grub_jfs_inode *inode)
   /* Check if the entire tree is contained within the inode.  */
   if (inode->file.tree.flags & GRUB_JFS_TREE_LEAF)
     {
+      if (inode->dir.header.count > GRUB_JFS_INODE_INLINE_ENTRIES)
+	{
+	  grub_free (diro);
+	  grub_error (GRUB_ERR_BAD_FS, N_("invalid JFS inode"));
+	  return 0;
+	}
+
       diro->leaf = inode->dir.dirents;
       diro->next_leaf = (struct grub_jfs_leaf_next_dirent *) de;
       diro->sorted = inode->dir.header.sorted;
