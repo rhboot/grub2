@@ -26,6 +26,7 @@
 #include <grub/file.h>
 #include <grub/kernel.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -99,6 +100,7 @@ grub_gettext_getstr_from_position (struct grub_gettext_context *ctx,
   char *translation;
   struct string_descriptor desc;
   grub_err_t err;
+  grub_size_t alloc_sz;
 
   internal_position = (off + position * sizeof (desc));
 
@@ -109,7 +111,10 @@ grub_gettext_getstr_from_position (struct grub_gettext_context *ctx,
   length = grub_cpu_to_le32 (desc.length);
   offset = grub_cpu_to_le32 (desc.offset);
 
-  translation = grub_malloc (length + 1);
+  if (grub_add (length, 1, &alloc_sz))
+    return NULL;
+
+  translation = grub_malloc (alloc_sz);
   if (!translation)
     return NULL;
 
