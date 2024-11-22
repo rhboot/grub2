@@ -323,8 +323,8 @@ grub_mofile_open (struct grub_gettext_context *ctx,
   for (ctx->grub_gettext_max_log = 0; ctx->grub_gettext_max >> ctx->grub_gettext_max_log;
        ctx->grub_gettext_max_log++);
 
-  ctx->grub_gettext_msg_list = grub_zalloc (ctx->grub_gettext_max
-					    * sizeof (ctx->grub_gettext_msg_list[0]));
+  ctx->grub_gettext_msg_list = grub_calloc (ctx->grub_gettext_max,
+					    sizeof (ctx->grub_gettext_msg_list[0]));
   if (!ctx->grub_gettext_msg_list)
     {
       grub_file_close (fd);
