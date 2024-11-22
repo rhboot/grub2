@@ -46,6 +46,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
  * https://jfs.sourceforge.net/project/pub/jfslayout.pdf
  */
 #define GRUB_JFS_INODE_INLINE_ENTRIES	8
+#define GRUB_JFS_DIR_MAX_SLOTS		128
 
 struct grub_jfs_sblock
 {
@@ -477,6 +478,14 @@ grub_jfs_opendir (struct grub_jfs_data *data, struct grub_jfs_inode *inode)
   diro->dirpage = grub_malloc (grub_le_to_cpu32 (data->sblock.blksz));
   if (!diro->dirpage)
     {
+      grub_free (diro);
+      return 0;
+    }
+
+  if (inode->dir.header.sorted[0] >= GRUB_JFS_DIR_MAX_SLOTS)
+    {
+      grub_error (GRUB_ERR_BAD_FS, N_("invalid directory slot index"));
+      grub_free (diro->dirpage);
       grub_free (diro);
       return 0;
     }
