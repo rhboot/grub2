@@ -147,6 +147,15 @@ typedef TPM2B_DIGEST_t TPM2B_NONCE_t;
 /* TPMA_SESSION Structure */
 struct TPMA_SESSION
 {
+#ifdef GRUB_TARGET_WORDS_BIGENDIAN
+  grub_uint8_t audit:1;
+  grub_uint8_t encrypt:1;
+  grub_uint8_t decrypt:1;
+  grub_uint8_t reserved:2;
+  grub_uint8_t auditReset:1;
+  grub_uint8_t auditExclusive:1;
+  grub_uint8_t continueSession:1;
+#else
   grub_uint8_t continueSession:1;
   grub_uint8_t auditExclusive:1;
   grub_uint8_t auditReset:1;
@@ -154,6 +163,7 @@ struct TPMA_SESSION
   grub_uint8_t decrypt:1;
   grub_uint8_t encrypt:1;
   grub_uint8_t audit:1;
+#endif
 };
 typedef struct TPMA_SESSION TPMA_SESSION_t;
 
@@ -206,6 +216,24 @@ typedef struct TPM2B_SENSITIVE_CREATE TPM2B_SENSITIVE_CREATE_t;
 /* TPMA_OBJECT Structure */
 struct TPMA_OBJECT
 {
+#ifdef GRUB_TARGET_WORDS_BIGENDIAN
+  grub_uint32_t reserved5:13;
+  grub_uint32_t sign:1;
+  grub_uint32_t decrypt:1;
+  grub_uint32_t restricted:1;
+  grub_uint32_t reserved4:4;
+  grub_uint32_t encryptedDuplication:1;
+  grub_uint32_t noDA:1;
+  grub_uint32_t reserved3:2;
+  grub_uint32_t adminWithPolicy:1;
+  grub_uint32_t userWithAuth:1;
+  grub_uint32_t sensitiveDataOrigin:1;
+  grub_uint32_t fixedParent:1;
+  grub_uint32_t reserved2:1;
+  grub_uint32_t stClear:1;
+  grub_uint32_t fixedTPM:1;
+  grub_uint32_t reserved1:1;
+#else
   grub_uint32_t reserved1:1;
   grub_uint32_t fixedTPM:1;
   grub_uint32_t stClear:1;
@@ -222,6 +250,7 @@ struct TPMA_OBJECT
   grub_uint32_t decrypt:1;
   grub_uint32_t sign:1;
   grub_uint32_t reserved5:13;
+#endif
 };
 typedef struct TPMA_OBJECT TPMA_OBJECT_t;
 
@@ -516,12 +545,21 @@ typedef struct TPM2B_DATA TPM2B_DATA_t;
 /* TPMA_LOCALITY Structure */
 struct TPMA_LOCALITY
 {
+#ifdef GRUB_TARGET_WORDS_BIGENDIAN
+  grub_uint8_t Extended:3;
+  grub_uint8_t TPM_LOC_FOUR:1;
+  grub_uint8_t TPM_LOC_THREE:1;
+  grub_uint8_t TPM_LOC_TWO:1;
+  grub_uint8_t TPM_LOC_ONE:1;
+  grub_uint8_t TPM_LOC_ZERO:1;
+#else
   grub_uint8_t TPM_LOC_ZERO:1;
   grub_uint8_t TPM_LOC_ONE:1;
   grub_uint8_t TPM_LOC_TWO:1;
   grub_uint8_t TPM_LOC_THREE:1;
   grub_uint8_t TPM_LOC_FOUR:1;
   grub_uint8_t Extended:3;
+#endif
 };
 typedef struct TPMA_LOCALITY TPMA_LOCALITY_t;
 
