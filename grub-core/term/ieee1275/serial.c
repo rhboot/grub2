@@ -25,7 +25,7 @@
 #include <grub/i18n.h>
 #include <grub/ieee1275/console.h>
 
-#define IEEE1275_IHANDLE_INVALID  ((grub_ieee1275_cell_t) 0)
+#define IEEE1275_IHANDLE_INVALID  ((grub_ieee1275_ihandle_t) 0)
 
 struct ofserial_hash_ent
 {
