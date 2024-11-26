@@ -1155,6 +1155,7 @@ module = {
   name = tpm;
   common = commands/tpm.c;
   ieee1275 = commands/ieee1275/ibmvtpm.c;
+  ieee1275 = lib/ieee1275/tcg2.c;
   enable = powerpc_ieee1275;
 };
 

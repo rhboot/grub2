@@ -23,45 +23,9 @@
 #include <grub/types.h>
 #include <grub/tpm.h>
 #include <grub/ieee1275/ieee1275.h>
+#include <grub/ieee1275/tpm.h>
 #include <grub/mm.h>
 #include <grub/misc.h>
-
-static grub_ieee1275_ihandle_t tpm_ihandle;
-static grub_uint8_t tpm_version;
-
-static void
-tpm_get_tpm_version (void)
-{
-  grub_ieee1275_phandle_t vtpm;
-  char buffer[20];
-
-  if (!grub_ieee1275_finddevice ("/vdevice/vtpm", &vtpm) &&
-      !grub_ieee1275_get_property (vtpm, "compatible", buffer,
-				   sizeof (buffer), NULL) &&
-      !grub_strcmp (buffer, "IBM,vtpm20"))
-    tpm_version = 2;
-}
-
-static grub_err_t
-tpm_init (void)
-{
-  static int init_success = 0;
-
-  if (!init_success)
-    {
-      if (grub_ieee1275_open ("/vdevice/vtpm", &tpm_ihandle) < 0)
-	{
-	  tpm_ihandle = GRUB_IEEE1275_IHANDLE_INVALID;
-	  return GRUB_ERR_UNKNOWN_DEVICE;
-	}
-
-      init_success = 1;
-
-      tpm_get_tpm_version ();
-    }
-
-  return GRUB_ERR_NONE;
-}
 
 static int
 ibmvtpm_2hash_ext_log (grub_uint8_t pcrindex,
@@ -88,7 +52,7 @@ ibmvtpm_2hash_ext_log (grub_uint8_t pcrindex,
 
   INIT_IEEE1275_COMMON (&args.common, "call-method", 8, 2);
   args.method = (grub_ieee1275_cell_t) "2hash-ext-log";
-  args.ihandle = tpm_ihandle;
+  args.ihandle = grub_ieee1275_tpm_ihandle;
   args.pcrindex = pcrindex;
   args.eventtype = eventtype;
   args.description = (grub_ieee1275_cell_t) description;
@@ -136,7 +100,7 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   grub_dprintf ("tpm", "log_event, pcr = %d, size = 0x%" PRIxGRUB_SIZE ", %s\n",
 		pcr, size, description);
 
-  if (tpm_version == 2)
+  if (grub_ieee1275_tpm_version == 2)
     return tpm2_log_event (buf, size, pcr, description);
 
   return GRUB_ERR_NONE;
@@ -149,5 +113,5 @@ grub_tpm_present (void)
    * Call tpm_init() "late" rather than from GRUB_MOD_INIT() so that device nodes
    * can be found.
    */
-  return tpm_init() == GRUB_ERR_NONE;
+  return grub_ieee1275_tpm_init() == GRUB_ERR_NONE;
 }
