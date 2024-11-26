@@ -24,7 +24,6 @@
 #include <grub/ieee1275/ieee1275.h>
 
 extern grub_ieee1275_ihandle_t grub_ieee1275_tpm_ihandle;
-extern grub_uint8_t grub_ieee1275_tpm_version;
 
 extern grub_err_t grub_ieee1275_tpm_init (void);
 

@@ -100,7 +100,7 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   grub_dprintf ("tpm", "log_event, pcr = %d, size = 0x%" PRIxGRUB_SIZE ", %s\n",
 		pcr, size, description);
 
-  if (grub_ieee1275_tpm_version == 2)
+  if (grub_ieee1275_tpm_ihandle != GRUB_IEEE1275_IHANDLE_INVALID)
     return tpm2_log_event (buf, size, pcr, description);
 
   return GRUB_ERR_NONE;

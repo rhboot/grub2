@@ -23,39 +23,33 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 
-grub_ieee1275_ihandle_t grub_ieee1275_tpm_ihandle;
-grub_uint8_t grub_ieee1275_tpm_version;
-
-static void
-tpm_get_tpm_version (void)
-{
-  grub_ieee1275_phandle_t vtpm;
-  char buffer[20];
-
-  if (!grub_ieee1275_finddevice ("/vdevice/vtpm", &vtpm) &&
-      !grub_ieee1275_get_property (vtpm, "compatible", buffer,
-                                  sizeof (buffer), NULL) &&
-      !grub_strcmp (buffer, "IBM,vtpm20"))
-    grub_ieee1275_tpm_version = 2;
-}
+grub_ieee1275_ihandle_t grub_ieee1275_tpm_ihandle = GRUB_IEEE1275_IHANDLE_INVALID;
 
 grub_err_t
 grub_ieee1275_tpm_init (void)
 {
-  static int init_success = 0;
+  static bool init_tried = false;
+  grub_ieee1275_phandle_t vtpm;
+  char buffer[20];
 
-  if (!init_success)
+  if (init_tried == false)
     {
-      if (grub_ieee1275_open ("/vdevice/vtpm", &grub_ieee1275_tpm_ihandle) < 0)
+      init_tried = true;
+
+      if (grub_ieee1275_open ("/vdevice/vtpm", &grub_ieee1275_tpm_ihandle) < 0 ||
+	  grub_ieee1275_finddevice ("/vdevice/vtpm", &vtpm) ||
+	  grub_ieee1275_get_property (vtpm, "compatible", buffer, sizeof (buffer), NULL) ||
+	  grub_strcmp (buffer, "IBM,vtpm20"))
 	{
+	  if (grub_ieee1275_tpm_ihandle != GRUB_IEEE1275_IHANDLE_INVALID)
+	    grub_ieee1275_close (grub_ieee1275_tpm_ihandle);
+
 	  grub_ieee1275_tpm_ihandle = GRUB_IEEE1275_IHANDLE_INVALID;
-	  return GRUB_ERR_UNKNOWN_DEVICE;
 	}
-
-      init_success = 1;
-
-      tpm_get_tpm_version ();
     }
+
+  if (grub_ieee1275_tpm_ihandle == GRUB_IEEE1275_IHANDLE_INVALID)
+    return GRUB_ERR_UNKNOWN_DEVICE;
 
   return GRUB_ERR_NONE;
 }
