@@ -1155,7 +1155,6 @@ module = {
   name = tpm;
   common = commands/tpm.c;
   ieee1275 = commands/ieee1275/ibmvtpm.c;
-  ieee1275 = lib/ieee1275/tcg2.c;
   enable = powerpc_ieee1275;
 };
 
@@ -2576,8 +2575,10 @@ module = {
   common = lib/tss2/tss2.c;
   efi = lib/efi/tcg2.c;
   emu = lib/tss2/tcg2_emu.c;
+  powerpc_ieee1275 = lib/ieee1275/tcg2.c;
   enable = efi;
   enable = emu;
+  enable = powerpc_ieee1275;
   cppflags = '-I$(srcdir)/lib/tss2';
 };
 

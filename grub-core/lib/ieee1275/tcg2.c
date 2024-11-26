@@ -23,6 +23,8 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 
+#include <tcg2.h>
+
 grub_ieee1275_ihandle_t grub_ieee1275_tpm_ihandle = GRUB_IEEE1275_IHANDLE_INVALID;
 
 grub_err_t
@@ -50,6 +52,106 @@ grub_ieee1275_tpm_init (void)
 
   if (grub_ieee1275_tpm_ihandle == GRUB_IEEE1275_IHANDLE_INVALID)
     return GRUB_ERR_UNKNOWN_DEVICE;
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_tcg2_get_max_output_size (grub_size_t *size)
+{
+  struct tpm_get_maximum_cmd_size
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t size;
+  };
+  struct tpm_get_maximum_cmd_size args;
+  static bool error_displayed = false;
+  grub_err_t err;
+
+  err = grub_ieee1275_tpm_init ();
+  if (err != GRUB_ERR_NONE)
+      return err;
+
+  INIT_IEEE1275_COMMON (&args.common, "call-method", 2, 2);
+  args.method = (grub_ieee1275_cell_t) "get-maximum-cmd-size";
+  args.ihandle = grub_ieee1275_tpm_ihandle;
+
+  if (IEEE1275_CALL_ENTRY_FN (&args) == -1)
+    return GRUB_ERR_INVALID_COMMAND;
+
+  /*
+   * args.catch_result is set if firmware does not support get-maximum-cmd-size.
+   * rc is GRUB_IEEE1275_CELL_FALSE (0) on failure.
+   */
+  if (args.catch_result)
+    {
+      if (error_displayed == false)
+	{
+	  error_displayed = true;
+	  return grub_error (GRUB_ERR_BAD_DEVICE,
+			     "get-maximum-cmd-size failed: Firmware is likely too old");
+	}
+      return GRUB_ERR_INVALID_COMMAND;
+    }
+
+  *size = args.size;
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_tcg2_submit_command (grub_size_t input_size,
+			  grub_uint8_t *input,
+			  grub_size_t output_size,
+			  grub_uint8_t *output)
+{
+  struct tpm_pass_through_to_tpm
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t buf_size;
+    grub_ieee1275_cell_t buf_addr;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t resp_size;
+  };
+  struct tpm_pass_through_to_tpm args;
+  static bool error_displayed = false;
+  grub_err_t err;
+
+  if (input_size == 0 || input == NULL ||
+      output_size == 0 || output == NULL)
+    return GRUB_ERR_BAD_ARGUMENT;
+
+  err = grub_ieee1275_tpm_init ();
+  if (err != GRUB_ERR_NONE)
+      return err;
+
+  INIT_IEEE1275_COMMON (&args.common, "call-method", 4, 2);
+  args.method = (grub_ieee1275_cell_t) "pass-through-to-tpm";
+  args.ihandle = grub_ieee1275_tpm_ihandle;
+  args.buf_size = (grub_ieee1275_cell_t) input_size;
+  args.buf_addr = (grub_ieee1275_cell_t) input;
+
+  if (IEEE1275_CALL_ENTRY_FN (&args) == -1)
+    return GRUB_ERR_INVALID_COMMAND;
+
+  /* args.catch_result is set if firmware does not support pass-through-to-tpm. */
+  if (args.catch_result)
+    {
+      if (error_displayed == false)
+	{
+	  error_displayed = true;
+	  return grub_error (GRUB_ERR_BAD_DEVICE,
+			     "pass-through-to-tpm failed: Firmware is likely too old");
+	}
+      return GRUB_ERR_INVALID_COMMAND;
+    }
+
+  grub_memcpy (output, input, args.resp_size);
 
   return GRUB_ERR_NONE;
 }
