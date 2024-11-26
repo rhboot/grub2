@@ -60,6 +60,7 @@ struct grub_ieee1275_common_hdr
 typedef grub_uint32_t grub_ieee1275_ihandle_t;
 typedef grub_uint32_t grub_ieee1275_phandle_t;
 
+#define GRUB_IEEE1275_IHANDLE_INVALID  ((grub_ieee1275_ihandle_t) 0)
 #define GRUB_IEEE1275_PHANDLE_INVALID  ((grub_ieee1275_phandle_t) -1)
 
 struct grub_ieee1275_devalias

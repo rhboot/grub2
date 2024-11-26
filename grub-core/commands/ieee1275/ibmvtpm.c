@@ -29,8 +29,6 @@
 static grub_ieee1275_ihandle_t tpm_ihandle;
 static grub_uint8_t tpm_version;
 
-#define IEEE1275_IHANDLE_INVALID ((grub_ieee1275_ihandle_t) 0)
-
 static void
 tpm_get_tpm_version (void)
 {
@@ -53,7 +51,7 @@ tpm_init (void)
     {
       if (grub_ieee1275_open ("/vdevice/vtpm", &tpm_ihandle) < 0)
 	{
-	  tpm_ihandle = IEEE1275_IHANDLE_INVALID;
+	  tpm_ihandle = GRUB_IEEE1275_IHANDLE_INVALID;
 	  return GRUB_ERR_UNKNOWN_DEVICE;
 	}
 
