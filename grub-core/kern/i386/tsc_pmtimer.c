@@ -143,5 +143,15 @@ grub_tsc_calibrate_from_pmtimer (void)
   if (tsc_diff == 0)
     return 0;
   grub_tsc_rate = grub_divmod64 ((1ULL << 32), tsc_diff, 0);
+  /*
+   * Specifically, when the tsc_diff (end_tsc - start_tsc) is greater than (1ULL << 32),
+   * the result of grub_divmod64() becomes zero, causing grub_tsc_rate to always be zero.
+   * As a result, grub_tsc_get_time_ms() consistently returns zero, and the GRUB menu
+   * countdown gets stuck. To resolve this, we return 0 to proceed to the next calibration
+   * function when grub_tsc_rate is zero.
+   */
+  if (grub_tsc_rate == 0)
+    return 0;
+
   return 1;
 }
