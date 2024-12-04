@@ -951,7 +951,7 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	     * Leaf and tail information are only in the data block if the number
 	     * of extents is 1.
 	     */
-	    if (dir->inode.nextents == grub_cpu_to_be32_compile_time (1))
+	    if (grub_xfs_get_inode_nextents(&dir->inode) == 1)
 	      {
 		struct grub_xfs_dirblock_tail *tail = grub_xfs_dir_tail (dir->data, dirblock);
 
@@ -1005,7 +1005,7 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 		 * The expected number of directory entries is only tracked for the
 		 * single extent case.
 		 */
-		if (dir->inode.nextents == grub_cpu_to_be32_compile_time (1))
+		if (grub_xfs_get_inode_nextents(&dir->inode) == 1)
 		  {
 		    /* Check if last direntry in this block is reached. */
 		    entries--;
