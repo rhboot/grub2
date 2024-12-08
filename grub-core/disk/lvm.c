@@ -829,6 +829,14 @@ grub_lvm_detect (grub_disk_t disk,
 
 		      char *p2, *p3;
 		      grub_size_t sz;
+#ifdef GRUB_UTIL
+		      p2 = grub_strchr (p, '"');
+		      if (p2)
+			*p2 = '\0';
+		      grub_util_info ("Ignoring extra metadata type '%s' for %s", p, lv->name);
+		      if (p2)
+			*p2 ='"';
+#endif
 
 		      ignored_feature = grub_zalloc (sizeof (*ignored_feature));
 		      if (!ignored_feature)
@@ -909,7 +917,7 @@ grub_lvm_detect (grub_disk_t disk,
 		      char *p2;
 		      p2 = grub_strchr (p, '"');
 		      if (p2)
-			*p2 = 0;
+			*p2 = '\0';
 		      grub_util_info ("unknown LVM type %s", p);
 		      if (p2)
 			*p2 ='"';
@@ -1001,6 +1009,12 @@ grub_lvm_detect (grub_disk_t disk,
 		    ignored_feature->lv = NULL;
 		  }
 	      }
+		  else
+		  {
+#ifdef GRUB_UTIL
+		      grub_util_info ("Couldn't find LVM part of ignored feature on %s", ignored_feature->origin);
+#endif
+		  }
 	  }
       }
 
