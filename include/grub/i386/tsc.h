@@ -47,6 +47,11 @@ grub_get_tsc (void)
   /* Read TSC value.  We cannot use "=A", since this would use
      %rax on x86_64. */
   asm volatile ("rdtsc":"=a" (lo), "=d" (hi));
+  /*
+   * Run cpuid after rdtsc instruction to ensure rdtsc is executed before
+   * subsequent instruction.
+   */
+  grub_cpuid (0, a, b, c, d);
 
   return (((grub_uint64_t) hi) << 32) | lo;
 }
