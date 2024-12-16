@@ -279,7 +279,7 @@ get_ext_offset (grub_uint8_t offset1, grub_uint32_t offset2)
   return (((grub_uint64_t) offset1 << 32) | grub_le_to_cpu32 (offset2));
 }
 
-static grub_int64_t
+static grub_uint64_t
 getblk (struct grub_jfs_treehead *treehead,
 	struct grub_jfs_tree_extent *extents,
 	int max_extents,
@@ -289,6 +289,8 @@ getblk (struct grub_jfs_treehead *treehead,
   int found = -1;
   int i;
   grub_uint64_t ext_offset, ext_blk;
+
+  grub_errno = GRUB_ERR_NONE;
 
   for (i = 0; i < grub_le_to_cpu16 (treehead->count) - 2 &&
 	      i < max_extents; i++)
@@ -312,7 +314,7 @@ getblk (struct grub_jfs_treehead *treehead,
 
   if (found != -1)
     {
-      grub_int64_t ret = -1;
+      grub_uint64_t ret = 0;
       struct
       {
 	struct grub_jfs_treehead treehead;
@@ -321,7 +323,7 @@ getblk (struct grub_jfs_treehead *treehead,
 
       tree = grub_zalloc (sizeof (*tree));
       if (!tree)
-	return -1;
+	return 0;
 
       if (!grub_disk_read (data->disk,
 			   (grub_disk_addr_t) ext_blk
@@ -334,19 +336,20 @@ getblk (struct grub_jfs_treehead *treehead,
 	  else
 	    {
 	      grub_error (GRUB_ERR_BAD_FS, "jfs: infinite recursion detected");
-	      ret = -1;
+	      ret = 0;
 	    }
 	}
       grub_free (tree);
       return ret;
     }
 
-  return -1;
+  grub_error (GRUB_ERR_READ_ERROR, "jfs: block %" PRIuGRUB_UINT64_T " not found", blk);
+  return 0;
 }
 
 /* Get the block number for the block BLK in the node INODE in the
    mounted filesystem DATA.  */
-static grub_int64_t
+static grub_uint64_t
 grub_jfs_blkno (struct grub_jfs_data *data, struct grub_jfs_inode *inode,
 		grub_uint64_t blk)
 {
