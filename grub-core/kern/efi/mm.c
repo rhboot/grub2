@@ -297,6 +297,12 @@ grub_efi_finish_boot_services (grub_efi_uintn_t *outbuf_size, void *outbuf,
   if (efi_desc_version)
     *efi_desc_version = finish_desc_version;
 
+  /*
+   * We cannot request new memory regions from the EFI Boot Services anymore.
+   * FIXME: Can we completely avoid memory allocations after this?
+   */
+  grub_mm_add_region_fn = NULL;
+
 #if defined (__i386__) || defined (__x86_64__)
   if (is_apple)
     stop_broadcom ();
