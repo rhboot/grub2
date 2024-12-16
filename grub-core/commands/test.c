@@ -29,6 +29,9 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+/* Set a limit on recursion to avoid stack overflow. */
+#define MAX_TEST_RECURSION_DEPTH	100
+
 /* A simple implementation for signed numbers. */
 static int
 grub_strtosl (char *arg, char **end, int base)
@@ -150,7 +153,7 @@ get_fileinfo (char *path, struct test_parse_ctx *ctx)
 
 /* Parse a test expression starting from *argn. */
 static int
-test_parse (char **args, int *argn, int argc)
+test_parse (char **args, int *argn, int argc, int *depth)
 {
   struct test_parse_ctx ctx = {
     .and = 1,
@@ -387,13 +390,24 @@ test_parse (char **args, int *argn, int argc)
       if (grub_strcmp (args[*argn], ")") == 0)
 	{
 	  (*argn)++;
+	  if (*depth > 0)
+	    (*depth)--;
+
 	  return ctx.or || ctx.and;
 	}
       /* Recursively invoke if parenthesis. */
       if (grub_strcmp (args[*argn], "(") == 0)
 	{
 	  (*argn)++;
-	  update_val (test_parse (args, argn, argc), &ctx);
+
+	  if (++(*depth) > MAX_TEST_RECURSION_DEPTH)
+	    {
+	      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("max recursion depth exceeded"));
+	      depth--;
+	      return ctx.or || ctx.and;
+	    }
+
+	  update_val (test_parse (args, argn, argc, depth), &ctx);
 	  continue;
 	}
 
@@ -428,11 +442,12 @@ grub_cmd_test (grub_command_t cmd __attribute__ ((unused)),
 	       int argc, char **args)
 {
   int argn = 0;
+  int depth = 0;
 
   if (argc >= 1 && grub_strcmp (args[argc - 1], "]") == 0)
     argc--;
 
-  return test_parse (args, &argn, argc) ? GRUB_ERR_NONE
+  return test_parse (args, &argn, argc, &depth) ? GRUB_ERR_NONE
     : grub_error (GRUB_ERR_TEST_FAILURE, N_("false"));
 }
 
