@@ -914,7 +914,10 @@ grub_script_execute_sourcecode (const char *source)
 	  break;
 	}
 
-      ret = grub_script_execute (parsed_script);
+      /* Don't let trailing blank lines determine the return code. */
+      if (parsed_script->cmd)
+	ret = grub_script_execute (parsed_script);
+
       grub_script_free (parsed_script);
       grub_free (line);
     }
