@@ -817,8 +817,12 @@ grub_lvm_detect (grub_disk_t disk,
 			  seg->nodes[seg->node_count - 1].name = tmp;
 			}
 		    }
-		  else if (grub_memcmp (p, "cache\"",
-				   sizeof ("cache\"") - 1) == 0)
+		  /*
+		   * Cache and integrity LVs have extra parts that
+		   * we can ignore for our read-only access.
+		   */
+		  else if (grub_strncmp (p, "cache\"", sizeof ("cache\"") - 1) == 0 ||
+			   grub_strncmp (p, "integrity\"", sizeof ("integrity\"") - 1) == 0)
 		    {
 		      struct ignored_feature_lv *ignored_feature = NULL;
 
@@ -948,36 +952,6 @@ grub_lvm_detect (grub_disk_t disk,
 	    }
 	}
 
-      /* Match lvs.  */
-      {
-	struct grub_diskfilter_lv *lv1;
-	struct grub_diskfilter_lv *lv2;
-	for (lv1 = vg->lvs; lv1; lv1 = lv1->next)
-	  for (i = 0; i < lv1->segment_count; i++)
-	    for (j = 0; j < lv1->segments[i].node_count; j++)
-	      {
-		if (vg->pvs)
-		  for (pv = vg->pvs; pv; pv = pv->next)
-		    {
-		      if (! grub_strcmp (pv->name,
-					 lv1->segments[i].nodes[j].name))
-			{
-			  lv1->segments[i].nodes[j].pv = pv;
-			  break;
-			}
-		    }
-		if (lv1->segments[i].nodes[j].pv == NULL)
-		  for (lv2 = vg->lvs; lv2; lv2 = lv2->next)
-		    {
-		      if (lv1 == lv2)
-		        continue;
-		      if (grub_strcmp (lv2->name,
-				       lv1->segments[i].nodes[j].name) == 0)
-			lv1->segments[i].nodes[j].lv = lv2;
-		    }
-	      }
-
-      }
 
       {
 	struct ignored_feature_lv *ignored_feature;
@@ -1027,6 +1001,37 @@ grub_lvm_detect (grub_disk_t disk,
 		  }
 	      }
 	  }
+      }
+
+      /* Match LVs. Must be done after cache and integrity are found. */
+      {
+	struct grub_diskfilter_lv *lv1;
+	struct grub_diskfilter_lv *lv2;
+
+	for (lv1 = vg->lvs; lv1; lv1 = lv1->next)
+	  for (i = 0; i < lv1->segment_count; i++)
+	    for (j = 0; j < lv1->segments[i].node_count; j++)
+	      {
+		if (vg->pvs)
+		  for (pv = vg->pvs; pv; pv = pv->next)
+		    {
+		      if (! grub_strcmp (pv->name,
+					 lv1->segments[i].nodes[j].name))
+			{
+			  lv1->segments[i].nodes[j].pv = pv;
+			  break;
+			}
+		    }
+		if (lv1->segments[i].nodes[j].pv == NULL)
+		  for (lv2 = vg->lvs; lv2; lv2 = lv2->next)
+		    {
+		      if (lv1 == lv2)
+		        continue;
+		      if (grub_strcmp (lv2->name,
+				       lv1->segments[i].nodes[j].name) == 0)
+			lv1->segments[i].nodes[j].lv = lv2;
+		    }
+	      }
       }
 
 	  grub_lvm_free_ignored_feature_lvs (ignored_feature_lvs);
