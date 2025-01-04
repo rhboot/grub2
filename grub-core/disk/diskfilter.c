@@ -980,8 +980,6 @@ grub_diskfilter_vg_register (struct grub_diskfilter_vg *vg)
 
   for (lv = vg->lvs; lv; lv = lv->next)
     {
-      grub_err_t err;
-
       /* RAID 1 and single-disk RAID 0 don't use a chunksize but code
          assumes one so set one. */
       for (i = 0; i < lv->segment_count; i++)
@@ -993,6 +991,10 @@ grub_diskfilter_vg_register (struct grub_diskfilter_vg *vg)
 	      && lv->segments[i].stripe_size == 0)
 	    lv->segments[i].stripe_size = 64;
 	}
+    }
+  for (lv = vg->lvs; lv; lv = lv->next)
+    {
+      grub_err_t err;
 
       err = validate_lv(lv);
       if (err)
