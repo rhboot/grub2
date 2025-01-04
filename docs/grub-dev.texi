@@ -614,10 +614,10 @@ tar xvzf libtasn1-4.19.0.tar.gz
 rm -rf grub-core/lib/libtasn1
 mkdir -p grub-core/lib/libtasn1/lib
 mkdir -p grub-core/lib/libtasn1/tests
-cp libtasn1-4.19.0/@lbracechar{}README.md,COPYING@rbracechar{} grub-core/lib/libtasn1
-cp libtasn1-4.19.0/lib/@lbracechar{}coding.c,decoding.c,element.c,element.h,errors.c,gstr.c,gstr.h,int.h,parser_aux.c,parser_aux.h,structure.c,structure.h@rbracechar{} grub-core/lib/libtasn1/lib
+cp libtasn1-4.19.0/@{README.md,COPYING@} grub-core/lib/libtasn1
+cp libtasn1-4.19.0/lib/@{coding.c,decoding.c,element.c,element.h,errors.c,gstr.c,gstr.h,int.h,parser_aux.c,parser_aux.h,structure.c,structure.h@} grub-core/lib/libtasn1/lib
 cp libtasn1-4.19.0/lib/includes/libtasn1.h grub-core/lib/libtasn1
-cp libtasn1-4.19.0/tests/@lbracechar{}CVE-2018-1000654-1_asn1_tab.h,CVE-2018-1000654-2_asn1_tab.h,CVE-2018-1000654.c,object-id-decoding.c,object-id-encoding.c,octet-string.c,reproducers.c,Test_overflow.c,Test_simple.c,Test_strings.c@rbracechar{} grub-core/lib/libtasn1/tests
+cp libtasn1-4.19.0/tests/@{CVE-2018-1000654-1_asn1_tab.h,CVE-2018-1000654-2_asn1_tab.h,CVE-2018-1000654.c,object-id-decoding.c,object-id-encoding.c,octet-string.c,reproducers.c,Test_overflow.c,Test_simple.c,Test_strings.c@} grub-core/lib/libtasn1/tests
 rm -rf libtasn1-4.19.0*
 @end example
 
