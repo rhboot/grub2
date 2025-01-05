@@ -306,6 +306,8 @@ grub_cmd_file (grub_extcmd_context_t ctxt, int argc, char **args)
 
 	elf = grub_elf_file (file, file->name);
 
+	if (elf == NULL)
+	  break;
 	if (elf->ehdr.ehdr32.e_type != grub_cpu_to_le16_compile_time (ET_EXEC)
 	    || elf->ehdr.ehdr32.e_ident[EI_DATA] != ELFDATA2LSB)
 	  break;
