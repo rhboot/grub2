@@ -134,6 +134,7 @@ struct grub_ntfs_attr
   grub_uint8_t *attr_cur, *attr_nxt, *attr_end;
   grub_uint32_t save_pos;
   grub_uint8_t *sbuf;
+  grub_uint8_t *end;
   struct grub_ntfs_file *mft;
 };
 
