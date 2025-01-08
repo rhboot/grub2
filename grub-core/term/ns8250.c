@@ -407,6 +407,9 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
   struct grub_serial_port *p;
   unsigned i;
 
+  if (addr == NULL)
+    return NULL;
+
   for (i = 0; i < GRUB_SERIAL_PORT_NUM; i++)
     if (com_ports[i].use_mmio == true && com_ports[i].mmio.base == addr)
       {
