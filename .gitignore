@@ -141,10 +141,12 @@ widthspec.bin
 /grub-core/kernel.img.bin
 /grub-core/lib/gnulib
 /grub-core/lib/libgcrypt-grub
+/grub-core/lib/libtasn1-grub
 /grub-core/modinfo.sh
 /grub-core/rs_decoder.h
 /grub-core/symlist.c
 /grub-core/symlist.h
+/grub-core/tests/asn1/tests
 /grub-core/trigtables.c
 /grub-core/unidata.c
 /grub-editenv
