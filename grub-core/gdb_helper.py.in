@@ -10,7 +10,7 @@ gdb.prompt_hook = prompt_hook
 
 class IsGrubLoaded (gdb.Function):
   """Return 1 if GRUB has been loaded in memory, otherwise 0.
-The hueristic used is checking if the first 4 bytes of the memory pointed
+The heuristic used is checking if the first 4 bytes of the memory pointed
 to by the _start symbol are not 0. This is true for QEMU on the first run
 of GRUB. This may not be true on physical hardware, where memory is not
 necessarily cleared on soft reset. This may not also be true in QEMU on
