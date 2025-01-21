@@ -681,7 +681,7 @@ static char *
 erofs_read_symlink (grub_fshelp_node_t node)
 {
   char *symlink;
-  grub_size_t sz;
+  grub_size_t sz, lsz;
   grub_err_t err;
 
   if (node->inode_loaded == false)
@@ -699,7 +699,12 @@ erofs_read_symlink (grub_fshelp_node_t node)
       return NULL;
     }
 
-  symlink = grub_malloc (sz + 1);
+  if (grub_add (sz, 1, &lsz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("symlink size overflow"));
+      return NULL;
+    }
+  symlink = grub_malloc (lsz);
   if (symlink == NULL)
     return NULL;
 

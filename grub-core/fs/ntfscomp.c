@@ -22,6 +22,7 @@
 #include <grub/disk.h>
 #include <grub/dl.h>
 #include <grub/ntfs.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -310,6 +311,7 @@ ntfscomp (grub_uint8_t *dest, grub_disk_addr_t ofs,
 {
   grub_err_t ret;
   grub_disk_addr_t vcn;
+  int log_sz;
 
   if (ctx->attr->sbuf)
     {
@@ -349,7 +351,12 @@ ntfscomp (grub_uint8_t *dest, grub_disk_addr_t ofs,
     }
 
   ctx->comp.comp_head = ctx->comp.comp_tail = 0;
-  ctx->comp.cbuf = grub_malloc (1 << (ctx->comp.log_spc + GRUB_NTFS_BLK_SHR));
+  if (grub_add (ctx->comp.log_spc, GRUB_NTFS_BLK_SHR, &log_sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("compression buffer size overflow"));
+      return 0;
+    }
+  ctx->comp.cbuf = grub_malloc (1 << log_sz);
   if (!ctx->comp.cbuf)
     return 0;
 
