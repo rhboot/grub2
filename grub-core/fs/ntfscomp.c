@@ -30,7 +30,7 @@ static grub_err_t
 decomp_nextvcn (struct grub_ntfs_comp *cc)
 {
   if (cc->comp_head >= cc->comp_tail)
-    return grub_error (GRUB_ERR_BAD_FS, "compression block overflown");
+    return grub_error (GRUB_ERR_BAD_FS, "compression block overflow");
   if (grub_disk_read
       (cc->disk,
        (cc->comp_table[cc->comp_head].next_lcn -

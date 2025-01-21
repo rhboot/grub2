@@ -574,7 +574,7 @@ retry:
 	      goto retry;
 	    }
 	}
-      return grub_error (GRUB_ERR_BAD_FS, "run list overflown");
+      return grub_error (GRUB_ERR_BAD_FS, "run list overflow");
     }
   ctx->curr_vcn = ctx->next_vcn;
   ctx->next_vcn += read_run_data (run, c1, 0);	/* length of current VCN */
