@@ -1015,8 +1015,8 @@ grub_btrfs_mount (grub_device_t dev)
     }
 
   data->n_devices_allocated = 16;
-  data->devices_attached = grub_malloc (sizeof (data->devices_attached[0])
-					* data->n_devices_allocated);
+  data->devices_attached = grub_calloc (data->n_devices_allocated,
+					sizeof (data->devices_attached[0]));
   if (!data->devices_attached)
     {
       grub_free (data);
