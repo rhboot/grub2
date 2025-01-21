@@ -647,6 +647,7 @@ static char *
 grub_xfs_read_symlink (grub_fshelp_node_t node)
 {
   grub_ssize_t size = grub_be_to_cpu64 (node->inode.size);
+  grub_size_t sz;
 
   if (size < 0)
     {
@@ -668,7 +669,12 @@ grub_xfs_read_symlink (grub_fshelp_node_t node)
 	if (node->data->hascrc)
 	  off = 56;
 
-	symlink = grub_malloc (size + 1);
+	if (grub_add (size, 1, &sz))
+	  {
+	    grub_error (GRUB_ERR_OUT_OF_RANGE, N_("symlink size overflow"));
+	    return 0;
+	  }
+	symlink = grub_malloc (sz);
 	if (!symlink)
 	  return 0;
 
@@ -718,8 +724,15 @@ static int iterate_dir_call_hook (grub_uint64_t ino, const char *filename,
 {
   struct grub_fshelp_node *fdiro;
   grub_err_t err;
+  grub_size_t sz;
 
-  fdiro = grub_malloc (grub_xfs_fshelp_size(ctx->diro->data) + 1);
+  if (grub_add (grub_xfs_fshelp_size(ctx->diro->data), 1, &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("directory data size overflow"));
+      grub_print_error ();
+      return 0;
+    }
+  fdiro = grub_malloc (sz);
   if (!fdiro)
     {
       grub_print_error ();
