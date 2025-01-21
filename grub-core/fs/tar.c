@@ -99,9 +99,10 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
       if (hd.typeflag == 'L')
 	{
 	  grub_err_t err;
-	  grub_size_t namesize = read_number (hd.size, sizeof (hd.size));
+	  grub_size_t namesize;
 
-	  if (grub_add (namesize, 1, &sz))
+	  if (grub_cast (read_number (hd.size, sizeof (hd.size)), &namesize) ||
+	      grub_add (namesize, 1, &sz))
 	    return grub_error (GRUB_ERR_BAD_FS, N_("name size overflow"));
 
 	  *name = grub_malloc (sz);
@@ -123,9 +124,10 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
       if (hd.typeflag == 'K')
 	{
 	  grub_err_t err;
-	  grub_size_t linksize = read_number (hd.size, sizeof (hd.size));
+	  grub_size_t linksize;
 
-	  if (grub_add (linksize, 1, &sz))
+	  if (grub_cast (read_number (hd.size, sizeof (hd.size)), &linksize) ||
+	      grub_add (linksize, 1, &sz))
 	    return grub_error (GRUB_ERR_BAD_FS, N_("link size overflow"));
 
 	  if (data->linkname_alloc < sz)
@@ -174,15 +176,22 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 	  (*name)[extra_size + sizeof (hd.name)] = 0;
 	}
 
-      data->size = read_number (hd.size, sizeof (hd.size));
+      if (grub_cast (read_number (hd.size, sizeof (hd.size)), &data->size))
+	return grub_error (GRUB_ERR_BAD_FS, N_("data size overflow"));
+
       data->dofs = data->hofs + GRUB_DISK_SECTOR_SIZE;
       data->next_hofs = data->dofs + ((data->size + GRUB_DISK_SECTOR_SIZE - 1) &
 			   ~(GRUB_DISK_SECTOR_SIZE - 1));
       if (mtime)
-	*mtime = read_number (hd.mtime, sizeof (hd.mtime));
+	{
+	  if (grub_cast (read_number (hd.mtime, sizeof (hd.mtime)), mtime))
+	    return grub_error (GRUB_ERR_BAD_FS, N_("mtime overflow"));
+	}
       if (mode)
 	{
-	  *mode = read_number (hd.mode, sizeof (hd.mode));
+	  if (grub_cast (read_number (hd.mode, sizeof (hd.mode)), mode))
+	    return grub_error (GRUB_ERR_BAD_FS, N_("mode overflow"));
+
 	  switch (hd.typeflag)
 	    {
 	      /* Hardlink.  */
