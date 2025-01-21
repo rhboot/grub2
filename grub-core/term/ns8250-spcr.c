@@ -76,6 +76,11 @@ grub_ns8250_spcr_init (void)
         config.speed = 115200;
         break;
     };
+
+  /* If base address is 0 it means redirection is disabled. */
+  if (spcr->base_addr.addr == 0)
+    return NULL;
+
   switch (spcr->base_addr.space_id)
     {
       case GRUB_ACPI_GENADDR_MEM_SPACE:
