@@ -62,11 +62,21 @@ grub_cpio_find_file (struct grub_archelp_data *data, char **name,
 #endif
       )
     return grub_error (GRUB_ERR_BAD_FS, "invalid cpio archive");
-  data->size = read_number (hd.filesize, ARRAY_SIZE (hd.filesize));
+
+  if (grub_cast (read_number (hd.filesize, ARRAY_SIZE (hd.filesize)), &data->size))
+    return grub_error (GRUB_ERR_BAD_FS, N_("data size overflow"));
+
   if (mtime)
-    *mtime = read_number (hd.mtime, ARRAY_SIZE (hd.mtime));
-  modeval = read_number (hd.mode, ARRAY_SIZE (hd.mode));
-  namesize = read_number (hd.namesize, ARRAY_SIZE (hd.namesize));
+    {
+      if (grub_cast (read_number (hd.mtime, ARRAY_SIZE (hd.mtime)), mtime))
+	return grub_error (GRUB_ERR_BAD_FS, N_("mtime overflow"));
+    }
+
+  if (grub_cast (read_number (hd.mode, ARRAY_SIZE (hd.mode)), &modeval))
+    return grub_error (GRUB_ERR_BAD_FS, N_("mode overflow"));
+
+  if (grub_cast (read_number (hd.namesize, ARRAY_SIZE (hd.namesize)), &namesize))
+    return grub_error (GRUB_ERR_BAD_FS, N_("namesize overflow"));
 
   /* Don't allow negative numbers.  */
   if (namesize >= 0x80000000)
