@@ -244,14 +244,19 @@ hfsplus_open_compressed_real (struct grub_hfsplus_file *node)
 	  return 0;
 	}
       node->compress_index_size = grub_le_to_cpu32 (index_size);
-      node->compress_index = grub_malloc (node->compress_index_size
-					  * sizeof (node->compress_index[0]));
+      node->compress_index = grub_calloc (node->compress_index_size,
+					  sizeof (node->compress_index[0]));
       if (!node->compress_index)
 	{
 	  node->compressed = 0;
 	  grub_free (attr_node);
 	  return grub_errno;
 	}
+
+      /*
+       * The node->compress_index_size * sizeof (node->compress_index[0]) is safe here
+       * due to relevant checks done in grub_calloc() above.
+       */
       if (grub_hfsplus_read_file (node, 0, 0,
 				  0x104 + sizeof (index_size),
 				  node->compress_index_size

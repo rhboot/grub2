@@ -810,10 +810,10 @@ direct_read (struct grub_squash_data *data,
 	  break;
 	}
       total_blocks = ((total_size + data->blksz - 1) >> data->log2_blksz);
-      ino->block_sizes = grub_malloc (total_blocks
-				      * sizeof (ino->block_sizes[0]));
-      ino->cumulated_block_sizes = grub_malloc (total_blocks
-						* sizeof (ino->cumulated_block_sizes[0]));
+      ino->block_sizes = grub_calloc (total_blocks,
+				      sizeof (ino->block_sizes[0]));
+      ino->cumulated_block_sizes = grub_calloc (total_blocks,
+						sizeof (ino->cumulated_block_sizes[0]));
       if (!ino->block_sizes || !ino->cumulated_block_sizes)
 	{
 	  grub_free (ino->block_sizes);
