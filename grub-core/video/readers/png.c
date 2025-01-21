@@ -622,7 +622,7 @@ static grub_err_t
 grub_png_output_byte (struct grub_png_data *data, grub_uint8_t n)
 {
   if (--data->raw_bytes < 0)
-    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "image size overflown");
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "image size overflow");
 
   if (data->cur_column == 0)
     {
