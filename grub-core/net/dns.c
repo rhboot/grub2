@@ -494,8 +494,8 @@ grub_net_dns_lookup (const char *name,
 	  && grub_get_time_ms () < dns_cache[h].limit_time)
 	{
 	  grub_dprintf ("dns", "retrieved from cache\n");
-	  *addresses = grub_malloc (dns_cache[h].naddresses
-				    * sizeof ((*addresses)[0]));
+	  *addresses = grub_calloc (dns_cache[h].naddresses,
+				    sizeof ((*addresses)[0]));
 	  if (!*addresses)
 	    return grub_errno;
 	  *naddresses = dns_cache[h].naddresses;
