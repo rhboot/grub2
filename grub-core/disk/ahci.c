@@ -1038,7 +1038,7 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
   grub_dprintf ("ahci", "AHCI tfd = %x\n",
 		dev->hba->ports[dev->port].task_file_data);
 
-  endtime = grub_get_time_ms () + (spinup ? 20000 : 20000);
+  endtime = grub_get_time_ms () + 20000;
   while ((dev->hba->ports[dev->port].command_issue & 1))
     if (grub_get_time_ms () > endtime ||
 	(dev->hba->ports[dev->port].intstatus & GRUB_AHCI_HBA_PORT_IS_FATAL_MASK))
