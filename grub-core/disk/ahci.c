@@ -152,8 +152,7 @@ struct grub_ahci_device
 
 static grub_err_t
 grub_ahci_readwrite_real (struct grub_ahci_device *dev,
-			  struct grub_disk_ata_pass_through_parms *parms,
-			  int spinup, int reset);
+			  struct grub_disk_ata_pass_through_parms *parms, int reset);
 
 
 enum
@@ -573,7 +572,7 @@ grub_ahci_pciinit (grub_pci_device_t dev,
 	/*  struct grub_disk_ata_pass_through_parms parms2;
 	    grub_memset (&parms2, 0, sizeof (parms2));
 	    parms2.taskfile.cmd = 8;
-	    grub_ahci_readwrite_real (dev, &parms2, 1, 1);*/
+	    grub_ahci_readwrite_real (dev, &parms2, 1);*/
       }
 
   endtime = grub_get_time_ms () + 32000;
@@ -908,15 +907,14 @@ grub_ahci_reset_port (struct grub_ahci_device *dev, int force)
       dev->hba->ports[dev->port].sata_error = dev->hba->ports[dev->port].sata_error;
       grub_memset (&parms2, 0, sizeof (parms2));
       parms2.taskfile.cmd = 8;
-      return grub_ahci_readwrite_real (dev, &parms2, 1, 1);
+      return grub_ahci_readwrite_real (dev, &parms2, 1);
     }
   return GRUB_ERR_NONE;
 }
 
 static grub_err_t
 grub_ahci_readwrite_real (struct grub_ahci_device *dev,
-			  struct grub_disk_ata_pass_through_parms *parms,
-			  int spinup, int reset)
+			  struct grub_disk_ata_pass_through_parms *parms, int reset)
 {
   struct grub_pci_dma_chunk *bufc;
   grub_uint64_t endtime;
@@ -1038,7 +1036,7 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
   grub_dprintf ("ahci", "AHCI tfd = %x\n",
 		dev->hba->ports[dev->port].task_file_data);
 
-  endtime = grub_get_time_ms () + (spinup ? 20000 : 20000);
+  endtime = grub_get_time_ms () + 20000;
   while ((dev->hba->ports[dev->port].command_issue & 1))
     if (grub_get_time_ms () > endtime ||
 	(dev->hba->ports[dev->port].intstatus & GRUB_AHCI_HBA_PORT_IS_FATAL_MASK))
@@ -1097,9 +1095,9 @@ grub_ahci_readwrite_real (struct grub_ahci_device *dev,
 static grub_err_t
 grub_ahci_readwrite (grub_ata_t disk,
 		     struct grub_disk_ata_pass_through_parms *parms,
-		     int spinup)
+		     int spinup __attribute__((__unused__)))
 {
-  return grub_ahci_readwrite_real (disk->data, parms, spinup, 0);
+  return grub_ahci_readwrite_real (disk->data, parms, 0);
 }
 
 static grub_err_t
