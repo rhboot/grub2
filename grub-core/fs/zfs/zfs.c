@@ -717,9 +717,9 @@ fill_vdev_info_real (struct grub_zfs_data *data,
       if (!fill->children)
 	{
 	  fill->n_children = nelm;
-	  
-	  fill->children = grub_zalloc (fill->n_children
-					* sizeof (fill->children[0]));
+
+    fill->children = grub_calloc (fill->n_children,
+                                  sizeof (fill->children[0]));
 	}
 
       for (i = 0; i < nelm; i++)
@@ -3693,8 +3693,8 @@ zfs_mount (grub_device_t dev)
 #endif
 
   data->n_devices_allocated = 16;
-  data->devices_attached = grub_malloc (sizeof (data->devices_attached[0])
-					* data->n_devices_allocated);
+  data->devices_attached = grub_calloc (data->n_devices_allocated,
+					sizeof (data->devices_attached[0]));
   data->n_devices_attached = 0;
   err = scan_disk (dev, data, 1, &inserted);
   if (err)
