@@ -232,6 +232,11 @@ grub_net_ipv6_get_slaac (struct grub_net_card *card,
     }
 
   slaac->name = grub_malloc (sz);
+  if (slaac->name == NULL)
+    {
+      grub_free (slaac);
+      return NULL;
+    }
   ptr = grub_stpcpy (slaac->name, card->name);
   if (grub_net_hwaddr_cmp (&card->default_address, hwaddr) != 0)
     {
