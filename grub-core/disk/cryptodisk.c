@@ -1532,7 +1532,7 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 
   if (state[OPTION_PROTECTOR].set) /* key protector(s) */
     {
-      cargs.key_cache = grub_zalloc (state[OPTION_PROTECTOR].set * sizeof (*cargs.key_cache));
+      cargs.key_cache = grub_calloc (state[OPTION_PROTECTOR].set, sizeof (*cargs.key_cache));
       if (cargs.key_cache == NULL)
 	return grub_error (GRUB_ERR_OUT_OF_MEMORY,
 			   "no memory for key protector key cache");
