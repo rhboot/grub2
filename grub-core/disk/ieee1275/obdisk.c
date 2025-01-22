@@ -423,6 +423,12 @@ canonicalise_disk (const char *devname)
 	}
 
       real_canon = grub_malloc (real_unit_str_len);
+      if (real_canon == NULL)
+	{
+	  grub_free (parent);
+	  grub_print_error ();
+	  return NULL;
+	}
 
       grub_snprintf (real_canon, real_unit_str_len, "%s/disk@%s",
                      op->name, real_unit_address);

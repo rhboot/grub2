@@ -292,6 +292,12 @@ make_vg (grub_disk_t disk,
 	    }
 
 	  pv->id.uuid = grub_malloc (sz);
+	  if (pv->id.uuid == NULL)
+	    {
+	      grub_free (pv->internal_id);
+	      grub_free (pv);
+	      goto fail2;
+	    }
 	  grub_memcpy (pv->id.uuid, ptr + 1, pv->id.uuidlen);
 	  pv->id.uuid[pv->id.uuidlen] = 0;
 

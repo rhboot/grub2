@@ -112,10 +112,10 @@ grub_ata_identify (struct grub_ata *dev)
     return grub_atapi_identify (dev);
 
   info64 = grub_malloc (GRUB_DISK_SECTOR_SIZE);
+  if (info64 == NULL)
+    return grub_errno;
   info32 = (grub_uint32_t *) info64;
   info16 = (grub_uint16_t *) info64;
-  if (! info16)
-    return grub_errno;
 
   grub_memset (&parms, 0, sizeof (parms));
   parms.buffer = info16;
