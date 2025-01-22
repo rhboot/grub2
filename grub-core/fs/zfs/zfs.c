@@ -609,6 +609,8 @@ zfs_fetch_nvlist (struct grub_zfs_device_desc *diskdesc, char **nvlist)
     return grub_error (GRUB_ERR_BUG, "member drive unknown");
 
   *nvlist = grub_malloc (VDEV_PHYS_SIZE);
+  if (!*nvlist)
+    return grub_errno;
 
   /* Read in the vdev name-value pair list (112K). */
   err = grub_disk_read (diskdesc->dev->disk, diskdesc->vdev_phys_sector, 0,
@@ -721,6 +723,11 @@ fill_vdev_info_real (struct grub_zfs_data *data,
     fill->children = grub_calloc (fill->n_children,
                                   sizeof (fill->children[0]));
 	}
+      if (!fill->children)
+        {
+          grub_free (type);
+          return grub_errno;
+        }
 
       for (i = 0; i < nelm; i++)
 	{
@@ -2450,6 +2457,11 @@ fzap_iterate (dnode_end_t * zap_dnode, zap_phys_t * zap,
 	      return grub_errno;
 	    }
 	  buf = grub_malloc (sz);
+	  if (!buf)
+	    {
+	      grub_free (l);
+	      return grub_errno;
+	    }
 	  if (zap_leaf_array_get (l, endian, blksft,
 				  grub_zfs_to_cpu16 (le->le_name_chunk,
 						     endian),
@@ -2465,6 +2477,12 @@ fzap_iterate (dnode_end_t * zap_dnode, zap_phys_t * zap,
 	  val_length = ((int) le->le_value_length
 			* (int) le->le_int_size);
 	  val = grub_malloc (grub_zfs_to_cpu16 (val_length, endian));
+	  if (!val)
+	    {
+	      grub_free (l);
+	      grub_free (buf);
+	      return grub_errno;
+	    }
 	  if (zap_leaf_array_get (l, endian, blksft,
 				  grub_zfs_to_cpu16 (le->le_value_chunk,
 						     endian),
@@ -3695,6 +3713,11 @@ zfs_mount (grub_device_t dev)
   data->n_devices_allocated = 16;
   data->devices_attached = grub_calloc (data->n_devices_allocated,
 					sizeof (data->devices_attached[0]));
+  if (!data->devices_attached)
+    {
+      grub_free (data);
+      return NULL;
+    }
   data->n_devices_attached = 0;
   err = scan_disk (dev, data, 1, &inserted);
   if (err)
@@ -4221,6 +4244,9 @@ iterate_zap_snap (const char *name, grub_uint64_t val,
     return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("name length overflow"));
 
   name2 = grub_malloc (sz);
+  if (!name2)
+    return grub_errno;
+
   name2[0] = '@';
   grub_memcpy (name2 + 1, name, grub_strlen (name) + 1);
   ret = ctx->hook (name2, &info, ctx->hook_data);
