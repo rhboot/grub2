@@ -2380,6 +2380,7 @@ fzap_iterate (dnode_end_t * zap_dnode, zap_phys_t * zap,
 					    zap_dnode->endian) << DNODE_SHIFT);
   grub_err_t err;
   grub_zfs_endian_t endian;
+  grub_size_t sz;
 
   if (zap_verify (zap, zap_dnode->endian))
     return 0;
@@ -2441,8 +2442,14 @@ fzap_iterate (dnode_end_t * zap_dnode, zap_phys_t * zap,
 	  if (le->le_type != ZAP_CHUNK_ENTRY)
 	    continue;
 
-	  buf = grub_malloc (grub_zfs_to_cpu16 (le->le_name_length, endian)
-			     * name_elem_length + 1);
+	  if (grub_mul (grub_zfs_to_cpu16 (le->le_name_length, endian), name_elem_length, &sz) ||
+	      grub_add (sz, 1, &sz))
+	    {
+	      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("buffer size overflow"));
+	      grub_free (l);
+	      return grub_errno;
+	    }
+	  buf = grub_malloc (sz);
 	  if (zap_leaf_array_get (l, endian, blksft,
 				  grub_zfs_to_cpu16 (le->le_name_chunk,
 						     endian),
@@ -2863,6 +2870,7 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 	  && ((grub_zfs_to_cpu64(((znode_phys_t *) DN_BONUS (&dnode_path->dn.dn))->zp_mode, dnode_path->dn.endian) >> 12) & 0xf) == 0xa)
 	{
 	  char *sym_value;
+	  grub_size_t sz;
 	  grub_size_t sym_sz;
 	  int free_symval = 0;
 	  char *oldpath = path, *oldpathbuf = path_buf;
@@ -2914,7 +2922,17 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 		  break;
 	      free_symval = 1;
 	    }	    
-	  path = path_buf = grub_malloc (sym_sz + grub_strlen (oldpath) + 1);
+ 	  if (grub_add (sym_sz, grub_strlen (oldpath), &sz) ||
+ 	      grub_add (sz, 1, &sz))
+      {
+ 	      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("path buffer size overflow"));
+        grub_free (oldpathbuf);
+        if (free_symval)
+          grub_free (sym_value);
+        err = grub_errno;
+        break;
+      }
+    path = path_buf = grub_malloc (sz);
 	  if (!path_buf)
 	    {
 	      grub_free (oldpathbuf);
@@ -2948,7 +2966,8 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 	{
 	  void *sahdrp;
 	  int hdrsize;
-	  
+    grub_size_t sz;  
+
 	  if (dnode_path->dn.dn.dn_bonuslen != 0)
 	    {
 	      sahdrp = DN_BONUS (&dnode_path->dn.dn);
@@ -2981,7 +3000,15 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 							 + SA_SIZE_OFFSET),
 				   dnode_path->dn.endian);
 	      char *oldpath = path, *oldpathbuf = path_buf;
-	      path = path_buf = grub_malloc (sym_sz + grub_strlen (oldpath) + 1);
+	      if (grub_add (sym_sz, grub_strlen (oldpath), &sz) ||
+		  grub_add (sz, 1, &sz))
+		{
+		  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("path buffer size overflow"));
+		  grub_free (oldpathbuf);
+		  err = grub_errno;
+		  break;
+		}
+	      path = path_buf = grub_malloc (sz);
 	      if (!path_buf)
 		{
 		  grub_free (oldpathbuf);
@@ -3550,6 +3577,7 @@ grub_zfs_nvlist_lookup_nvlist_array (const char *nvlist, const char *name,
   unsigned i;
   grub_size_t nelm;
   int elemsize = 0;
+  int sz;
 
   found = nvlist_find_value (nvlist, name, DATA_TYPE_NVLIST_ARRAY, &nvpair,
 			     &size, &nelm);
@@ -3584,7 +3612,12 @@ grub_zfs_nvlist_lookup_nvlist_array (const char *nvlist, const char *name,
       return 0;
     }
 
-  ret = grub_zalloc (elemsize + sizeof (grub_uint32_t));
+  if (grub_add (elemsize, sizeof (grub_uint32_t), &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("elemsize overflow"));
+      return 0;
+    }
+  ret = grub_zalloc (sz);
   if (!ret)
     return 0;
   grub_memcpy (ret, nvlist, sizeof (grub_uint32_t));
@@ -4163,6 +4196,7 @@ iterate_zap_snap (const char *name, grub_uint64_t val,
   struct grub_dirhook_info info;
   char *name2;
   int ret;
+  grub_size_t sz;
 
   dnode_end_t mdn;
 
@@ -4183,7 +4217,10 @@ iterate_zap_snap (const char *name, grub_uint64_t val,
       return 0;
     }
 
-  name2 = grub_malloc (grub_strlen (name) + 2);
+  if (grub_add (grub_strlen (name), 2, &sz))
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("name length overflow"));
+
+  name2 = grub_malloc (sz);
   name2[0] = '@';
   grub_memcpy (name2 + 1, name, grub_strlen (name) + 1);
   ret = ctx->hook (name2, &info, ctx->hook_data);
