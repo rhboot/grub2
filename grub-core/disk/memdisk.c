@@ -103,6 +103,8 @@ GRUB_MOD_INIT(memdisk)
 	    return;
 	  }
 	memdisk_addr = grub_malloc (memdisk_size);
+	if (memdisk_addr == NULL)
+	  return;
 
 	grub_dprintf ("memdisk", "Copying memdisk image to dynamic memory\n");
 	grub_memmove (memdisk_addr, memdisk_orig_addr, memdisk_size);
