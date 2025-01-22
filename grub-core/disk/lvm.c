@@ -634,8 +634,7 @@ error_parsing_metadata:
 			  goto lvs_segment_fail;
 			}
 
-		      seg->nodes = grub_zalloc (sizeof (seg->nodes[0])
-						* seg->node_count);
+		      seg->nodes = grub_calloc (seg->node_count, sizeof (seg->nodes[0]));
 
 		      p = grub_strstr (p, "mirrors = [");
 		      if (p == NULL)
@@ -723,8 +722,7 @@ error_parsing_metadata:
 			    }
 			}
 
-		      seg->nodes = grub_zalloc (sizeof (seg->nodes[0])
-						* seg->node_count);
+		      seg->nodes = grub_calloc (seg->node_count, sizeof (seg->nodes[0]));
 
 		      p = grub_strstr (p, "raids = [");
 		      if (p == NULL)
