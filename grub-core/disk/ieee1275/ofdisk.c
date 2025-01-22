@@ -269,7 +269,10 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
 
       buf = grub_malloc (sz);
       if (!buf)
-	return;
+	{
+	  grub_ieee1275_close (ihandle);
+	  return;
+	}
       bufptr = grub_stpcpy (buf, alias->path);
 
       for (i = 0; i < args.nentries; i++)
