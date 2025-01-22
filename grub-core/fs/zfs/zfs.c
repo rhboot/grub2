@@ -3309,6 +3309,8 @@ dnode_get_fullpath (const char *fullpath, struct subvolume *subvol,
       filename = 0;
       snapname = 0;
       fsname = grub_strdup (fullpath);
+      if (!fsname)
+	return grub_errno;
     }
   else
     {
