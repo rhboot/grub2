@@ -220,6 +220,7 @@ make_vg (grub_disk_t disk,
       struct grub_ldm_vblk vblk[GRUB_DISK_SECTOR_SIZE
 				/ sizeof (struct grub_ldm_vblk)];
       unsigned i;
+      grub_size_t sz;
       err = grub_disk_read (disk, cursec, 0,
 			    sizeof(vblk), &vblk);
       if (err)
@@ -251,7 +252,13 @@ make_vg (grub_disk_t disk,
 	      grub_free (pv);
 	      goto fail2;
 	    }
-	  pv->internal_id = grub_malloc (ptr[0] + 2);
+	  if (grub_add (ptr[0], 2, &sz))
+	    {
+	      grub_free (pv);
+	      goto fail2;
+	    }
+
+	  pv->internal_id = grub_malloc (sz);
 	  if (!pv->internal_id)
 	    {
 	      grub_free (pv);
@@ -276,7 +283,15 @@ make_vg (grub_disk_t disk,
 	      goto fail2;
 	    }
 	  pv->id.uuidlen = *ptr;
-	  pv->id.uuid = grub_malloc (pv->id.uuidlen + 1);
+
+	  if (grub_add (pv->id.uuidlen, 1, &sz))
+	    {
+	      grub_free (pv->internal_id);
+	      grub_free (pv);
+	      goto fail2;
+	    }
+
+	  pv->id.uuid = grub_malloc (sz);
 	  grub_memcpy (pv->id.uuid, ptr + 1, pv->id.uuidlen);
 	  pv->id.uuid[pv->id.uuidlen] = 0;
 
@@ -343,7 +358,13 @@ make_vg (grub_disk_t disk,
 	      grub_free (lv);
 	      goto fail2;
 	    }
-	  lv->internal_id = grub_malloc ((grub_size_t) ptr[0] + 2);
+	  if (grub_add (ptr[0], 2, &sz))
+	    {
+	      grub_free (lv->segments);
+	      grub_free (lv);
+	      goto fail2;
+	    }
+	  lv->internal_id = grub_malloc (sz);
 	  if (!lv->internal_id)
 	    {
 	      grub_free (lv);
@@ -455,6 +476,7 @@ make_vg (grub_disk_t disk,
       struct grub_ldm_vblk vblk[GRUB_DISK_SECTOR_SIZE
 				/ sizeof (struct grub_ldm_vblk)];
       unsigned i;
+      grub_size_t sz;
       err = grub_disk_read (disk, cursec, 0,
 			    sizeof(vblk), &vblk);
       if (err)
@@ -490,7 +512,12 @@ make_vg (grub_disk_t disk,
 	      grub_free (comp);
 	      goto fail2;
 	    }
-	  comp->internal_id = grub_malloc ((grub_size_t) ptr[0] + 2);
+	  if (grub_add (ptr[0], 2, &sz))
+	    {
+	      grub_free (comp);
+	      goto fail2;
+	    }
+	  comp->internal_id = grub_malloc (sz);
 	  if (!comp->internal_id)
 	    {
 	      grub_free (comp);
@@ -640,7 +667,6 @@ make_vg (grub_disk_t disk,
 	  if (lv->segments->node_alloc == lv->segments->node_count)
 	    {
 	      void *t;
-	      grub_size_t sz;
 
 	      if (grub_mul (lv->segments->node_alloc, 2, &lv->segments->node_alloc) ||
 		  grub_mul (lv->segments->node_alloc, sizeof (*lv->segments->nodes), &sz))
