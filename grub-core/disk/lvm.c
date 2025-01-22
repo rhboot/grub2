@@ -370,6 +370,8 @@ grub_lvm_detect (grub_disk_t disk,
 		break;
 
 	      pv = grub_zalloc (sizeof (*pv));
+	      if (pv == NULL)
+		goto fail4;
 	      q = p;
 	      while (*q != ' ' && q < mda_end)
 		q++;
@@ -379,6 +381,8 @@ grub_lvm_detect (grub_disk_t disk,
 
 	      s = q - p;
 	      pv->name = grub_malloc (s + 1);
+	      if (pv->name == NULL)
+		goto pvs_fail_noname;
 	      grub_memcpy (pv->name, p, s);
 	      pv->name[s] = '\0';
 
@@ -451,6 +455,8 @@ grub_lvm_detect (grub_disk_t disk,
 		break;
 
 	      lv = grub_zalloc (sizeof (*lv));
+	      if (lv == NULL)
+		goto fail4;
 
 	      q = p;
 	      while (*q != ' ' && q < mda_end)
@@ -545,6 +551,8 @@ grub_lvm_detect (grub_disk_t disk,
 		  goto lvs_fail;
 		}
 	      lv->segments = grub_calloc (lv->segment_count, sizeof (*seg));
+	      if (lv->segments == NULL)
+		goto lvs_fail;
 	      seg = lv->segments;
 
 	      for (i = 0; i < lv->segment_count; i++)
@@ -612,6 +620,8 @@ grub_lvm_detect (grub_disk_t disk,
 
 		      seg->nodes = grub_calloc (seg->node_count,
 						sizeof (*stripe));
+		      if (seg->nodes == NULL)
+			goto lvs_segment_fail;
 		      stripe = seg->nodes;
 
 		      p = grub_strstr (p, "stripes = [");
@@ -672,6 +682,8 @@ grub_lvm_detect (grub_disk_t disk,
 			}
 
 		      seg->nodes = grub_calloc (seg->node_count, sizeof (seg->nodes[0]));
+		      if (seg->nodes == NULL)
+			goto lvs_segment_fail;
 
 		      p = grub_strstr (p, "mirrors = [");
 		      if (p == NULL)
@@ -760,6 +772,8 @@ grub_lvm_detect (grub_disk_t disk,
 			}
 
 		      seg->nodes = grub_calloc (seg->node_count, sizeof (seg->nodes[0]));
+		      if (seg->nodes == NULL)
+			goto lvs_segment_fail;
 
 		      p = grub_strstr (p, "raids = [");
 		      if (p == NULL)
