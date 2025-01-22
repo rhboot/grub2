@@ -224,10 +224,17 @@ get_name (const grub_uint8_t *name_at, const grub_uint8_t *head,
 {
   int length;
   char *ret;
+  int len;
 
   if (!check_name_real (name_at, head, tail, NULL, &length, NULL))
     return NULL;
-  ret = grub_malloc (length + 1);
+
+  if (grub_add (length, 1, &len))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("name length overflow"));
+      return NULL;
+    }
+  ret = grub_malloc (len);
   if (!ret)
     return NULL;
   if (!check_name_real (name_at, head, tail, NULL, NULL, ret))
