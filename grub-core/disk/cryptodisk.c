@@ -26,6 +26,7 @@
 #include <grub/file.h>
 #include <grub/procfs.h>
 #include <grub/partition.h>
+#include <grub/safemath.h>
 
 #ifdef GRUB_UTIL
 #include <grub/emu/hostdisk.h>
@@ -1039,7 +1040,7 @@ static char *
 luks_script_get (grub_size_t *sz)
 {
   grub_cryptodisk_t i;
-  grub_size_t size = 0;
+  grub_size_t size = 0, mul;
   char *ptr, *ret;
 
   *sz = 0;
@@ -1047,16 +1048,33 @@ luks_script_get (grub_size_t *sz)
   for (i = cryptodisk_list; i != NULL; i = i->next)
     if (grub_strcmp (i->modname, "luks") == 0)
       {
-	size += sizeof ("luks_mount ");
-	size += grub_strlen (i->uuid);
-	size += grub_strlen (i->cipher->cipher->name);
-	size += 54;
-	if (i->essiv_hash)
-	  size += grub_strlen (i->essiv_hash->name);
-	size += i->keysize * 2;
+        if (grub_add (size, grub_strlen (i->modname), &size) ||
+            grub_add (size, sizeof ("_mount") + 60, &size) ||
+            grub_add (size, grub_strlen (i->uuid), &size) ||
+            grub_add (size, grub_strlen (i->cipher->cipher->name), &size) ||
+            grub_mul (i->keysize, 2, &mul) ||
+            grub_add (size, mul, &size))
+          {
+            grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while obtaining size of luks script");
+            return 0;
+          }
+        if (i->essiv_hash)
+          {
+            if (grub_add (size, grub_strlen (i->essiv_hash->name), &size))
+              {
+                grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while obtaining size of luks script");
+                return 0;
+              }
+          }
       }
 
-  ret = grub_malloc (size + 1);
+  if (grub_add (size, 1, &size))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while obtaining size of luks script");
+      return 0;
+    }
+
+  ret = grub_malloc (size);
   if (!ret)
     return 0;
 

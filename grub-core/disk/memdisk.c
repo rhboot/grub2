@@ -23,6 +23,7 @@
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/types.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -96,7 +97,11 @@ GRUB_MOD_INIT(memdisk)
 
 	grub_dprintf ("memdisk", "Found memdisk image at %p\n", memdisk_orig_addr);
 
-	memdisk_size = header->size - sizeof (struct grub_module_header);
+	if (grub_sub (header->size, sizeof (struct grub_module_header), &memdisk_size))
+	  {
+	    grub_error (GRUB_ERR_OUT_OF_RANGE, "underflow detected while obtaining memdisk size");
+	    return;
+	  }
 	memdisk_addr = grub_malloc (memdisk_size);
 
 	grub_dprintf ("memdisk", "Copying memdisk image to dynamic memory\n");
