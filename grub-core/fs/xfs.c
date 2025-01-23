@@ -885,7 +885,11 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 	    grub_uint8_t c;
 
 	    if ((inopos + (smallino ? 4 : 8)) > (grub_uint8_t *) dir + grub_xfs_fshelp_size (dir->data))
-	      return grub_error (GRUB_ERR_BAD_FS, "not a correct XFS inode");
+	      {
+		grub_error (GRUB_ERR_BAD_FS, "invalid XFS inode");
+		return 0;
+	      }
+
 
 	    /* inopos might be unaligned.  */
 	    if (smallino)
@@ -1004,7 +1008,10 @@ grub_xfs_iterate_dir (grub_fshelp_node_t dir,
 
 		filename = (char *)(direntry + 1);
 		if (filename + direntry->len + 1 > (char *) end)
-		  return grub_error (GRUB_ERR_BAD_FS, "invalid XFS directory entry");
+		  {
+		    grub_error (GRUB_ERR_BAD_FS, "invalid XFS directory entry");
+		    return 0;
+		  }
 
 		/* The byte after the filename is for the filetype, padding, or
 		   tag, which is not used by GRUB.  So it can be overwritten. */
