@@ -25,19 +25,21 @@
 #include <grub/types.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
 static char *
 grub_getline (void)
 {
-  int i;
+  grub_size_t i;
   char *line;
   char *tmp;
   char c;
+  grub_size_t alloc_size;
 
   i = 0;
-  line = grub_malloc (1 + i + sizeof('\0'));
+  line = grub_malloc (1 + sizeof('\0'));
   if (! line)
     return NULL;
 
@@ -50,8 +52,18 @@ grub_getline (void)
       line[i] = c;
       if (grub_isprint (c))
 	grub_printf ("%c", c);
-      i++;
-      tmp = grub_realloc (line, 1 + i + sizeof('\0'));
+      if (grub_add (i, 1, &i))
+        {
+          grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+          return NULL;
+        }
+      if (grub_add (i, 1 + sizeof('\0'), &alloc_size))
+        {
+          grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+          return NULL;
+        }
+      tmp = grub_realloc (line, alloc_size);
+
       if (! tmp)
 	{
 	  grub_free (line);
