@@ -429,6 +429,9 @@ grub_sfs_mount (grub_disk_t disk)
 	     - 24    /* offsetof (struct grub_sfs_objc, objects) */
 	     - 25);  /* offsetof (struct grub_sfs_obj, filename) */
   data->label = grub_zalloc (max_len + 1);
+  if (data->label == NULL)
+    goto fail;
+
   grub_strncpy (data->label, (char *) rootobjc->objects[0].filename, max_len);
 
   grub_free (rootobjc_data);
