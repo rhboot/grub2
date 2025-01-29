@@ -599,6 +599,9 @@ again:
 	}
     }
 
+  if (!entry_len)
+    goto out;
+
   /* Now scan visible mounts for the ones we're interested in.  */
   for (i = entry_len - 1; i >= 0; i--)
     {
