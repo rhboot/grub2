@@ -760,6 +760,9 @@ cleanup:
 	}
     }
 
+  if (result.args == NULL || result.argc == 0)
+    goto fail;
+
   if (! result.args[result.argc - 1])
     result.argc--;
 
