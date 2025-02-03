@@ -88,7 +88,10 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define XFS_SB_FEAT_INCOMPAT_META_UUID  (1 << 2)        /* metadata UUID */
 #define XFS_SB_FEAT_INCOMPAT_BIGTIME    (1 << 3)        /* large timestamps */
 #define XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR (1 << 4)       /* needs xfs_repair */
-#define XFS_SB_FEAT_INCOMPAT_NREXT64 (1 << 5)           /* large extent counters */
+#define XFS_SB_FEAT_INCOMPAT_NREXT64    (1 << 5)        /* large extent counters */
+#define XFS_SB_FEAT_INCOMPAT_EXCHRANGE  (1 << 6)        /* exchangerange supported */
+#define XFS_SB_FEAT_INCOMPAT_PARENT     (1 << 7)        /* parent pointers */
+#define XFS_SB_FEAT_INCOMPAT_METADIR    (1 << 8)        /* metadata dir tree */
 
 /*
  * Directory entries with ftype are explicitly handled by GRUB code.
@@ -98,6 +101,15 @@ GRUB_MOD_LICENSE ("GPLv3+");
  *
  * We do not currently verify metadata UUID, so it is safe to read filesystems
  * with the XFS_SB_FEAT_INCOMPAT_META_UUID feature.
+ *
+ * We do not currently replay the log, so it is safe to read filesystems
+ * with the XFS_SB_FEAT_INCOMPAT_EXCHRANGE feature.
+ *
+ * We do not currently read directory parent pointers, so it is safe to read
+ * filesystems with the XFS_SB_FEAT_INCOMPAT_PARENT feature.
+ *
+ * We do not currently look at realtime or quota metadata, so it is safe to
+ * read filesystems with the XFS_SB_FEAT_INCOMPAT_METADIR feature.
  */
 #define XFS_SB_FEAT_INCOMPAT_SUPPORTED \
 	(XFS_SB_FEAT_INCOMPAT_FTYPE | \
@@ -105,7 +117,10 @@ GRUB_MOD_LICENSE ("GPLv3+");
 	 XFS_SB_FEAT_INCOMPAT_META_UUID | \
 	 XFS_SB_FEAT_INCOMPAT_BIGTIME | \
 	 XFS_SB_FEAT_INCOMPAT_NEEDSREPAIR | \
-	 XFS_SB_FEAT_INCOMPAT_NREXT64)
+	 XFS_SB_FEAT_INCOMPAT_NREXT64 | \
+	 XFS_SB_FEAT_INCOMPAT_EXCHRANGE | \
+	 XFS_SB_FEAT_INCOMPAT_PARENT | \
+	 XFS_SB_FEAT_INCOMPAT_METADIR)
 
 struct grub_xfs_sblock
 {
