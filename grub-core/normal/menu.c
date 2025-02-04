@@ -32,6 +32,7 @@
 #include <grub/script_sh.h>
 #include <grub/gfxterm.h>
 #include <grub/dl.h>
+#include <grub/safemath.h>
 
 /* Time to delay after displaying an error message about a default/fallback
    entry failing to boot.  */
@@ -780,9 +781,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
 
 	    case GRUB_TERM_CTRL | 'c':
 	    case GRUB_TERM_KEY_NPAGE:
-	      if (current_entry + GRUB_MENU_PAGE_SIZE < menu->size)
-		current_entry += GRUB_MENU_PAGE_SIZE;
-	      else
+	      if (grub_add (current_entry, GRUB_MENU_PAGE_SIZE, &current_entry) || current_entry >= menu->size)
 		current_entry = menu->size - 1;
 	      menu_set_chosen_entry (current_entry);
 	      break;
