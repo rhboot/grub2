@@ -218,7 +218,7 @@ enum
 
 #define GRUB_EHCI_TERMINATE      (1<<0)
 
-#define GRUB_EHCI_TOGGLE         (1<<31)
+#define GRUB_EHCI_TOGGLE         ((grub_uint32_t) 1<<31)
 
 enum
 {
