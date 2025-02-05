@@ -1341,6 +1341,7 @@ static grub_err_t
 grub_bsd_load_elf (grub_elf_t elf, const char *filename)
 {
   grub_err_t err;
+  grub_size_t sz;
 
   kern_end = 0;
   kern_start = ~0;
@@ -1371,8 +1372,11 @@ grub_bsd_load_elf (grub_elf_t elf, const char *filename)
 
       if (grub_errno)
 	return grub_errno;
-      err = grub_relocator_alloc_chunk_addr (relocator, &ch,
-					     kern_start, kern_end - kern_start);
+
+      if (grub_sub (kern_end, kern_start, &sz))
+	return grub_error (GRUB_ERR_OUT_OF_RANGE, "underflow detected while determining size of kernel for relocator");
+
+      err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_start, sz);
       if (err)
 	return err;
 
@@ -1432,8 +1436,10 @@ grub_bsd_load_elf (grub_elf_t elf, const char *filename)
       {
 	grub_relocator_chunk_t ch;
 
-	err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_start,
-					       kern_end - kern_start);
+	if (grub_sub (kern_end, kern_start, &sz))
+	  return grub_error (GRUB_ERR_OUT_OF_RANGE, "underflow detected while determining size of kernel for relocator");
+
+	err = grub_relocator_alloc_chunk_addr (relocator, &ch, kern_start, sz);
 	if (err)
 	  return err;
 	kern_chunk_src = get_virtual_current_address (ch);
