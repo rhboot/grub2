@@ -858,7 +858,7 @@ parse_printf_arg_fmt (const char *fmt0, struct printf_args *args,
   while ((c = *fmt++) != 0)
     {
       int longfmt = 0;
-      grub_size_t curn;
+      unsigned long curn;
       const char *p;
 
       if (c != '%')
@@ -876,7 +876,10 @@ parse_printf_arg_fmt (const char *fmt0, struct printf_args *args,
 
       if (*fmt == '$')
 	{
-	  curn = grub_strtoull (p, 0, 10) - 1;
+	  curn = grub_strtoul (p, 0, 10);
+	  if (curn == 0)
+	    continue;
+	  curn--;
 	  fmt++;
 	}
 
@@ -1035,6 +1038,8 @@ grub_vsnprintf_real (char *str, grub_size_t max_len, const char *fmt0,
 
       if (*fmt == '$')
 	{
+	  if (format1 == 0)
+	    continue;
 	  curn = format1 - 1;
 	  fmt++;
 	  format1 = 0;
