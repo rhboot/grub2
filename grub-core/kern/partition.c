@@ -125,14 +125,22 @@ grub_partition_probe (struct grub_disk *disk, const char *str)
   for (ptr = str; *ptr;)
     {
       grub_partition_map_t partmap;
-      int num;
+      unsigned long num;
       const char *partname, *partname_end;
 
       partname = ptr;
       while (*ptr && grub_isalpha (*ptr))
 	ptr++;
       partname_end = ptr; 
-      num = grub_strtoul (ptr, &ptr, 0) - 1;
+
+      num = grub_strtoul (ptr, &ptr, 0);
+      if (*ptr != '\0' || num == 0 || num > GRUB_INT_MAX)
+	{
+	  grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid partition number"));
+	  return 0;
+	}
+
+      num -= 1;
 
       curpart = 0;
       /* Use the first partition map type found.  */
