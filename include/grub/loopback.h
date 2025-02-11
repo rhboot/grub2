@@ -25,6 +25,7 @@ struct grub_loopback
   grub_file_t file;
   struct grub_loopback *next;
   unsigned long id;
+  grub_uint64_t refcnt;
 };
 
 #endif /* ! GRUB_LOOPBACK_HEADER */
