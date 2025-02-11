@@ -1144,7 +1144,9 @@ grub_cryptodisk_scan_device_real (const char *name,
     ret = grub_cryptodisk_insert (dev, name, source);
     if (ret != GRUB_ERR_NONE)
       goto error;
-
+#ifndef GRUB_UTIL
+    grub_cli_set_auth_needed ();
+#endif
     goto cleanup;
   }
   grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk module can handle this device");
@@ -1575,6 +1577,89 @@ luks_script_get (grub_size_t *sz)
   *sz = ptr - ret;
   return ret;
 }
+
+#ifdef GRUB_MACHINE_EFI
+grub_err_t
+grub_cryptodisk_challenge_password (void)
+{
+  grub_cryptodisk_t cr_dev;
+
+  for (cr_dev = cryptodisk_list; cr_dev != NULL; cr_dev = cr_dev->next)
+    {
+      grub_cryptodisk_dev_t cr;
+      grub_disk_t source = NULL;
+      grub_err_t ret = GRUB_ERR_NONE;
+      grub_cryptodisk_t dev = NULL;
+      char *part = NULL;
+      struct grub_cryptomount_args cargs = {0};
+
+      cargs.check_boot = 0;
+      cargs.search_uuid = cr_dev->uuid;
+
+      source = grub_disk_open (cr_dev->source);
+
+      if (source == NULL)
+	{
+	  ret = grub_errno;
+	  goto error_out;
+	}
+
+      FOR_CRYPTODISK_DEVS (cr)
+      {
+	dev = cr->scan (source, &cargs);
+	if (grub_errno)
+	  {
+	    ret = grub_errno;
+	    goto error_out;
+	  }
+	if (dev == NULL)
+	  continue;
+	break;
+      }
+
+      if (dev == NULL)
+	{
+	  ret = grub_error (GRUB_ERR_BAD_MODULE, "no cryptodisk module can handle this device");
+	  goto error_out;
+	}
+
+      part = grub_partition_get_name (source->partition);
+      grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+		    source->partition != NULL ? "," : "",
+		    part != NULL ? part : N_("UNKNOWN"), cr_dev->uuid);
+      grub_free (part);
+
+      cargs.key_data = grub_malloc (GRUB_CRYPTODISK_MAX_PASSPHRASE);
+      if (cargs.key_data == NULL)
+	{
+	  ret = grub_errno;
+	  goto error_out;
+	}
+
+      if (!grub_password_get ((char *) cargs.key_data, GRUB_CRYPTODISK_MAX_PASSPHRASE))
+	{
+	  ret = grub_error (GRUB_ERR_BAD_ARGUMENT, "passphrase not supplied");
+	  goto error_out;
+	}
+      cargs.key_len = grub_strlen ((char *) cargs.key_data);
+      ret = cr->recover_key (source, dev, &cargs);
+
+ error_out:
+      grub_disk_close (source);
+      if (dev != NULL)
+	cryptodisk_close (dev);
+      if (cargs.key_data)
+	{
+	  grub_memset (cargs.key_data, 0, cargs.key_len);
+	  grub_free (cargs.key_data);
+	}
+
+      return ret;
+    }
+
+  return GRUB_ERR_NONE;
+}
+#endif /* GRUB_MACHINE_EFI */
 
 struct grub_procfs_entry luks_script =
 {

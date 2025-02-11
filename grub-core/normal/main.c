@@ -557,9 +557,13 @@ grub_cmdline_run (int nested, int force_auth)
     }
   while (err && force_auth);
 
+  if (err == GRUB_ERR_NONE)
+    err = grub_auth_check_cli_access ();
+
   if (err)
     {
       grub_print_error ();
+      grub_wait_after_message ();
       grub_errno = GRUB_ERR_NONE;
       return;
     }

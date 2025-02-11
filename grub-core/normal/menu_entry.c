@@ -1255,9 +1255,13 @@ grub_menu_entry_run (grub_menu_entry_t entry)
 
   err = grub_auth_check_authentication (NULL);
 
+  if (err == GRUB_ERR_NONE)
+    err = grub_auth_check_cli_access ();
+
   if (err)
     {
       grub_print_error ();
+      grub_wait_after_message ();
       grub_errno = GRUB_ERR_NONE;
       return;
     }
