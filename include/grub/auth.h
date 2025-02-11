@@ -33,5 +33,6 @@ grub_err_t grub_auth_unregister_authentication (const char *user);
 grub_err_t grub_auth_authenticate (const char *user);
 grub_err_t grub_auth_deauthenticate (const char *user);
 grub_err_t grub_auth_check_authentication (const char *userlist);
+grub_err_t grub_auth_check_cli_access (void);
 
 #endif /* ! GRUB_AUTH_HEADER */

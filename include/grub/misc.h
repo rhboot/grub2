@@ -443,6 +443,8 @@ grub_uint64_t EXPORT_FUNC(grub_divmod64) (grub_uint64_t n,
 					  grub_uint64_t *r);
 
 extern bool EXPORT_FUNC(grub_is_cli_disabled) (void);
+extern bool EXPORT_FUNC(grub_is_cli_need_auth) (void);
+extern void EXPORT_FUNC(grub_cli_set_auth_needed) (void);
 
 /* Must match softdiv group in gentpl.py.  */
 #if !defined(GRUB_MACHINE_EMU) && (defined(__arm__) || defined(__ia64__) || \

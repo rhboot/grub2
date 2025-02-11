@@ -187,4 +187,7 @@ grub_util_get_geli_uuid (const char *dev);
 grub_cryptodisk_t grub_cryptodisk_get_by_uuid (const char *uuid);
 grub_cryptodisk_t grub_cryptodisk_get_by_source_disk (grub_disk_t disk);
 
+#ifdef GRUB_MACHINE_EFI
+grub_err_t grub_cryptodisk_challenge_password (void);
+#endif
 #endif
