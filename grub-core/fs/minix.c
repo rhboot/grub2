@@ -732,6 +732,7 @@ GRUB_MOD_INIT(minix)
 #endif
 #endif
 {
+  grub_minix_fs.mod = mod;
   grub_fs_register (&grub_minix_fs);
   my_mod = mod;
 }

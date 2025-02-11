@@ -1312,6 +1312,7 @@ GRUB_MOD_INIT(fat)
 #endif
 {
   COMPILE_TIME_ASSERT (sizeof (struct grub_fat_dir_entry) == 32);
+  grub_fat_fs.mod = mod;
   grub_fs_register (&grub_fat_fs);
   my_mod = mod;
 }

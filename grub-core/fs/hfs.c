@@ -1434,6 +1434,7 @@ static struct grub_fs grub_hfs_fs =
 
 GRUB_MOD_INIT(hfs)
 {
+  grub_hfs_fs.mod = mod;
   if (!grub_is_lockdown ())
     grub_fs_register (&grub_hfs_fs);
   my_mod = mod;

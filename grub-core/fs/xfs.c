@@ -1220,6 +1220,7 @@ static struct grub_fs grub_xfs_fs =
 
 GRUB_MOD_INIT(xfs)
 {
+  grub_xfs_fs.mod = mod;
   grub_fs_register (&grub_xfs_fs);
   my_mod = mod;
 }

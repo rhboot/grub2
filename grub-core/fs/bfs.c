@@ -1104,6 +1104,7 @@ GRUB_MOD_INIT (bfs)
 {
   COMPILE_TIME_ASSERT (1 << LOG_EXTENT_SIZE ==
 		       sizeof (struct grub_bfs_extent));
+  grub_bfs_fs.mod = mod;
   grub_fs_register (&grub_bfs_fs);
 }
 
