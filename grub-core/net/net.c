@@ -2221,6 +2221,8 @@ GRUB_MOD_FINI(net)
 
   grub_register_variable_hook ("net_default_server", 0, 0);
   grub_register_variable_hook ("pxe_default_server", 0, 0);
+  grub_register_variable_hook ("net_default_ip", 0, 0);
+  grub_register_variable_hook ("net_default_mac", 0, 0);
 
   grub_bootp_fini ();
   grub_dns_fini ();
