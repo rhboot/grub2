@@ -32,6 +32,7 @@
 #include <grub/env.h>
 #include <grub/cache.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 #include <grub/efi/sb.h>
 
 /* Platforms where modules are in a readonly area of memory.  */
@@ -604,7 +605,7 @@ grub_dl_resolve_dependencies (grub_dl_t mod, Elf_Ehdr *e)
   return GRUB_ERR_NONE;
 }
 
-int
+grub_uint64_t
 grub_dl_ref (grub_dl_t mod)
 {
   grub_dl_dep_t dep;
@@ -615,10 +616,13 @@ grub_dl_ref (grub_dl_t mod)
   for (dep = mod->dep; dep; dep = dep->next)
     grub_dl_ref (dep->mod);
 
-  return ++mod->ref_count;
+  if (grub_add (mod->ref_count, 1, &mod->ref_count))
+    grub_fatal ("Module reference count overflow");
+
+  return mod->ref_count;
 }
 
-int
+grub_uint64_t
 grub_dl_unref (grub_dl_t mod)
 {
   grub_dl_dep_t dep;
@@ -629,10 +633,13 @@ grub_dl_unref (grub_dl_t mod)
   for (dep = mod->dep; dep; dep = dep->next)
     grub_dl_unref (dep->mod);
 
-  return --mod->ref_count;
+  if (grub_sub (mod->ref_count, 1, &mod->ref_count))
+    grub_fatal ("Module reference count underflow");
+
+  return mod->ref_count;
 }
 
-int
+grub_uint64_t
 grub_dl_ref_count (grub_dl_t mod)
 {
   if (mod == NULL)
