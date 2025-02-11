@@ -126,17 +126,20 @@ GRUB_MOD_INIT(memrw)
     return;
 
   cmd_read_byte =
-    grub_register_extcmd ("read_byte", grub_cmd_read, 0,
-			  N_("ADDR"), N_("Read 8-bit value from ADDR."),
-			  options);
+    grub_register_extcmd_lockdown ("read_byte", grub_cmd_read, 0,
+                                   N_("ADDR"),
+                                   N_("Read 8-bit value from ADDR."),
+                                   options);
   cmd_read_word =
-    grub_register_extcmd ("read_word", grub_cmd_read, 0,
-			  N_("ADDR"), N_("Read 16-bit value from ADDR."),
-			  options);
+    grub_register_extcmd_lockdown ("read_word", grub_cmd_read, 0,
+                                   N_("ADDR"),
+                                   N_("Read 16-bit value from ADDR."),
+                                   options);
   cmd_read_dword =
-    grub_register_extcmd ("read_dword", grub_cmd_read, 0,
-			  N_("ADDR"), N_("Read 32-bit value from ADDR."),
-			  options);
+    grub_register_extcmd_lockdown ("read_dword", grub_cmd_read, 0,
+                                   N_("ADDR"),
+                                   N_("Read 32-bit value from ADDR."),
+                                   options);
   cmd_write_byte =
     grub_register_command_lockdown ("write_byte", grub_cmd_write,
                                     N_("ADDR VALUE [MASK]"),
