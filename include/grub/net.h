@@ -625,16 +625,7 @@ void grub_bootp_fini (void);
 void grub_dns_init (void);
 void grub_dns_fini (void);
 
-static inline void
-grub_net_network_level_interface_unregister (struct grub_net_network_level_interface *inter)
-{
-  inter->card->num_ifaces--;
-  *inter->prev = inter->next;
-  if (inter->next)
-    inter->next->prev = inter->prev;
-  inter->next = 0;
-  inter->prev = 0;
-}
+void grub_net_network_level_interface_unregister (struct grub_net_network_level_interface *inter);
 
 void
 grub_net_tcp_retransmit (void);
