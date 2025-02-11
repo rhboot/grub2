@@ -26,6 +26,7 @@
 #include <grub/crypto.h>
 #include <grub/partition.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 #include <base64.h>
 #include <json.h>
@@ -549,6 +550,7 @@ luks2_recover_key (grub_disk_t source,
   gcry_err_code_t gcry_ret;
   grub_json_t *json = NULL, keyslots;
   grub_err_t ret;
+  grub_size_t sz;
 
   if (cargs->key_data == NULL || cargs->key_len == 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "no key data");
@@ -557,7 +559,10 @@ luks2_recover_key (grub_disk_t source,
   if (ret)
     return ret;
 
-  json_header = grub_zalloc (grub_be_to_cpu64 (header.hdr_size) - sizeof (header));
+  if (grub_sub (grub_be_to_cpu64 (header.hdr_size), sizeof (header), &sz))
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, "underflow detected while calculating json header size");
+
+  json_header = grub_zalloc (sz);
   if (!json_header)
       return GRUB_ERR_OUT_OF_MEMORY;
 

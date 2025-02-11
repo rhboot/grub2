@@ -24,6 +24,7 @@
 #include <grub/ieee1275/ofdisk.h>
 #include <grub/i18n.h>
 #include <grub/time.h>
+#include <grub/safemath.h>
 
 static char *last_devpath;
 static grub_ieee1275_ihandle_t last_ihandle;
@@ -80,6 +81,7 @@ ofdisk_hash_add_real (char *devpath)
   struct ofdisk_hash_ent **head = &ofdisk_hash[ofdisk_hash_fn(devpath)];
   const char *iptr;
   char *optr;
+  grub_size_t sz;
 
   p = grub_zalloc (sizeof (*p));
   if (!p)
@@ -87,8 +89,14 @@ ofdisk_hash_add_real (char *devpath)
 
   p->devpath = devpath;
 
-  p->grub_devpath = grub_malloc (sizeof ("ieee1275/")
-				 + 2 * grub_strlen (p->devpath));
+  if (grub_mul (grub_strlen (p->devpath), 2, &sz) ||
+      grub_add (sz, sizeof ("ieee1275/"), &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of device path"));
+      return NULL;
+    }
+
+  p->grub_devpath = grub_malloc (sz);
 
   if (!p->grub_devpath)
     {
@@ -98,7 +106,13 @@ ofdisk_hash_add_real (char *devpath)
 
   if (! grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_NO_PARTITION_0))
     {
-      p->open_path = grub_malloc (grub_strlen (p->devpath) + 3);
+      if (grub_add (grub_strlen (p->devpath), 3, &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of an open path"));
+	  return NULL;
+	}
+
+      p->open_path = grub_malloc (sz);
       if (!p->open_path)
 	{
 	  grub_free (p->grub_devpath);
@@ -224,7 +238,7 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
       args;
       char *buf, *bufptr;
       unsigned i;
-
+      grub_size_t sz;
 
       RETRY_IEEE1275_OFDISK_OPEN(alias->path, &ihandle)
       if (! ihandle)
@@ -245,7 +259,14 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
 	  return;
 	}
 
-      buf = grub_malloc (grub_strlen (alias->path) + 32);
+      if (grub_add (grub_strlen (alias->path), 32, &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while creating buffer for vscsi");
+	  grub_ieee1275_close (ihandle);
+	  return;
+	}
+
+      buf = grub_malloc (sz);
       if (!buf)
 	return;
       bufptr = grub_stpcpy (buf, alias->path);
@@ -289,9 +310,15 @@ dev_iterate (const struct grub_ieee1275_devalias *alias)
       grub_uint64_t *table;
       grub_uint16_t table_size;
       grub_ieee1275_ihandle_t ihandle;
+      grub_size_t sz;
 
-      buf = grub_malloc (grub_strlen (alias->path) +
-                         sizeof ("/disk@7766554433221100"));
+      if (grub_add (grub_strlen (alias->path), sizeof ("/disk@7766554433221100"), &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while creating buffer for sas_ioa");
+	  return;
+	}
+
+      buf = grub_malloc (sz);
       if (!buf)
         return;
       bufptr = grub_stpcpy (buf, alias->path);
@@ -431,9 +458,17 @@ grub_ofdisk_iterate (grub_disk_dev_iterate_hook_t hook, void *hook_data,
 static char *
 compute_dev_path (const char *name)
 {
-  char *devpath = grub_malloc (grub_strlen (name) + 3);
+  char *devpath;
   char *p, c;
+  grub_size_t sz;
 
+  if (grub_add (grub_strlen (name), 3, &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of device path"));
+      return NULL;
+    }
+
+  devpath = grub_malloc (sz);
   if (!devpath)
     return NULL;
 
@@ -660,6 +695,7 @@ insert_bootpath (void)
   char *bootpath;
   grub_ssize_t bootpath_size;
   char *type;
+  grub_size_t sz;
 
   if (grub_ieee1275_get_property_length (grub_ieee1275_chosen, "bootpath",
 					 &bootpath_size)
@@ -670,7 +706,13 @@ insert_bootpath (void)
       return;
     }
 
-  bootpath = (char *) grub_malloc ((grub_size_t) bootpath_size + 64);
+  if (grub_add (bootpath_size, 64, &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining bootpath size"));
+      return;
+    }
+
+  bootpath = (char *) grub_malloc (sz);
   if (! bootpath)
     {
       grub_print_error ();

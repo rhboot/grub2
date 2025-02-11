@@ -24,6 +24,7 @@
 #include <grub/extcmd.h>
 #include <grub/partition.h>
 #include <grub/file.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -126,7 +127,7 @@ plainmount_configure_password (grub_cryptodisk_t dev, const char *hash,
   grub_uint8_t *derived_hash, *dh;
   char *p;
   unsigned int round, i, len, size;
-  grub_size_t alloc_size;
+  grub_size_t alloc_size, sz;
   grub_err_t err = GRUB_ERR_NONE;
 
   /* Support none (plain) hash */
@@ -145,7 +146,11 @@ plainmount_configure_password (grub_cryptodisk_t dev, const char *hash,
    * Allocate buffer for the password and for an added prefix character
    * for each hash round ('alloc_size' may not be a multiple of 'len').
    */
-  p = grub_zalloc (alloc_size + (alloc_size / len) + 1);
+  if (grub_add (alloc_size, (alloc_size / len), &sz) ||
+      grub_add (sz, 1, &sz))
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while allocating size of password buffer"));
+
+  p = grub_zalloc (sz);
   derived_hash = grub_zalloc (GRUB_CRYPTODISK_MAX_KEYLEN * 2);
   if (p == NULL || derived_hash == NULL)
     {
