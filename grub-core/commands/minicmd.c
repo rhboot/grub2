@@ -167,7 +167,7 @@ grub_mini_cmd_lsmod (struct grub_command *cmd __attribute__ ((unused)),
   {
     grub_dl_dep_t dep;
 
-    grub_printf ("%s\t%d\t\t", mod->name, mod->ref_count);
+    grub_printf ("%s\t%" PRIuGRUB_UINT64_T "\t\t", mod->name, mod->ref_count);
     for (dep = mod->dep; dep; dep = dep->next)
       {
 	if (dep != mod->dep)
