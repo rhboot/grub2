@@ -24,6 +24,7 @@
 #include <grub/misc.h>
 #include <grub/diskfilter.h>
 #include <grub/partition.h>
+#include <grub/safemath.h>
 #ifdef GRUB_UTIL
 #include <grub/i18n.h>
 #include <grub/util/misc.h>
@@ -1041,7 +1042,7 @@ grub_diskfilter_make_raid (grub_size_t uuidlen, char *uuid, int nmemb,
 {
   struct grub_diskfilter_vg *array;
   int i;
-  grub_size_t j;
+  grub_size_t j, sz;
   grub_uint64_t totsize;
   struct grub_diskfilter_pv *pv;
   grub_err_t err;
@@ -1142,7 +1143,11 @@ grub_diskfilter_make_raid (grub_size_t uuidlen, char *uuid, int nmemb,
     }
   array->lvs->vg = array;
 
-  array->lvs->idname = grub_malloc (sizeof ("mduuid/") + 2 * uuidlen);
+  if (grub_mul (uuidlen, 2, &sz) ||
+      grub_add (sz, sizeof ("mduuid/"), &sz))
+    goto fail;
+
+  array->lvs->idname = grub_malloc (sz);
   if (!array->lvs->idname)
     goto fail;
 
