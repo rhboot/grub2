@@ -655,7 +655,7 @@ void
 grub_net_remove_dns_server (const struct grub_net_network_level_address *s);
 
 grub_err_t
-grub_net_search_config_file (char *config);
+grub_net_search_config_file (char *config, grub_size_t config_buf_len);
 
 extern char *grub_net_default_server;
 
