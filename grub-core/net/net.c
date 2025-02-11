@@ -1066,6 +1066,39 @@ grub_net_add_ipv6_local (struct grub_net_network_level_interface *inter,
   return 0;
 }
 
+void
+grub_net_network_level_interface_unregister (struct grub_net_network_level_interface *inter)
+{
+  char *name;
+
+    {
+      char buf[GRUB_NET_MAX_STR_HWADDR_LEN];
+
+      grub_net_hwaddr_to_str (&inter->hwaddress, buf);
+      name = grub_xasprintf ("net_%s_mac", inter->name);
+      if (name != NULL)
+        grub_register_variable_hook (name, NULL, NULL);
+      grub_free (name);
+    }
+
+    {
+      char buf[GRUB_NET_MAX_STR_ADDR_LEN];
+
+      grub_net_addr_to_str (&inter->address, buf);
+      name = grub_xasprintf ("net_%s_ip", inter->name);
+      if (name != NULL)
+        grub_register_variable_hook (name, NULL, NULL);
+      grub_free (name);
+    }
+
+    inter->card->num_ifaces--;
+    *inter->prev = inter->next;
+    if (inter->next)
+      inter->next->prev = inter->prev;
+    inter->next = 0;
+    inter->prev = 0;
+}
+
 grub_err_t
 grub_net_add_ipv4_local (struct grub_net_network_level_interface *inter,
 			 int mask)
