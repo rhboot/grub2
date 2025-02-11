@@ -25,6 +25,7 @@
 #include <grub/fs.h>
 #include <grub/device.h>
 #include <grub/i18n.h>
+#include <grub/dl.h>
 
 void (*EXPORT_VAR (grub_grubnet_fini)) (void);
 
@@ -127,6 +128,9 @@ grub_file_open (const char *name, enum grub_file_type type)
   if (file->data == NULL)
     goto fail;
 
+  if (file->fs->mod)
+      grub_dl_ref (file->fs->mod);
+
   file->name = grub_strdup (name);
   grub_errno = GRUB_ERR_NONE;
 
@@ -219,6 +223,9 @@ grub_file_read (grub_file_t file, void *buf, grub_size_t len)
 grub_err_t
 grub_file_close (grub_file_t file)
 {
+  if (file->fs->mod)
+    grub_dl_unref (file->fs->mod);
+
   grub_dprintf ("file", "Closing `%s' ...\n", file->name);
   if (file->fs->fs_close)
     (file->fs->fs_close) (file);

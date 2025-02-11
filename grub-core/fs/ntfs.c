@@ -1541,6 +1541,7 @@ static struct grub_fs grub_ntfs_fs =
 
 GRUB_MOD_INIT (ntfs)
 {
+  grub_ntfs_fs.mod = mod;
   grub_fs_register (&grub_ntfs_fs);
   my_mod = mod;
 }
