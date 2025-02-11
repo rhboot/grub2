@@ -1176,6 +1176,7 @@ static struct grub_fs grub_hfsplus_fs =
 
 GRUB_MOD_INIT(hfsplus)
 {
+  grub_hfsplus_fs.mod = mod;
   grub_fs_register (&grub_hfsplus_fs);
   my_mod = mod;
 }

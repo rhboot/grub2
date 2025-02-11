@@ -1260,6 +1260,7 @@ static struct grub_fs grub_iso9660_fs =
 
 GRUB_MOD_INIT(iso9660)
 {
+  grub_iso9660_fs.mod = mod;
   grub_fs_register (&grub_iso9660_fs);
   my_mod = mod;
 }

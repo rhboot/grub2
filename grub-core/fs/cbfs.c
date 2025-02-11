@@ -390,6 +390,7 @@ GRUB_MOD_INIT (cbfs)
 #if (defined (__i386__) || defined (__x86_64__)) && !defined (GRUB_UTIL) && !defined (GRUB_MACHINE_EMU) && !defined (GRUB_MACHINE_XEN)
   init_cbfsdisk ();
 #endif
+  grub_cbfs_fs.mod = mod;
   grub_fs_register (&grub_cbfs_fs);
 }
 

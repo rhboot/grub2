@@ -1231,6 +1231,7 @@ GRUB_MOD_INIT (nilfs2)
 				  grub_nilfs2_dat_entry));
   COMPILE_TIME_ASSERT (1 << LOG_INODE_SIZE
 		       == sizeof (struct grub_nilfs2_inode));
+  grub_nilfs2_fs.mod = mod;
   grub_fs_register (&grub_nilfs2_fs);
   my_mod = mod;
 }

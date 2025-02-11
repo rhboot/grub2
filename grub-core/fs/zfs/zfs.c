@@ -4424,6 +4424,7 @@ static struct grub_fs grub_zfs_fs = {
 GRUB_MOD_INIT (zfs)
 {
   COMPILE_TIME_ASSERT (sizeof (zap_leaf_chunk_t) == ZAP_LEAF_CHUNKSIZE);
+  grub_zfs_fs.mod = mod;
   grub_fs_register (&grub_zfs_fs);
 #ifndef GRUB_UTIL
   my_mod = mod;
