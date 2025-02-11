@@ -26,6 +26,7 @@
 #include <grub/mm.h>
 #include <grub/scsicmd.h>
 #include <grub/time.h>
+#include <grub/safemath.h>
 #include <grub/ieee1275/ieee1275.h>
 #include <grub/ieee1275/obdisk.h>
 
@@ -128,9 +129,17 @@ count_commas (const char *src)
 static char *
 decode_grub_devname (const char *name)
 {
-  char *devpath = grub_malloc (grub_strlen (name) + 1);
+  char *devpath;
   char *p, c;
+  grub_size_t sz;
 
+  if (grub_add (grub_strlen (name), 1, &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of device name"));
+      return NULL;
+    }
+
+  devpath = grub_malloc (sz);
   if (devpath == NULL)
     return NULL;
 
@@ -156,12 +165,20 @@ static char *
 encode_grub_devname (const char *path)
 {
   char *encoding, *optr;
+  grub_size_t sz;
 
   if (path == NULL)
     return NULL;
 
-  encoding = grub_malloc (sizeof (IEEE1275_DEV) + count_commas (path) +
-                          grub_strlen (path) + 1);
+  if (grub_add (sizeof (IEEE1275_DEV) + 1, count_commas (path), &sz) ||
+      grub_add (sz, grub_strlen (path), &sz))
+    {
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining encoding size"));
+      grub_print_error ();
+      return NULL;
+    }
+
+  encoding = grub_malloc (sz);
 
   if (encoding == NULL)
     {
@@ -396,6 +413,14 @@ canonicalise_disk (const char *devname)
 
       real_unit_str_len = grub_strlen (op->name) + sizeof (IEEE1275_DISK_ALIAS)
                           + grub_strlen (real_unit_address);
+      if (grub_add (grub_strlen (op->name), sizeof (IEEE1275_DISK_ALIAS), &real_unit_str_len) ||
+	  grub_add (real_unit_str_len, grub_strlen (real_unit_address), &real_unit_str_len))
+	{
+	  grub_free (parent);
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of canonical name"));
+	  grub_print_error ();
+	  return NULL;
+	}
 
       real_canon = grub_malloc (real_unit_str_len);
 
@@ -413,6 +438,7 @@ canonicalise_disk (const char *devname)
 static struct disk_dev *
 add_canon_disk (const char *cname)
 {
+  grub_size_t sz;
   struct disk_dev *dev;
 
   dev = grub_zalloc (sizeof (struct disk_dev));
@@ -428,13 +454,18 @@ add_canon_disk (const char *cname)
        * arguments and allows a client program to open
        * the entire (raw) disk. Any disk label is ignored.
        */
-      dev->raw_name = grub_malloc (grub_strlen (cname) + sizeof (":nolabel"));
+      if (grub_add (grub_strlen (cname), sizeof (":nolabel"), &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while appending :nolabel to end of canonical name");
+	  goto failed;
+	}
+
+      dev->raw_name = grub_malloc (sz);
 
       if (dev->raw_name == NULL)
         goto failed;
 
-      grub_snprintf (dev->raw_name, grub_strlen (cname) + sizeof (":nolabel"),
-                     "%s:nolabel", cname);
+      grub_snprintf (dev->raw_name, sz, "%s:nolabel", cname);
     }
 
   /*
