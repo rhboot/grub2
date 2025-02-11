@@ -475,6 +475,7 @@ static struct grub_fs grub_romfs_fs =
 
 GRUB_MOD_INIT(romfs)
 {
+  grub_romfs_fs.mod = mod;
   grub_fs_register (&grub_romfs_fs);
 }
 

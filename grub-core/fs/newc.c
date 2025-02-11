@@ -64,6 +64,7 @@ read_number (const char *str, grub_size_t size)
 
 GRUB_MOD_INIT (newc)
 {
+  grub_cpio_fs.mod = mod;
   grub_fs_register (&grub_cpio_fs);
 }
 
