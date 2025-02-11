@@ -779,6 +779,7 @@ static struct grub_fs grub_sfs_fs =
 
 GRUB_MOD_INIT(sfs)
 {
+  grub_sfs_fs.mod = mod;
   grub_fs_register (&grub_sfs_fs);
   my_mod = mod;
 }
