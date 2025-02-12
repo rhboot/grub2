@@ -27,6 +27,7 @@
 #include <grub/datetime.h>
 #include <grub/time.h>
 #include <grub/list.h>
+#include <grub/safemath.h>
 
 static int
 dissect_url (const char *url, char **proto, char **host, char **path)
@@ -1476,6 +1477,7 @@ grub_cmd_dhcpopt (struct grub_command *cmd __attribute__ ((unused)),
   unsigned num;
   const grub_uint8_t *ptr;
   grub_uint8_t taglength;
+  grub_uint8_t len;
 
   if (argc < 4)
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
@@ -1517,7 +1519,12 @@ grub_cmd_dhcpopt (struct grub_command *cmd __attribute__ ((unused)),
   if (grub_strcmp (args[3], "string") == 0)
     {
       grub_err_t err = GRUB_ERR_NONE;
-      char *val = grub_malloc (taglength + 1);
+      char *val;
+
+      if (grub_add (taglength, 1, &len))
+	return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("tag length overflow"));
+
+      val = grub_malloc (len);
       if (!val)
 	return grub_errno;
       grub_memcpy (val, ptr, taglength);
@@ -1550,7 +1557,12 @@ grub_cmd_dhcpopt (struct grub_command *cmd __attribute__ ((unused)),
   if (grub_strcmp (args[3], "hex") == 0)
     {
       grub_err_t err = GRUB_ERR_NONE;
-      char *val = grub_malloc (2 * taglength + 1);
+      char *val;
+
+      if (grub_mul (taglength, 2, &len) || grub_add (len, 1, &len))
+	return grub_error (GRUB_ERR_OUT_OF_RANGE, N_("tag length overflow"));
+
+      val = grub_malloc (len);
       int i;
       if (!val)
 	return grub_errno;
