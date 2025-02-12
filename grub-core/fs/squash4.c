@@ -460,11 +460,11 @@ grub_squash_read_symlink (grub_fshelp_node_t node)
 {
   char *ret;
   grub_err_t err;
-  grub_size_t sz;
+  grub_uint32_t sz;
 
   if (grub_add (grub_le_to_cpu32 (node->ino.symlink.namelen), 1, &sz))
     {
-      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow is detected"));
+      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("symlink name length overflow"));
       return NULL;
     }
 
@@ -577,6 +577,7 @@ grub_squash_iterate_dir (grub_fshelp_node_t dir,
 	  struct grub_squash_dirent di;
 	  struct grub_squash_inode ino;
 	  grub_size_t sz;
+	  grub_uint16_t nlen;
 
 	  err = read_chunk (dir->data, &di, sizeof (di),
 			    grub_le_to_cpu64 (dir->data->sb.diroffset)
@@ -592,7 +593,12 @@ grub_squash_iterate_dir (grub_fshelp_node_t dir,
 	  if (err)
 	    return 0;
 
-	  buf = grub_malloc (grub_le_to_cpu16 (di.namelen) + 2);
+	  if (grub_add (grub_le_to_cpu16 (di.namelen), 2, &nlen))
+	    {
+	      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("name length overflow"));
+	      return 0;
+	    }
+	  buf = grub_malloc (nlen);
 	  if (!buf)
 	    return 0;
 	  err = read_chunk (dir->data, buf,
