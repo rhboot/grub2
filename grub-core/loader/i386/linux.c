@@ -823,7 +823,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 			 GRUB_MEM_ATTR_R|GRUB_MEM_ATTR_W, GRUB_MEM_ATTR_X);
 
   linux_params.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
-  linux_params.kernel_alignment = (1 << align);
+  linux_params.kernel_alignment = ((grub_uint32_t)1 << align);
   linux_params.ps_mouse = linux_params.padding11 = 0;
   linux_params.type_of_loader = GRUB_LINUX_BOOT_LOADER_TYPE;
 
