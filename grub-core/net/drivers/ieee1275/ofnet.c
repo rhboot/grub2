@@ -22,6 +22,7 @@
 #include <grub/net.h>
 #include <grub/time.h>
 #include <grub/i18n.h>
+#include <grub/safemath.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
@@ -392,6 +393,7 @@ search_net_devices (struct grub_ieee1275_devalias *alias)
   grub_uint8_t *pprop;
   char *shortname;
   char need_suffix = 1;
+  grub_size_t sz;
 
   if (grub_strcmp (alias->type, "network") != 0)
     return 0;
@@ -449,9 +451,23 @@ search_net_devices (struct grub_ieee1275_devalias *alias)
   }
 
   if (need_suffix)
-    ofdata->path = grub_malloc (grub_strlen (alias->path) + sizeof (SUFFIX));
+    {
+      if (grub_add (grub_strlen (alias->path), sizeof (SUFFIX), &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obatining size of ofdata path"));
+	  grub_print_error ();
+	  return 0;
+	}
+    }
   else
-    ofdata->path = grub_malloc (grub_strlen (alias->path) + 1);
+    {
+      if (grub_add (grub_strlen (alias->path), 1, &sz))
+	{
+	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obatining size of ofdata path"));
+	  grub_print_error ();
+	  return 0;
+	}
+    }
   if (!ofdata->path)
     {
       grub_print_error ();
