@@ -1562,8 +1562,11 @@ this option to @samp{false} to enable this feature in the
 @command{grub-mkconfig} command.
 
 @item GRUB_OS_PROBER_SKIP_LIST
-List of space-separated FS UUIDs of filesystems to be ignored from os-prober
-output. For efi chainloaders it's <UUID>@@<EFI FILE>
+List of space-separated case insensitive UUIDs of filesystems to be ignored
+from os-prober output. For EFI chainloaders it's <UUID>@@<EFI FILE>. For
+backward compatibility with previous behaviour, <UUID>@@/dev/* is also accepted
+for non-EFI chainloaders even if the device does not match, and comma and
+semicolon are also accepted as separator.
 
 @item GRUB_DISABLE_SUBMENU
 Normally, @command{grub-mkconfig} will generate top level menu entry for

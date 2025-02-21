@@ -117,19 +117,26 @@ if [ "x$GRUB_TOP_LEVEL_OS_PROBER" != x ]; then
   OSPROBED=$(grub_move_to_front "$GRUB_TOP_LEVEL_OS_PROBER" ${OSPROBED})
 fi
 
+case "$GRUB_OS_PROBER_SKIP_LIST" in *@/[dD][eE][vV]/*)
+	grub_warn "$(gettext_printf "GRUB_OS_PROBER_SKIP_LIST contains deprecated <UUID>@/dev/* notation. The @/dev/* suffix is ignored.")"
+esac
+
 for OS in ${OSPROBED} ; do
   DEVICE="`echo ${OS} | cut -d ':' -f 1`"
   LONGNAME="`echo ${OS} | cut -d ':' -f 2 | tr '^' ' '`"
   LABEL="`echo ${OS} | cut -d ':' -f 3 | tr '^' ' '`"
   BOOT="`echo ${OS} | cut -d ':' -f 4`"
-  if UUID="`${grub_probe} --target=fs_uuid --device ${DEVICE%@*}`"; then
-    EXPUUID="$UUID"
+  unset UUID
+  if [ -n "${GRUB_OS_PROBER_SKIP_LIST}" ] && UUID="`${grub_probe} --target=fs_uuid --device ${DEVICE%@*}`"; then
+    SPACE='[[:space:],;]' # regex matching spaces and common separators
 
-    if [ x"${DEVICE#*@}" != x ] ; then
-      EXPUUID="${EXPUUID}@${DEVICE#*@}"
+    if [ x"${DEVICE##*@*}" = x ] ; then
+      EXPUUID="$UUID@${DEVICE#*@}"
+    else
+      EXPUUID="$UUID(@/dev/.*)?"
     fi
 
-    if [ "x${GRUB_OS_PROBER_SKIP_LIST}" != "x" ] && [ "x`echo ${GRUB_OS_PROBER_SKIP_LIST} | grep -i -e '\b'${EXPUUID}'\b'`" != "x" ] ; then
+    if printf %s " ${GRUB_OS_PROBER_SKIP_LIST} " | grep -Eqie "${SPACE}${EXPUUID}${SPACE}" ; then
       echo "Skipped ${LONGNAME} on ${DEVICE} by user request." >&2
       continue
     fi
@@ -299,7 +306,7 @@ EOF
       echo "$title_correction_code"
     ;;
     macosx)
-      if [ "${UUID}" ]; then
+      if [ "${UUID=`${grub_probe} --target=fs_uuid --device ${DEVICE}`}" ]; then
 	OSXUUID="${UUID}"
 	osx_entry xnu_kernel 32
 	osx_entry xnu_kernel64 64
