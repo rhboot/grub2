@@ -162,6 +162,8 @@ for OS in ${OSPROBED} ; do
 
 	  onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
+# This menu entry is supported only on PC BIOS platforms.
+if [ "\$grub_platform" = "pc" ]; then
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' $CLASS --class os \$menuentry_id_option 'osprober-chain-$(grub_get_device_id "${DEVICE}")' {
 EOF
       save_default_entry | grub_add_tab
@@ -186,6 +188,7 @@ EOF
       cat <<EOF
 	chainloader +1
 }
+fi
 EOF
     ;;
     efi)
@@ -194,6 +197,8 @@ EOF
 	DEVICE=${DEVICE%@*}
 	onstr="$(gettext_printf "(on %s)" "${DEVICE}")"
       cat << EOF
+# This menu entry is supported only on EFI platforms.
+if [ "\$grub_platform" = "efi" ]; then
 menuentry '$(echo "${LONGNAME} $onstr" | grub_quote)' $CLASS --class os \$menuentry_id_option 'osprober-efi-$(grub_get_device_id "${DEVICE}")' {
 EOF
       save_default_entry | sed -e "s/^/\t/"
@@ -202,6 +207,7 @@ EOF
       cat <<EOF
 	chainloader ${EFIPATH}
 }
+fi
 EOF
     ;;
     linux)
