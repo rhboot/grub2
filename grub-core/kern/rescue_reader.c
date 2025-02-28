@@ -79,7 +79,7 @@ void __attribute__ ((noreturn))
 grub_rescue_run (void)
 {
   /* Stall if the CLI has been disabled */
-  if (grub_is_cli_disabled ())
+  if (grub_is_cli_disabled () || grub_is_cli_need_auth ())
     {
       grub_printf ("Rescue mode has been disabled...\n");
 
