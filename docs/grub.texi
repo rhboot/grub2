@@ -363,6 +363,8 @@ Fast FileSystem (AFFS)}, @dfn{AtheOS fs}, @dfn{BeFS},
 @dfn{BSD UFS/UFS2}, @dfn{XFS}, and @dfn{ZFS} (including lzjb, gzip,
 zle, mirror, stripe, raidz1/2/3 and encryption in AES-CCM and AES-GCM).
 @xref{Filesystem}, for more information.
+Note: Only a subset of filesystems are supported in lockdown mode (such
+as when secure boot is enabled, @pxref{Lockdown} for more information).
 
 @item Support automatic decompression
 Can decompress files which were compressed by @command{gzip} or
@@ -843,6 +845,8 @@ not use any additional partition maps to access @file{/boot}
    F2FS, HFS, uncompressed HFS+, ISO9660, JFS, Minix, Minix2, Minix3, NILFS2,
    NTFS, ReiserFS, ROMFS, SFS, tar, UDF, UFS1, UFS2, XFS
 @end itemize
+Note: Only a subset of filesystems are supported in lockdown mode (such
+as when secure boot is enabled, @pxref{Lockdown} for more information).
 
 MBR gap has few technical problems.  There is no way to reserve space in
 the embedding area with complete safety, and some proprietary software is
@@ -4198,10 +4202,14 @@ This is used as part of LZO decompression / compression.
 @node affs_module
 @section affs
 This module provides support for the Amiga Fast FileSystem (AFFS).
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node afs_module
 @section afs
 This module provides support for the AtheOS File System (AFS).
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node afsplitter_module
 @section afsplitter
@@ -4253,6 +4261,8 @@ to the terminal for the current call stack.
 @node bfs_module
 @section bfs
 This module provides support for the BeOS "Be File System" (BFS).
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node biosdisk_module
 @section biosdisk
@@ -4342,6 +4352,8 @@ content of a file to the terminal. Please @pxref{cat} for more info.
 @section cbfs
 This module provides support for the Coreboot File System (CBFS) which is an
 archive based file system.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node cbls_module
 @section cbls
@@ -4847,6 +4859,8 @@ contents of a file in hexadecimal. @xref{hexdump} for more information.
 @section hfs
 This module provides support for the Hierarchical File System (HFS) file system
 in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node hfsplus_module
 @section hfsplus
@@ -4887,6 +4901,8 @@ longer names)
 @node jfs_module
 @section jfs
 This module provides support for the Journaled File System (JFS) file system.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node jpeg_module
 @section jpeg
@@ -5125,26 +5141,38 @@ modules.
 @node minix_module
 @section minix
 This module provides support for the Minix filesystem, version 1.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node minix2_module
 @section minix2
 This module provides support for the Minix filesystem, version 2.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node minix2_be_module
 @section minix2_be
 This module provides support for the Minix filesystem, version 2 big-endian.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node minix3_module
 @section minix3
 This module provides support for the Minix filesystem, version 3.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node minix3_be_module
 @section minix3_be
 This module provides support for the Minix filesystem, version 3 big-endian.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node minix_be_module
 @section minix_be
 This module provides support for the Minix filesystem, version 1 big-endian.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node mmap_module
 @section mmap
@@ -5278,6 +5306,8 @@ something like "ASCII cpio archive (SVR4 with CRC)"
 @section nilfs2
 This module provides support for the New Implementation of Log filesystem
 (nilfs2).
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node normal_module
 @section normal
@@ -5287,11 +5317,15 @@ more information.
 @node ntfs_module
 @section ntfs
 This module provides support for the New Technology File System (NTFS) in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node ntfscomp_module
 @section ntfscomp
 This module provides support for compression with the New Technology File
 System (NTFS) in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node ntldr_module
 @section ntldr
@@ -5517,6 +5551,8 @@ GRUB script wildcard translator. @xref{regexp} for more information.
 @node reiserfs_module
 @section reiserfs
 This module provides support for the ReiserFS File System in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node relocator_module
 @section relocator
@@ -5526,6 +5562,8 @@ to the expected memory location(s) and jumping to (invoking) the executable.
 @node romfs_module
 @section romfs
 This module provides support for the Read-Only Memory File System (ROMFS).
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node scsi_module
 @section scsi
@@ -5594,6 +5632,8 @@ values from / to specified PCI / PCIe devices.
 @node sfs_module
 @section sfs
 This module provides support for the Amiga Smart File System (SFS) in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node shift_test_module
 @section shift_test
@@ -5742,19 +5782,27 @@ information provided by a U-Boot bootloader.
 @section udf
 This module provides support for the Universal Disk Format (UDF) used on some
 newer optical disks.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node ufs1_module
 @section ufs1
 This module provides support for the Unix File System version 1 in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node ufs1_be_module
 @section ufs1_be
 This module provides support for the Unix File System version 1 (big-endian) in
 GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node ufs2_module
 @section ufs2
 This module provides support for the Unix File System version 2 in GRUB.
+Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
+information.
 
 @node uhci_module
 @section uhci
@@ -8813,10 +8861,47 @@ platforms.
 
 The GRUB can be locked down when booted on a secure boot environment, for example
 if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
-be restricted and some operations/commands cannot be executed.
+be restricted and some operations/commands cannot be executed. This also includes
+limiting which filesystems are supported to those thought to be more robust and
+widely used within GRUB.
+
+The filesystems currently allowed in lockdown mode include:
+@itemize @bullet
+@item BtrFS
+@item cpio
+@item exFAT
+@item Enhanced Read-Only File System (EROFS)
+@item Linux ext2/ext3/ext4
+@item F2FS
+@item DOS FAT12/FAT16/FAT32
+@item HFS+
+@item ISO9660
+@item Squash4
+@item tar
+@item XFS
+@item ZFS
+@end itemize
+
+The filesystems currently not allowed in lockdown mode include:
+@itemize @bullet
+@item Amiga Fast FileSystem (AFFS)
+@item AtheOS File System (AFS)
+@item Bee File System (BFS)
+@item Coreboot File System (CBFS)
+@item Hierarchical File System (HFS)
+@item Journaled File System (JFS)
+@item Minix filesystem
+@item New Implementation of Log filesystem (nilfs2)
+@item Windows New Technology File System (NTFS)
+@item ReiserFS
+@item Read-Only Memory File System (ROMFS)
+@item Amiga Smart File System (SFS)
+@item Universal Disk Format (UDF)
+@item Unix File System (UFS)
+@end itemize
 
 The @samp{lockdown} variable is set to @samp{y} when the GRUB is locked down.
-Otherwise it does not exit.
+Otherwise it does not exist.
 
 @node TPM2 key protector
 @section TPM2 key protector in GRUB
