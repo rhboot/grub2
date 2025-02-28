@@ -5124,6 +5124,8 @@ This module provides support for commands @command{read_byte},
 write data to physical memory (addresses). The "read" commands accept one
 parameter to specify the source address. The "write" commands require either two
 or three parameters, with the order: address, value, <optional mask>.
+Note: The commands provided by this module are not allowed when lockdown is
+enforced (@pxref{Lockdown}).
 
 @node memtools_module
 @section memtools
@@ -5137,6 +5139,8 @@ including: @command{cat}, @command{help}, @command{dump}, @command{rmmod},
 @command{lsmod}, and @command{exit}. The version of the commands in this module
 are similar to their full-fledged counterparts implemented in other GRUB
 modules.
+Note: The @command{dump} command is not allowed when lockdown is enforced
+(@pxref{Lockdown}).
 
 @node minix_module
 @section minix
@@ -7196,6 +7200,11 @@ to be shown.
 
 If given the special device named @samp{(mem)}, then the @samp{offset} given to
 @option{--skip} is treated as the address of a memory location to dump from.
+
+Note: The dumping of RAM memory (by the (mem) argument) is not allowed when
+when lockdown is enforced (@pxref{Lockdown}). The dumping of disk or file
+data is allowed when lockdown is enforced.
+
 @end deffn
 
 
