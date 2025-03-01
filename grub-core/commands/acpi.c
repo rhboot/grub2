@@ -38,6 +38,20 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+enum
+  {
+    OPTION_EXCLUDE = 0,
+    OPTION_LOAD_ONLY,
+    OPTION_V1,
+    OPTION_V2,
+    OPTION_OEMID,
+    OPTION_OEMTABLE,
+    OPTION_OEMTABLEREV,
+    OPTION_OEMTABLECREATOR,
+    OPTION_OEMTABLECREATORREV,
+    OPTION_NO_EBDA
+  };
+
 static const struct grub_arg_option options[] = {
   {"exclude", 'x', 0,
    N_("Don't load host tables specified by comma-separated list."),
@@ -497,14 +511,14 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
       grub_size_t tbl_addr_size;
       struct grub_acpi_table_header *table_head;
 
-      exclude = state[0].set ? grub_strdup (state[0].arg) : 0;
+      exclude = state[OPTION_EXCLUDE].set ? grub_strdup (state[OPTION_EXCLUDE].arg) : 0;
       if (exclude)
 	{
 	  for (ptr = exclude; *ptr; ptr++)
 	    *ptr = grub_tolower (*ptr);
 	}
 
-      load_only = state[1].set ? grub_strdup (state[1].arg) : 0;
+      load_only = state[OPTION_LOAD_ONLY].set ? grub_strdup (state[OPTION_LOAD_ONLY].arg) : 0;
       if (load_only)
 	{
 	  for (ptr = load_only; *ptr; ptr++)
@@ -623,26 +637,26 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
     }
 
   /* Does user specify versions to generate? */
-  if (state[2].set || state[3].set)
+  if (state[OPTION_V1].set || state[OPTION_V2].set)
     {
-      rev1 = state[2].set;
-      if (state[3].set)
+      rev1 = state[OPTION_V1].set;
+      if (state[OPTION_V2].set)
 	rev2 = rev2 ? : 2;
       else
 	rev2 = 0;
     }
 
   /* Does user override root header information? */
-  if (state[4].set)
-    grub_strncpy (root_oemid, state[4].arg, sizeof (root_oemid));
-  if (state[5].set)
-    grub_strncpy (root_oemtable, state[5].arg, sizeof (root_oemtable));
-  if (state[6].set)
-    root_oemrev = grub_strtoul (state[6].arg, 0, 0);
-  if (state[7].set)
-    grub_strncpy (root_creator_id, state[7].arg, sizeof (root_creator_id));
-  if (state[8].set)
-    root_creator_rev = grub_strtoul (state[8].arg, 0, 0);
+  if (state[OPTION_OEMID].set)
+    grub_strncpy (root_oemid, state[OPTION_OEMID].arg, sizeof (root_oemid));
+  if (state[OPTION_OEMTABLE].set)
+    grub_strncpy (root_oemtable, state[OPTION_OEMTABLE].arg, sizeof (root_oemtable));
+  if (state[OPTION_OEMTABLEREV].set)
+    root_oemrev = grub_strtoul (state[OPTION_OEMTABLEREV].arg, 0, 0);
+  if (state[OPTION_OEMTABLECREATOR].set)
+    grub_strncpy (root_creator_id, state[OPTION_OEMTABLECREATOR].arg, sizeof (root_creator_id));
+  if (state[OPTION_OEMTABLECREATORREV].set)
+    root_creator_rev = grub_strtoul (state[OPTION_OEMTABLECREATORREV].arg, 0, 0);
 
   /* Load user tables */
   for (i = 0; i < argc; i++)
@@ -758,7 +772,7 @@ grub_cmd_acpi (struct grub_extcmd_context *ctxt, int argc, char **args)
   acpi_tables = 0;
 
 #if defined (__i386__) || defined (__x86_64__)
-  if (! state[9].set)
+  if (! state[OPTION_NO_EBDA].set)
     {
       grub_err_t err;
       err = grub_acpi_create_ebda ();
