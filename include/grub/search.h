@@ -21,10 +21,11 @@
 
 enum search_flags
   {
-    SEARCH_FLAGS_NONE		= 0,
-    SEARCH_FLAGS_NO_FLOPPY	= 1,
-    SEARCH_FLAGS_EFIDISK_ONLY	= 2,
-    SEARCH_FLAGS_ROOTDEV_ONLY	= 4
+    SEARCH_FLAGS_NONE            = 0,
+    SEARCH_FLAGS_NO_FLOPPY       = 1,
+    SEARCH_FLAGS_EFIDISK_ONLY    = 2,
+    SEARCH_FLAGS_ROOTDEV_ONLY    = 4,
+    SEARCH_FLAGS_CRYPTODISK_ONLY = 8
   };
 
 void grub_search_fs_file (const char *key, const char *var,
