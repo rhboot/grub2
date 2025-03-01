@@ -182,6 +182,26 @@ iterate_device (const char *name, void *data)
       grub_device_close (dev);
     }
 
+  /* Limit to encrypted disks when requested. */
+  if (ctx->flags & SEARCH_FLAGS_CRYPTODISK_ONLY)
+    {
+      grub_device_t dev;
+
+      dev = grub_device_open (name);
+      if (dev == NULL)
+	{
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      if (dev->disk == NULL || dev->disk->dev->id != GRUB_DISK_DEVICE_CRYPTODISK_ID)
+	{
+	  grub_device_close (dev);
+	  grub_errno = GRUB_ERR_NONE;
+	  return 0;
+	}
+      grub_device_close (dev);
+    }
+
   /* Skip it if it's not the root device when requested. */
   if (ctx->flags & SEARCH_FLAGS_ROOTDEV_ONLY)
     {
