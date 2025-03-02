@@ -87,6 +87,7 @@ grub_ls_list_devices (int longlist)
 struct grub_ls_list_files_ctx
 {
   char *dirname;
+  char *filename;
   int all;
   int human;
   int longlist;
@@ -100,6 +101,9 @@ print_file (const char *filename, const struct grub_dirhook_info *info,
   struct grub_ls_list_files_ctx *ctx = data;
 
   if ((! ctx->all) && (filename[0] == '.'))
+    return 0;
+
+  if ((ctx->filename != NULL) && (grub_strcmp (filename, ctx->filename) != 0))
     return 0;
 
   if (! ctx->longlist)
@@ -210,6 +214,7 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
     {
       struct grub_ls_list_files_ctx ctx = {
 	.dirname = dirname,
+	.filename = NULL,
 	.all = all,
 	.human = human,
 	.longlist = longlist
@@ -220,30 +225,23 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
       if (grub_errno == GRUB_ERR_BAD_FILE_TYPE
 	  && path[grub_strlen (path) - 1] != '/')
 	{
+	  /*
+	   * Reset errno as it is currently set, but will cause subsequent code
+	   * to think there is an error.
+	   */
+	  grub_errno = GRUB_ERR_NONE;
+
 	  /* PATH might be a regular file.  */
-	  char *p;
-	  grub_file_t file;
-	  struct grub_dirhook_info info;
-	  grub_errno = 0;
-
-	  file = grub_file_open (dirname, GRUB_FILE_TYPE_GET_SIZE
-				 | GRUB_FILE_TYPE_NO_DECOMPRESS);
-	  if (! file)
+	  ctx.filename = grub_strrchr (dirname, '/');
+	  if (ctx.filename == NULL)
 	    goto fail;
+	  ++(ctx.filename);
 
-	  grub_file_close (file);
-
-	  p = grub_strrchr (dirname, '/');
-	  if (p == NULL)
-	    goto fail;
-	  ++p;
-
-	  ctx.dirname = grub_strndup (dirname, p - dirname);
+	  ctx.dirname = grub_strndup (dirname, ctx.filename - dirname);
 	  if (ctx.dirname == NULL)
 	    goto fail;
 
-	  grub_memset (&info, 0, sizeof (info));
-	  print_file (p, &info, &ctx);
+	  (fs->fs_dir) (dev, ctx.dirname + (path - dirname), print_file, &ctx);
 
 	  grub_free (ctx.dirname);
 	}
