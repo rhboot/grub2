@@ -98,6 +98,7 @@ static int
 print_file (const char *filename, const struct grub_dirhook_info *info,
 		  void *data)
 {
+  char *pathname = NULL;
   struct grub_ls_list_files_ctx *ctx = data;
 
   if ((! ctx->all) && (filename[0] == '.'))
@@ -117,7 +118,6 @@ print_file (const char *filename, const struct grub_dirhook_info *info,
   if (! info->dir)
     {
       grub_file_t file;
-      char *pathname;
 
       if (ctx->dirname[grub_strlen (ctx->dirname) - 1] == '/')
 	pathname = grub_xasprintf ("%s%s", ctx->dirname, filename);
@@ -143,7 +143,6 @@ print_file (const char *filename, const struct grub_dirhook_info *info,
       else
 	grub_xputs ("????????????");
 
-      grub_free (pathname);
       grub_errno = GRUB_ERR_NONE;
     }
   else
@@ -165,7 +164,16 @@ print_file (const char *filename, const struct grub_dirhook_info *info,
 		     datetime.day, datetime.hour,
 		     datetime.minute, datetime.second);
     }
-  grub_printf ("%s%s\n", filename, info->dir ? "/" : "");
+  /*
+   * Only print the full path when listing a file path given as an argument
+   * to ls, i.e. when ctx->filename != NULL. File listings that are printed
+   * due to showing the contents of a directory do not need a full path because
+   * the full path to the directory will have already been printed.
+   */
+  grub_printf ("%s%s\n", (ctx->filename != NULL) ? pathname : filename,
+			 info->dir ? "/" : "");
+
+  grub_free (pathname);
 
   return 0;
 }
