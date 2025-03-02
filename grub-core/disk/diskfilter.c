@@ -20,6 +20,7 @@
 #include <grub/dl.h>
 #include <grub/disk.h>
 #include <grub/mm.h>
+#include <grub/command.h>
 #include <grub/err.h>
 #include <grub/misc.h>
 #include <grub/diskfilter.h>
@@ -1377,6 +1378,73 @@ grub_diskfilter_get_pv_from_disk (grub_disk_t disk,
 }
 #endif
 
+static int
+grub_diskfilter_check_pvs_encrypted (grub_disk_t disk, int *pvs_cnt)
+{
+  struct grub_diskfilter_lv *lv = disk->data;
+  struct grub_diskfilter_pv *pv;
+
+  *pvs_cnt = 0;
+
+  if (lv->vg->pvs)
+    for (pv = lv->vg->pvs; pv; pv = pv->next)
+      {
+        (*pvs_cnt)++;
+
+        if (pv->disk == NULL)
+          {
+            /* Can be a partially activated VG, bail out. */
+            return GRUB_ERR_TEST_FAILURE;
+          }
+
+        if (pv->disk->dev->id != GRUB_DISK_DEVICE_CRYPTODISK_ID)
+          {
+            /* All backing devices must be cryptodisks, stop. */
+            return GRUB_ERR_TEST_FAILURE;
+          }
+      }
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+grub_cmd_cryptocheck (grub_command_t cmd __attribute__ ((unused)),
+               int argc, char **args)
+{
+  grub_disk_t disk;
+  int check_pvs_res;
+  int namelen;
+  int pvs_cnt;
+
+  if (argc != 1)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("disk name expected"));
+
+  namelen = grub_strlen (args[0]);
+  if (namelen > 2 && (args[0][0] == '(') && (args[0][namelen - 1] == ')'))
+    args[0][namelen - 1] = 0;
+  else
+    return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("invalid disk: %s"),
+                       args[0]);
+
+  if (!is_valid_diskfilter_name (&args[0][1]))
+    return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("unrecognized disk: %s"),
+                       &args[0][1]);
+
+  disk = grub_disk_open (&args[0][1]);
+  if (disk == NULL)
+    return grub_error (GRUB_ERR_UNKNOWN_DEVICE, N_("no such disk: %s"),
+                       &args[0][1]);
+
+  check_pvs_res = grub_diskfilter_check_pvs_encrypted (disk, &pvs_cnt);
+  grub_disk_close (disk);
+
+  grub_printf("%s is %sencrypted (%d pv%s examined)\n", &args[0][1],
+              (check_pvs_res == GRUB_ERR_NONE) ? "" : "un",
+              pvs_cnt,
+              (pvs_cnt > 1) ? "s" : "");
+
+  return check_pvs_res;
+}
+
 static struct grub_disk_dev grub_diskfilter_dev =
   {
     .name = "diskfilter",
@@ -1393,14 +1461,21 @@ static struct grub_disk_dev grub_diskfilter_dev =
     .next = 0
   };
 
+static grub_command_t cmd;
+
 
 GRUB_MOD_INIT(diskfilter)
 {
   grub_disk_dev_register (&grub_diskfilter_dev);
+  cmd = grub_register_command ("cryptocheck", grub_cmd_cryptocheck,
+                                N_("DEVICE"),
+                                N_("Check if a logical volume resides on encrypted disks."));
 }
 
 GRUB_MOD_FINI(diskfilter)
 {
   grub_disk_dev_unregister (&grub_diskfilter_dev);
+  if (cmd != NULL)
+    grub_unregister_command (cmd);
   free_array ();
 }
