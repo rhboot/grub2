@@ -250,7 +250,6 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
 	  if (ctx.dirname == NULL)
 	    goto fail;
 
-	  all = 1;
 	  grub_memset (&info, 0, sizeof (info));
 	  if (longlist)
 	    print_files_long (p, &info, &ctx);
@@ -272,7 +271,7 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
 
   grub_free (device_name);
 
-  return 0;
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -288,7 +287,7 @@ grub_cmd_ls (grub_extcmd_context_t ctxt, int argc, char **args)
       grub_ls_list_files (args[i], state[0].set, state[2].set,
 			  state[1].set);
 
-  return 0;
+  return GRUB_ERR_NONE;
 }
 
 static grub_extcmd_t cmd;
