@@ -108,6 +108,8 @@ print_file (const char *filename, const struct grub_dirhook_info *info,
 
   if (! ctx->longlist)
     {
+      if (ctx->filename != NULL)
+	grub_xputs (ctx->dirname);
       grub_printf ("%s%s ", filename, info->dir ? "/" : "");
       return 0;
     }
