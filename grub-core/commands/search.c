@@ -150,6 +150,36 @@ check_for_duplicate (const char *name, void *data)
   return ret;
 }
 
+static bool
+is_unencrypted_disk (grub_disk_t disk)
+{
+  grub_command_t cmd;
+  char *disk_str;
+  int disk_str_len;
+  int res;
+
+  if (disk->dev->id == GRUB_DISK_DEVICE_CRYPTODISK_ID)
+    return false; /* This is (crypto) disk. */
+
+  if (disk->dev->id == GRUB_DISK_DEVICE_DISKFILTER_ID)
+    {
+      cmd = grub_command_find ("cryptocheck");
+      if (cmd == NULL) /* No diskfilter module loaded for some reason. */
+        return true;
+
+      disk_str_len = grub_strlen (disk->name) + 2 + 1;
+      disk_str = grub_malloc (disk_str_len);
+      if (disk_str == NULL) /* Something is wrong, better report as unencrypted. */
+        return true;
+
+      grub_snprintf (disk_str, disk_str_len, "(%s)", disk->name);
+      res = cmd->func (cmd, 1, &disk_str);
+      grub_free (disk_str);
+      return (res != GRUB_ERR_NONE) ? true : false; /* GRUB_ERR_NONE for encrypted. */
+    }
+  return true;
+}
+
 /* Helper for FUNC_NAME.  */
 static int
 iterate_device (const char *name, void *data)
@@ -193,7 +223,7 @@ iterate_device (const char *name, void *data)
 	  grub_errno = GRUB_ERR_NONE;
 	  return 0;
 	}
-      if (dev->disk == NULL || dev->disk->dev->id != GRUB_DISK_DEVICE_CRYPTODISK_ID)
+      if (dev->disk == NULL || is_unencrypted_disk (dev->disk) == true)
 	{
 	  grub_device_close (dev);
 	  grub_errno = GRUB_ERR_NONE;
