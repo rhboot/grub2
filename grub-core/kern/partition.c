@@ -134,7 +134,7 @@ grub_partition_probe (struct grub_disk *disk, const char *str)
       partname_end = ptr;
 
       num = grub_strtoul (ptr, &ptr, 0);
-      if (*ptr != '\0' || num == 0 || num > GRUB_INT_MAX)
+      if (num == 0 || num > GRUB_INT_MAX)
 	{
 	  grub_error (GRUB_ERR_BAD_NUMBER, N_("invalid partition number"));
 	  return 0;
