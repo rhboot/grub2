@@ -89,30 +89,24 @@ struct grub_ls_list_files_ctx
   char *dirname;
   int all;
   int human;
+  int longlist;
 };
 
 /* Helper for grub_ls_list_files.  */
 static int
-print_files (const char *filename, const struct grub_dirhook_info *info,
-	     void *data)
-{
-  struct grub_ls_list_files_ctx *ctx = data;
-
-  if (ctx->all || filename[0] != '.')
-    grub_printf ("%s%s ", filename, info->dir ? "/" : "");
-
-  return 0;
-}
-
-/* Helper for grub_ls_list_files.  */
-static int
-print_files_long (const char *filename, const struct grub_dirhook_info *info,
+print_file (const char *filename, const struct grub_dirhook_info *info,
 		  void *data)
 {
   struct grub_ls_list_files_ctx *ctx = data;
 
   if ((! ctx->all) && (filename[0] == '.'))
     return 0;
+
+  if (! ctx->longlist)
+    {
+      grub_printf ("%s%s ", filename, info->dir ? "/" : "");
+      return 0;
+    }
 
   if (! info->dir)
     {
@@ -217,13 +211,11 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
       struct grub_ls_list_files_ctx ctx = {
 	.dirname = dirname,
 	.all = all,
-	.human = human
+	.human = human,
+	.longlist = longlist
       };
 
-      if (longlist)
-	(fs->fs_dir) (dev, path, print_files_long, &ctx);
-      else
-	(fs->fs_dir) (dev, path, print_files, &ctx);
+      (fs->fs_dir) (dev, path, print_file, &ctx);
 
       if (grub_errno == GRUB_ERR_BAD_FILE_TYPE
 	  && path[grub_strlen (path) - 1] != '/')
@@ -251,10 +243,7 @@ grub_ls_list_files (char *dirname, int longlist, int all, int human)
 	    goto fail;
 
 	  grub_memset (&info, 0, sizeof (info));
-	  if (longlist)
-	    print_files_long (p, &info, &ctx);
-	  else
-	    print_files (p, &info, &ctx);
+	  print_file (p, &info, &ctx);
 
 	  grub_free (ctx.dirname);
 	}
