@@ -47,8 +47,9 @@ _testcase() {
     shift 2
 
     # Create a subdir in TMPDIR for each testcase
-    _TMPDIR=$TMPDIR
-    TMPDIR=$TMPDIR/`echo -n "$(date +%s).$LOGPREFIX" | sed -e 's,[ /],_,g' -e 's,:$,,g'`
+    _TMPDIR=${TMPDIR:-/tmp}
+    TMPDIR=${_TMPDIR}/`echo -n "$(date +%s).${LOGPREFIX}" | sed -e 's,[ /],_,g' -e 's,:$,,g'`
+    export TMPDIR
     mkdir -p "$TMPDIR"
     set -- "$@" $([ "${EXPECTEDRES}" -eq 1 ] && echo "--xfail")
 
