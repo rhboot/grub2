@@ -54,6 +54,15 @@ _testcase() {
     set -- "$@" $([ "${EXPECTEDRES}" -eq 1 ] && echo "--xfail")
 
     output=`"$@" 2>&1` || res=$?
+    if [ -z "$debug" ]; then
+        if ! rmdir "$TMPDIR" >/dev/null 2>&1; then
+            echo
+            echo "Note: Temporary directory cannot be removed:"
+            echo "        $TMPDIR"
+            echo "      Please inspect and remove manually."
+            echo
+        fi
+    fi
     TMPDIR=$_TMPDIR
 
     if [ "$res" -eq "$EXPECTEDRES" ]; then
