@@ -37,6 +37,8 @@ fi
 
 COMMON_OPTS='${V:+--debug=$V} --cs-opts="--pbkdf-force-iterations 1000"'
 
+debug=${GRUB_SHELL_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}
+
 _testcase() {
     local EXPECTEDRES=$1
     local LOGPREFIX=$2
@@ -183,4 +185,5 @@ eval testcase "'LUKS2 test with second key slot and first slot using different p
     @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-script='$csscript'"
 
+test -n "$debug" || rm "$csscript"
 exit 0
