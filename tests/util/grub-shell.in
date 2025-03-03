@@ -715,6 +715,7 @@ test -n "$debug" || rm -f "${isofile}"
 test -n "$debug" || rm -rf "${rom_directory}"
 test -n "$debug" || rm -f "${tmpfile}" "${cfgfile}" "${goutfile}"
 test -n "$debug" || rm -f "$work_directory/run.sh"
+test -n "$debug" || rmdir "$work_directory"
 
 exit $ret
 
