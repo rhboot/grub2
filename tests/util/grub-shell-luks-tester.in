@@ -132,6 +132,7 @@ fi
 
 # Make sure that the dm-crypto device is shutdown
 cleanup() {
+    RET=$?
     if [ -e "$luksdev" ]; then
         cryptsetup close "$luksdev"
     fi
