@@ -37,6 +37,7 @@ keyfile=
 keyfile_offset=
 keyfile_size=
 KEYFILE_SIZE_MAX=4096
+expected_res=0
 
 debug="${GRUB_SHELL_LUKS_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}"
 GRUB_SHELL_LUKS_TIMEOUT=${GRUB_SHELL_LUKS_TIMEOUT:-${GRUB_SHELL_DEFAULT_TIMEOUT:-600s}}
@@ -59,6 +60,7 @@ running in a QEMU instance.
   --detached-header       Use a detached header
   --keyfile[=FILE]        Use a randomly generated key file of size $KEYFILE_SIZE_MAX if not
                           given a FILE to use as the key file.
+  --xfail                 Expected failure, so cleanup as if on success
 
 $0 creates a LUKS disk with cryptsetup, then verify that it is accessible by
 grub running in a QEMU instance.
@@ -107,6 +109,8 @@ for option in "$@"; do
     --disksize=*)
         qs=`echo "$option" | sed -e 's/--disksize=//'`
         disksize="$qs" ;;
+    --xfail)
+        expected_res=1 ;;
     -*)
 	echo "Unrecognized option \`$option'" 1>&2
 	usage
@@ -136,7 +140,7 @@ cleanup() {
     if [ -e "$luksdev" ]; then
         cryptsetup close "$luksdev"
     fi
-    if [ -z "$debug" ] && [ "${RET:-1}" -eq 0 ]; then
+    if [ -z "$debug" ] && [ "$RET" -eq "$expected_res" ]; then
         rm -rf "$lukstestdir" || :
     fi
 }

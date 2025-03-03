@@ -48,6 +48,7 @@ _testcase() {
     _TMPDIR=$TMPDIR
     TMPDIR=$TMPDIR/`echo -n "$(date +%s).$LOGPREFIX" | sed -e 's,[ /],_,g' -e 's,:$,,g'`
     mkdir -p "$TMPDIR"
+    set -- "$@" $([ "${EXPECTEDRES}" -eq 1 ] && echo "--xfail")
 
     output=`"$@" 2>&1` || res=$?
     TMPDIR=$_TMPDIR
