@@ -1543,9 +1543,7 @@ grub_cmd_freebsd (grub_extcmd_context_t ctxt, int argc, char *argv[])
 	  grub_file_t file;
 	  int len = is_64bit ? 8 : 4;
 
-	  err = grub_freebsd_add_meta_module (argv[0], is_64bit
-					      ? FREEBSD_MODTYPE_KERNEL64
-					      : FREEBSD_MODTYPE_KERNEL,
+	  err = grub_freebsd_add_meta_module (argv[0], FREEBSD_MODTYPE_KERNEL,
 					      argc - 1, argv + 1,
 					      kern_start,
 					      kern_end - kern_start);
