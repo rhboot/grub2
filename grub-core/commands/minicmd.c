@@ -29,6 +29,10 @@
 #include <grub/command.h>
 #include <grub/i18n.h>
 
+#ifdef GRUB_MACHINE_EFI
+#include <grub/cryptodisk.h>
+#endif
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 /* cat FILE */
@@ -187,6 +191,13 @@ grub_mini_cmd_exit (struct grub_command *cmd __attribute__ ((unused)),
 		    int argc __attribute__ ((unused)),
 		    char *argv[] __attribute__ ((unused)))
 {
+#ifdef GRUB_MACHINE_EFI
+  /*
+   * The "exit" command is often used to launch the next boot application.
+   * So, erase the secrets.
+   */
+  grub_cryptodisk_erasesecrets ();
+#endif
   grub_exit ();
   /* Not reached.  */
 }

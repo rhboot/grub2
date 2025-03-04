@@ -6788,6 +6788,11 @@ namespace in addition to the cryptodisk namespace.
 
 Support for plain encryption mode (plain dm-crypt) is provided via separate
 @command{@pxref{plainmount}} command.
+
+On the EFI platform, GRUB tries to erase master keys from memory when the cryptodisk
+module is unloaded or the command @command{exit} is executed. All secrets remain in
+memory when the command @command{chainloader} is issued, because execution can
+return to GRUB on the EFI platform.
 @end deffn
 
 @node cutmem
@@ -9406,6 +9411,7 @@ USB support provides benefits similar to ATA (for USB disks) or AT (for USB
 keyboards). In addition it allows USBserial.
 
 Chainloading refers to the ability to load another bootloader through the same protocol
+and on some platforms, like EFI, allow that bootloader to return to the GRUB.
 
 Hints allow faster disk discovery by already knowing in advance which is the disk in
 question. On some platforms hints are correct unless you move the disk between boots.

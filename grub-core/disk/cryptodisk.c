@@ -1856,6 +1856,31 @@ grub_cryptodisk_challenge_password (void)
 
   return GRUB_ERR_NONE;
 }
+
+void
+grub_cryptodisk_erasesecrets (void)
+{
+  grub_cryptodisk_t i;
+  grub_uint8_t *buf;
+
+  buf = grub_zalloc (GRUB_CRYPTODISK_MAX_KEYLEN);
+  if (buf == NULL)
+    grub_fatal ("grub_cryptodisk_erasesecrets: cannot allocate memory");
+
+  for (i = cryptodisk_list; i != NULL; i = i->next)
+    if (grub_cryptodisk_setkey (i, buf, i->keysize))
+      grub_fatal ("grub_cryptodisk_erasesecrets: cannot erase secrets for %s", i->source);
+    else
+      grub_printf ("Erased crypto secrets for %s\n", i->source);
+      /*
+       * Unfortunately, there is no way to "force unmount" a given disk, it may
+       * have mounted "child" disks as well, e.g., an LVM volume. So, this
+       * function MUST be called when there is no way back, e.g., when exiting.
+       * Otherwise, subsequent read calls for a cryptodisk will return garbage.
+       */
+
+  grub_free (buf);
+}
 #endif /* GRUB_MACHINE_EFI */
 
 struct grub_procfs_entry luks_script =
@@ -1880,6 +1905,9 @@ GRUB_MOD_INIT (cryptodisk)
 
 GRUB_MOD_FINI (cryptodisk)
 {
+#ifdef GRUB_MACHINE_EFI
+  grub_cryptodisk_erasesecrets ();
+#endif
   grub_disk_dev_unregister (&grub_cryptodisk_dev);
   cryptodisk_cleanup ();
   grub_unregister_extcmd (cmd);
