@@ -74,7 +74,7 @@ exec_show_error () {
 work_directory=${WORKDIR:-`mktemp -d "${TMPDIR:-/tmp}/grub-shell.XXXXXXXXXX"`} || exit 1
 
 . "${builddir}/grub-core/modinfo.sh"
-qemuopts=
+qemuopts=${GRUB_QEMU_OPTS}
 emuopts=
 serial_port=com0
 serial_null=
