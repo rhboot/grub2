@@ -30,6 +30,7 @@ PATH="${builddir}:$PATH"
 export PATH
 
 grub_shell_opts=
+disk=
 disksize=20M
 detached_header=
 keyfile=
@@ -67,18 +68,6 @@ EOF
 }
 
 . "${builddir}/grub-core/modinfo.sh"
-
-# TODO: We should be selecting the drive based on disk id, change this once
-# grub support searching by disk id.
-disk="hd0"
-case "${grub_modinfo_target_cpu}-${grub_modinfo_platform}" in
-    i386-qemu)
-	disk="ata0"
-	;;
-    loongarch64-efi)
-	disk="hd1"
-	;;
-esac
 
 # Check the arguments.
 for option in "$@"; do
@@ -158,7 +147,7 @@ get_random_bytes() {
         | tr -d '\0' | dd bs=1 count=$(($NUM_BYTES)) 2>/dev/null
 }
 
-# create a random directory to be hold generated files
+# Create a random directory to be hold generated files
 lukstestdir="`mktemp -d "${TMPDIR:-/tmp}/$(basename "$0").XXXXXXXXXX"`" || exit 20
 luksfile=$lukstestdir/luks.disk
 lukshdrfile=$lukstestdir/luks.header
@@ -185,14 +174,21 @@ if [ -n "$detached_header" ]; then
     csopts="$csopts --header $lukshdrfile"
 fi
 
-# create the key file
+# Create the key file
 echo -n "$password" > $lukskeyfile
 
 # Create a very small LUKS container for the test
 truncate -s $disksize $luksfile || exit 21
 
 # Format the luks disk file
-cryptsetup luksFormat -q $csopts $luksfile $lukskeyfile || exit 22
+cryptsetup luksFormat -q $csopts ${luksfile} ${lukskeyfile} || exit 22
+if [ -z "$detached_header" ]; then
+    cryptomount_opts="$cryptomount_opts -u $(cryptsetup luksUUID ${luksdiskfile})"
+elif [ -z "$disk" ]; then
+    # In detached header mode, so must pass the disk to cryptomount.
+    # Is this always correct?
+    disk=hd0
+fi
 
 # Run any cryptsetup scripts
 export luksdiskfile
@@ -264,7 +260,7 @@ fi
 # Can not use --disk with a raw LUKS container because it appears qemu
 # tries to convert the image to and is failing with:
 #  "Parameter 'key-secret' is required for cipher"
-qemuopts="$qemuopts -drive file=$luksfile,index=0,media=disk,format=raw"
+qemuopts="$qemuopts -drive file=$luksfile,media=disk,format=raw"
 
 # Add crypto modules
 modules="$modules cryptodisk luks luks2 fat"
@@ -282,7 +278,8 @@ grub_keyfile_size="$keyfile_size"
 vfilename="`basename $vfile`"
 vtext="$vtext"
 trim_line="$trim_line"
-disk="$disk"
+disk="${disk:+($disk)}"
+cryptomount_opts="$cryptomount_opts"
 EOF
 
 # If testing keyfiles, do not use password variable
@@ -325,7 +322,7 @@ fi
 cdisk=crypto0
 
 if test -n "$grub_debug" -a "$grub_debug" -gt 0; then
-    echo cmd: cryptomount $cryptomount_opts ($disk)
+    echo cmd: cryptomount $cryptomount_opts $disk
     echo -n "devices: "
     ls
 fi
@@ -333,7 +330,7 @@ fi
 if test -n "$grub_debug" -a "$grub_debug" -gt 1; then
     set debug=all
 fi
-cryptomount $cryptomount_opts ($disk)
+cryptomount $cryptomount_opts $disk
 ret="$?"
 if test -n "$grub_debug" -a "$grub_debug" -eq 2; then
     set debug=
