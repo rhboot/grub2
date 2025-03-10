@@ -379,14 +379,17 @@ grub_cmd_zfs_bootfs (grub_command_t cmd __attribute__ ((unused)), int argc,
 
   grub_device_close (dev);
 
-  if (err)
+  if (err) {
+    grub_free (nvlist);
     return err;
+  }
 
   poolname = grub_zfs_nvlist_lookup_string (nvlist, ZPOOL_CONFIG_POOL_NAME);
   if (!poolname)
     {
       if (!grub_errno)
 	grub_error (GRUB_ERR_BAD_FS, "No poolname found");
+      grub_free (nvlist);
       return grub_errno;
     }
 
