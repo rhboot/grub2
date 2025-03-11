@@ -92,11 +92,12 @@ grub_cmd_connectefi (grub_command_t cmd __attribute__ ((unused)),
     {
       { GRUB_EFI_PCI_ROOT_IO_GUID, "PCI root", SEARCHED_ITEM_FLAG_RECURSIVE }
     };
-  searched_items scsi_items[] =
+  searched_items disk_items[] =
     {
       { GRUB_EFI_PCI_ROOT_IO_GUID, "PCI root", 0 },
       { GRUB_EFI_PCI_IO_GUID, "PCI", SEARCHED_ITEM_FLAG_LOOP },
-      { GRUB_EFI_SCSI_IO_PROTOCOL_GUID, "SCSI I/O", SEARCHED_ITEM_FLAG_RECURSIVE }
+      { GRUB_EFI_SCSI_IO_PROTOCOL_GUID, "SCSI I/O", SEARCHED_ITEM_FLAG_RECURSIVE },
+      { GRUB_EFI_DISK_IO_PROTOCOL_GUID, "DISK I/O", SEARCHED_ITEM_FLAG_RECURSIVE }
     };
   searched_items *items = NULL;
   unsigned nitems = 0;
@@ -111,10 +112,11 @@ grub_cmd_connectefi (grub_command_t cmd __attribute__ ((unused)),
       items = pciroot_items;
       nitems = ARRAY_SIZE (pciroot_items);
     }
-  else if (grub_strcmp(args[0], N_("scsi")) == 0)
+  else if ((grub_strcmp(args[0], N_("scsi")) == 0) ||
+	   (grub_strcmp(args[0], N_("disk")) == 0))
     {
-      items = scsi_items;
-      nitems = ARRAY_SIZE (scsi_items);
+      items = disk_items;
+      nitems = ARRAY_SIZE (disk_items);
     }
   else
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
@@ -192,11 +194,13 @@ static grub_command_t cmd;
 GRUB_MOD_INIT(connectefi)
 {
   cmd = grub_register_command ("connectefi", grub_cmd_connectefi,
-			       N_("pciroot|scsi"),
+			       N_("pciroot|scsi|disk"),
 			       N_("Connect EFI handles."
 				  " If 'pciroot' is specified, connect PCI"
 				  " root EFI handles recursively."
 				  " If 'scsi' is specified, connect SCSI"
+				  " I/O EFI handles recursively (deprecated, same as 'disk')."
+				  " If 'disk' is specified, connect disk"
 				  " I/O EFI handles recursively."));
 }
 
