@@ -36,7 +36,7 @@ struct known_protocol
   const char *name;
 } known_protocols[] = 
   {
-    { GRUB_EFI_DISK_IO_GUID, "disk" },
+    { GRUB_EFI_DISK_IO_PROTOCOL_GUID, "disk" },
     { GRUB_EFI_BLOCK_IO_GUID, "block" },
     { GRUB_EFI_SERIAL_IO_GUID, "serial" },
     { GRUB_EFI_SIMPLE_NETWORK_GUID, "network" },
