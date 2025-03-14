@@ -163,6 +163,9 @@ is_unencrypted_disk (grub_disk_t disk)
 
   if (disk->dev->id == GRUB_DISK_DEVICE_DISKFILTER_ID)
     {
+      char opt[] = "--quiet";
+      char *args[2];
+
       cmd = grub_command_find ("cryptocheck");
       if (cmd == NULL) /* No diskfilter module loaded for some reason. */
         return true;
@@ -173,7 +176,9 @@ is_unencrypted_disk (grub_disk_t disk)
         return true;
 
       grub_snprintf (disk_str, disk_str_len, "(%s)", disk->name);
-      res = cmd->func (cmd, 1, &disk_str);
+      args[0] = opt;
+      args[1] = disk_str;
+      res = cmd->func (cmd, 2, args);
       grub_free (disk_str);
       return (res != GRUB_ERR_NONE) ? true : false; /* GRUB_ERR_NONE for encrypted. */
     }

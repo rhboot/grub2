@@ -1402,6 +1402,19 @@ grub_cmd_cryptocheck (grub_command_t cmd __attribute__ ((unused)),
   int check_pvs_res;
   int namelen;
   int pvs_cnt;
+  int opt_quiet = 0;
+
+  if (argc == 2)
+    {
+      if (grub_strcmp (args[0], "--quiet") == 0)
+	{
+	  opt_quiet = 1;
+	  argc--;
+	  args++;
+	}
+      else
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("unrecognized option: %s"), args[0]);
+    }
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("disk name expected"));
@@ -1424,11 +1437,11 @@ grub_cmd_cryptocheck (grub_command_t cmd __attribute__ ((unused)),
 
   check_pvs_res = grub_diskfilter_check_pvs_encrypted (disk, &pvs_cnt);
   grub_disk_close (disk);
-
-  grub_printf("%s is %sencrypted (%d pv%s examined)\n", &args[0][1],
-              (check_pvs_res == GRUB_ERR_NONE) ? "" : "un",
-              pvs_cnt,
-              (pvs_cnt > 1) ? "s" : "");
+  if (!opt_quiet)
+    grub_printf ("%s is %sencrypted (%d pv%s examined)\n", &args[0][1],
+		 (check_pvs_res == GRUB_ERR_NONE) ? "" : "un",
+		 pvs_cnt,
+		 (pvs_cnt > 1) ? "s" : "");
 
   return check_pvs_res;
 }
@@ -1456,7 +1469,7 @@ GRUB_MOD_INIT(diskfilter)
 {
   grub_disk_dev_register (&grub_diskfilter_dev);
   cmd = grub_register_command ("cryptocheck", grub_cmd_cryptocheck,
-                                N_("DEVICE"),
+                                N_("[--quiet] DEVICE"),
                                 N_("Check if a logical volume resides on encrypted disks."));
 }
 
