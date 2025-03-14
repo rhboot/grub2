@@ -6743,12 +6743,14 @@ Alias for @code{hashsum --hash crc32 arg @dots{}}. See command @command{hashsum}
 @node cryptocheck
 @subsection cryptocheck
 
-@deffn Command cryptocheck device
+@deffn Command cryptocheck [ @option{--quiet} ] device
 Check if a given diskfilter device is backed by encrypted devices
 (@pxref{cryptomount} for additional information).
 
 The command examines all backing devices, physical volumes, of a specified
 logical volume, like LVM2, and fails when at least one of them is unencrypted.
+
+The option @option{--quiet} can be given to suppress the output.
 @end deffn
 
 @node cryptomount
