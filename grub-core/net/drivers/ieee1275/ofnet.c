@@ -480,6 +480,9 @@ search_net_devices (struct grub_ieee1275_devalias *alias)
 	  return 0;
 	}
     }
+
+  ofdata->path = grub_malloc(sz);
+
   if (!ofdata->path)
     {
       grub_print_error ();
