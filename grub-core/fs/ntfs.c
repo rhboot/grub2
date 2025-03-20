@@ -387,7 +387,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
     }
   at->attr_cur = at->attr_nxt;
   mft_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
-  while (at->attr_cur < mft_end && *at->attr_cur != 0xFF)
+  while (at->attr_cur >= at->mft->buf && at->attr_cur < mft_end && *at->attr_cur != 0xFF)
     {
       at->attr_nxt = next_attribute (at->attr_cur, at->end);
       if (*at->attr_cur == GRUB_NTFS_AT_ATTRIBUTE_LIST)
