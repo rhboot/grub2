@@ -256,3 +256,37 @@ grub_file_seek (grub_file_t file, grub_off_t offset)
     
   return old;
 }
+
+grub_err_t
+grub_read_file (const grub_file_t file, grub_uint8_t **data, grub_ssize_t *data_size)
+{
+  grub_uint8_t *buffer = NULL;
+  grub_ssize_t read_size = 0;
+  grub_off_t total_read_size = 0;
+  grub_off_t file_size = grub_file_size (file);
+
+  if (file_size == GRUB_FILE_SIZE_UNKNOWN)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT,
+                       N_("could not determine the size of the file."));
+
+  buffer = grub_zalloc (file_size);
+  if (buffer == NULL)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
+
+  while (total_read_size < file_size)
+    {
+      read_size = grub_file_read (file, &buffer[total_read_size], file_size - total_read_size);
+      if (read_size < 0)
+        {
+          grub_free (buffer);
+          return grub_error (GRUB_ERR_READ_ERROR, N_("unable to read the file"));
+        }
+
+      total_read_size += read_size;
+    }
+
+  *data = buffer;
+  *data_size = total_read_size;
+
+  return GRUB_ERR_NONE;
+}
