@@ -4016,7 +4016,9 @@ you forget a command, you can run the command @command{help}
 * date::                        Display or set current date and time
 * devicetree::                  Load a device tree blob
 * distrust::                    Remove a pubkey from trusted keys
-* distrust_certificate::        Remove a certificate from the list of trusted certificates
+* distrusted_certificate::      Remove a certificate from the trusted list
+* distrusted_list::             List distrusted certificates and binary/certificate hashes
+* distrusted_signature::        Add a binary hash to the distrusted list
 * drivemap::                    Map a drive to another
 * echo::                        Display a line of text
 * eval::                        Evaluate agruments as GRUB commands
@@ -4033,7 +4035,6 @@ you forget a command, you can run the command @command{help}
 * keystatus::                   Check key modifier status
 * linux::                       Load a Linux kernel
 * linux16::                     Load a Linux kernel (16-bit mode)
-* list_certificates::           List trusted certificates
 * list_env::                    List variables in environment block
 * list_trusted::                List trusted public keys
 * load_env::                    Load variables from environment block
@@ -4072,7 +4073,9 @@ you forget a command, you can run the command @command{help}
 * test::                        Check file types and compare values
 * true::                        Do nothing, successfully
 * trust::                       Add public key to list of trusted keys
-* trust_certificate::           Add an x509 certificate to the list of trusted certificates
+* trusted_certificate::         Add an x509 certificate to the trusted list
+* trusted_list::                List trusted certificates and binary hashes
+* trusted_signature::           Add a binary hash to the trusted list.
 * unset::                       Unset an environment variable
 @comment * vbeinfo::                     List available video modes
 * verify_appended::             Verify appended digital signature
@@ -4416,16 +4419,15 @@ These keys are used to validate signatures when environment variable
 GPG-style digital signatures}, for more information.
 @end deffn
 
+@node distrusted_certificate
+@subsection distrusted_certificate
 
-@node distrust_certificate
-@subsection distrust_certificate
-
-@deffn Command distrust_certificate cert_number
+@deffn Command distrusted_certificate cert_number
 Remove the x509 certificate numbered @var{cert_number} from GRUB's keyring of
 trusted x509 certificates for verifying appended signatures.
 
 @var{cert_number} is the certificate number as listed by
-@command{list_certificates} (@pxref{list_certificates}).
+@command{trusted_list} (@pxref{trusted_list}).
 
 These certificates are used to validate appended signatures when environment
 variable @code{check_appended_signatures} is set to @code{enforce} or
@@ -4434,6 +4436,27 @@ variable @code{check_appended_signatures} is set to @code{enforce} or
 @xref{Using appended signatures} for more information.
 @end deffn
 
+@node distrusted_list
+@subsection distrusted_list
+
+@deffn Command distrusted_list
+List all the distrusted x509 certificates and binary/certificate hashes.
+The output is a numbered list of certificates and binary/certificate hashes,
+showing the certificate's serial number and Common Name.
+@end deffn
+
+@node distrusted_signature
+@subsection distrusted_signature
+
+@deffn Command distrusted_signature
+Read a binary hash from the file @var{binary hash file}
+and add it to GRUB's internal distrusted list. These hash are used to
+restrict validation of linux image integrity using trusted list if appended
+signatures validation failed when the environment variable
+@code{check_appended_signatures} is set to @code{enforce}.
+
+See @xref{Using appended signatures} for more information.
+@end deffn
 
 @node drivemap
 @subsection drivemap
@@ -4690,22 +4713,6 @@ for the sake of convenience.
 
 This command is only available on x86 systems.
 @end deffn
-
-
-@node list_certificates
-@subsection list_certificates
-
-@deffn Command list_certificates
-List all x509 certificates trusted by GRUB for validating appended signatures.
-The output is a numbered list of certificates, showing the certificate's serial
-number and Common Name.
-
-The certificate number can be used as an argument to
-@command{distrust_certificate} (@pxref{distrust_certificate}).
-
-See @xref{Using appended signatures} for more information.
-@end deffn
-
 
 @node list_env
 @subsection list_env
@@ -5540,10 +5547,10 @@ information.
 @end deffn
 
 
-@node trust_certificate
-@subsection trust_certificate
+@node trusted_certificate
+@subsection trusted_certificate
 
-@deffn Command trust_certificate x509_certificate
+@deffn Command trusted_certificate x509_certificate
 Read an DER-formatted x509 certificate from the file @var{x509_certificate}
 and add it to GRUB's internal list of trusted x509 certificates. These
 certificates are used to validate appended signatures when the environment
@@ -5551,7 +5558,7 @@ variable @code{check_appended_signatures} is set to @code{enforce} or
 @code{forced}.
 
 Note that if @code{check_appended_signatures} is set to @code{enforce} or
-@code{forced} when @command{trust_certificate} is executed, then
+@code{forced} when @command{trusted_certificate} is executed, then
 @var{x509_certificate} must itself bear an appended signature. (It is not
 sufficient that @var{x509_certificate} be signed by a trusted certificate
 according to the x509 rules: grub does not include support for validating
@@ -5560,6 +5567,32 @@ signatures within x509 certificates themselves.)
 See @xref{Using appended signatures} for more information.
 @end deffn
 
+@node trusted_list
+@subsection trusted_list
+
+@deffn Command trusted_list
+List all x509 certificates and binary hases trusted by GRUB for validating
+appended signatures. The output is a numbered list of certificates and binary
+hashes, showing the certificate's serial number and Common Name.
+
+The certificate number can be used as an argument to
+@command{distrusted_certificate} (@pxref{distrusted_certificate}).
+
+See @xref{Using appended signatures} for more information.
+@end deffn
+
+@node trusted_signature
+@subsection trusted_signature
+
+@deffn Command trust_signature
+Read a binary hash from the file @var{binary hash file}
+and add it to GRUB's internal trusted list. These binary hash are used to
+validate linux image integrity if appended signatures validation failed
+when the environment variable @code{check_appended_signatures} is set
+to @code{enforce}.
+
+See @xref{Using appended signatures} for more information.
+@end deffn
 
 @node unset
 @subsection unset
@@ -5584,9 +5617,8 @@ only on PC BIOS platforms.
 
 @deffn Command verify_appended file
 Verifies an appended signature on @var{file} against the trusted certificates
-known to GRUB (See @pxref{list_certificates}, @pxref{trust_certificate}, and
-@pxref{distrust_certificate}).
-
+known to GRUB (See @pxref{trusted_list}, @pxref{trusted_certificate}, and
+@pxref{distrusted_certificate}).
 Exit code @code{$?} is set to 0 if the signature validates
 successfully.  If validation fails, it is set to a non-zero value.
 See @xref{Using appended signatures}, for more information.
@@ -6183,10 +6215,17 @@ with an appended signature ends with the magic string:
 
 where @code{\n} represents the line-feed character, @code{0x0a}.
 
-Certificates can be managed at boot time using the @pxref{trust_certificate},
-@pxref{distrust_certificate} and @pxref{list_certificates} commands.
-Certificates can also be built in to the core image using the @code{--x509}
-parameter to @command{grub-install} or @command{grub-mkimage}.
+For static key, Certificates will be built in to the core image using
+the @code{--x509} parameter to @command{grub-install} or @command{grub-mkimage}.
+it can allow to list the trusted certificates and binary hashes at boot time using
+@pxref{trusted_list} and list distrusted certificates and binary/certificate hashes
+at boot time using @pxref{distrusted_list} commands.
+
+For dynamic key, loads the signature database (DB) and forbidden
+signature database (DBX) from platform keystore (PKS) and it can allow to list
+the trusted certificates and binary hashes at boot time using @pxref{trusted_list}
+and list distrusted certificates and binary/certificate hashes at boot time using
+@pxref{distrusted_list} commands.
 
 A file can be explictly verified using the @pxref{verify_appended} command.
 
