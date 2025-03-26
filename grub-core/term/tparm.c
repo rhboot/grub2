@@ -46,7 +46,6 @@
 /*
  * Common/troublesome character definitions
  */
-typedef char grub_bool_t;
 #ifndef FALSE
 # define FALSE (0)
 #endif

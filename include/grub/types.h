@@ -353,4 +353,6 @@ struct grub_uuid
   grub_uint8_t b[GRUB_UUID_SIZE];
 };
 
+typedef char grub_bool_t;
+
 #endif /* ! GRUB_TYPES_HEADER */

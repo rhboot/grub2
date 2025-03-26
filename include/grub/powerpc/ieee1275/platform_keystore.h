@@ -199,10 +199,11 @@ struct grub_pks_sd
 /* The structure of a PKS.*/
 struct grub_pks
 {
-  grub_pks_sd_t *db;        /* signature database */
-  grub_pks_sd_t *dbx;       /* forbidden signature database */
-  grub_size_t db_entries;   /* size of signature database */
-  grub_size_t dbx_entries;  /* size of forbidden signature database */
+  grub_pks_sd_t *db;          /* signature database */
+  grub_pks_sd_t *dbx;         /* forbidden signature database */
+  grub_size_t db_entries;     /* size of signature database */
+  grub_size_t dbx_entries;    /* size of forbidden signature database */
+  grub_bool_t use_static_keys;/* flag to indicate use of static keys */
 } GRUB_PACKED;
 
 #ifdef __powerpc__
@@ -217,7 +218,7 @@ extern grub_pks_t EXPORT_VAR(grub_pks_keystore);
 #else
 
 #define grub_pks_use_keystore	0
-grub_pks_t grub_pks_keystore = {NULL, NULL, 0, 0};
+grub_pks_t grub_pks_keystore = {NULL, NULL, 0, 0, false};
 void grub_pks_free_keystore (void);
 
 #endif
