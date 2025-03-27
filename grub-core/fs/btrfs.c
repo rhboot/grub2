@@ -1538,7 +1538,10 @@ grub_btrfs_extent_read (struct grub_btrfs_data *data,
 	  err = lower_bound (data, &key_in, &key_out, tree,
 			     &elemaddr, &elemsize, &desc, 0);
 	  if (err)
-	    return -1;
+	    {
+	      grub_free (desc.data);
+	      return -1;
+	    }
 	  if (key_out.object_id != ino
 	      || key_out.type != GRUB_BTRFS_ITEM_TYPE_EXTENT_ITEM)
 	    {
@@ -2115,6 +2118,7 @@ grub_btrfs_dir (grub_device_t device, const char *path,
   if (err)
     {
       grub_btrfs_unmount (data);
+      grub_free (desc.data);
       return err;
     }
   if (key_out.type != GRUB_BTRFS_ITEM_TYPE_DIR_ITEM
