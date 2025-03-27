@@ -1128,7 +1128,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 					    GRUB_RELOCATOR_PREFERENCE_HIGH,
 					    1);
     if (err)
-      return err;
+      goto fail;
     initrd_mem = get_virtual_current_address (ch);
     initrd_mem_target = get_physical_target_address (ch);
   }
