@@ -1258,6 +1258,7 @@ grub_xnu_load_kext_from_dir (char *dirname, const char *osbundlerequired,
       grub_device_close (dev);
     }
   grub_free (device_name);
+  grub_free (ctx.newdirname);
 
   return GRUB_ERR_NONE;
 }
