@@ -1440,6 +1440,7 @@ grub_relocator_alloc_chunk_align (struct grub_relocator *rel,
 	  break;
 	}
 
+      grub_free (ctx.chunk);
       return grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("out of memory"));
     }
   while (0);
@@ -1456,7 +1457,10 @@ grub_relocator_alloc_chunk_align (struct grub_relocator *rel,
     grub_mmap_iterate (grub_relocator_alloc_chunk_align_iter, &ctx);
 #endif
     if (!ctx.found)
-      return grub_error (GRUB_ERR_BAD_OS, "couldn't find suitable memory target");
+      {
+	grub_free (ctx.chunk);
+	return grub_error (GRUB_ERR_BAD_OS, "couldn't find suitable memory target");
+      }
   }
   while (1)
     {
