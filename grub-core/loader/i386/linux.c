@@ -124,7 +124,7 @@ find_mmap_size (void)
 
   grub_mmap_iterate (count_hook, &count);
 
-  mmap_size = count * sizeof (struct grub_e820_mmap);
+  mmap_size = count * sizeof (struct grub_boot_e820_entry);
 
   /* Increase the size a bit for safety, because GRUB allocates more on
      later.  */
@@ -212,20 +212,20 @@ allocate_pages (grub_size_t prot_size, grub_size_t *align,
 }
 
 static grub_err_t
-grub_e820_add_region (struct grub_e820_mmap *e820_map, int *e820_num,
+grub_e820_add_region (struct grub_boot_e820_entry *e820_entry, int *e820_num,
                       grub_uint64_t start, grub_uint64_t size,
                       grub_uint32_t type)
 {
   int n = *e820_num;
 
-  if ((n > 0) && (e820_map[n - 1].addr + e820_map[n - 1].size == start) &&
-      (e820_map[n - 1].type == type))
-      e820_map[n - 1].size += size;
+  if ((n > 0) && (e820_entry[n - 1].addr + e820_entry[n - 1].size == start) &&
+      (e820_entry[n - 1].type == type))
+    e820_entry[n - 1].size += size;
   else
     {
-      e820_map[n].addr = start;
-      e820_map[n].size = size;
-      e820_map[n].type = type;
+      e820_entry[n].addr = start;
+      e820_entry[n].size = size;
+      e820_entry[n].type = type;
       (*e820_num)++;
     }
   return GRUB_ERR_NONE;
@@ -253,43 +253,43 @@ grub_linux_setup_video (struct linux_kernel_params *params)
       return 1;
     }
 
-  params->lfb_width = mode_info.width;
-  params->lfb_height = mode_info.height;
-  params->lfb_depth = mode_info.bpp;
-  params->lfb_line_len = mode_info.pitch;
+  params->screen_info.lfb_width = mode_info.width;
+  params->screen_info.lfb_height = mode_info.height;
+  params->screen_info.lfb_depth = mode_info.bpp;
+  params->screen_info.lfb_linelength = mode_info.pitch;
 
-  params->lfb_base = (grub_size_t) framebuffer;
+  params->screen_info.lfb_base = (grub_size_t) framebuffer;
 
 #if defined (GRUB_MACHINE_EFI) && defined (__x86_64__)
-  params->ext_lfb_base = (grub_size_t) (((grub_uint64_t)(grub_size_t) framebuffer) >> 32);
-  params->capabilities |= VIDEO_CAPABILITY_64BIT_BASE;
+  params->screen_info.ext_lfb_base = (grub_size_t) (((grub_uint64_t)(grub_size_t) framebuffer) >> 32);
+  params->screen_info.capabilities |= VIDEO_CAPABILITY_64BIT_BASE;
 #endif
 
-  params->lfb_size = ALIGN_UP (params->lfb_line_len * params->lfb_height, 65536);
+  params->screen_info.lfb_size = ALIGN_UP (params->screen_info.lfb_linelength * params->screen_info.lfb_height, 65536);
 
-  params->red_mask_size = mode_info.red_mask_size;
-  params->red_field_pos = mode_info.red_field_pos;
-  params->green_mask_size = mode_info.green_mask_size;
-  params->green_field_pos = mode_info.green_field_pos;
-  params->blue_mask_size = mode_info.blue_mask_size;
-  params->blue_field_pos = mode_info.blue_field_pos;
-  params->reserved_mask_size = mode_info.reserved_mask_size;
-  params->reserved_field_pos = mode_info.reserved_field_pos;
+  params->screen_info.red_size = mode_info.red_mask_size;
+  params->screen_info.red_pos = mode_info.red_field_pos;
+  params->screen_info.green_size = mode_info.green_mask_size;
+  params->screen_info.green_pos = mode_info.green_field_pos;
+  params->screen_info.blue_size = mode_info.blue_mask_size;
+  params->screen_info.blue_pos = mode_info.blue_field_pos;
+  params->screen_info.rsvd_size = mode_info.reserved_mask_size;
+  params->screen_info.rsvd_pos = mode_info.reserved_field_pos;
 
   if (gfxlfbvar && (gfxlfbvar[0] == '1' || gfxlfbvar[0] == 'y'))
-    params->have_vga = GRUB_VIDEO_LINUX_TYPE_SIMPLE;
+    params->screen_info.orig_video_isVGA = GRUB_VIDEO_LINUX_TYPE_SIMPLE;
   else
     {
       switch (driver_id)
 	{
 	case GRUB_VIDEO_DRIVER_VBE:
-	  params->lfb_size >>= 16;
-	  params->have_vga = GRUB_VIDEO_LINUX_TYPE_VESA;
+	  params->screen_info.lfb_size >>= 16;
+	  params->screen_info.orig_video_isVGA = GRUB_VIDEO_LINUX_TYPE_VESA;
 	  break;
 
 	case GRUB_VIDEO_DRIVER_EFI_UGA:
 	case GRUB_VIDEO_DRIVER_EFI_GOP:
-	  params->have_vga = GRUB_VIDEO_LINUX_TYPE_EFIFB;
+	  params->screen_info.orig_video_isVGA = GRUB_VIDEO_LINUX_TYPE_EFIFB;
 	  break;
 
 	  /* FIXME: check if better id is available.  */
@@ -307,7 +307,7 @@ grub_linux_setup_video (struct linux_kernel_params *params)
 	case GRUB_VIDEO_DRIVER_SDL:
 	case GRUB_VIDEO_DRIVER_NONE:
 	case GRUB_VIDEO_ADAPTER_CAPTURE:
-	  params->have_vga = GRUB_VIDEO_LINUX_TYPE_SIMPLE;
+	  params->screen_info.orig_video_isVGA = GRUB_VIDEO_LINUX_TYPE_SIMPLE;
 	  break;
 	}
     }
@@ -332,9 +332,9 @@ grub_linux_setup_video (struct linux_kernel_params *params)
 	/* 6 is default after mode reset.  */
 	width = 6;
 
-      params->red_mask_size = params->green_mask_size
-	= params->blue_mask_size = width;
-      params->reserved_mask_size = 0;
+      params->screen_info.red_size = params->screen_info.green_size
+	= params->screen_info.blue_size = width;
+      params->screen_info.rsvd_size = 0;
     }
 #endif
 
@@ -391,7 +391,7 @@ grub_linux_boot_mmap_fill (grub_uint64_t addr, grub_uint64_t size,
 {
   struct grub_linux_boot_ctx *ctx = data;
 
-  if (grub_e820_add_region (ctx->params->e820_map, &ctx->e820_num,
+  if (grub_e820_add_region (ctx->params->e820_table, &ctx->e820_num,
 			    addr, size, type))
     return 1;
 
@@ -423,10 +423,10 @@ grub_linux_boot (void)
 				  "bootpath", bootpath,
 				  grub_strlen (bootpath) + 1,
 				  &len);
-    linux_params.ofw_signature = GRUB_LINUX_OFW_SIGNATURE;
-    linux_params.ofw_num_items = 1;
-    linux_params.ofw_cif_handler = (grub_uint32_t) grub_ieee1275_entry_fn;
-    linux_params.ofw_idt = 0;
+    linux_params.olpc_ofw_header.ofw_magic = GRUB_LINUX_OFW_SIGNATURE;
+    linux_params.olpc_ofw_header.ofw_version = 1;
+    linux_params.olpc_ofw_header.cif_handler = (grub_uint32_t) grub_ieee1275_entry_fn;
+    linux_params.olpc_ofw_header.irq_desc_table = 0;
   }
 #endif
 
@@ -471,19 +471,19 @@ grub_linux_boot (void)
   if (grub_linux_setup_video (&linux_params))
     {
 #if defined (GRUB_MACHINE_PCBIOS) || defined (GRUB_MACHINE_COREBOOT) || defined (GRUB_MACHINE_QEMU)
-      linux_params.have_vga = GRUB_VIDEO_LINUX_TYPE_TEXT;
-      linux_params.video_mode = 0x3;
+      linux_params.screen_info.orig_video_isVGA = GRUB_VIDEO_LINUX_TYPE_TEXT;
+      linux_params.screen_info.orig_video_mode = 0x3;
 #else
-      linux_params.have_vga = 0;
-      linux_params.video_mode = 0;
-      linux_params.video_width = 0;
-      linux_params.video_height = 0;
+      linux_params.screen_info.orig_video_isVGA = 0;
+      linux_params.screen_info.orig_video_mode = 0;
+      linux_params.screen_info.orig_video_cols = 0;
+      linux_params.screen_info.orig_video_lines = 0;
 #endif
     }
 
 
 #ifndef GRUB_MACHINE_IEEE1275
-  if (linux_params.have_vga == GRUB_VIDEO_LINUX_TYPE_TEXT)
+  if (linux_params.screen_info.orig_video_isVGA == GRUB_VIDEO_LINUX_TYPE_TEXT)
 #endif
     {
       grub_term_output_t term;
@@ -494,19 +494,19 @@ grub_linux_boot (void)
 	    || grub_strcmp (term->name, "ofconsole") == 0)
 	  {
 	    struct grub_term_coordinate pos = grub_term_getxy (term);
-	    linux_params.video_cursor_x = pos.x;
-	    linux_params.video_cursor_y = pos.y;
-	    linux_params.video_width = grub_term_width (term);
-	    linux_params.video_height = grub_term_height (term);
+	    linux_params.screen_info.orig_x = pos.x;
+	    linux_params.screen_info.orig_y = pos.y;
+	    linux_params.screen_info.orig_video_cols = grub_term_width (term);
+	    linux_params.screen_info.orig_video_lines = grub_term_height (term);
 	    found = 1;
 	    break;
 	  }
       if (!found)
 	{
-	  linux_params.video_cursor_x = 0;
-	  linux_params.video_cursor_y = 0;
-	  linux_params.video_width = 80;
-	  linux_params.video_height = 25;
+	  linux_params.screen_info.orig_x = 0;
+	  linux_params.screen_info.orig_y = 0;
+	  linux_params.screen_info.orig_video_cols = 80;
+	  linux_params.screen_info.orig_video_lines = 25;
 	}
     }
 
@@ -517,8 +517,8 @@ grub_linux_boot (void)
   mmap_size = find_mmap_size ();
   /* Make sure that each size is aligned to a page boundary.  */
   cl_offset = ALIGN_UP (mmap_size + sizeof (linux_params), 4096);
-  if (cl_offset < ((grub_size_t) linux_params.setup_sects << GRUB_DISK_SECTOR_BITS))
-    cl_offset = ALIGN_UP ((grub_size_t) (linux_params.setup_sects
+  if (cl_offset < ((grub_size_t) linux_params.hdr.setup_sects << GRUB_DISK_SECTOR_BITS))
+    cl_offset = ALIGN_UP ((grub_size_t) (linux_params.hdr.setup_sects
 					 << GRUB_DISK_SECTOR_BITS), 4096);
   ctx.real_size = ALIGN_UP (cl_offset + maximal_cmdline_size, 4096);
 
@@ -567,17 +567,17 @@ grub_linux_boot (void)
   ctx.params = real_mode_mem;
 
   *ctx.params = linux_params;
-  ctx.params->cmd_line_ptr = ctx.real_mode_target + cl_offset;
+  ctx.params->hdr.cmd_line_ptr = ctx.real_mode_target + cl_offset;
   grub_memcpy ((char *) ctx.params + cl_offset, linux_cmdline,
 	       maximal_cmdline_size);
 
   grub_dprintf ("linux", "code32_start = %x\n",
-		(unsigned) ctx.params->code32_start);
+		(unsigned) ctx.params->hdr.code32_start);
 
   ctx.e820_num = 0;
   if (grub_mmap_iterate (grub_linux_boot_mmap_fill, &ctx))
     return grub_errno;
-  ctx.params->mmap_size = ctx.e820_num;
+  ctx.params->e820_entries = ctx.e820_num;
 
 #ifdef GRUB_MACHINE_EFI
   {
@@ -596,42 +596,42 @@ grub_linux_boot (void)
     efi_mmap_target = ctx.real_mode_target
       + ((grub_uint8_t *) efi_mmap_buf - (grub_uint8_t *) real_mode_mem);
     /* Pass EFI parameters.  */
-    if (grub_le_to_cpu16 (ctx.params->version) >= 0x0208)
+    if (grub_le_to_cpu16 (ctx.params->hdr.version) >= 0x0208)
       {
-	ctx.params->v0208.efi_mem_desc_size = efi_desc_size;
-	ctx.params->v0208.efi_mem_desc_version = efi_desc_version;
-	ctx.params->v0208.efi_mmap = efi_mmap_target;
-	ctx.params->v0208.efi_mmap_size = efi_mmap_size;
+	ctx.params->efi_info.v0208.efi_memdesc_size = efi_desc_size;
+	ctx.params->efi_info.v0208.efi_memdesc_version = efi_desc_version;
+	ctx.params->efi_info.v0208.efi_memmap = efi_mmap_target;
+	ctx.params->efi_info.v0208.efi_memmap_size = efi_mmap_size;
 
 #ifdef __x86_64__
-	ctx.params->v0208.efi_mmap_hi = (efi_mmap_target >> 32);
+	ctx.params->efi_info.v0208.efi_memmap_hi = (efi_mmap_target >> 32);
 #endif
       }
-    else if (grub_le_to_cpu16 (ctx.params->version) >= 0x0206)
+    else if (grub_le_to_cpu16 (ctx.params->hdr.version) >= 0x0206)
       {
-	ctx.params->v0206.efi_mem_desc_size = efi_desc_size;
-	ctx.params->v0206.efi_mem_desc_version = efi_desc_version;
-	ctx.params->v0206.efi_mmap = efi_mmap_target;
-	ctx.params->v0206.efi_mmap_size = efi_mmap_size;
+	ctx.params->efi_info.v0206.efi_memdesc_size = efi_desc_size;
+	ctx.params->efi_info.v0206.efi_memdesc_version = efi_desc_version;
+	ctx.params->efi_info.v0206.efi_memmap = efi_mmap_target;
+	ctx.params->efi_info.v0206.efi_memmap_size = efi_mmap_size;
       }
-    else if (grub_le_to_cpu16 (ctx.params->version) >= 0x0204)
+    else if (grub_le_to_cpu16 (ctx.params->hdr.version) >= 0x0204)
       {
-	ctx.params->v0204.efi_mem_desc_size = efi_desc_size;
-	ctx.params->v0204.efi_mem_desc_version = efi_desc_version;
-	ctx.params->v0204.efi_mmap = efi_mmap_target;
-	ctx.params->v0204.efi_mmap_size = efi_mmap_size;
+	ctx.params->efi_info.v0204.efi_memdesc_size = efi_desc_size;
+	ctx.params->efi_info.v0204.efi_memdesc_version = efi_desc_version;
+	ctx.params->efi_info.v0204.efi_memmap = efi_mmap_target;
+	ctx.params->efi_info.v0204.efi_memmap_size = efi_mmap_size;
       }
   }
 #endif
 
 #if defined (__x86_64__) && defined (GRUB_MACHINE_EFI)
-  if (grub_le_to_cpu16 (ctx.params->version) >= 0x020c &&
-      (linux_params.xloadflags & LINUX_X86_XLF_KERNEL_64) != 0)
+  if (grub_le_to_cpu16 (ctx.params->hdr.version) >= 0x020c &&
+      (linux_params.hdr.xloadflags & LINUX_X86_XLF_KERNEL_64) != 0)
     {
       struct grub_relocator64_efi_state state64;
 
       state64.rsi = ctx.real_mode_target;
-      state64.rip = ctx.params->code32_start + LINUX_X86_STARTUP64_OFFSET;
+      state64.rip = ctx.params->hdr.code32_start + LINUX_X86_STARTUP64_OFFSET;
       return grub_relocator64_efi_boot (relocator, state64);
     }
 #endif
@@ -641,7 +641,7 @@ grub_linux_boot (void)
   state.ebp = state.edi = state.ebx = 0;
   state.esi = ctx.real_mode_target;
   state.esp = ctx.real_mode_target;
-  state.eip = ctx.params->code32_start;
+  state.eip = ctx.params->hdr.code32_start;
   return grub_relocator32_boot (relocator, state, 0);
 }
 
@@ -791,7 +791,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
   }
 
-  grub_memcpy (&linux_params.setup_sects, &lh.setup_sects, len - 0x1F1);
+  grub_memcpy (&linux_params.hdr.setup_sects, &lh.setup_sects, len - 0x1F1);
 
   /* We've already read lh so there is no need to read it second time. */
   len -= sizeof(lh);
@@ -805,62 +805,62 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       goto fail;
     }
 
-  linux_params.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
-  linux_params.kernel_alignment = ((grub_uint32_t) 1 << align);
-  linux_params.ps_mouse = linux_params.padding11 = 0;
-  linux_params.type_of_loader = GRUB_LINUX_BOOT_LOADER_TYPE;
+  linux_params.hdr.code32_start = prot_mode_target + lh.code32_start - GRUB_LINUX_BZIMAGE_ADDR;
+  linux_params.hdr.kernel_alignment = ((grub_uint32_t) 1 << align);
+  linux_params.hdr.boot_flag = 0;
+  linux_params.hdr.type_of_loader = GRUB_LINUX_BOOT_LOADER_TYPE;
 
   /* These two are used (instead of cmd_line_ptr) by older versions of Linux,
      and otherwise ignored.  */
-  linux_params.cl_magic = GRUB_LINUX_CL_MAGIC;
-  linux_params.cl_offset = 0x1000;
+  linux_params.screen_info.cl_magic = GRUB_LINUX_CL_MAGIC;
+  linux_params.screen_info.cl_offset = 0x1000;
 
-  linux_params.ramdisk_image = 0;
-  linux_params.ramdisk_size = 0;
+  linux_params.hdr.ramdisk_image = 0;
+  linux_params.hdr.ramdisk_size = 0;
 
-  linux_params.heap_end_ptr = GRUB_LINUX_HEAP_END_OFFSET;
-  linux_params.loadflags |= GRUB_LINUX_FLAG_CAN_USE_HEAP;
+  linux_params.hdr.heap_end_ptr = GRUB_LINUX_HEAP_END_OFFSET;
+  linux_params.hdr.loadflags |= GRUB_LINUX_FLAG_CAN_USE_HEAP;
 
   /* These are not needed to be precise, because Linux uses these values
      only to raise an error when the decompression code cannot find good
      space.  */
-  linux_params.ext_mem = ((32 * 0x100000) >> 10);
-  linux_params.alt_mem = ((32 * 0x100000) >> 10);
+  linux_params.screen_info.ext_mem_k = ((32 * 0x100000) >> 10);
+  linux_params.alt_mem_k = ((32 * 0x100000) >> 10);
 
   /* Ignored by Linux.  */
-  linux_params.video_page = 0;
+  linux_params.screen_info.orig_video_page = 0;
 
   /* Only used when `video_mode == 0x7', otherwise ignored.  */
-  linux_params.video_ega_bx = 0;
+  linux_params.screen_info.orig_video_ega_bx = 0;
 
-  linux_params.font_size = 16; /* XXX */
+  linux_params.screen_info.orig_video_points = 16; /* XXX */
 
 #ifdef GRUB_MACHINE_EFI
 #ifdef __x86_64__
-  if (grub_le_to_cpu16 (linux_params.version) < 0x0208 &&
+  if (grub_le_to_cpu16 (linux_params.hdr.version) < 0x0208 &&
       ((grub_addr_t) grub_efi_system_table >> 32) != 0) {
     grub_errno = grub_error (GRUB_ERR_BAD_OS, "kernel does not support 64-bit addressing");
     goto fail;
   }
 #endif
 
-  if (grub_le_to_cpu16 (linux_params.version) >= 0x0208)
+  if (grub_le_to_cpu16 (linux_params.hdr.version) >= 0x0208)
     {
-      linux_params.v0208.efi_signature = GRUB_LINUX_EFI_SIGNATURE;
-      linux_params.v0208.efi_system_table = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
+      linux_params.efi_info.v0208.efi_loader_signature = GRUB_LINUX_EFI_SIGNATURE;
+      linux_params.efi_info.v0208.efi_systab = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
 #ifdef __x86_64__
-      linux_params.v0208.efi_system_table_hi = (grub_uint32_t) ((grub_uint64_t) grub_efi_system_table >> 32);
+      linux_params.efi_info.v0208.efi_systab_hi = (grub_uint32_t) ((grub_uint64_t) grub_efi_system_table >> 32);
 #endif
     }
-  else if (grub_le_to_cpu16 (linux_params.version) >= 0x0206)
+  else if (grub_le_to_cpu16 (linux_params.hdr.version) >= 0x0206)
     {
-      linux_params.v0206.efi_signature = GRUB_LINUX_EFI_SIGNATURE;
-      linux_params.v0206.efi_system_table = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
+      linux_params.efi_info.v0206.efi_loader_signature = GRUB_LINUX_EFI_SIGNATURE;
+      linux_params.efi_info.v0206.efi_systab = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
     }
-  else if (grub_le_to_cpu16 (linux_params.version) >= 0x0204)
+  else if (grub_le_to_cpu16 (linux_params.hdr.version) >= 0x0204)
     {
-      linux_params.v0204.efi_signature = GRUB_LINUX_EFI_SIGNATURE_0204;
-      linux_params.v0204.efi_system_table = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
+      linux_params.efi_info.v0204.efi_loader_signature = GRUB_LINUX_EFI_SIGNATURE_0204;
+      linux_params.efi_info.v0204.efi_systab = (grub_uint32_t) (grub_addr_t) grub_efi_system_table;
     }
 #endif
 
@@ -999,7 +999,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       }
     else if (grub_memcmp (argv[i], "quiet", sizeof ("quiet") - 1) == 0)
       {
-	linux_params.loadflags |= GRUB_LINUX_FLAG_QUIET;
+	linux_params.hdr.loadflags |= GRUB_LINUX_FLAG_QUIET;
       }
 
   /* Create kernel command line.  */
@@ -1074,9 +1074,9 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   aligned_size = ALIGN_UP (size, 4096);
 
   /* Get the highest address available for the initrd.  */
-  if (grub_le_to_cpu16 (linux_params.version) >= 0x0203)
+  if (grub_le_to_cpu16 (linux_params.hdr.version) >= 0x0203)
     {
-      addr_max = grub_cpu_to_le32 (linux_params.initrd_addr_max);
+      addr_max = grub_cpu_to_le32 (linux_params.hdr.initrd_addr_max);
 
       /* XXX in reality, Linux specifies a bogus value, so
 	 it is necessary to make sure that ADDR_MAX does not exceed
@@ -1139,9 +1139,9 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   grub_dprintf ("linux", "Initrd (%p) at 0x%" PRIxGRUB_ADDR ", size=0x%" PRIxGRUB_SIZE "\n",
 		initrd_mem, initrd_mem_target, size);
 
-  linux_params.ramdisk_image = initrd_mem_target;
-  linux_params.ramdisk_size = size;
-  linux_params.root_dev = 0x0100; /* XXX */
+  linux_params.hdr.ramdisk_image = initrd_mem_target;
+  linux_params.hdr.ramdisk_size = size;
+  linux_params.hdr.root_dev = 0x0100; /* XXX */
 
  fail:
   grub_initrd_close (&initrd_ctx);
