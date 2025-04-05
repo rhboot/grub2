@@ -21,6 +21,11 @@
 #include <grub/i18n.h>
 #include <grub/misc.h>
 #include <grub/mm.h>
+#ifdef GRUB_MACHINE_EMU
+#include <grub/dl.h>
+
+GRUB_MOD_LICENSE ("GPLv3+");
+#endif
 
 static const char *const grub_weekday_names[] =
 {
