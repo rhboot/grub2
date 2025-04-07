@@ -61,7 +61,8 @@ typedef enum protect_opt
   PROTECT_OPT_TPM2_KEYFILE,
   PROTECT_OPT_TPM2_OUTFILE,
   PROTECT_OPT_TPM2_EVICT,
-  PROTECT_OPT_TPM2_TPM2KEY
+  PROTECT_OPT_TPM2_TPM2KEY,
+  PROTECT_OPT_TPM2_NVINDEX,
 } protect_opt_t;
 
 /* Option flags to keep track of specified arguments */
@@ -79,7 +80,8 @@ typedef enum protect_arg
   PROTECT_ARG_TPM2_KEYFILE    = 1 << 7,
   PROTECT_ARG_TPM2_OUTFILE    = 1 << 8,
   PROTECT_ARG_TPM2_EVICT      = 1 << 9,
-  PROTECT_ARG_TPM2_TPM2KEY    = 1 << 10
+  PROTECT_ARG_TPM2_TPM2KEY    = 1 << 10,
+  PROTECT_ARG_TPM2_NVINDEX    = 1 << 11
 } protect_arg_t;
 
 typedef enum protect_protector
@@ -111,6 +113,7 @@ typedef struct protect_args
   const char *tpm2_outfile;
   bool tpm2_evict;
   bool tpm2_tpm2key;
+  TPM_HANDLE_t tpm2_nvindex;
 } protect_args_t;
 
 static struct argp_option protect_options[] =
@@ -222,6 +225,15 @@ static struct argp_option protect_options[] =
       .flags = 0,
       .doc   =
 	N_("Use TPM 2.0 Key File format."),
+      .group = 0
+    },
+    {
+      .name = "tpm2-nvindex",
+      .key   = PROTECT_OPT_TPM2_NVINDEX,
+      .arg   = "NUM",
+      .flags = 0,
+      .doc   =
+	N_("Store the sealed key in a persistent or NV index handle."),
       .group = 0
     },
     /* End of list */
@@ -668,8 +680,8 @@ extern asn1_static_node tpm2key_asn1_tab[];
 #define TPM2KEY_SEALED_KEY_OID "2.23.133.10.1.5"
 
 static grub_err_t
-protect_tpm2_export_tpm2key (const protect_args_t *args,
-			     tpm2_sealed_key_t *sealed_key)
+protect_tpm2_export_tpm2key (const protect_args_t *args, tpm2_sealed_key_t *sealed_key,
+			     void **der_buf, int *der_buf_size)
 {
   const char *sealed_key_oid = TPM2KEY_SEALED_KEY_OID;
   asn1_node asn1_def = NULL;
@@ -689,11 +701,12 @@ protect_tpm2_export_tpm2key (const protect_args_t *args,
   };
   struct grub_tpm2_buffer pub_buf;
   struct grub_tpm2_buffer priv_buf;
-  void *der_buf = NULL;
-  int der_buf_size = 0;
   int i;
   int ret;
   grub_err_t err;
+
+  if (der_buf == NULL)
+    return GRUB_ERR_BAD_ARGUMENT;
 
   for (i = 0; i < args->tpm2_pcr_count; i++)
     TPMS_PCR_SELECTION_SelectPCR (&pcr_sel.pcrSelections[0], args->tpm2_pcrs[i]);
@@ -844,8 +857,8 @@ protect_tpm2_export_tpm2key (const protect_args_t *args,
     }
 
   /* Create the DER binary */
-  der_buf_size = 0;
-  ret = asn1_der_coding (tpm2key, "", NULL, &der_buf_size, NULL);
+  *der_buf_size = 0;
+  ret = asn1_der_coding (tpm2key, "", NULL, der_buf_size, NULL);
   if (ret != ASN1_MEM_ERROR)
     {
       fprintf (stderr, "Failed to get DER size: 0x%x\n", ret);
@@ -853,15 +866,15 @@ protect_tpm2_export_tpm2key (const protect_args_t *args,
       goto error;
     }
 
-  der_buf = grub_malloc (der_buf_size);
-  if (der_buf == NULL)
+  *der_buf = grub_malloc (*der_buf_size);
+  if (*der_buf == NULL)
     {
       fprintf (stderr, "Failed to allocate memory for DER encoding\n");
       err = GRUB_ERR_OUT_OF_MEMORY;
       goto error;
     }
 
-  ret = asn1_der_coding (tpm2key, "", der_buf, &der_buf_size, NULL);
+  ret = asn1_der_coding (tpm2key, "", *der_buf, der_buf_size, NULL);
   if (ret != ASN1_SUCCESS)
     {
       fprintf (stderr, "DER coding error: 0x%x\n", ret);
@@ -869,13 +882,7 @@ protect_tpm2_export_tpm2key (const protect_args_t *args,
       goto error;
     }
 
-  err = protect_write_file (args->tpm2_outfile, der_buf, der_buf_size);
-  if (err != GRUB_ERR_NONE)
-    fprintf (stderr, N_("Could not write tpm2key file (%s).\n"), strerror (errno));
-
  error:
-  grub_free (der_buf);
-
   if (tpm2key)
     asn1_delete_structure (&tpm2key);
 
@@ -883,10 +890,8 @@ protect_tpm2_export_tpm2key (const protect_args_t *args,
 }
 
 static grub_err_t
-protect_tpm2_export_sealed_key (const char *filepath,
-				tpm2_sealed_key_t *sealed_key)
+protect_tpm2_export_raw (tpm2_sealed_key_t *sealed_key, void **out_buf, int *out_buf_size)
 {
-  grub_err_t err;
   struct grub_tpm2_buffer buf;
 
   grub_tpm2_buffer_init (&buf);
@@ -896,11 +901,96 @@ protect_tpm2_export_sealed_key (const char *filepath,
   if (buf.error != 0)
     return GRUB_ERR_BAD_ARGUMENT;
 
-  err = protect_write_file (filepath, buf.data, buf.size);
-  if (err != GRUB_ERR_NONE)
-    fprintf (stderr, N_("Could not write sealed key file (%s).\n"), strerror (errno));
+  *out_buf_size = buf.size;
+  *out_buf = grub_malloc (buf.size);
+
+  if (*out_buf == NULL)
+    {
+      fprintf (stderr, N_("Could not allocate memory for the raw format key.\n"));
+      return GRUB_ERR_OUT_OF_MEMORY;
+    }
+
+  grub_memcpy (*out_buf, buf.data, buf.size);
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+protect_tpm2_export_persistent (protect_args_t *args,
+				TPM_HANDLE_t srk_handle,
+				tpm2_sealed_key_t *sealed_key)
+{
+  TPMS_AUTH_COMMAND_t authCmd = {0};
+  TPM2B_NAME_t name = {0};
+  TPM_HANDLE_t sealed_handle;
+  TPM_RC_t rc;
+  grub_err_t err = GRUB_ERR_NONE;
+
+  /* Load the sealed key and associate it with the SRK */
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_load (srk_handle, &authCmd, &sealed_key->private, &sealed_key->public,
+		       &sealed_handle, &name, NULL);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to load sealed key (TPM2_Load: %x).\n", rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  /* Make the sealed key object persistent */
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_evictcontrol (TPM_RH_OWNER, sealed_handle, &authCmd, args->tpm2_nvindex, NULL);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to make sealed key persistent with handle 0x%x (TPM2_EvictControl: 0x%x).\n", args->tpm2_nvindex, rc);
+      err = GRUB_ERR_BAD_DEVICE;
+      goto exit;
+    }
+
+ exit:
+  grub_tpm2_flushcontext (sealed_handle);
 
   return err;
+}
+
+static grub_err_t
+protect_tpm2_export_nvindex (protect_args_t *args, void *data, int data_size)
+{
+  TPMS_AUTH_COMMAND_t authCmd = {0};
+  TPM2B_NV_PUBLIC_t pub_info = {0};
+  TPM2B_MAX_NV_BUFFER_t nv_data = {0};
+  TPM_RC_t rc;
+
+  if (data_size > TPM_MAX_NV_BUFFER_SIZE || data_size < 0)
+    {
+      fprintf (stderr, N_("Invalid tpm2key size for TPM NV buffer\n"));
+      return GRUB_ERR_OUT_OF_RANGE;
+    }
+
+  pub_info.nvPublic.nvIndex = args->tpm2_nvindex;
+  pub_info.nvPublic.nameAlg = TPM_ALG_SHA256;
+  pub_info.nvPublic.attributes = TPMA_NV_OWNERWRITE | TPMA_NV_OWNERREAD;
+  pub_info.nvPublic.dataSize = (grub_uint16_t) data_size;
+
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_nv_definespace (TPM_RH_OWNER, &authCmd, NULL, &pub_info);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to define NV space for 0x%x (TPM2_NV_DefineSpace: 0x%x)\n", args->tpm2_nvindex, rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  authCmd.sessionHandle = TPM_RS_PW;
+  grub_memcpy (nv_data.buffer, data, data_size);
+  nv_data.size = (grub_uint16_t) data_size;
+
+  rc = grub_tpm2_nv_write (TPM_RH_OWNER, args->tpm2_nvindex, &authCmd, &nv_data, 0);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to write data into 0x%x (TPM2_NV_Write: 0x%x)\n", args->tpm2_nvindex, rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -911,6 +1001,8 @@ protect_tpm2_add (protect_args_t *args)
   grub_size_t key_size;
   TPM_HANDLE_t srk;
   TPM2B_DIGEST_t policy_digest;
+  void *out_buf = NULL;
+  int out_buf_size;
   tpm2_sealed_key_t sealed_key;
 
   err = protect_tpm2_open_device (args->tpm2_device);
@@ -940,15 +1032,51 @@ protect_tpm2_add (protect_args_t *args)
   if (err != GRUB_ERR_NONE)
     goto exit3;
 
-  if (args->tpm2_tpm2key != 0)
-    err = protect_tpm2_export_tpm2key (args, &sealed_key);
+  if (args->tpm2_tpm2key == true)
+    {
+      err = protect_tpm2_export_tpm2key (args, &sealed_key, &out_buf, &out_buf_size);
+      if (err != GRUB_ERR_NONE)
+	{
+	  fprintf (stderr, N_("Could not export to TPM 2.0 Key File format\n"));
+	  goto exit3;
+	}
+    }
   else
-    err = protect_tpm2_export_sealed_key (args->tpm2_outfile, &sealed_key);
-  if (err != GRUB_ERR_NONE)
-    goto exit3;
+    {
+      err = protect_tpm2_export_raw (&sealed_key, &out_buf, &out_buf_size);
+      if (err != GRUB_ERR_NONE)
+	{
+	  fprintf (stderr, N_("Could not export to the raw format\n"));
+	  goto exit3;
+	}
+    }
+
+  if (args->tpm2_outfile != NULL)
+    {
+      err = protect_write_file (args->tpm2_outfile, out_buf, out_buf_size);
+      if (err != GRUB_ERR_NONE)
+	{
+	  fprintf (stderr, N_("Could not write key file (%s).\n"), strerror (errno));
+	  goto exit3;
+	}
+    }
+
+  if (TPM_HT_IS_NVINDEX (args->tpm2_nvindex) == true)
+    {
+      err = protect_tpm2_export_nvindex (args, out_buf, out_buf_size);
+      if (err != GRUB_ERR_NONE)
+	goto exit3;
+    }
+  else if (TPM_HT_IS_PERSISTENT (args->tpm2_nvindex) == true)
+    {
+      err = protect_tpm2_export_persistent (args, srk, &sealed_key);
+      if (err != GRUB_ERR_NONE)
+	goto exit3;
+    }
 
  exit3:
   grub_tpm2_flushcontext (srk);
+  grub_free (out_buf);
 
  exit2:
   grub_free (key);
@@ -960,14 +1088,66 @@ protect_tpm2_add (protect_args_t *args)
 }
 
 static grub_err_t
-protect_tpm2_remove (protect_args_t *args)
+protect_tpm2_evict (TPM_HANDLE_t handle)
 {
   TPM_RC_t rc;
   TPM2B_PUBLIC_t public;
-  TPMS_AUTH_COMMAND_t authCommand = {0};
+  TPMS_AUTH_COMMAND_t authCmd = {0};
+
+  /* Find the persistent handle */
+  rc = grub_tpm2_readpublic (handle, NULL, &public);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Handle 0x%x not found.\n", handle);
+      return GRUB_ERR_BAD_ARGUMENT;
+    }
+
+  /* Evict the persistent handle */
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_evictcontrol (TPM_RH_OWNER, handle, &authCmd, handle, NULL);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to evict handle 0x%x (TPM2_EvictControl: 0x%x).\n", handle, rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+protect_tpm2_nv_undefine (TPM_HANDLE_t handle)
+{
+  TPM_RC_t rc;
+  TPM2B_NV_PUBLIC_t nv_public;
+  TPMS_AUTH_COMMAND_t authCmd = {0};
+  TPM2B_NAME_t nv_name;
+
+  /* Find the nvindex handle */
+  rc = grub_tpm2_nv_readpublic (handle, NULL, &nv_public, &nv_name);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Handle 0x%x not found.\n", handle);
+      return GRUB_ERR_BAD_ARGUMENT;
+    }
+
+  /* Undefine the nvindex handle */
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_nv_undefinespace (TPM_RH_OWNER, handle, &authCmd);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      fprintf (stderr, "Failed to undefine handle 0x%x (TPM2_NV_UndefineSpace: 0x%x).\n", handle, rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+protect_tpm2_remove (protect_args_t *args)
+{
   grub_err_t err;
 
-  if (args->tpm2_evict == 0)
+  if (args->tpm2_evict == false)
     {
       printf ("--tpm2-evict not specified, nothing to do.\n");
       return GRUB_ERR_NONE;
@@ -977,35 +1157,41 @@ protect_tpm2_remove (protect_args_t *args)
   if (err != GRUB_ERR_NONE)
     return err;
 
-  /* Find SRK */
-  rc = grub_tpm2_readpublic (args->tpm2_srk, NULL, &public);
-  if (rc != TPM_RC_SUCCESS)
+  if (args->tpm2_srk != 0)
     {
-      fprintf (stderr, "SRK with handle 0x%x not found.\n", args->tpm2_srk);
-      err = GRUB_ERR_BAD_ARGUMENT;
-      goto exit1;
+      err = protect_tpm2_evict (args->tpm2_srk);
+      if (err != GRUB_ERR_NONE)
+	goto exit;
     }
 
-  /* Evict SRK */
-  authCommand.sessionHandle = TPM_RS_PW;
-
-  rc = grub_tpm2_evictcontrol (TPM_RH_OWNER, args->tpm2_srk, &authCommand, args->tpm2_srk, NULL);
-  if (rc != TPM_RC_SUCCESS)
+  if (args->tpm2_nvindex != 0)
     {
-      fprintf (stderr, "Failed to evict SRK with handle 0x%x (TPM2_EvictControl: 0x%x).\n", args->tpm2_srk, rc);
-      err = GRUB_ERR_BAD_DEVICE;
-      goto exit2;
+      if (TPM_HT_IS_PERSISTENT (args->tpm2_nvindex) == true)
+	{
+	  err = protect_tpm2_evict (args->tpm2_nvindex);
+	  if (err != GRUB_ERR_NONE)
+	    goto exit;
+	}
+      else if (TPM_HT_IS_NVINDEX (args->tpm2_nvindex) == true)
+	{
+	  err = protect_tpm2_nv_undefine (args->tpm2_nvindex);
+	  if (err != GRUB_ERR_NONE)
+	    goto exit;
+	}
+      else
+	{
+	  fprintf (stderr, "Unsupported handle 0x%x\n", args->tpm2_nvindex);
+	  err = GRUB_ERR_BAD_ARGUMENT;
+	  goto exit;
+	}
     }
 
   err = GRUB_ERR_NONE;
 
- exit2:
-  grub_tpm2_flushcontext (args->tpm2_srk);
-
- exit1:
+ exit:
   protect_tpm2_close_device ();
 
-  return GRUB_ERR_NONE;
+  return err;
 }
 
 static grub_err_t
@@ -1045,9 +1231,36 @@ protect_tpm2_args_verify (protect_args_t *args)
 	  return GRUB_ERR_BAD_ARGUMENT;
 	}
 
-      if (args->tpm2_outfile == NULL)
+      if (args->tpm2_outfile == NULL && args->tpm2_nvindex == 0)
 	{
-	  fprintf (stderr, N_("--tpm2-outfile must be specified.\n"));
+	  fprintf (stderr, N_("--tpm2-outfile or --tpm2-nvindex must be specified.\n"));
+	  return GRUB_ERR_BAD_ARGUMENT;
+	}
+
+      if (args->tpm2_nvindex != 0)
+	{
+	  if (args->tpm2_tpm2key == true && TPM_HT_IS_PERSISTENT (args->tpm2_nvindex) == true)
+	    {
+	      fprintf (stderr, N_("Persistent handle does not support TPM 2.0 Key File format.\n"));
+	      return GRUB_ERR_BAD_ARGUMENT;
+	    }
+
+	  if (TPM_HT_IS_PERSISTENT (args->tpm2_nvindex) == false && TPM_HT_IS_NVINDEX (args->tpm2_nvindex) == false)
+	    {
+	      fprintf (stderr, N_("--tpm2-nvindex must be a persistent or NV index handle.\n"));
+	      return GRUB_ERR_BAD_ARGUMENT;
+	    }
+
+	  if (args->tpm2_nvindex == args->tpm2_srk)
+	    {
+	      fprintf (stderr, N_("--tpm2-nvindex and --tpm2-srk must be different.\n"));
+	      return GRUB_ERR_BAD_ARGUMENT;
+	    }
+	}
+
+      if (args->tpm2_srk != 0 && TPM_HT_IS_PERSISTENT(args->tpm2_srk) == false)
+	{
+	  fprintf (stderr, N_("--tpm2-srk must be a persistent handle, e.g. 0x81000000.\n"));
 	  return GRUB_ERR_BAD_ARGUMENT;
 	}
 
@@ -1099,9 +1312,9 @@ protect_tpm2_args_verify (protect_args_t *args)
 	  return GRUB_ERR_BAD_ARGUMENT;
 	}
 
-      if (args->tpm2_srk == 0)
+      if (args->tpm2_srk == 0 && args->tpm2_nvindex == 0)
 	{
-	  fprintf (stderr, N_("--tpm2-srk is not specified when --action is 'remove'.\n"));
+	  fprintf (stderr, N_("missing --tpm2-srk or --tpm2-nvindex for --action 'remove'.\n"));
 	  return GRUB_ERR_BAD_ARGUMENT;
 	}
 
@@ -1274,7 +1487,7 @@ protect_argp_parser (int key, char *arg, struct argp_state *state)
 	  return EINVAL;
 	}
 
-      args->tpm2_evict = 1;
+      args->tpm2_evict = true;
       args->args |= PROTECT_ARG_TPM2_EVICT;
       break;
 
@@ -1285,8 +1498,26 @@ protect_argp_parser (int key, char *arg, struct argp_state *state)
 	  return EINVAL;
 	}
 
-      args->tpm2_tpm2key = 1;
+      args->tpm2_tpm2key = true;
       args->args |= PROTECT_ARG_TPM2_TPM2KEY;
+      break;
+
+    case PROTECT_OPT_TPM2_NVINDEX:
+      if (args->args & PROTECT_ARG_TPM2_NVINDEX)
+	{
+	  fprintf (stderr, N_("--tpm2-nvindex can only be specified once.\n"));
+	  return EINVAL;
+	}
+
+      err = grub_tpm2_protector_parse_tpm_handle (arg, &args->tpm2_nvindex);
+      if (err != GRUB_ERR_NONE)
+	{
+	  if (grub_errno != GRUB_ERR_NONE)
+	    grub_print_error ();
+	  return EINVAL;
+	}
+
+      args->args |= PROTECT_ARG_TPM2_NVINDEX;
       break;
 
     default:
