@@ -383,6 +383,7 @@ grub_load_elf64 (grub_file_t file, void *buffer, const char *filename)
     {
       kernel_mem = grub_efi_allocate_fixed (low_addr, kernel_pages);
       reloc_offset = 0;
+      grub_errno = GRUB_ERR_NONE;
     }
   /* Try to relocate.  */
   if (! kernel_mem && (!relocate || grub_strcmp (relocate, "off") != 0))
