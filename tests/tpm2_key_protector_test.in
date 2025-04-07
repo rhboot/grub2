@@ -225,105 +225,22 @@ EOF
     fi
 }
 
-tpm2_seal_nv () {
-    keyfile="$1"
-    nv_index="$2"
-    pcr_list="$3"
-
-    primary_file=${tpm2testdir}/primary.ctx
-    session_file=${tpm2testdir}/session.dat
-    policy_file=${tpm2testdir}/policy.dat
-    keypub_file=${tpm2testdir}/key.pub
-    keypriv_file=${tpm2testdir}/key.priv
-    name_file=${tpm2testdir}/sealing.name
-    sealing_ctx_file=${tpm2testdir}/sealing.ctx
-
-    # Since we don't run a resource manager on our swtpm instance, it has
-    # to flush the transient handles after tpm2_createprimary, tpm2_create
-    # and tpm2_load to avoid the potential out-of-memory (0x902) errors.
-    # Ref: https://github.com/tpm2-software/tpm2-tools/issues/1338#issuecomment-469689398
-
-    # Create the primary object
-    tpm2_createprimary -Q -C o -g sha256 -G ecc -c "${primary_file}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to create the primary object: ${ret}" >&2
-	return 1
-    fi
-    tpm2_flushcontext -t || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to flush the transient handles: ${ret}" >&2
-	return 1
-    fi
-
-    # Create the policy object
-    tpm2_startauthsession -S "${session_file}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to start auth session: ${ret}" >&2
-	return 1
-    fi
-    tpm2_policypcr -Q -S "${session_file}" -l "${pcr_list}" -L "${policy_file}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to create the policy object: ${ret}" >&2
-	return 1
-    fi
-    tpm2_flushcontext "${session_file}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to flush the transient handles: ${ret}" >&2
-	return 1
-    fi
-
-    # Seal the key into TPM
-    tpm2_create -Q \
-	-C "${primary_file}" \
-	-u "${keypub_file}" \
-	-r "${keypriv_file}" \
-	-L "${policy_file}" \
-	-i "${keyfile}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to seal \"${keyfile}\": ${ret}" >&2
-	return 1
-    fi
-    tpm2_flushcontext -t || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to flush the transient handles: ${ret}" >&2
-	return 1
-    fi
-
-    tpm2_load -Q \
-	-C "${primary_file}" \
-	-u "${keypub_file}" \
-	-r "${keypriv_file}" \
-	-n "${name_file}" \
-	-c "${sealing_ctx_file}" || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to load the sealed key into TPM: ${ret}" >&2
-	return 1
-    fi
-    tpm2_flushcontext -t || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to flush the transient handles: ${ret}" >&2
-	return 1
-    fi
-
-    tpm2_evictcontrol -Q -C o -c "${sealing_ctx_file}" ${nv_index} || ret=$?
-    if [ "${ret}" -ne 0 ]; then
-	echo "Failed to store the sealed key into ${nv_index}: ${ret}" >&2
-	return 1
-    fi
-
-    return 0
-}
-
 tpm2_seal_unseal_nv() {
     nv_index="0x81000000"
-    pcr_list="sha256:0,1"
 
     grub_cfg=${tpm2testdir}/testcase.cfg
 
     # Seal the key into a NV index guarded by PCR 0 and 1
-    tpm2_seal_nv "${lukskeyfile}" ${nv_index} ${pcr_list} || ret=$?
+    grub-protect ${extra_opt} \
+	--tpm2-device="${tpm2dev}" \
+	--action=add \
+	--protector=tpm2 \
+	--tpm2-bank=sha256 \
+	--tpm2-pcrs=0,1 \
+	--tpm2-keyfile="${lukskeyfile}" \
+	--tpm2-nvindex="${nv_index}" || ret=$?
     if [ "${ret}" -ne 0 ]; then
-	echo "Failed to seal the secret key into ${nv_index}" >&2
+	echo "Failed to seal the secret key into ${nv_index}: ${ret}" >&2
 	return 99
     fi
 
@@ -340,7 +257,12 @@ EOF
     ${grubshell} --timeout=${timeout} --emu-opts="-t ${tpm2dev}" < "${grub_cfg}" > "${testoutput}" || ret=$?
 
     # Remove the object from the NV index
-    tpm2_evictcontrol -Q -C o -c "${nv_index}" || :
+    grub-protect \
+	--tpm2-device="${tpm2dev}" \
+	--protector=tpm2 \
+	--action=remove \
+	--tpm2-nvindex=${nv_index} \
+	--tpm2-evict || :
 
     if [ "${ret}" -eq 0 ]; then
 	if ! grep -q "^${vtext}$" "${testoutput}"; then
