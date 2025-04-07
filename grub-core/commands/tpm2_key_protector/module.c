@@ -160,6 +160,8 @@ static grub_extcmd_t tpm2_protector_init_cmd;
 static grub_extcmd_t tpm2_protector_clear_cmd;
 static tpm2_protector_context_t tpm2_protector_ctx = {0};
 
+static grub_command_t tpm2_dump_pcr_cmd;
+
 static grub_err_t
 tpm2_protector_srk_read_file (const char *filepath, void **buffer, grub_size_t *buffer_size)
 {
@@ -1315,6 +1317,33 @@ static struct grub_key_protector tpm2_key_protector =
     .recover_key = tpm2_protector_recover_key
   };
 
+static grub_err_t
+tpm2_dump_pcr (grub_command_t cmd __attribute__((__unused__)),
+	       int argc, char *argv[])
+{
+  TPM_ALG_ID_t pcr_bank;
+
+  if (argc == 0)
+    pcr_bank = TPM_ALG_SHA256;
+  else if (grub_strcmp (argv[0], "sha1") == 0)
+    pcr_bank = TPM_ALG_SHA1;
+  else if (grub_strcmp (argv[0], "sha256") == 0)
+    pcr_bank = TPM_ALG_SHA256;
+  else if (grub_strcmp (argv[0], "sha384") == 0)
+    pcr_bank = TPM_ALG_SHA384;
+  else if (grub_strcmp (argv[0], "sha512") == 0)
+    pcr_bank = TPM_ALG_SHA512;
+  else
+    {
+      grub_printf ("Unknown PCR bank\n");
+      return GRUB_ERR_BAD_ARGUMENT;
+    }
+
+  tpm2_protector_dump_pcr (pcr_bank);
+
+  return GRUB_ERR_NONE;
+}
+
 GRUB_MOD_INIT (tpm2_key_protector)
 {
   tpm2_protector_init_cmd =
@@ -1336,6 +1365,10 @@ GRUB_MOD_INIT (tpm2_key_protector)
 			  N_("Clear the TPM2 key protector if previously initialized."),
 			  NULL);
   grub_key_protector_register (&tpm2_key_protector);
+
+  tpm2_dump_pcr_cmd =
+    grub_register_command ("tpm2_dump_pcr", tpm2_dump_pcr, N_("Dump TPM2 PCRs"),
+			   N_("Print all PCRs of the specified TPM 2.0 bank"));
 }
 
 GRUB_MOD_FINI (tpm2_key_protector)
@@ -1345,4 +1378,6 @@ GRUB_MOD_FINI (tpm2_key_protector)
   grub_key_protector_unregister (&tpm2_key_protector);
   grub_unregister_extcmd (tpm2_protector_clear_cmd);
   grub_unregister_extcmd (tpm2_protector_init_cmd);
+
+  grub_unregister_command (tpm2_dump_pcr_cmd);
 }

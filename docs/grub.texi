@@ -6488,6 +6488,7 @@ you forget a command, you can run the command @command{help}
 * test::                        Check file types and compare values
 * tpm2_key_protector_init::     Initialize the TPM2 key protector
 * tpm2_key_protector_clear::    Clear the TPM2 key protector
+* tpm2_dump_pcr::               Dump TPM2 PCRs
 * true::                        Do nothing, successfully
 * trust::                       Add public key to list of trusted keys
 * unset::                       Unset an environment variable
@@ -8102,6 +8103,18 @@ key and unseal it with the given PCR list and bank.
 
 @deffn Command tpm2_key_protector_clear
 Clear the TPM2 key protector if previously initialized.
+@end deffn
+
+@node tpm2_dump_pcr
+@subsection tpm2_dump_pcr
+
+@deffn Command tpm2_dump_pcr [@var{bank}]
+Print all PCRs of the specified TPM 2.0 @var{bank}. The supported banks are
+@samp{sha1}, @samp{sha256}, @samp{sha384}, and @samp{sha512}. If @var{bank}
+is not specified, @samp{sha256} is chosen by default.
+
+Since GRUB measures every command into PCR 8, invoking @command{tpm2_dump_pcr}
+also extends PCR 8, so PCR 8 will not be a stable value in GRUB shell.
 @end deffn
 
 @node true
