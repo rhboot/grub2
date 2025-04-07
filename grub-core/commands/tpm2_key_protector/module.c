@@ -790,7 +790,7 @@ tpm2_protector_simple_policy_seq (const tpm2_protector_context_t *ctx,
 
 static grub_err_t
 tpm2_protector_unseal (tpm2key_policy_t policy_seq, TPM_HANDLE_t sealed_handle,
-		       grub_uint8_t **key, grub_size_t *key_size)
+		       grub_uint8_t **key, grub_size_t *key_size, bool *dump_pcr)
 {
   TPMS_AUTH_COMMAND_t authCmd = {0};
   TPM2B_SENSITIVE_DATA_t data;
@@ -800,6 +800,8 @@ tpm2_protector_unseal (tpm2key_policy_t policy_seq, TPM_HANDLE_t sealed_handle,
   grub_uint8_t *key_out;
   TPM_RC_t rc;
   grub_err_t err;
+
+  *dump_pcr = false;
 
   /* Start Auth Session */
   nonceCaller.size = TPM_SHA256_DIGEST_SIZE;
@@ -820,6 +822,13 @@ tpm2_protector_unseal (tpm2key_policy_t policy_seq, TPM_HANDLE_t sealed_handle,
   rc = grub_tpm2_unseal (sealed_handle, &authCmd, &data, NULL);
   if (rc != TPM_RC_SUCCESS)
     {
+      /*
+       * Trigger PCR dump on policy fail
+       * TPM_RC_S (0x800) | TPM_RC_1 (0x100) | RC_FMT (0x80) | TPM_RC_POLICY_FAIL (0x1D)
+       */
+      if (rc == 0x99D)
+	*dump_pcr = true;
+
       err = grub_error (GRUB_ERR_BAD_DEVICE, "failed to unseal sealed key (TPM2_Unseal: 0x%x)", rc);
       goto error;
     }
@@ -845,6 +854,91 @@ tpm2_protector_unseal (tpm2key_policy_t policy_seq, TPM_HANDLE_t sealed_handle,
   return err;
 }
 
+#define TPM_PCR_STR_SIZE (sizeof (TPMU_HA_t) * 2 + 1)
+
+static grub_err_t
+tpm2_protector_get_pcr_str (const TPM_ALG_ID_t algo, grub_uint32_t index, char *pcr_str, grub_uint16_t buf_size)
+{
+  TPML_PCR_SELECTION_t pcr_sel = {
+    .count = 1,
+    .pcrSelections = {
+      {
+	.hash = algo,
+	.sizeOfSelect = 3,
+	.pcrSelect = {0}
+      },
+    }
+  };
+  TPML_DIGEST_t digest = {0};
+  grub_uint16_t i;
+  TPM_RC_t rc;
+
+  if (buf_size < TPM_PCR_STR_SIZE)
+    {
+      grub_snprintf (pcr_str, buf_size, "insufficient buffer");
+      return GRUB_ERR_OUT_OF_MEMORY;
+    }
+
+  TPMS_PCR_SELECTION_SelectPCR (&pcr_sel.pcrSelections[0], index);
+
+  rc = grub_tpm2_pcr_read (NULL, &pcr_sel, NULL, NULL, &digest, NULL);
+  if (rc != TPM_RC_SUCCESS)
+    {
+      grub_snprintf (pcr_str, buf_size, "TPM2_PCR_Read: 0x%x", rc);
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  /* Check the returned digest number and size */
+  if (digest.count != 1 || digest.digests[0].size > sizeof (TPMU_HA_t))
+    {
+      grub_snprintf (pcr_str, buf_size, "invalid digest");
+      return GRUB_ERR_BAD_DEVICE;
+    }
+
+  /* Print the digest to the buffer */
+  for (i = 0; i < digest.digests[0].size; i++)
+    grub_snprintf (pcr_str + 2 * i, buf_size - 2 * i, "%02x", digest.digests[0].buffer[i]);
+
+  return GRUB_ERR_NONE;
+}
+
+static void
+tpm2_protector_dump_pcr (const TPM_ALG_ID_t bank)
+{
+  const char *algo_name;
+  char pcr_str[TPM_PCR_STR_SIZE];
+  grub_uint8_t i;
+  grub_err_t err;
+
+  if (bank == TPM_ALG_SHA1)
+    algo_name = "sha1";
+  else if (bank == TPM_ALG_SHA256)
+    algo_name = "sha256";
+  else if (bank == TPM_ALG_SHA384)
+    algo_name = "sha384";
+  else if (bank == TPM_ALG_SHA512)
+    algo_name = "sha512";
+  else
+    algo_name = "other";
+
+  /* Try to fetch PCR 0 */
+  err = tpm2_protector_get_pcr_str (bank, 0, pcr_str, sizeof (pcr_str));
+  if (err != GRUB_ERR_NONE)
+    {
+      grub_printf ("Unsupported PCR bank [%s]: %s\n", algo_name, pcr_str);
+      return;
+    }
+
+  grub_printf ("TPM PCR [%s]:\n", algo_name);
+
+  grub_printf ("  %02d: %s\n", 0, pcr_str);
+  for (i = 1; i < TPM_MAX_PCRS; i++)
+    {
+      tpm2_protector_get_pcr_str (bank, i, pcr_str, sizeof (pcr_str));
+      grub_printf ("  %02d: %s\n", i, pcr_str);
+    }
+}
+
 static grub_err_t
 tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
 			    grub_uint8_t **key, grub_size_t *key_size)
@@ -859,6 +953,7 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
   tpm2key_policy_t policy_seq = NULL;
   tpm2key_authpolicy_t authpol = NULL;
   tpm2key_authpolicy_t authpol_seq = NULL;
+  bool dump_pcr = false;
   grub_err_t err;
 
   /*
@@ -924,7 +1019,7 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
   /* Iterate the authpolicy sequence to find one that unseals the key */
   FOR_LIST_ELEMENTS (authpol, authpol_seq)
     {
-      err = tpm2_protector_unseal (authpol->policy_seq, sealed_handle, key, key_size);
+      err = tpm2_protector_unseal (authpol->policy_seq, sealed_handle, key, key_size, &dump_pcr);
       if (err == GRUB_ERR_NONE)
         break;
 
@@ -952,12 +1047,19 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
 	    goto exit2;
 	}
 
-      err = tpm2_protector_unseal (policy_seq, sealed_handle, key, key_size);
+      err = tpm2_protector_unseal (policy_seq, sealed_handle, key, key_size, &dump_pcr);
     }
 
   /* Pop error messages on success */
   if (err == GRUB_ERR_NONE)
     while (grub_error_pop ());
+
+  /* Dump PCRs if necessary */
+  if (dump_pcr == true)
+    {
+      grub_printf ("PCR Mismatch! Check firmware and bootloader before typing passphrase!\n");
+      tpm2_protector_dump_pcr (ctx->bank);
+    }
 
  exit2:
   grub_tpm2_flushcontext (sealed_handle);
@@ -978,6 +1080,7 @@ tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
 {
   TPM_HANDLE_t sealed_handle = ctx->nv;
   tpm2key_policy_t policy_seq = NULL;
+  bool dump_pcr = false;
   grub_err_t err;
 
   /* Create a basic policy sequence based on the given PCR selection */
@@ -985,7 +1088,14 @@ tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
   if (err != GRUB_ERR_NONE)
     goto exit;
 
-  err = tpm2_protector_unseal (policy_seq, sealed_handle, key, key_size);
+  err = tpm2_protector_unseal (policy_seq, sealed_handle, key, key_size, &dump_pcr);
+
+  /* Dump PCRs if necessary */
+  if (dump_pcr == true)
+    {
+      grub_printf ("PCR Mismatch! Check firmware and bootloader before typing passphrase!\n");
+      tpm2_protector_dump_pcr (ctx->bank);
+    }
 
  exit:
   grub_tpm2_flushcontext (sealed_handle);
