@@ -341,6 +341,8 @@ grub_tpm2_readpublic (const TPMI_DH_OBJECT_t objectHandle,
   /* Marshal */
   grub_tpm2_buffer_init (&in);
   grub_tpm2_buffer_pack_u32 (&in, objectHandle);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
   if (in.error != 0)
     return TPM_RC_FAILURE;
 
@@ -398,7 +400,7 @@ grub_tpm2_load (const TPMI_DH_OBJECT_t parent_handle,
   /* Marshal */
   grub_tpm2_buffer_init (&in);
   grub_tpm2_buffer_pack_u32 (&in, parent_handle);
-  if (authCommand)
+  if (authCommand != NULL)
     grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
   grub_Tss2_MU_TPM2B_Marshal (&in, inPrivate->size, inPrivate->buffer);
   grub_Tss2_MU_TPM2B_PUBLIC_Marshal (&in, inPublic);
@@ -461,9 +463,9 @@ grub_tpm2_loadexternal (const TPMS_AUTH_COMMAND_t *authCommand,
 
   /* Marshal */
   grub_tpm2_buffer_init (&in);
-  if (authCommand)
+  if (authCommand != NULL)
     grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
-  if (inPrivate)
+  if (inPrivate != NULL)
     grub_Tss2_MU_TPM2B_SENSITIVE_Marshal (&in, inPrivate);
   else
     grub_tpm2_buffer_pack_u16 (&in, 0);
@@ -1023,6 +1025,8 @@ grub_tpm2_testparms (const TPMT_PUBLIC_PARMS_t *parms,
   /* Marshal */
   grub_tpm2_buffer_init (&in);
   grub_Tss2_MU_TPMT_PUBLIC_PARMS_Marshal (&in, parms);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
   if (in.error != 0)
     return TPM_RC_FAILURE;
 
