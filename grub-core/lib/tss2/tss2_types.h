@@ -270,6 +270,7 @@ typedef TPM_HANDLE_t TPMI_RH_NV_INDEX_t;
 
 /* TPM_HT_t Constants */
 typedef grub_uint8_t TPM_HT_t;
+#define TPM_HT_NV_INDEX   ((TPM_HT_t) 0x01)
 #define TPM_HT_PERMANENT  ((TPM_HT_t) 0x40)
 #define TPM_HT_PERSISTENT ((TPM_HT_t) 0x81)
 
@@ -300,6 +301,7 @@ typedef TPM_HANDLE_t TPM_HC_t;
 #define TPM_HR_HANDLE_MASK   ((TPM_HC_t) 0x00FFFFFF)
 #define TPM_HR_RANGE_MASK    ((TPM_HC_t) 0xFF000000)
 #define TPM_HR_SHIFT         ((TPM_HC_t) 24)
+#define TPM_HR_NV_INDEX      ((TPM_HC_t) (TPM_HT_NV_INDEX << TPM_HR_SHIFT))
 #define TPM_HR_PERSISTENT    ((TPM_HC_t) (TPM_HT_PERSISTENT << TPM_HR_SHIFT))
 #define TPM_HR_PERMANENT     ((TPM_HC_t) (TPM_HT_PERMANENT << TPM_HR_SHIFT))
 #define TPM_PERSISTENT_FIRST ((TPM_HC_t) (TPM_HR_PERSISTENT + 0))
@@ -308,6 +310,7 @@ typedef TPM_HANDLE_t TPM_HC_t;
 #define TPM_PERMANENT_LAST   ((TPM_HC_t) TPM_RH_LAST)
 
 /* TPM Handle Type Checks */
+#define TPM_HT_IS_NVINDEX(HANDLE) (((HANDLE) >> TPM_HR_SHIFT) == TPM_HT_NV_INDEX)
 #define TPM_HT_IS_PERMANENT(HANDLE) (((HANDLE) >> TPM_HR_SHIFT) == TPM_HT_PERMANENT)
 #define TPM_HT_IS_PERSISTENT(HANDLE) (((HANDLE) >> TPM_HR_SHIFT) == TPM_HT_PERSISTENT)
 
@@ -334,8 +337,11 @@ typedef grub_uint32_t TPM_CC_t;
 #define TPM_CC_ReadPublic       ((TPM_CC_t) 0x00000173)
 #define TPM_CC_StartAuthSession ((TPM_CC_t) 0x00000176)
 #define TPM_CC_PolicyPCR        ((TPM_CC_t) 0x0000017f)
+#define TPM_CC_NV_DefineSpace   ((TPM_CC_t) 0x0000012a)
 #define TPM_CC_NV_Read          ((TPM_CC_t) 0x0000014e)
 #define TPM_CC_NV_ReadPublic    ((TPM_CC_t) 0x00000169)
+#define TPM_CC_NV_Write         ((TPM_CC_t) 0x00000137)
+#define TPM_CC_NV_UndefineSpace ((TPM_CC_t) 0x00000122)
 #define TPM_CC_GetCapability    ((TPM_CC_t) 0x0000017a)
 #define TPM_CC_PCR_Read         ((TPM_CC_t) 0x0000017e)
 #define TPM_CC_Load             ((TPM_CC_t) 0x00000157)

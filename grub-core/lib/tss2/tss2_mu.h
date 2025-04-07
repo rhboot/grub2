@@ -194,6 +194,14 @@ grub_Tss2_MU_TPMT_TK_VERIFIED_Marshal (grub_tpm2_buffer_t buffer,
                                        const TPMT_TK_VERIFIED_t *p);
 
 extern void
+grub_Tss2_MU_TPMS_NV_PUBLIC_Marshal (grub_tpm2_buffer_t buffer,
+				     const TPMS_NV_PUBLIC_t *p);
+
+extern void
+grub_Tss2_MU_TPM2B_NV_PUBLIC_Marshal (grub_tpm2_buffer_t buffer,
+				      const TPM2B_NV_PUBLIC_t *p);
+
+extern void
 grub_Tss2_MU_TPMS_AUTH_RESPONSE_Unmarshal (grub_tpm2_buffer_t buffer,
 					   TPMS_AUTH_RESPONSE_t *p);
 
@@ -335,6 +343,10 @@ grub_Tss2_MU_TPMS_NV_PUBLIC_Unmarshal (grub_tpm2_buffer_t buffer,
 extern void
 grub_Tss2_MU_TPM2B_NV_PUBLIC_Unmarshal (grub_tpm2_buffer_t buffer,
 					TPM2B_NV_PUBLIC_t *p);
+
+extern void
+grub_Tss2_MU_TPM2B_NAX_NV_BUFFER_Unmarshal (grub_tpm2_buffer_t buffer,
+					    TPM2B_MAX_NV_BUFFER_t *p);
 
 extern void
 grub_Tss2_MU_TPM2B_NAME_Unmarshal (grub_tpm2_buffer_t buffer,

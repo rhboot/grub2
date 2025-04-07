@@ -154,4 +154,36 @@ extern TPM_RC_t
 grub_tpm2_testparms (const TPMT_PUBLIC_PARMS_t *parms,
 		     const TPMS_AUTH_COMMAND_t *authCommand);
 
+extern TPM_RC_t
+grub_tpm2_nv_definespace (const TPMI_RH_PROVISION_t authHandle,
+			  const TPMS_AUTH_COMMAND_t *authCommand,
+			  const TPM2B_AUTH_t *auth,
+			  const TPM2B_NV_PUBLIC_t *publicInfo);
+
+extern TPM_RC_t
+grub_tpm2_nv_undefinespace (const TPMI_RH_PROVISION_t authHandle,
+			    const TPMI_RH_NV_INDEX_t nvIndex,
+			    const TPMS_AUTH_COMMAND_t *authCommand);
+
+extern TPM_RC_t
+grub_tpm2_nv_readpublic (const TPMI_RH_NV_INDEX_t nvIndex,
+			 const TPMS_AUTH_COMMAND_t *authCommand,
+			 TPM2B_NV_PUBLIC_t *nvPublic,
+			 TPM2B_NAME_t *nvName);
+
+extern TPM_RC_t
+grub_tpm2_nv_read (const TPMI_RH_NV_AUTH_t authHandle,
+		   const TPMI_RH_NV_INDEX_t nvIndex,
+		   const TPMS_AUTH_COMMAND_t *authCommand,
+		   const grub_uint16_t size,
+		   const grub_uint16_t offset,
+		   TPM2B_MAX_NV_BUFFER_t *data);
+
+extern TPM_RC_t
+grub_tpm2_nv_write (const TPMI_RH_NV_AUTH_t authHandle,
+		    const TPMI_RH_NV_INDEX_t nvIndex,
+		    const TPMS_AUTH_COMMAND_t *authCommand,
+		    const TPM2B_MAX_NV_BUFFER_t *data,
+		    const grub_uint16_t offset);
+
 #endif /* ! GRUB_TPM2_COMMANDS_HEADER */

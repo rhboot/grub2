@@ -1045,3 +1045,204 @@ grub_tpm2_testparms (const TPMT_PUBLIC_PARMS_t *parms,
 
   return TPM_RC_SUCCESS;
 }
+
+TPM_RC_t
+grub_tpm2_nv_definespace (const TPMI_RH_PROVISION_t authHandle,
+			  const TPMS_AUTH_COMMAND_t *authCommand,
+			  const TPM2B_AUTH_t *auth,
+			  const TPM2B_NV_PUBLIC_t *publicInfo)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPMI_ST_COMMAND_TAG_t tag = authCommand ? TPM_ST_SESSIONS : TPM_ST_NO_SESSIONS;
+  TPM_RC_t responseCode;
+
+  if (publicInfo == NULL)
+    return TPM_RC_VALUE;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, authHandle);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  if (auth != NULL)
+    grub_Tss2_MU_TPM2B_Marshal (&in, auth->size, auth->buffer);
+  else
+    grub_tpm2_buffer_pack_u16 (&in, 0);
+  grub_Tss2_MU_TPM2B_NV_PUBLIC_Marshal (&in, publicInfo);
+  if (in.error != 0)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (tag, TPM_CC_NV_DefineSpace, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  if (out.error != 0)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}
+
+TPM_RC_t
+grub_tpm2_nv_undefinespace (const TPMI_RH_PROVISION_t authHandle,
+			    const TPMI_RH_NV_INDEX_t nvIndex,
+			    const TPMS_AUTH_COMMAND_t *authCommand)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPMI_ST_COMMAND_TAG_t tag = authCommand ? TPM_ST_SESSIONS : TPM_ST_NO_SESSIONS;
+  TPM_RC_t responseCode;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, authHandle);
+  grub_tpm2_buffer_pack_u32 (&in, nvIndex);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  if (in.error != 0)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (tag, TPM_CC_NV_UndefineSpace, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  if (out.error != 0)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}
+
+TPM_RC_t
+grub_tpm2_nv_readpublic (const TPMI_RH_NV_INDEX_t nvIndex,
+			 const TPMS_AUTH_COMMAND_t *authCommand,
+			 TPM2B_NV_PUBLIC_t *nvPublic,
+			 TPM2B_NAME_t *nvName)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPMI_ST_COMMAND_TAG_t tag = authCommand ? TPM_ST_SESSIONS : TPM_ST_NO_SESSIONS;
+  TPM_RC_t responseCode;
+  grub_uint32_t param_size;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, nvIndex);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  if (in.error != 0)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (tag, TPM_CC_NV_ReadPublic, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  if (tag == TPM_ST_SESSIONS)
+    grub_tpm2_buffer_unpack_u32 (&out, &param_size);
+  grub_Tss2_MU_TPM2B_NV_PUBLIC_Unmarshal (&out, nvPublic);
+  grub_Tss2_MU_TPM2B_NAME_Unmarshal (&out, nvName);
+  if (out.error != 0)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}
+
+TPM_RC_t
+grub_tpm2_nv_read (const TPMI_RH_NV_AUTH_t authHandle,
+		   const TPMI_RH_NV_INDEX_t nvIndex,
+		   const TPMS_AUTH_COMMAND_t *authCommand,
+		   const grub_uint16_t size,
+		   const grub_uint16_t offset,
+		   TPM2B_MAX_NV_BUFFER_t *data)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPMI_ST_COMMAND_TAG_t tag = authCommand ? TPM_ST_SESSIONS : TPM_ST_NO_SESSIONS;
+  TPM_RC_t responseCode;
+  grub_uint32_t param_size;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, authHandle);
+  grub_tpm2_buffer_pack_u32 (&in, nvIndex);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  grub_tpm2_buffer_pack_u16 (&in, size);
+  grub_tpm2_buffer_pack_u16 (&in, offset);
+  if (in.error != 0)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (tag, TPM_CC_NV_Read, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  if (tag == TPM_ST_SESSIONS)
+    grub_tpm2_buffer_unpack_u32 (&out, &param_size);
+  grub_Tss2_MU_TPM2B_NAX_NV_BUFFER_Unmarshal (&out, data);
+  if (out.error != 0)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}
+
+TPM_RC_t
+grub_tpm2_nv_write (const TPMI_RH_NV_AUTH_t authHandle,
+		    const TPMI_RH_NV_INDEX_t nvIndex,
+		    const TPMS_AUTH_COMMAND_t *authCommand,
+		    const TPM2B_MAX_NV_BUFFER_t *data,
+		    const grub_uint16_t offset)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPMI_ST_COMMAND_TAG_t tag = authCommand ? TPM_ST_SESSIONS : TPM_ST_NO_SESSIONS;
+  TPM_RC_t responseCode;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, authHandle);
+  grub_tpm2_buffer_pack_u32 (&in, nvIndex);
+  if (authCommand != NULL)
+    grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  grub_Tss2_MU_TPM2B_Marshal (&in, data->size, data->buffer);
+  grub_tpm2_buffer_pack_u16 (&in, offset);
+  if (in.error != 0)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (tag, TPM_CC_NV_Write, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  if (out.error != 0)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}

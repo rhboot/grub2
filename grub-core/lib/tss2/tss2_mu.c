@@ -17,6 +17,7 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <grub/mm.h>
 #include <grub/misc.h>
 
 #include <tss2_mu.h>
@@ -572,6 +573,37 @@ grub_Tss2_MU_TPMT_TK_VERIFIED_Marshal (grub_tpm2_buffer_t buffer,
   grub_Tss2_MU_TPM2B_Marshal (buffer, p->digest.size, p->digest.buffer);
 }
 
+void
+grub_Tss2_MU_TPMS_NV_PUBLIC_Marshal (grub_tpm2_buffer_t buffer,
+				     const TPMS_NV_PUBLIC_t *p)
+{
+  grub_tpm2_buffer_pack_u32 (buffer, p->nvIndex);
+  grub_tpm2_buffer_pack_u16 (buffer, p->nameAlg);
+  grub_tpm2_buffer_pack_u32 (buffer, p->attributes);
+  grub_Tss2_MU_TPM2B_Marshal (buffer, p->authPolicy.size, p->authPolicy.buffer);
+  grub_tpm2_buffer_pack_u16 (buffer, p->dataSize);
+}
+
+void
+grub_Tss2_MU_TPM2B_NV_PUBLIC_Marshal (grub_tpm2_buffer_t buffer,
+				      const TPM2B_NV_PUBLIC_t *p)
+{
+  grub_uint32_t start;
+  grub_uint16_t size;
+
+  if (p != NULL)
+    {
+      grub_tpm2_buffer_pack_u16 (buffer, p->size);
+
+      start = buffer->size;
+      grub_Tss2_MU_TPMS_NV_PUBLIC_Marshal (buffer, &p->nvPublic);
+      size = grub_cpu_to_be16 (buffer->size - start);
+      grub_memcpy (&buffer->data[start - sizeof (grub_uint16_t)], &size, sizeof (size));
+    }
+  else
+    grub_tpm2_buffer_pack_u16 (buffer, 0);
+}
+
 static void
 __Tss2_MU_TPM2B_BUFFER_Unmarshal (grub_tpm2_buffer_t buffer,
 				  TPM2B_t *p, grub_uint16_t bound)
@@ -980,6 +1012,13 @@ grub_Tss2_MU_TPM2B_NV_PUBLIC_Unmarshal (grub_tpm2_buffer_t buffer,
 {
   grub_tpm2_buffer_unpack_u16 (buffer, &p->size);
   grub_Tss2_MU_TPMS_NV_PUBLIC_Unmarshal (buffer, &p->nvPublic);
+}
+
+void
+grub_Tss2_MU_TPM2B_NAX_NV_BUFFER_Unmarshal (grub_tpm2_buffer_t buffer,
+					    TPM2B_MAX_NV_BUFFER_t *p)
+{
+  TPM2B_BUFFER_UNMARSHAL (buffer, TPM2B_MAX_NV_BUFFER_t, p);
 }
 
 void
