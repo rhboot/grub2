@@ -226,7 +226,23 @@ EOF
 }
 
 tpm2_seal_unseal_nv() {
-    nv_index="0x81000000"
+    handle_type="$1"
+    key_type="$2"
+
+    extra_opt=""
+    extra_grub_opt=""
+
+    if [ "$handle_type" = "nvindex" ]; then
+	nv_index="0x1000000"
+    else
+	nv_index="0x81000000"
+    fi
+
+    if [ "$key_type" = "tpm2key" ]; then
+	extra_opt="--tpm2key"
+    else
+	extra_grub_opt="--pcrs=0,1"
+    fi
 
     grub_cfg=${tpm2testdir}/testcase.cfg
 
@@ -247,7 +263,7 @@ tpm2_seal_unseal_nv() {
     # Write the TPM unsealing script
     cat > ${grub_cfg} <<EOF
 loopback luks (host)${luksfile}
-tpm2_key_protector_init --mode=nv --nvindex=${nv_index} --pcrs=0,1
+tpm2_key_protector_init --mode=nv --nvindex=${nv_index} ${extra_grub_opt}
 if cryptomount -a --protector tpm2; then
     cat (crypto0)+1
 fi
@@ -290,28 +306,35 @@ exit_status=0
 for i in "${!srktests[@]}"; do
     tpm2_seal_unseal ${srktests[$i]} || ret=$?
     if [ "${ret}" -eq 0 ]; then
-        echo "TPM2 [${srktests[$i]}]: PASS"
+	echo "TPM2 [SRK][${srktests[$i]}]: PASS"
     elif [ "${ret}" -eq 1 ]; then
-        echo "TPM2 [${srktests[$i]}]: FAIL"
+	echo "TPM2 [SRK][${srktests[$i]}]: FAIL"
 	ret=0
 	exit_status=1
     else
-	echo "Unexpected failure [${srktests[$i]}]" >&2
+	echo "Unexpected failure [SRK][${srktests[$i]}]" >&2
 	exit ${ret}
     fi
 done
 
-# Testcase for NV index mode
-tpm2_seal_unseal_nv || ret=$?
-if [ "${ret}" -eq 0 ]; then
-    echo "TPM2 [NV Index]: PASS"
-elif [ "${ret}" -eq 1 ]; then
-    echo "TPM2 [NV Index]: FAIL"
-    ret=0
-    exit_status=1
-else
-    echo "Unexpected failure [NV index]" >&2
-    exit ${ret}
-fi
+# Testcases for NV index mode
+declare -a nvtests=()
+nvtests+=("persistent raw")
+nvtests+=("nvindex raw")
+nvtests+=("nvindex tpm2key")
+
+for i in "${!nvtests[@]}"; do
+    tpm2_seal_unseal_nv ${nvtests[$i]} || ret=$?
+    if [ "${ret}" -eq 0 ]; then
+	echo "TPM2 [NV Index][${nvtests[$i]}]: PASS"
+    elif [ "${ret}" -eq 1 ]; then
+	echo "TPM2 [NV Index][${nvtests[$i]}]: FAIL"
+	ret=0
+	exit_status=1
+    else
+	echo "Unexpected failure [NV index][${nvtests[$i]}]" >&2
+	exit ${ret}
+    fi
+done
 
 exit ${exit_status}
