@@ -9142,44 +9142,118 @@ When/After the shim or GRUB are updated, it only requires to run the last
 @subsection NV index mode
 
 Instead of storing the sealed key in a file, NV index mode uses the TPM
-non-volatile memory to store the sealed key.
+non-volatile memory to store the sealed key and could be useful when accessing
+the file is not possible.
 
-The following sample commands use tpm2-tools (@url{https://github.com/tpm2-software/tpm2-tools})
-commands to seal @file{luks.key} into the specific NV index: @kbd{0x81000000}.
+However, the Linux root user must be careful who she/he gives access to the
+TPM (tss group) since those users will also be able to modify the NV index
+that's holding the key.
 
-First, we need to create the object file for the primary key, i.e. storage
-root key (SRK) with the default key settings in GRUB: SHA256 hash algorithm
-and ECC key algorithm.
+There are two types of TPM handles supported by NV index mode: persistent
+handle and NV index handle.
 
-@example
-# @kbd{tpm2_createprimary -C o -g sha256 -G ecc -c primary.ctx}
-@end example
+@subsubsection Persistent handle
 
-The next commands collect the current values of PCR 0, 2, 4, and 7 and saves
-them in @file{pcr.dat}.
-
-@example
-# @kbd{tpm2_startauthsession -S session.dat}
-# @kbd{tpm2_policypcr -S session.dat -l sha256:0,2,4,7 -f pcrs.dat -L policy.dat}
-# @kbd{tpm2_flushcontext session.dat}
-@end example
-
-The last commands seal @file{luks.key} with the primary key and stores the
-result in @kbd{0x81000000}.
+The range of persistent handles is from @kbd{0x81000000} to @kbd{0x81FFFFFF}.
+The persistent handle is designed to make TPM objects persistent through
+power cycles, and only TPM objects, such as RSA or EC keys, are accepted.
+Thus, only the raw format is supported by persistent handles. The following
+shows the @command{grub-protect} command to seal the disk key @file{luks.key}
+into the persistent handle @kbd{0x81000000} with the PCRs @kbd{0,2,4,7}.
 
 @example
-# @kbd{cat luks.key | tpm2_create -C primary.ctx -u key.pub -r key.priv -L policy.dat -i-}
-# @kbd{tpm2_load -C primary.ctx -u key.pub -r key.priv -n sealing.name -c sealing.ctx}
-# @kbd{tpm2_evictcontrol -C o -c sealing.ctx 0x81000000}
+@group
+# @kbd{grub-protect \
+             --protector=tpm2 \
+             --action=add \
+             --tpm2-bank=sha256 \
+             --tpm2-pcrs=0,2,4,7 \
+             --tpm2-keyfile=luks.key \
+             --tpm2-nvindex=0x81000000}
+@end group
 @end example
 
-To unseal the key, we have to specify the mode @kbd{nv}, the NV index
+To unseal the key, we have to specify the mode @kbd{nv}, the persistent handle
 @kbd{0x81000000}, and the PCRs @kbd{0,2,4,7} for the @command{tpm2_key_protector_init}
 command.
 
 @example
 grub> @kbd{tpm2_key_protector_init --mode=nv --nvindex=0x81000000 --pcrs=0,2,4,7}
 grub> @kbd{cryptomount -u <UUID> --protector tpm2}
+@end example
+
+If the key in the persistent handle becomes unwanted, the following
+@command{grub-protect} command removes the specified persistent handle
+@kbd{0x81000000}.
+
+@example
+@group
+# @kbd{grub-protect \
+             --protector=tpm2 \
+             --action=remove \
+             --tpm2-evict \
+             --tpm2-nvindex=0x81000000}
+@end group
+@end example
+
+@subsubsection NV index handle
+
+The range of NV index handles is from @kbd{0x1000000} to @kbd{0x1FFFFFF}.
+Unlike the persistent handle, the NV index handle allows user-defined data,
+so it can easily support both the TPM 2.0 Key File format as well as the raw
+format.
+
+The following @kbd{grub-protect} command seals the disk key @file{luks.key}
+into the NV index handle @kbd{0x1000000} with the PCRs @kbd{0,2,4,7} while
+using the TPM 2.0 Key File format.
+
+@example
+@group
+# @kbd{grub-protect \
+             --protector=tpm2 \
+             --action=add \
+             --tpm2key \
+             --tpm2-bank=sha256 \
+             --tpm2-pcrs=0,2,4,7 \
+             --tpm2-keyfile=luks.key \
+             --tpm2-nvindex=0x1000000}
+@end group
+@end example
+
+Furthermore, it is also possible to insert an existing key file,
+@file{sealed.tpm}, into a specific NV index handle using the following
+tpm2-tools (@url{https://github.com/tpm2-software/tpm2-tools}) commands.
+
+@example
+@group
+# @kbd{tpm2_nvdefine -C o \
+             -a "ownerread|ownerwrite" \
+             -s $(stat -c %s sealed.tpm) \
+             0x1000000}
+@end group
+# @kbd{tpm2_nvwrite -C o -i sealed.tpm 0x1000000}
+@end example
+
+When unsealing the key in TPM 2.0 Key File format, only the mode @kbd{nv}
+and the NV index handle @kbd{0x1000000} have to be specified for the
+@command{tpm2_key_protector_init} command.
+
+@example
+grub> @kbd{tpm2_key_protector_init --mode=nv --nvindex=0x1000000}
+grub> @kbd{cryptomount -u <UUID> --protector tpm2}
+@end example
+
+The following @command{grub-protect} command allows to remove the specified
+NV index handle @kbd{0x1000000}.
+
+@example
+@group
+# @kbd{grub-protect \
+             --protector=tpm2 \
+             --action=remove \
+             --tpm2-evict \
+             --tpm2-nvindex=0x1000000}
+@end group
 @end example
 
 @subsection Setting up software TPM for EMU platform
@@ -10136,10 +10210,15 @@ unsealing. (default: @samp{7})
 @item --tpm2-srk=@var{handle}
 Set the SRK handle, e.g. @samp{0x81000000}, if the SRK is to be made persistent.
 
+@item --tpm2-nvindex=@var{handle}
+Set the handle, e.g. @samp{0x81000000} or @samp{0x1000000}, for NV index mode.
+
 @item --tpm2key
 Use TPM 2.0 Key File format.
 
 @end table
+
+@subsection 'Add' action
 
 Before sealing the key, please check the TPM PCR usage
 (@pxref{TPM2 key protector, TPM PCR usage}) to choose a proper set of PCRs.
@@ -10166,12 +10245,77 @@ grub> @kbd{tpm2_key_protector_init -T (hd0,gpt1)/efi/grub/sealed.tpm}
 grub> @kbd{cryptomount -u <UUID> -P tpm2}
 @end example
 
+Besides writing the PCR-sealed key into a file, @command{grub-protect} can
+write the sealed key into TPM non-volatile memory. Here is the
+@command{grub-protect} command to write the sealed key into the NV index
+handle @samp{0x1000000}.
+
+@example
+@group
+# @kbd{grub-protect --action=add \
+               --protector=tpm2 \
+               --tpm2-pcrs=0,2,4,7 \
+               --tpm2key \
+               --tpm2-keyfile=luks.key \
+               --tpm2-nvindex=0x1000000}
+@end group
+@end example
+
+Later, GRUB can fetch the key from @samp{0x1000000}.
+
+@example
+grub> @kbd{tpm2_key_protector_init --mode=nv --nvindex=0x1000000}
+grub> @kbd{cryptomount -u <UUID> -P tpm2}
+@end example
+
 In most of cases, the user only needs to create the key with the `add' action.
 If auto-unlocking is unwanted, just remove the file and the
 @command{tpm2_key_protector_init} command and invoke the @command{cryptomount}
 command without @kbd{-P tpm2}.
 
-The only use case for the `remove' action is when the SRK is made persistent.
+@subsection 'Remove' action
+
+The `remove' action is used to remove the handles for NV index mode and the
+persistent SRK.
+
+@subsubsection Handles for NV index mode
+
+There are two types of TPM handles supported by NV index mode: persistent
+handles and NV index handles, and @command{tpm2_getcap} can be used to
+check the existing handles.
+
+To display the list of existing persistent handles:
+
+@example
+@group
+# @kbd{tpm2_getcap handles-persistent}
+- 0x81000000
+@end group
+@end example
+
+Similarly, to display the list of existing NV index handles:
+
+@example
+@group
+# @kbd{tpm2_getcap handles-nv-index}
+- 0x1000000
+@end group
+@end example
+
+If the sealed key at an NV index handle is not needed anymore, the user can
+remove the handle with @kbd{--tpm2-nvindex} and @kbd{--tpm2-evict}. For
+example, this command removes the data from NV index @samp{0x1000000}:
+
+@example
+@group
+# @kbd{grub-protect --action=remove \
+               --protector=tpm2 \
+               --tpm2-evict \
+               --tpm2-nvindex 0x1000000} \
+@end group
+@end example
+
+@subsubsection Persistent SRK
 
 There are two supported SRKs in @command{grub-protect}: @samp{RSA} and @samp{ECC}.
 Due to slower key generation, some users of the @samp{RSA} SRK may prefer
