@@ -1133,10 +1133,9 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
 }
 
 static grub_err_t
-tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
-			   grub_uint8_t **key, grub_size_t *key_size)
+tpm2_protector_load_persistent (const tpm2_protector_context_t *ctx, TPM_HANDLE_t sealed_handle,
+				grub_uint8_t **key, grub_size_t *key_size)
 {
-  TPM_HANDLE_t sealed_handle = ctx->nv;
   tpm2key_policy_t policy_seq = NULL;
   bool dump_pcr = false;
   grub_err_t err;
@@ -1159,6 +1158,51 @@ tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
   grub_tpm2_flushcontext (sealed_handle);
 
   grub_tpm2key_free_policy_seq (policy_seq);
+
+  return err;
+}
+
+static grub_err_t
+tpm2_protector_key_from_nvindex (const tpm2_protector_context_t *ctx, TPM_HANDLE_t nvindex,
+				 grub_uint8_t **key, grub_size_t *key_size)
+{
+  TPMS_AUTH_COMMAND_t authCmd = {0};
+  TPM2B_NV_PUBLIC_t nv_public;
+  TPM2B_NAME_t nv_name;
+  grub_uint16_t data_size;
+  TPM2B_MAX_NV_BUFFER_t data;
+  TPM_RC_t rc;
+
+  /* Get the data size in the NV index handle */
+  rc = grub_tpm2_nv_readpublic (nvindex, NULL, &nv_public, &nv_name);
+  if (rc != TPM_RC_SUCCESS)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "failed to retrieve info from 0x%x (TPM2_NV_ReadPublic: 0x%x)", nvindex, rc);
+
+  data_size = nv_public.nvPublic.dataSize;
+  if (data_size > TPM_MAX_NV_BUFFER_SIZE)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "insufficient data buffer");
+
+  /* Read the data from the NV index handle */
+  authCmd.sessionHandle = TPM_RS_PW;
+  rc = grub_tpm2_nv_read (TPM_RH_OWNER, nvindex, &authCmd, data_size, 0, &data);
+  if (rc != TPM_RC_SUCCESS)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "failed to read data from 0x%x (TPM2_NV_Read: 0x%x)", nvindex, rc);
+
+  return tpm2_protector_key_from_buffer (ctx, data.buffer, data_size, key, key_size);
+}
+
+static grub_err_t
+tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
+			   grub_uint8_t **key, grub_size_t *key_size)
+{
+  grub_err_t err;
+
+  if (TPM_HT_IS_PERSISTENT (ctx->nv) == true)
+    err = tpm2_protector_load_persistent (ctx, ctx->nv, key, key_size);
+  else if (TPM_HT_IS_NVINDEX (ctx->nv) == true)
+    err = tpm2_protector_key_from_nvindex (ctx, ctx->nv, key, key_size);
+  else
+    err = GRUB_ERR_BAD_ARGUMENT;
 
   return err;
 }
@@ -1215,14 +1259,15 @@ tpm2_protector_check_args (tpm2_protector_context_t *ctx)
 
   if (ctx->mode == TPM2_PROTECTOR_MODE_NV &&
       (ctx->tpm2key != NULL || ctx->keyfile != NULL))
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("in NV Index mode, a keyfile cannot be specified"));
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("a key file cannot be specified when using NV index mode"));
 
-  if (ctx->mode == TPM2_PROTECTOR_MODE_NV && ctx->srk != 0)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("in NV Index mode, an SRK cannot be specified"));
+  if (ctx->mode == TPM2_PROTECTOR_MODE_NV && TPM_HT_IS_PERSISTENT (ctx->nv) == true &&
+      (ctx->srk != 0 || ctx->srk_type.type != TPM_ALG_ERROR))
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("an SRK cannot be specified when using NV index mode with a persistent handle"));
 
   if (ctx->mode == TPM2_PROTECTOR_MODE_NV &&
-      ctx->srk_type.type != TPM_ALG_ERROR)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("in NV Index mode, an asymmetric key type cannot be specified"));
+      (TPM_HT_IS_PERSISTENT (ctx->nv) == false && TPM_HT_IS_NVINDEX (ctx->nv) == false))
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("an NV index must be either a persistent handle or an NV index handle when using NV index mode"));
 
   /* Defaults assignment */
   if (ctx->bank == TPM_ALG_ERROR)
@@ -1234,8 +1279,13 @@ tpm2_protector_check_args (tpm2_protector_context_t *ctx)
       ctx->pcr_count = 1;
     }
 
-  if (ctx->mode == TPM2_PROTECTOR_MODE_SRK &&
-      ctx->srk_type.type == TPM_ALG_ERROR)
+  /*
+   * Set ECC_NIST_P256 as the default SRK when using SRK mode or NV mode with
+   * an NV index handle
+   */
+  if (ctx->srk_type.type == TPM_ALG_ERROR &&
+      (ctx->mode == TPM2_PROTECTOR_MODE_SRK ||
+       (ctx->mode == TPM2_PROTECTOR_MODE_NV && TPM_HT_IS_NVINDEX (ctx->nv) == true)))
     {
       ctx->srk_type.type = TPM_ALG_ECC;
       ctx->srk_type.detail.ecc_curve = TPM_ECC_NIST_P256;
