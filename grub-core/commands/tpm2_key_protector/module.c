@@ -218,10 +218,51 @@ tpm2_protector_srk_read_file (const char *filepath, void **buffer, grub_size_t *
   return err;
 }
 
+/* Check if the data is in TPM 2.0 Key File format */
+static bool
+tpm2_protector_is_tpm2key (grub_uint8_t *buffer, grub_size_t buffer_size)
+{
+  /* id-sealedkey OID (2.23.133.10.1.5) in DER */
+  const grub_uint8_t sealed_key_oid[] = {0x06, 0x06, 0x67, 0x81, 0x05, 0x0a};
+  grub_size_t skip = 0;
+
+  /* Need at least the first two bytes to check the tag and the length */
+  if (buffer_size < 2)
+    return false;
+
+  /* The first byte is always 0x30 (SEQUENCE). */
+  if (buffer[0] != 0x30)
+    return false;
+
+  /*
+   * Get the bytes of the length
+   *
+   * If the bit 8 of the second byte is 0, it is in the short form, so the second byte
+   * alone represents the length. Thus, the first two bytes are skipped.
+   *
+   * Otherwise, it is in the long form, and bits 1~7 indicate how many more bytes are in
+   * the length field, so we skip the first two bytes plus the bytes for the length.
+   */
+  if ((buffer[1] & 0x80) == 0)
+    skip = 2;
+  else
+    skip = (buffer[1] & 0x7F) + 2;
+
+  /* Make sure the buffer is large enough to contain id-sealedkey OID */
+  if (buffer_size < skip + sizeof (sealed_key_oid))
+    return false;
+
+  /* Check id-sealedkey OID */
+  if (grub_memcmp (buffer + skip, sealed_key_oid, sizeof (sealed_key_oid)) != 0)
+    return false;
+
+  return true;
+}
+
 static grub_err_t
-tpm2_protector_srk_unmarshal_keyfile (void *sealed_key,
-				      grub_size_t sealed_key_size,
-				      tpm2_sealed_key_t *sk)
+tpm2_protector_unmarshal_raw (void *sealed_key,
+			      grub_size_t sealed_key_size,
+			      tpm2_sealed_key_t *sk)
 {
   struct grub_tpm2_buffer buf;
 
@@ -242,13 +283,13 @@ tpm2_protector_srk_unmarshal_keyfile (void *sealed_key,
 }
 
 static grub_err_t
-tpm2_protector_srk_unmarshal_tpm2key (void *sealed_key,
-				      grub_size_t sealed_key_size,
-				      tpm2key_policy_t *policy_seq,
-				      tpm2key_authpolicy_t *authpol_seq,
-				      grub_uint8_t *rsaparent,
-				      grub_uint32_t *parent,
-				      tpm2_sealed_key_t *sk)
+tpm2_protector_unmarshal_tpm2key (void *sealed_key,
+				  grub_size_t sealed_key_size,
+				  tpm2key_policy_t *policy_seq,
+				  tpm2key_authpolicy_t *authpol_seq,
+				  grub_uint8_t *rsaparent,
+				  grub_uint32_t *parent,
+				  tpm2_sealed_key_t *sk)
 {
   asn1_node tpm2key = NULL;
   grub_uint8_t rsaparent_tmp;
@@ -942,12 +983,11 @@ tpm2_protector_dump_pcr (const TPM_ALG_ID_t bank)
 }
 
 static grub_err_t
-tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
-			    grub_uint8_t **key, grub_size_t *key_size)
+tpm2_protector_key_from_buffer (const tpm2_protector_context_t *ctx,
+				void *buffer, grub_size_t buf_size,
+				grub_uint8_t **key, grub_size_t *key_size)
 {
   tpm2_sealed_key_t sealed_key = {0};
-  void *file_bytes = NULL;
-  grub_size_t file_size = 0;
   grub_uint8_t rsaparent = 0;
   TPM_HANDLE_t parent_handle = 0;
   TPM_HANDLE_t srk_handle = 0;
@@ -960,22 +1000,17 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
 
   /*
    * Retrieve sealed key, parent handle, policy sequence, and authpolicy
-   * sequence from the key file
+   * sequence from the buffer
   */
-  if (ctx->tpm2key != NULL)
+  if (tpm2_protector_is_tpm2key (buffer, buf_size) == true)
     {
-      err = tpm2_protector_srk_read_file (ctx->tpm2key, &file_bytes,
-					       &file_size);
-      if (err != GRUB_ERR_NONE)
-	return err;
-
-      err = tpm2_protector_srk_unmarshal_tpm2key (file_bytes,
-						  file_size,
-						  &policy_seq,
-						  &authpol_seq,
-						  &rsaparent,
-						  &parent_handle,
-						  &sealed_key);
+      err = tpm2_protector_unmarshal_tpm2key (buffer,
+					      buf_size,
+					      &policy_seq,
+					      &authpol_seq,
+					      &rsaparent,
+					      &parent_handle,
+					      &sealed_key);
       if (err != GRUB_ERR_NONE)
 	goto exit1;
 
@@ -991,12 +1026,8 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
     }
   else
     {
-      err = tpm2_protector_srk_read_file (ctx->keyfile, &file_bytes, &file_size);
-      if (err != GRUB_ERR_NONE)
-	return err;
-
       parent_handle = TPM_RH_OWNER;
-      err = tpm2_protector_srk_unmarshal_keyfile (file_bytes, file_size, &sealed_key);
+      err = tpm2_protector_unmarshal_raw (buffer, buf_size, &sealed_key);
       if (err != GRUB_ERR_NONE)
 	goto exit1;
     }
@@ -1072,6 +1103,31 @@ tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
  exit1:
   grub_tpm2key_free_policy_seq (policy_seq);
   grub_tpm2key_free_authpolicy_seq (authpol_seq);
+  return err;
+}
+
+static grub_err_t
+tpm2_protector_srk_recover (const tpm2_protector_context_t *ctx,
+			    grub_uint8_t **key, grub_size_t *key_size)
+{
+  const char *filepath;
+  void *file_bytes = NULL;
+  grub_size_t file_size = 0;
+  grub_err_t err;
+
+  if (ctx->tpm2key != NULL)
+    filepath = ctx->tpm2key;
+  else if (ctx->keyfile != NULL)
+    filepath = ctx->keyfile;
+  else
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("key file not specified"));
+
+  err = tpm2_protector_srk_read_file (filepath, &file_bytes, &file_size);
+  if (err != GRUB_ERR_NONE)
+    return err;
+
+  err = tpm2_protector_key_from_buffer (ctx, file_bytes, file_size, key, key_size);
+
   grub_free (file_bytes);
   return err;
 }

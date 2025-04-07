@@ -8075,12 +8075,13 @@ options are @option{-T}, @option{-k}, @option{-a}, and @option{-s}. On the
 other hand, the NV index-specific option is @option{-n}.
 
 The key file for SRK mode can be supplied with either @option{-T} or
-@option{-k}. The @option{-T} option is for the path to the key file in
-TPM 2.0 Key File format. Since the parameters for the TPM commands are written
-in the file, there is no need to set the PCR list(@option{-p}) and
-bank(@option{-b}) when using the @option{-T} option. The @option{-k} option
-is for the key file in the raw format, and the @option{-p} and @option{-b}
-options are necessary for the non-default PCR list or bank. In general,
+@option{-k}. Those two options were used to distinguish the file formats but
+are same now. There are two supported file formats: raw format and TPM 2.0
+Key File format. When using the key file in the raw format, the @option{-p}
+and @option{-b} options are necessary for the non-default PCR list or bank.
+On the other hand, when using the key file in TPM 2.0 Key File format, the
+the parameters for the TPM commands are written in the file, and there is no
+need to set the PCR list(@option{-p}) and bank(@option{-b}). In general,
 TPM 2.0 Key File format is preferred due to the simplified GRUB command
 options and the authorized policy support
 
