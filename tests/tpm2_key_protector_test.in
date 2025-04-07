@@ -285,12 +285,16 @@ srktests+=("ECC persistent no_fallback_srk")
 srktests+=("RSA transient fallback_srk")
 srktests+=("ECC transient fallback_srk")
 
+exit_status=0
+
 for i in "${!srktests[@]}"; do
     tpm2_seal_unseal ${srktests[$i]} || ret=$?
     if [ "${ret}" -eq 0 ]; then
         echo "TPM2 [${srktests[$i]}]: PASS"
     elif [ "${ret}" -eq 1 ]; then
         echo "TPM2 [${srktests[$i]}]: FAIL"
+	ret=0
+	exit_status=1
     else
 	echo "Unexpected failure [${srktests[$i]}]" >&2
 	exit ${ret}
@@ -303,9 +307,11 @@ if [ "${ret}" -eq 0 ]; then
     echo "TPM2 [NV Index]: PASS"
 elif [ "${ret}" -eq 1 ]; then
     echo "TPM2 [NV Index]: FAIL"
+    ret=0
+    exit_status=1
 else
     echo "Unexpected failure [NV index]" >&2
     exit ${ret}
 fi
 
-exit 0
+exit ${exit_status}
