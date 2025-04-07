@@ -8055,7 +8055,7 @@ either @var{expression1} or @var{expression2} is true
 @node tpm2_key_protector_init
 @subsection tpm2_key_protector_init
 
-@deffn Command tpm2_key_protector_init [@option{-m} mode] | [@option{-p} pcrlist] | [@option{-b} pcrbank] | [ [@option{-T} tpm2key_file] | [@option{-k} keyfile] ] | [@option{-s} handle] | [@option{-a} srk_type] | [@option{-n} nv_index]
+@deffn Command tpm2_key_protector_init [@option{--mode} | @option{-m} mode] | [@option{--pcrs} | @option{-p} pcrlist] | [@option{--bank} | @option{-b} pcrbank] | [ [@option{--tpm2key} | @option{-T} tpm2key_file] | [@option{--keyfile} | @option{-k} keyfile] ] | [@option{--srk} | @option{-s} handle] | [@option{--asymmetric} | @option{-a} srk_type] | [@option{--nvindex} | @option{-n} nv_index]
 Initialize the TPM2 key protector to unseal the key for the @command{cryptomount}
 (@pxref{cryptomount}) command. There are two supported modes,
 SRK(@kbd{srk}) and NV index(@kbd{nv}), to be specified by the option
