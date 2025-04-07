@@ -74,6 +74,7 @@ Prerequisites for make-check:
 * wamerican, for grub-fs-tester
 * mtools, FAT tools for EFI platforms
 * xfonts-unifont, for the functional tests
+* swtpm-tools and tpm2-tools, for TPM2 key protector tests
 
 * If running a Linux kernel the following modules must be loaded:
   - fuse, loop
