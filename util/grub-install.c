@@ -459,7 +459,7 @@ probe_mods (grub_disk_t disk)
       if (disk->dev->disk_raidname)
 	grub_install_push_module (disk->dev->disk_raidname (disk));
     }
-  if (raid_level == 5)
+  if (raid_level == 4 || raid_level == 5)
     grub_install_push_module ("raid5rec");
   if (raid_level == 6)
     grub_install_push_module ("raid6rec");
