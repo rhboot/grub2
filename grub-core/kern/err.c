@@ -38,14 +38,14 @@ static int grub_error_stack_assert;
 #endif
 
 grub_err_t
-grub_error (grub_err_t n, const char *file, const int line, const char *fmt, ...)
+grub_error (grub_err_t n, const char *file, const char *function, const int line, const char *fmt, ...)
 {
   va_list ap;
   int m;
 
   grub_errno = n;
 
-  m = grub_snprintf (grub_errmsg, sizeof (grub_errmsg), "%s:%d:", file, line);
+  m = grub_snprintf (grub_errmsg, sizeof (grub_errmsg), "%s:%s:%d:", file, function, line);
   if (m < 0)
     m = 0;
 
