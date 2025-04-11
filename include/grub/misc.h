@@ -43,7 +43,7 @@
 #define CONCAT(a, b) CONCAT_(a, b)
 #endif
 
-#define grub_dprintf(condition, ...) grub_real_dprintf(GRUB_FILE, __LINE__, condition, __VA_ARGS__)
+#define grub_dprintf(condition, ...) grub_real_dprintf(GRUB_FILE, __FUNCTION__, __LINE__, condition, __VA_ARGS__)
 
 void *EXPORT_FUNC(grub_memmove) (void *dest, const void *src, grub_size_t n);
 char *EXPORT_FUNC(grub_strcpy) (char *dest, const char *src);
@@ -420,9 +420,10 @@ int EXPORT_FUNC(grub_puts_) (const char *s);
 int EXPORT_FUNC(grub_debug_is_enabled) (void);
 int EXPORT_FUNC(grub_debug_enabled) (const char *condition);
 void EXPORT_FUNC(grub_real_dprintf) (const char *file,
+				     const char *function,
                                      const int line,
                                      const char *condition,
-                                     const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 4, 5)));
+                                     const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 5, 6)));
 int EXPORT_FUNC(grub_printf) (const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 1, 2)));
 int EXPORT_FUNC(grub_printf_) (const char *fmt, ...) __attribute__ ((format (GNU_PRINTF, 1, 2)));
 void EXPORT_FUNC(grub_qdprintf) (const char *condition,
