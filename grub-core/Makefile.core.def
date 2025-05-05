@@ -2253,6 +2253,10 @@ module = {
   common = tests/videotest_checksum.c;
 };
 
+/*
+ * These tests fail depending on the version of unifont. As we don't distribute
+ * our own unifont it fails for most users. Disable them so that they don't mask
+ * real failures. They can be reinstated once we solve unifont problem.
 module = {
   name = gfxterm_menu;
   common = tests/gfxterm_menu.c;
@@ -2262,6 +2266,7 @@ module = {
   name = cmdline_cat_test;
   common = tests/cmdline_cat_test.c;
 };
+ */
 
 module = {
   name = bitmap;
