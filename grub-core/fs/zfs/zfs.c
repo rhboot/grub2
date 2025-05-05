@@ -3052,6 +3052,7 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 	  void *sahdrp;
 	  int hdrsize;
 	  grub_size_t sz;
+	  bool free_sahdrp = false;
 
 	  if (dnode_path->dn.dn.dn_bonuslen != 0)
 	    {
@@ -3064,6 +3065,7 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 	      err = zio_read (bp, dnode_path->dn.endian, &sahdrp, NULL, data);
 	      if (err)
 	        break;
+	      free_sahdrp = true;
 	    }
 	  else
 	    {
@@ -3122,6 +3124,9 @@ dnode_get_path (struct subvolume *subvol, const char *path_in, dnode_end_t *dn,
 		     }
 	      dn_new = dnode_path;
 	    }
+	  if (free_sahdrp == true)
+	    grub_free (sahdrp);
+
 	}
     }
 
