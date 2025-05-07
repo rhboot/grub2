@@ -219,12 +219,12 @@ grub_file_read (grub_file_t file, void *buf, grub_size_t len)
 grub_err_t
 grub_file_close (grub_file_t file)
 {
-  if (file->fs->mod)
-    grub_dl_unref (file->fs->mod);
-
   grub_dprintf ("file", "Closing `%s' ...\n", file->name);
   if (file->fs->fs_close)
     (file->fs->fs_close) (file);
+
+  if (file->fs->mod)
+    grub_dl_unref (file->fs->mod);
 
   if (file->device)
     grub_device_close (file->device);
