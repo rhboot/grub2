@@ -178,6 +178,9 @@ update_bls_cmdline()
             options="${options} ${GRUB_CMDLINE_LINUX_DEBUG}"
         fi
         options="$(echo "${options}" | sed -e 's/\//\\\//g')"
+        options="$(echo "${options}" | sed -e 's/\;/\\\;/g')"
+        options="$(echo "${options}" | sed -e 's/\\&/\\\\&/g')"
+        options="$(echo "${options}" | sed -e 's/\$/\\\$/g')"
         sed -i -e "s/^options.*/options ${options}/" "${blsdir}/${bls}.conf"
     done
 }
