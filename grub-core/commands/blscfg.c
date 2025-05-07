@@ -652,7 +652,8 @@ static char *expand_val(const char *value)
     return NULL;
 
   while (*value) {
-    if (*value == '$') {
+    /* It's a variable only when *value is '$' and it is not escaped with '\'*/
+    if (*value == '$' && *end != '\\') {
       if (start != end) {
 	buffer = field_append(is_var, buffer, start, end);
 	if (!buffer)
