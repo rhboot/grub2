@@ -2146,6 +2146,7 @@ GRUB_MOD_FINI(net)
   grub_unregister_command (cmd_deladdr);
   grub_unregister_command (cmd_addroute);
   grub_unregister_command (cmd_delroute);
+  grub_unregister_command (cmd_setvlan);
   grub_unregister_command (cmd_lsroutes);
   grub_unregister_command (cmd_lscards);
   grub_unregister_command (cmd_lsaddr);
