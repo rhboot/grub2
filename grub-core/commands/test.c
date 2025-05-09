@@ -403,7 +403,7 @@ test_parse (char **args, int *argn, int argc, int *depth)
 	  if (++(*depth) > MAX_TEST_RECURSION_DEPTH)
 	    {
 	      grub_error (GRUB_ERR_OUT_OF_RANGE, N_("max recursion depth exceeded"));
-	      depth--;
+	      (*depth)--;
 	      return ctx.or || ctx.and;
 	    }
 
