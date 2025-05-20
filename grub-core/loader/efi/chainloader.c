@@ -1006,7 +1006,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     grub_free (devname);
 
   /* if device is loopback, use underlying dev */
-  if (dev && dev->disk->dev->id == GRUB_DISK_DEVICE_LOOPBACK_ID)
+  if (dev && dev->disk && dev->disk->dev->id == GRUB_DISK_DEVICE_LOOPBACK_ID)
     {
       struct grub_loopback *d;
       orig_dev = dev;
