@@ -1193,9 +1193,6 @@ fail:
   if (address)
     grub_efi_free_pages (address, pages);
 
-  if (cmdline)
-    grub_free (cmdline);
-
   if (image_handle != NULL)
     grub_efi_unload_image (image_handle);
 
