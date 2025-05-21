@@ -1,6 +1,7 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2020  IBM Corporation.
+ *  Copyright (C) 2020, 2022 Free Software Foundation, Inc.
+ *  Copyright (C) 2020, 2022 IBM Corporation
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,19 +22,19 @@
 #include <grub/err.h>
 #include <grub/mm.h>
 #include <grub/crypto.h>
+#include <grub/misc.h>
 #include <grub/gcrypt/gcrypt.h>
 
 #include "appendedsig.h"
 
-asn1_node _gnutls_gnutls_asn = ASN1_TYPE_EMPTY;
-asn1_node _gnutls_pkix_asn = ASN1_TYPE_EMPTY;
+asn1_node _gnutls_gnutls_asn = NULL;
+asn1_node _gnutls_pkix_asn = NULL;
 
-extern const ASN1_ARRAY_TYPE gnutls_asn1_tab[];
-extern const ASN1_ARRAY_TYPE pkix_asn1_tab[];
+extern const asn1_static_node gnutls_asn1_tab[];
+extern const asn1_static_node pkix_asn1_tab[];
 
 /*
  * Read a value from an ASN1 node, allocating memory to store it.
- *
  * It will work for anything where the size libtasn1 returns is right:
  *  - Integers
  *  - Octet strings
@@ -41,12 +42,10 @@ extern const ASN1_ARRAY_TYPE pkix_asn1_tab[];
  * It will _not_ work for things where libtasn1 size requires adjustment:
  *  - Strings that require an extra NULL byte at the end
  *  - Bit strings because libtasn1 returns the length in bits, not bytes.
- *
  * If the function returns a non-NULL value, the caller must free it.
  */
 void *
-grub_asn1_allocate_and_read (asn1_node node, const char *name,
-			     const char *friendly_name, int *content_size)
+grub_asn1_allocate_and_read (asn1_node node, const char *name, const char *friendly_name, int *content_size)
 {
   int result;
   grub_uint8_t *tmpstr = NULL;
@@ -56,9 +55,8 @@ grub_asn1_allocate_and_read (asn1_node node, const char *name,
   if (result != ASN1_MEM_ERROR)
     {
       grub_snprintf (grub_errmsg, sizeof (grub_errmsg),
-		     _
-		     ("Reading size of %s did not return expected status: %s"),
-		     friendly_name, asn1_strerror (result));
+                     _("Reading size of %s did not return expected status: %s"),
+                     friendly_name, asn1_strerror (result));
       grub_errno = GRUB_ERR_BAD_FILE_TYPE;
       return NULL;
     }
@@ -67,7 +65,7 @@ grub_asn1_allocate_and_read (asn1_node node, const char *name,
   if (tmpstr == NULL)
     {
       grub_snprintf (grub_errmsg, sizeof (grub_errmsg),
-		     "Could not allocate memory to store %s", friendly_name);
+                     "Could not allocate memory to store %s", friendly_name);
       grub_errno = GRUB_ERR_OUT_OF_MEMORY;
       return NULL;
     }
@@ -76,9 +74,8 @@ grub_asn1_allocate_and_read (asn1_node node, const char *name,
   if (result != ASN1_SUCCESS)
     {
       grub_free (tmpstr);
-      grub_snprintf (grub_errmsg, sizeof (grub_errmsg),
-		     "Error reading %s: %s",
-		     friendly_name, asn1_strerror (result));
+      grub_snprintf (grub_errmsg, sizeof (grub_errmsg), "Error reading %s: %s",
+                     friendly_name, asn1_strerror (result));
       grub_errno = GRUB_ERR_BAD_FILE_TYPE;
       return NULL;
     }
@@ -94,9 +91,8 @@ asn1_init (void)
   int res;
   res = asn1_array2tree (gnutls_asn1_tab, &_gnutls_gnutls_asn, NULL);
   if (res != ASN1_SUCCESS)
-    {
-      return res;
-    }
+    return res;
+
   res = asn1_array2tree (pkix_asn1_tab, &_gnutls_pkix_asn, NULL);
   return res;
 }

@@ -1,6 +1,7 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2020  IBM Corporation.
+ *  Copyright (C) 2020, 2022 Free Software Foundation, Inc.
+ *  Copyright (C) 2020, 2022 IBM Corporation
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@
 #include <grub/err.h>
 #include <grub/mm.h>
 #include <grub/crypto.h>
+#include <grub/misc.h>
 #include <grub/gcrypt/gcrypt.h>
 
 #include "appendedsig.h"
@@ -30,28 +32,30 @@ static char asn1_error[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 /*
  * RFC 3279 2.3.1  RSA Keys
  */
-const char *rsaEncryption_oid = "1.2.840.113549.1.1.1";
+static const char *rsaEncryption_oid = "1.2.840.113549.1.1.1";
 
 /*
  * RFC 5280 Appendix A
  */
-const char *commonName_oid = "2.5.4.3";
+static const char *commonName_oid = "2.5.4.3";
 
 /*
  * RFC 5280 4.2.1.3 Key Usage
  */
-const char *keyUsage_oid = "2.5.29.15";
+static const char *keyUsage_oid = "2.5.29.15";
+
+static const grub_uint8_t digitalSignatureUsage = 0x80;
 
 /*
  * RFC 5280 4.2.1.9 Basic Constraints
  */
-const char *basicConstraints_oid = "2.5.29.19";
+static const char *basicConstraints_oid = "2.5.29.19";
 
 /*
  * RFC 5280 4.2.1.12 Extended Key Usage
  */
-const char *extendedKeyUsage_oid = "2.5.29.37";
-const char *codeSigningUsage_oid = "1.3.6.1.5.5.7.3.3";
+static const char *extendedKeyUsage_oid = "2.5.29.37";
+static const char *codeSigningUsage_oid = "1.3.6.1.5.5.7.3.3";
 
 /*
  * RFC 3279 2.3.1
@@ -66,46 +70,37 @@ const char *codeSigningUsage_oid = "1.3.6.1.5.5.7.3.3";
  *  exponent e.
  */
 static grub_err_t
-grub_parse_rsa_pubkey (grub_uint8_t * der, int dersize,
-		       struct x509_certificate *certificate)
+grub_parse_rsa_pubkey (grub_uint8_t *der, int dersize, struct x509_certificate *certificate)
 {
   int result;
-  asn1_node spk = ASN1_TYPE_EMPTY;
+  asn1_node spk = NULL;
   grub_uint8_t *m_data, *e_data;
   int m_size, e_size;
   grub_err_t err = GRUB_ERR_NONE;
   gcry_error_t gcry_err;
 
-  result =
-    asn1_create_element (_gnutls_gnutls_asn, "GNUTLS.RSAPublicKey", &spk);
+  result = asn1_create_element (_gnutls_gnutls_asn, "GNUTLS.RSAPublicKey", &spk);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Cannot create storage for public key ASN.1 data");
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Cannot create storage for public key ASN.1 data");
 
-  result = asn1_der_decoding2 (&spk, der, &dersize,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+  result = asn1_der_decoding2 (&spk, der, &dersize, ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Cannot decode certificate public key DER: %s",
-		    asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Cannot decode certificate public key DER: %s", asn1_error);
       goto cleanup;
     }
 
-  m_data =
-    grub_asn1_allocate_and_read (spk, "modulus", "RSA modulus", &m_size);
+  m_data = grub_asn1_allocate_and_read (spk, "modulus", "RSA modulus", &m_size);
   if (!m_data)
     {
       err = grub_errno;
       goto cleanup;
     }
 
-  e_data =
-    grub_asn1_allocate_and_read (spk, "publicExponent", "RSA public exponent",
-				 &e_size);
+  e_data = grub_asn1_allocate_and_read (spk, "publicExponent",
+                                        "RSA public exponent", &e_size);
   if (!e_data)
     {
       err = grub_errno;
@@ -115,30 +110,22 @@ grub_parse_rsa_pubkey (grub_uint8_t * der, int dersize,
   /*
    * convert m, e to mpi
    *
-   * nscanned is not set for FMT_USG, it's only set for FMT_PGP, 
+   * nscanned is not set for FMT_USG, it's only set for FMT_PGP,
    * so we can't verify it
    */
-  gcry_err =
-    gcry_mpi_scan (&certificate->mpis[0], GCRYMPI_FMT_USG, m_data, m_size,
-		   NULL);
+  gcry_err = gcry_mpi_scan (&certificate->mpis[0], GCRYMPI_FMT_USG, m_data, m_size, NULL);
   if (gcry_err != GPG_ERR_NO_ERROR)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error loading RSA modulus into MPI structure: %d",
-		    gcry_err);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Error loading RSA modulus into MPI structure: %d", gcry_err);
       goto cleanup_e_data;
     }
 
-  gcry_err =
-    gcry_mpi_scan (&certificate->mpis[1], GCRYMPI_FMT_USG, e_data, e_size,
-		   NULL);
+  gcry_err = gcry_mpi_scan (&certificate->mpis[1], GCRYMPI_FMT_USG, e_data, e_size, NULL);
   if (gcry_err != GPG_ERR_NO_ERROR)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error loading RSA exponent into MPI structure: %d",
-		    gcry_err);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Error loading RSA exponent into MPI structure: %d", gcry_err);
       goto cleanup_m_mpi;
     }
 
@@ -158,7 +145,6 @@ cleanup:
   return err;
 }
 
-
 /*
  * RFC 5280:
  *   SubjectPublicKeyInfo  ::=  SEQUENCE  {
@@ -170,17 +156,15 @@ cleanup:
  */
 
 static grub_err_t
-grub_x509_read_subject_public_key (asn1_node asn,
-				   struct x509_certificate *results)
+grub_x509_read_subject_public_key (asn1_node asn, struct x509_certificate *results)
 {
   int result;
   grub_err_t err;
   const char *algo_name =
-    "tbsCertificate.subjectPublicKeyInfo.algorithm.algorithm";
+          "tbsCertificate.subjectPublicKeyInfo.algorithm.algorithm";
   const char *params_name =
-    "tbsCertificate.subjectPublicKeyInfo.algorithm.parameters";
-  const char *pk_name =
-    "tbsCertificate.subjectPublicKeyInfo.subjectPublicKey";
+          "tbsCertificate.subjectPublicKeyInfo.algorithm.parameters";
+  const char *pk_name = "tbsCertificate.subjectPublicKeyInfo.subjectPublicKey";
   char algo_oid[MAX_OID_LEN];
   int algo_size = sizeof (algo_oid);
   char params_value[2];
@@ -192,21 +176,14 @@ grub_x509_read_subject_public_key (asn1_node asn,
   /* algorithm: see notes for rsaEncryption_oid */
   result = asn1_read_value (asn, algo_name, algo_oid, &algo_size);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Error reading x509 public key algorithm: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading x509 public key algorithm: %s",
+                       asn1_strerror (result));
 
-  if (grub_strncmp (algo_oid, rsaEncryption_oid, sizeof (rsaEncryption_oid))
-      != 0)
-    {
-      return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-			 "Unsupported x509 public key algorithm: %s",
-			 algo_oid);
-    }
+  if (grub_strncmp (algo_oid, rsaEncryption_oid, sizeof (rsaEncryption_oid)) != 0)
+    return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
+                       "Unsupported x509 public key algorithm: %s", algo_oid);
 
-  /* 
+  /*
    * RFC 3279 2.3.1
    * The rsaEncryption OID is intended to be used in the algorithm field
    * of a value of type AlgorithmIdentifier.  The parameters field MUST
@@ -214,17 +191,12 @@ grub_x509_read_subject_public_key (asn1_node asn,
    */
   result = asn1_read_value (asn, params_name, params_value, &params_size);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Error reading x509 public key parameters: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading x509 public key parameters: %s",
+                       asn1_strerror (result));
 
   if (params_value[0] != ASN1_TAG_NULL)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Invalid x509 public key parameters: expected NULL");
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                       "Invalid x509 public key parameters: expected NULL");
 
   /*
    * RFC 3279 2.3.1:  The DER encoded RSAPublicKey is the value of the BIT
@@ -232,34 +204,26 @@ grub_x509_read_subject_public_key (asn1_node asn,
    */
   result = asn1_read_value_type (asn, pk_name, NULL, &key_size, &key_type);
   if (result != ASN1_MEM_ERROR)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Error reading size of x509 public key: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading size of x509 public key: %s",
+                       asn1_strerror (result));
   if (key_type != ASN1_ETYPE_BIT_STRING)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Unexpected ASN.1 type when reading x509 public key: %x",
-			 key_type);
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected ASN.1 type when reading x509 public key: %x",
+                       key_type);
 
   /* length is in bits */
   key_size = (key_size + 7) / 8;
 
   key_data = grub_malloc (key_size);
   if (!key_data)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Out of memory for x509 public key");
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Out of memory for x509 public key");
 
   result = asn1_read_value (asn, pk_name, key_data, &key_size);
   if (result != ASN1_SUCCESS)
     {
       grub_free (key_data);
       return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Error reading public key data");
+                         "Error reading public key data");
     }
   key_size = (key_size + 7) / 8;
 
@@ -271,8 +235,7 @@ grub_x509_read_subject_public_key (asn1_node asn,
 
 /* Decode a string as defined in Appendix A */
 static grub_err_t
-decode_string (char *der, int der_size, char **string,
-	       grub_size_t * string_size)
+decode_string (char *der, int der_size, char **string, grub_size_t *string_size)
 {
   asn1_node strasn;
   int result;
@@ -281,51 +244,51 @@ decode_string (char *der, int der_size, char **string,
   int tmp_size = 0;
   grub_err_t err = GRUB_ERR_NONE;
 
-  result =
-    asn1_create_element (_gnutls_pkix_asn, "PKIX1.DirectoryString", &strasn);
+  result = asn1_create_element (_gnutls_pkix_asn, "PKIX1.DirectoryString", &strasn);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Could not create ASN.1 structure for certificate: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Could not create ASN.1 structure for certificate: %s",
+                       asn1_strerror (result));
 
-  result = asn1_der_decoding2 (&strasn, der, &der_size,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+  result = asn1_der_decoding2 (&strasn, der, &der_size, ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Could not parse DER for DirectoryString: %s",
-		    asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Could not parse DER for DirectoryString: %s", asn1_error);
       goto cleanup;
     }
 
-  choice =
-    grub_asn1_allocate_and_read (strasn, "", "DirectoryString choice",
-				 &choice_size);
+  choice = grub_asn1_allocate_and_read (strasn, "", "DirectoryString choice", &choice_size);
   if (!choice)
     {
       err = grub_errno;
       goto cleanup;
     }
 
-  if (grub_strncmp ("utf8String", choice, choice_size))
+  if (grub_strncmp ("utf8String", choice, choice_size) == 0)
     {
-      err =
-	grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
-		    "Only UTF-8 DirectoryStrings are supported, got %s",
-		    choice);
-      goto cleanup_choice;
+      result = asn1_read_value (strasn, "utf8String", NULL, &tmp_size);
+      if (result != ASN1_MEM_ERROR)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading size of UTF-8 string: %s",
+                            asn1_strerror (result));
+          goto cleanup_choice;
+        }
     }
-
-  result = asn1_read_value (strasn, "utf8String", NULL, &tmp_size);
-  if (result != ASN1_MEM_ERROR)
+  else if (grub_strncmp ("printableString", choice, choice_size) == 0)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error reading size of UTF-8 string: %s",
-		    asn1_strerror (result));
+      result = asn1_read_value (strasn, "printableString", NULL, &tmp_size);
+      if (result != ASN1_MEM_ERROR)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading size of UTF-8 string: %s",
+                            asn1_strerror (result));
+          goto cleanup_choice;
+        }
+    }
+  else
+    {
+      err = grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET, "Only UTF-8 and printable DirectoryStrings are supported, got %s",
+                        choice);
       goto cleanup_choice;
     }
 
@@ -335,20 +298,18 @@ decode_string (char *der, int der_size, char **string,
   *string = grub_malloc (tmp_size);
   if (!*string)
     {
-      err =
-	grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		    "Cannot allocate memory for DirectoryString contents");
+      err = grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                        "Cannot allocate memory for DirectoryString contents");
       goto cleanup_choice;
     }
 
-  result = asn1_read_value (strasn, "utf8String", *string, &tmp_size);
+  result = asn1_read_value (strasn, choice, *string, &tmp_size);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error reading out UTF-8 string in DirectoryString: %s",
-		    asn1_strerror (result));
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading out %s in DirectoryString: %s",
+                        choice, asn1_strerror (result));
       grub_free (*string);
+      *string = NULL;
       goto cleanup_choice;
     }
   *string_size = tmp_size + 1;
@@ -365,7 +326,7 @@ cleanup:
  * TBSCertificate  ::=  SEQUENCE  {
  *       version         [0]  EXPLICIT Version DEFAULT v1,
  * ...
- * 
+ *
  * Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static grub_err_t
@@ -374,19 +335,18 @@ check_version (asn1_node certificate)
   int rc;
   const char *name = "tbsCertificate.version";
   grub_uint8_t version;
-  int len = 1;
+  int len = sizeof (version);
 
   rc = asn1_read_value (certificate, name, &version, &len);
 
   /* require version 3 */
   if (rc != ASN1_SUCCESS || len != 1)
     return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		       "Error reading certificate version");
+                       "Error reading certificate version");
 
   if (version != 0x02)
-    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		       "Invalid x509 certificate version, expected v3 (0x02), got 0x%02x",
-		       version);
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Invalid x509 certificate version, expected v3 (0x02), got 0x%02x",
+                       version);
 
   return GRUB_ERR_NONE;
 }
@@ -397,8 +357,7 @@ check_version (asn1_node certificate)
  * For simplicity, we extract only the CN.
  */
 static grub_err_t
-read_name (asn1_node asn, const char *name_path, char **name,
-	   grub_size_t * name_size)
+read_name (asn1_node asn, const char *name_path, char **name, grub_size_t *name_size)
 {
   int seq_components, set_components;
   int result;
@@ -415,16 +374,13 @@ read_name (asn1_node asn, const char *name_path, char **name,
   top_path = grub_xasprintf ("%s.rdnSequence", name_path);
   if (!top_path)
     return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		       "Could not allocate memory for %s name parsing path",
-		       name_path);
+                       "Could not allocate memory for %s name parsing path", name_path);
 
   result = asn1_number_of_elements (asn, top_path, &seq_components);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error counting name components: %s",
-		    asn1_strerror (result));
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error counting name components: %s",
+                        asn1_strerror (result));
       goto cleanup;
     }
 
@@ -432,84 +388,74 @@ read_name (asn1_node asn, const char *name_path, char **name,
     {
       set_path = grub_xasprintf ("%s.?%d", top_path, i);
       if (!set_path)
-	{
-	  err =
-	    grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			"Could not allocate memory for %s name set parsing path",
-			name_path);
-	  goto cleanup_set;
-	}
+        {
+          err = grub_error (GRUB_ERR_OUT_OF_MEMORY, "Could not allocate memory for %s name set parsing path",
+                            name_path);
+          goto cleanup_set;
+        }
       /* this brings us, hopefully, to a set */
       result = asn1_number_of_elements (asn, set_path, &set_components);
       if (result != ASN1_SUCCESS)
-	{
-	  err =
-	    grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			"Error counting name sub-components components (element %d): %s",
-			i, asn1_strerror (result));
-	  goto cleanup_set;
-	}
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error counting name sub-components components (element %d): %s",
+                            i, asn1_strerror (result));
+          goto cleanup_set;
+        }
       for (j = 1; j <= set_components; j++)
-	{
-	  type_path = grub_xasprintf ("%s.?%d.?%d.type", top_path, i, j);
-	  if (!type_path)
-	    {
-	      err =
-		grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			    "Could not allocate memory for %s name component type path",
-			    name_path);
-	      goto cleanup_set;
-	    }
-	  type_len = sizeof (type);
-	  result = asn1_read_value (asn, type_path, type, &type_len);
-	  if (result != ASN1_SUCCESS)
-	    {
-	      err =
-		grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			    "Error reading %s name component type: %s",
-			    name_path, asn1_strerror (result));
-	      goto cleanup_type;
-	    }
+        {
+          type_path = grub_xasprintf ("%s.?%d.?%d.type", top_path, i, j);
+          if (!type_path)
+            {
+              err = grub_error (GRUB_ERR_OUT_OF_MEMORY, "Could not allocate memory for %s name component type path",
+                                name_path);
+              goto cleanup_set;
+            }
+          type_len = sizeof (type);
+          result = asn1_read_value (asn, type_path, type, &type_len);
+          if (result != ASN1_SUCCESS)
+            {
+              err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading %s name component type: %s",
+                                name_path, asn1_strerror (result));
+              goto cleanup_type;
+            }
 
-	  if (grub_strncmp (type, commonName_oid, type_len) != 0)
-	    {
-	      grub_free (type_path);
-	      continue;
-	    }
+          if (grub_strncmp (type, commonName_oid, type_len) != 0)
+            {
+              grub_free (type_path);
+              continue;
+            }
 
-	  val_path = grub_xasprintf ("%s.?%d.?%d.value", top_path, i, j);
-	  if (!val_path)
-	    {
-	      err =
-		grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			    "Could not allocate memory for %s name component value path",
-			    name_path);
-	      goto cleanup_set;
-	    }
+          val_path = grub_xasprintf ("%s.?%d.?%d.value", top_path, i, j);
+          if (!val_path)
+            {
+              err = grub_error (GRUB_ERR_OUT_OF_MEMORY, "Could not allocate memory for %s name component value path",
+                                name_path);
+              goto cleanup_type;
+            }
 
-	  string_der =
-	    grub_asn1_allocate_and_read (asn, val_path, name_path,
-					 &string_size);
-	  if (!string_der)
-	    {
-	      err = grub_errno;
-	      goto cleanup_val_path;
-	    }
+          string_der = grub_asn1_allocate_and_read (asn, val_path, name_path, &string_size);
+          if (!string_der)
+            {
+              err = grub_errno;
+              goto cleanup_val_path;
+            }
 
-	  err = decode_string (string_der, string_size, name, name_size);
-	  if (err)
-	    goto cleanup_string;
+          err = decode_string (string_der, string_size, name, name_size);
+          if (err)
+            goto cleanup_string;
 
-	  grub_free (string_der);
-	  grub_free (type_path);
-	  grub_free (val_path);
-	  break;
-	}
+          grub_free (string_der);
+          grub_free (type_path);
+          grub_free (val_path);
+          break;
+        }
       grub_free (set_path);
 
       if (*name)
-	break;
+        break;
     }
+
+  grub_free (top_path);
 
   return GRUB_ERR_NONE;
 
@@ -527,51 +473,44 @@ cleanup:
 }
 
 /*
- * details here
+ * Verify the Key Usage extension.
+ * We require the Digital Signature usage.
  */
 static grub_err_t
-verify_key_usage (grub_uint8_t * value, int value_size)
+verify_key_usage (grub_uint8_t *value, int value_size)
 {
   asn1_node usageasn;
   int result;
   grub_err_t err = GRUB_ERR_NONE;
   grub_uint8_t usage = 0xff;
-  int usage_size = 1;
+  int usage_size = sizeof (usage_size);
 
-  result =
-    asn1_create_element (_gnutls_pkix_asn, "PKIX1.KeyUsage", &usageasn);
+  result = asn1_create_element (_gnutls_pkix_asn, "PKIX1.KeyUsage", &usageasn);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Could not create ASN.1 structure for key usage");
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Could not create ASN.1 structure for key usage");
 
   result = asn1_der_decoding2 (&usageasn, value, &value_size,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+                               ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error parsing DER for Key Usage: %s", asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Error parsing DER for Key Usage: %s", asn1_error);
       goto cleanup;
     }
 
   result = asn1_read_value (usageasn, "", &usage, &usage_size);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error reading Key Usage value: %s",
-		    asn1_strerror (result));
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading Key Usage value: %s",
+                        asn1_strerror (result));
       goto cleanup;
     }
 
-  /* Only the first bit is permitted to be set */
-  if (usage != 0x80)
+  if (!(usage & digitalSignatureUsage))
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected Key Usage value: %x",
-		    usage);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Key Usage (0x%x) missing Digital Signature usage", usage);
       goto cleanup;
     }
 
@@ -586,31 +525,25 @@ cleanup:
  *       pathLenConstraint       INTEGER (0..MAX) OPTIONAL }
  */
 static grub_err_t
-verify_basic_constraints (grub_uint8_t * value, int value_size)
+verify_basic_constraints (grub_uint8_t *value, int value_size)
 {
   asn1_node basicasn;
   int result;
   grub_err_t err = GRUB_ERR_NONE;
-  char cA[6];			/* FALSE or TRUE */
+  char cA[6]; /* FALSE or TRUE */
   int cA_size = sizeof (cA);
 
-  result =
-    asn1_create_element (_gnutls_pkix_asn, "PKIX1.BasicConstraints",
-			 &basicasn);
+  result = asn1_create_element (_gnutls_pkix_asn, "PKIX1.BasicConstraints", &basicasn);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Could not create ASN.1 structure for Basic Constraints");
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Could not create ASN.1 structure for Basic Constraints");
 
   result = asn1_der_decoding2 (&basicasn, value, &value_size,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+                               ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error parsing DER for Basic Constraints: %s",
-		    asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Error parsing DER for Basic Constraints: %s", asn1_error);
       goto cleanup;
     }
 
@@ -623,18 +556,15 @@ verify_basic_constraints (grub_uint8_t * value, int value_size)
     }
   else if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error reading Basic Constraints cA value: %s",
-		    asn1_strerror (result));
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading Basic Constraints cA value: %s",
+                        asn1_strerror (result));
       goto cleanup;
     }
 
   /* The certificate must not be a CA certificate */
   if (grub_strncmp ("FALSE", cA, cA_size) != 0)
     {
-      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected CA value: %s",
-			cA);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected CA value: %s", cA);
       goto cleanup;
     }
 
@@ -644,72 +574,64 @@ cleanup:
 }
 
 /*
+ * Verify the Extended Key Usage extension.
+ * We require the Code Signing usage.
+ *
  * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
  *
  * KeyPurposeId ::= OBJECT IDENTIFIER
  */
 static grub_err_t
-verify_extended_key_usage (grub_uint8_t * value, int value_size)
+verify_extended_key_usage (grub_uint8_t *value, int value_size)
 {
   asn1_node extendedasn;
-  int result, count;
+  int result, count, i = 0;
   grub_err_t err = GRUB_ERR_NONE;
-  char usage[MAX_OID_LEN];
+  char usage[MAX_OID_LEN], name[3];
   int usage_size = sizeof (usage);
 
-  result =
-    asn1_create_element (_gnutls_pkix_asn, "PKIX1.ExtKeyUsageSyntax",
-			 &extendedasn);
+  result = asn1_create_element (_gnutls_pkix_asn, "PKIX1.ExtKeyUsageSyntax", &extendedasn);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Could not create ASN.1 structure for Extended Key Usage");
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Could not create ASN.1 structure for Extended Key Usage");
 
   result = asn1_der_decoding2 (&extendedasn, value, &value_size,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+                               ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error parsing DER for Extended Key Usage: %s",
-		    asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Error parsing DER for Extended Key Usage: %s", asn1_error);
       goto cleanup;
     }
 
-  /*
-   * If EKUs are present, there must be exactly 1 and it must be a
-   * codeSigning usage.
-   */
-  result = asn1_number_of_elements(extendedasn, "", &count);
+  /* If EKUs are present, it checks the presents of Code Signing usage */
+  result = asn1_number_of_elements (extendedasn, "", &count);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error counting number of Extended Key Usages: %s",
-		    asn1_strerror (result));
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error counting number of Extended Key Usages: %s",
+                        asn1_strerror (result));
       goto cleanup;
     }
 
-  result = asn1_read_value (extendedasn, "?1", usage, &usage_size);
-  if (result != ASN1_SUCCESS)
+
+  for (i = 1; i < count + 1; i++)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Error reading Extended Key Usage: %s",
-		    asn1_strerror (result));
-      goto cleanup;
+      grub_memset (name, 0, sizeof (name));
+      grub_snprintf (name, sizeof (name), "?%d", i);
+      result = asn1_read_value (extendedasn, name, usage, &usage_size);
+      if (result != ASN1_SUCCESS)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading Extended Key Usage: %s",
+                            asn1_strerror (result));
+          goto cleanup;
+        }
+
+      if (grub_strncmp (codeSigningUsage_oid, usage, usage_size) == 0)
+        goto cleanup;
     }
 
-  if (grub_strncmp (codeSigningUsage_oid, usage, usage_size) != 0)
-    {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Unexpected Extended Key Usage OID, got: %s",
-		    usage);
-      goto cleanup;
-    }
-
+  err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                    "Extended Key Usage missing Code Signing usage");
 cleanup:
   asn1_delete_structure (&extendedasn);
   return err;
@@ -727,10 +649,11 @@ cleanup:
  *                  -- by extnID
  * }
  *
- * We require that a certificate:
- *  - contain the Digital Signature usage only
+ * A certificate must:
+ *  - contain the Digital Signature usage
  *  - not be a CA
- *  - MUST not contain any other critical extensions (RFC 5280 s 4.2)
+ *  - contain no extended usages, or contain the Code Signing extended usage
+ *  - not contain any other critical extensions (RFC 5280 s 4.2)
  */
 static grub_err_t
 verify_extensions (asn1_node cert)
@@ -742,116 +665,110 @@ verify_extensions (asn1_node cert)
   char extnID[MAX_OID_LEN];
   int extnID_size;
   grub_err_t err;
-  char critical[6];		/* we get either "TRUE" or "FALSE" */
+  char critical[6]; /* we get either "TRUE" or "FALSE" */
   int critical_size;
   grub_uint8_t *value;
   int value_size;
 
-  result =
-    asn1_number_of_elements (cert, "tbsCertificate.extensions",
-			     &num_extensions);
+  result = asn1_number_of_elements (cert, "tbsCertificate.extensions", &num_extensions);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Error counting number of extensions: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error counting number of extensions: %s",
+                       asn1_strerror (result));
 
   if (num_extensions < 2)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Insufficient number of extensions for certificate, need at least 2, got %d",
-			 num_extensions);
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                       "Insufficient number of extensions for certificate, need at least 2, got %d",
+                       num_extensions);
 
   for (ext = 1; ext <= num_extensions; ext++)
     {
       oid_path = grub_xasprintf ("tbsCertificate.extensions.?%d.extnID", ext);
+      if (!oid_path)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error extension OID path is empty");
+          return err;
+        }
 
       extnID_size = sizeof (extnID);
       result = asn1_read_value (cert, oid_path, extnID, &extnID_size);
-      if (result != GRUB_ERR_NONE)
-	{
-	  err =
-	    grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			"Error reading extension OID: %s",
-			asn1_strerror (result));
-	  goto cleanup_oid_path;
-	}
+      if (result != ASN1_SUCCESS)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading extension OID: %s",
+                            asn1_strerror (result));
+          goto cleanup_oid_path;
+        }
 
-      critical_path =
-	grub_xasprintf ("tbsCertificate.extensions.?%d.critical", ext);
+      critical_path = grub_xasprintf ("tbsCertificate.extensions.?%d.critical", ext);
+      if (!critical_path)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error critical path is empty");
+          goto cleanup_oid_path;
+        }
+
       critical_size = sizeof (critical);
-      result =
-	asn1_read_value (cert, critical_path, critical, &critical_size);
+      result = asn1_read_value (cert, critical_path, critical, &critical_size);
       if (result == ASN1_ELEMENT_NOT_FOUND)
-	{
-	  critical[0] = '\0';
-	}
+        critical[0] = '\0';
       else if (result != ASN1_SUCCESS)
-	{
-	  err =
-	    grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			"Error reading extension criticality: %s",
-			asn1_strerror (result));
-	  goto cleanup_critical_path;
-	}
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error reading extension criticality: %s",
+                            asn1_strerror (result));
+          goto cleanup_critical_path;
+        }
 
-      value_path =
-	grub_xasprintf ("tbsCertificate.extensions.?%d.extnValue", ext);
-      value =
-	grub_asn1_allocate_and_read (cert, value_path,
-				     "certificate extension value",
-				     &value_size);
+      value_path = grub_xasprintf ("tbsCertificate.extensions.?%d.extnValue", ext);
+      if (!value_path)
+        {
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "Error extnValue path is empty");
+          goto cleanup_critical_path;
+        }
+
+      value = grub_asn1_allocate_and_read (cert, value_path,
+                                           "certificate extension value", &value_size);
       if (!value)
-	{
-	  err = grub_errno;
-	  goto cleanup_value_path;
-	}
+        {
+          err = grub_errno;
+          goto cleanup_value_path;
+        }
 
       /*
        * Now we must see if we recognise the OID.
        * If we have an unrecognised critical extension we MUST bail.
        */
       if (grub_strncmp (keyUsage_oid, extnID, extnID_size) == 0)
-	{
-	  err = verify_key_usage (value, value_size);
-	  if (err != GRUB_ERR_NONE)
-	    {
-	      goto cleanup_value;
-	    }
-	  usage_present++;
-	}
+        {
+          err = verify_key_usage (value, value_size);
+          if (err != GRUB_ERR_NONE)
+            goto cleanup_value;
+
+          usage_present++;
+        }
       else if (grub_strncmp (basicConstraints_oid, extnID, extnID_size) == 0)
-	{
-	  err = verify_basic_constraints (value, value_size);
-	  if (err != GRUB_ERR_NONE)
-	    {
-	      goto cleanup_value;
-	    }
-	  constraints_present++;
-	}
+        {
+          err = verify_basic_constraints (value, value_size);
+          if (err != GRUB_ERR_NONE)
+            goto cleanup_value;
+
+          constraints_present++;
+        }
       else if (grub_strncmp (extendedKeyUsage_oid, extnID, extnID_size) == 0)
-	{
-	  err = verify_extended_key_usage (value, value_size);
-	  if (err != GRUB_ERR_NONE)
-	    {
-	      goto cleanup_value;
-	    }
-	  extended_usage_present++;
-	}
+        {
+          err = verify_extended_key_usage (value, value_size);
+          if (err != GRUB_ERR_NONE)
+            goto cleanup_value;
+
+          extended_usage_present++;
+        }
       else if (grub_strncmp ("TRUE", critical, critical_size) == 0)
-	{
-	  /*
-	   * per the RFC, we must not process a certificate with
-	   * a critical extension we do not understand.
-	   */
-	  err =
-	    grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			"Unhandled critical x509 extension with OID %s",
-			extnID);
-	  goto cleanup_value;
-	}
+        {
+          /*
+           * per the RFC, we must not process a certificate with
+           * a critical extension we do not understand.
+           */
+          err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                            "Unhandled critical x509 extension with OID %s", extnID);
+          goto cleanup_value;
+        }
 
       grub_free (value);
       grub_free (value_path);
@@ -860,23 +777,17 @@ verify_extensions (asn1_node cert)
     }
 
   if (usage_present != 1)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Unexpected number of Key Usage extensions - expected 1, got %d",
-			 usage_present);
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected number of Key Usage extensions "
+                       "- expected 1, got %d", usage_present);
+
   if (constraints_present != 1)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Unexpected number of basic constraints extensions - expected 1, got %d",
-			 constraints_present);
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected number of basic constraints extensions "
+                       "- expected 1, got %d", constraints_present);
+
   if (extended_usage_present > 1)
-    {
-      return grub_error (GRUB_ERR_BAD_FILE_TYPE,
-			 "Unexpected number of Extended Key Usage extensions - expected 0 or 1, got %d",
-			 extended_usage_present);
-    }
+    return grub_error (GRUB_ERR_BAD_FILE_TYPE, "Unexpected number of Extended Key Usage extensions "
+                       "- expected 0 or 1, got %d", extended_usage_present);
+
   return GRUB_ERR_NONE;
 
 cleanup_value:
@@ -887,6 +798,7 @@ cleanup_critical_path:
   grub_free (critical_path);
 cleanup_oid_path:
   grub_free (oid_path);
+
   return err;
 }
 
@@ -895,8 +807,7 @@ cleanup_oid_path:
  * Return the results in @results, which must point to an allocated x509 certificate.
  */
 grub_err_t
-certificate_import (void *data, grub_size_t data_size,
-		    struct x509_certificate *results)
+parse_x509_certificate (const void *data, grub_size_t data_size, struct x509_certificate *results)
 {
   int result = 0;
   asn1_node cert;
@@ -906,45 +817,38 @@ certificate_import (void *data, grub_size_t data_size,
 
   if (data_size > GRUB_INT_MAX)
     return grub_error (GRUB_ERR_OUT_OF_RANGE,
-		       "Cannot parse a certificate where data size > INT_MAX");
+                       "Cannot parse a certificate where data size > INT_MAX");
   size = (int) data_size;
 
   result = asn1_create_element (_gnutls_pkix_asn, "PKIX1.Certificate", &cert);
   if (result != ASN1_SUCCESS)
-    {
-      return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-			 "Could not create ASN.1 structure for certificate: %s",
-			 asn1_strerror (result));
-    }
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+                       "Could not create ASN.1 structure for certificate: %s",
+                       asn1_strerror (result));
 
-  result = asn1_der_decoding2 (&cert, data, &size,
-			       ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
+  result = asn1_der_decoding2 (&cert, data, &size, ASN1_DECODE_FLAG_STRICT_DER, asn1_error);
   if (result != ASN1_SUCCESS)
     {
-      err =
-	grub_error (GRUB_ERR_BAD_FILE_TYPE,
-		    "Could not parse DER for certificate: %s", asn1_error);
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE,
+                        "Could not parse DER for certificate: %s", asn1_error);
       goto cleanup;
     }
 
-  /* 
+  /*
    * TBSCertificate  ::=  SEQUENCE {
    *     version         [0]  EXPLICIT Version DEFAULT v1
    */
   err = check_version (cert);
   if (err != GRUB_ERR_NONE)
-    {
-      goto cleanup;
-    }
+    goto cleanup;
 
   /*
    * serialNumber         CertificateSerialNumber,
    *
    * CertificateSerialNumber  ::=  INTEGER
    */
-  results->serial =
-    grub_asn1_allocate_and_read (cert, "tbsCertificate.serialNumber",
-				 "certificate serial number", &tmp_size);
+  results->serial = grub_asn1_allocate_and_read (cert, "tbsCertificate.serialNumber",
+                                                 "certificate serial number", &tmp_size);
   if (!results->serial)
     {
       err = grub_errno;
@@ -956,7 +860,7 @@ certificate_import (void *data, grub_size_t data_size,
    */
   results->serial_len = tmp_size;
 
-  /* 
+  /*
    * signature            AlgorithmIdentifier,
    *
    * We don't load the signature or issuer at the moment,
@@ -984,12 +888,10 @@ certificate_import (void *data, grub_size_t data_size,
 
   /*
    * subject              Name,
-   * 
+   *
    * This is an X501 name, we parse out just the CN.
    */
-  err =
-    read_name (cert, "tbsCertificate.subject", &results->subject,
-	       &results->subject_len);
+  err = read_name (cert, "tbsCertificate.subject", &results->subject, &results->subject_len);
   if (err != GRUB_ERR_NONE)
     goto cleanup_serial;
 
@@ -1013,8 +915,7 @@ certificate_import (void *data, grub_size_t data_size,
 
   err = verify_extensions (cert);
   if (err != GRUB_ERR_NONE)
-    goto cleanup_name;
-
+    goto cleanup_mpis;
 
   /*
    * We do not read or check the signature on the certificate:
@@ -1025,7 +926,9 @@ certificate_import (void *data, grub_size_t data_size,
   asn1_delete_structure (&cert);
   return GRUB_ERR_NONE;
 
-
+cleanup_mpis:
+  gcry_mpi_release (results->mpis[0]);
+  gcry_mpi_release (results->mpis[1]);
 cleanup_name:
   grub_free (results->subject);
 cleanup_serial:
