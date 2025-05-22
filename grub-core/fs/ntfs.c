@@ -83,6 +83,7 @@ validate_attribute (grub_uint8_t *attr, void *end)
 {
   grub_size_t attr_size = 0;
   grub_size_t min_size = 0;
+  grub_size_t run_size = 0;
   grub_size_t spare = (grub_uint8_t *) end - attr;
   /*
    * Just used as a temporary variable to try and deal with cases where someone
@@ -172,11 +173,15 @@ validate_attribute (grub_uint8_t *attr, void *end)
 	   * to the number of bytes used to store the total length of the
 	   * data run, and the number of bytes used to store the offset.
 	   * These directly follow the header byte, so we use them to update
-	   * the minimum size.
+	   * the minimum size. Increment by one more than run size to move on
+	   * to the next run size header byte. An example is a run size field
+	   * value of 0x32, 3 + 2 = 5 bytes follow the run size. Increment
+	   * by 5 to get to the end of this data run then one more to get to
+	   * the start of the next run size byte.
 	   */
-	  min_size += (attr[curr] & 0x7) + ((attr[curr] >> 4) & 0x7);
-	  curr += min_size;
-	  min_size++;
+	  run_size = (attr[curr] & 0x7) + ((attr[curr] >> 4) & 0x7);
+	  curr += (run_size + 1);
+	  min_size += (run_size + 1);
 	  if (min_size > attr_size)
 	    goto fail;
 	}
