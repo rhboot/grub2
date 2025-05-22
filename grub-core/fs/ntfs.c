@@ -248,6 +248,7 @@ fixup (grub_uint8_t *buf, grub_size_t len, const grub_uint8_t *magic)
   grub_uint16_t ss;
   grub_uint8_t *pu;
   grub_uint16_t us;
+  grub_uint16_t pu_offset;
 
   COMPILE_TIME_ASSERT ((1 << GRUB_NTFS_BLK_SHR) == GRUB_DISK_SECTOR_SIZE);
 
@@ -257,7 +258,10 @@ fixup (grub_uint8_t *buf, grub_size_t len, const grub_uint8_t *magic)
   ss = u16at (buf, 6) - 1;
   if (ss != len)
     return grub_error (GRUB_ERR_BAD_FS, "size not match");
-  pu = buf + u16at (buf, 4);
+  pu_offset = u16at (buf, 4);
+  if (pu_offset >= (len * GRUB_DISK_SECTOR_SIZE - (2 * ss)))
+    return grub_error (GRUB_ERR_BAD_FS, "pu offset size incorrect");
+  pu = buf + pu_offset;
   us = u16at (pu, 0);
   buf -= 2;
   while (ss > 0)
@@ -319,6 +323,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
   grub_uint8_t *mft_end;
   grub_uint16_t nsize;
   grub_uint16_t nxt_offset;
+  grub_uint32_t edat_offset;
 
   /* GRUB_NTFS_AF_ALST indicates the attribute list type */
   if (at->flags & GRUB_NTFS_AF_ALST)
@@ -379,6 +384,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 
 	      new_pos = &at->emft_buf[first_attr_off (at->emft_buf)];
 	      end = &at->emft_buf[emft_buf_size];
+	      at->end = end;
 
 	      while (new_pos && *new_pos != 0xFF)
 		{
@@ -403,7 +409,8 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
     }
   at->attr_cur = at->attr_nxt;
   mft_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
-  while (at->attr_cur >= at->mft->buf && at->attr_cur < mft_end && *at->attr_cur != 0xFF)
+  while (at->attr_cur >= at->mft->buf && at->attr_cur < (mft_end - 4)
+         && *at->attr_cur != 0xFF)
     {
       /*
        * We can't use validate_attribute here because this logic
@@ -451,13 +458,25 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	      return NULL;
 	    }
 	  at->attr_nxt = at->edat_buf;
-	  at->attr_end = at->edat_buf + u32at (pa, 0x30);
+	  edat_offset = u32at (pa, 0x30);
+	  if (edat_offset >= n)
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "edat offset is out of bounds");
+	      return NULL;
+	    }
+	  at->attr_end = at->edat_buf + edat_offset;
 	  pa_end = at->edat_buf + n;
 	}
       else
 	{
 	  at->attr_nxt = at->attr_end + res_attr_data_off (pa);
-	  at->attr_end = at->attr_end + u32at (pa, 4);
+	  edat_offset = u32at (pa, 4);
+	  if ((at->attr_end + edat_offset) >= (at->end))
+	    {
+	      grub_error (GRUB_ERR_BAD_FS, "edat offset is out of bounds");
+	      return NULL;
+	    }
+	  at->attr_end = at->attr_end + edat_offset;
 	  pa_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
 	}
       at->flags |= GRUB_NTFS_AF_ALST;
@@ -486,7 +505,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 	    at->attr_nxt = NULL;
 	}
 
-      if (at->attr_nxt >= at->attr_end || at->attr_nxt == NULL)
+      if ((at->attr_nxt + GRUB_NTFS_ATTRIBUTE_HEADER_SIZE) >= at->attr_end || at->attr_nxt == NULL)
 	return NULL;
 
       if ((at->flags & GRUB_NTFS_AF_MMFT) && (attr == GRUB_NTFS_AT_DATA))
@@ -655,6 +674,8 @@ read_data (struct grub_ntfs_attr *at, grub_uint8_t *pa, grub_uint8_t *dest,
 	   grub_disk_read_hook_t read_hook, void *read_hook_data)
 {
   struct grub_ntfs_rlst cc, *ctx;
+  grub_uint8_t *end_ptr = (pa + len);
+  grub_uint16_t run_offset;
 
   if (len == 0)
     return 0;
@@ -687,7 +708,11 @@ read_data (struct grub_ntfs_attr *at, grub_uint8_t *pa, grub_uint8_t *dest,
       return 0;
     }
 
-  ctx->cur_run = pa + u16at (pa, 0x20);
+  run_offset = u16at (pa, 0x20);
+  if ((run_offset + pa) >= end_ptr || ((run_offset + pa) >= (at->end)))
+      return grub_error (GRUB_ERR_BAD_FS, "run offset out of range");
+
+  ctx->cur_run = pa + run_offset;
 
   ctx->next_vcn = u32at (pa, 0x10);
   ctx->curr_lcn = 0;
@@ -750,6 +775,8 @@ read_attr (struct grub_ntfs_attr *at, grub_uint8_t *dest, grub_disk_addr_t ofs,
   grub_uint8_t *pp;
   grub_err_t ret;
 
+  if (at == NULL || at->attr_cur == NULL)
+    return grub_error (GRUB_ERR_BAD_FS, "attribute not found");
   save_cur = at->attr_cur;
   at->attr_nxt = at->attr_cur;
   attr = *at->attr_nxt;
@@ -846,8 +873,11 @@ init_file (struct grub_ntfs_file *mft, grub_uint64_t mftno)
 static void
 free_file (struct grub_ntfs_file *mft)
 {
-  free_attr (&mft->attr);
-  grub_free (mft->buf);
+  if (mft)
+  {
+    free_attr (&mft->attr);
+    grub_free (mft->buf);
+  }
 }
 
 static char *
@@ -1051,6 +1081,7 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
   int ret = 0;
   grub_size_t bitmap_len;
   struct grub_ntfs_file *mft;
+  grub_uint32_t tmp_len;
 
   mft = (struct grub_ntfs_file *) dir;
 
@@ -1082,6 +1113,8 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 	  (u32at (cur_pos, 0x1C) != 0x300033))
 	continue;
       cur_pos += res_attr_data_off (cur_pos);
+      if(cur_pos >= at->end)
+        continue;
       if (*cur_pos != 0x30)	/* Not filename index */
 	continue;
       break;
@@ -1151,7 +1184,15 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
                               "fails to read non-resident $BITMAP");
                   goto done;
                 }
-              bitmap_len = u32at (cur_pos, 0x30);
+                tmp_len = u32at (cur_pos, 0x30);
+                if (tmp_len <= bitmap_len)
+                  bitmap_len = tmp_len;
+                else
+                {
+                  grub_error (GRUB_ERR_BAD_FS,
+                    "bitmap len too large for non-resident $BITMAP");
+                  goto done;
+                }
             }
 
           bitmap = bmp;
@@ -1496,7 +1537,7 @@ grub_ntfs_label (grub_device_t device, char **label)
 
   pa = find_attr (&mft->attr, GRUB_NTFS_AT_VOLUME_NAME);
 
-  if (pa >= mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR))
+  if (pa == NULL || pa >= mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR))
     {
       grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
       goto fail;
@@ -1514,7 +1555,8 @@ grub_ntfs_label (grub_device_t device, char **label)
 
       len = res_attr_data_len (pa) / 2;
       pa += res_attr_data_off (pa);
-      if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa >= 2 * len)
+      if (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR) - pa >= 2 * len &&
+          pa >= mft->buf && (pa + len < (mft->buf + (mft->data->mft_size << GRUB_NTFS_BLK_SHR))))
         *label = get_utf8 (pa, len);
       else
         grub_error (GRUB_ERR_BAD_FS, "can\'t parse volume label");
