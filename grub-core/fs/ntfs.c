@@ -221,7 +221,7 @@ validate_attribute (grub_uint8_t *attr, void *end)
 
 /* Return the next attribute if it exists, otherwise return NULL. */
 static grub_uint8_t *
-next_attribute (grub_uint8_t *curr_attribute, void *end)
+next_attribute (grub_uint8_t *curr_attribute, void *end, bool validate)
 {
   grub_uint8_t *next = curr_attribute;
 
@@ -233,7 +233,7 @@ next_attribute (grub_uint8_t *curr_attribute, void *end)
     return NULL;
 
   next += u16at (curr_attribute, 4);
-  if (validate_attribute (next, end) == false)
+  if (validate && validate_attribute (next, end) == false)
     return NULL;
 
   return next;
@@ -317,14 +317,21 @@ static grub_uint8_t *
 find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 {
   grub_uint8_t *mft_end;
+  grub_uint16_t nsize;
+  grub_uint16_t nxt_offset;
 
+  /* GRUB_NTFS_AF_ALST indicates the attribute list type */
   if (at->flags & GRUB_NTFS_AF_ALST)
     {
     retry:
       while (at->attr_nxt)
 	{
 	  at->attr_cur = at->attr_nxt;
-	  at->attr_nxt = next_attribute (at->attr_cur, at->attr_end);
+	  /*
+	   * Go to the next attribute in the list but do not validate
+	   * because this is the attribute list type.
+	   */
+	  at->attr_nxt = next_attribute (at->attr_cur, at->attr_end, false);
 	  if ((*at->attr_cur == attr) || (attr == 0))
 	    {
 	      grub_uint8_t *new_pos, *end;
@@ -380,7 +387,11 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 		    {
 		      return new_pos;
 		    }
-		  new_pos = next_attribute (new_pos, end);
+		    /*
+		     * Go to the next attribute in the list but do not validate
+		     * because this is the attribute list type.
+		     */
+		    new_pos = next_attribute (new_pos, end, false);
 		}
 	      grub_error (GRUB_ERR_BAD_FS,
 			  "can\'t find 0x%X in attribute list",
@@ -394,7 +405,20 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
   mft_end = at->mft->buf + (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR);
   while (at->attr_cur >= at->mft->buf && at->attr_cur < mft_end && *at->attr_cur != 0xFF)
     {
-      at->attr_nxt = next_attribute (at->attr_cur, at->end);
+      /*
+       * We can't use validate_attribute here because this logic
+       * seems to be used for both parsing through attributes
+       * and attribute lists.
+       */
+      nsize = u16at (at->attr_cur, 4);
+      if (at->attr_cur + grub_max (GRUB_NTFS_ATTRIBUTE_HEADER_SIZE, nsize) >= at->end)
+      {
+        at->attr_nxt = at->attr_cur;
+        break;
+      }
+      else
+        at->attr_nxt = at->attr_cur + nsize;
+
       if (*at->attr_cur == GRUB_NTFS_AT_ATTRIBUTE_LIST)
 	at->attr_end = at->attr_cur;
       if ((*at->attr_cur == attr) || (attr == 0))
@@ -441,14 +465,25 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
       /* From this point on pa_end is the end of the buffer */
       at->end = pa_end;
 
-      if (validate_attribute (at->attr_nxt, pa_end) == false)
-	return NULL;
+      if (at->attr_end >= pa_end || at->attr_nxt >= pa_end)
+        return NULL;
 
       while (at->attr_nxt)
 	{
 	  if ((*at->attr_nxt == attr) || (attr == 0))
 	    break;
-	  at->attr_nxt = next_attribute (at->attr_nxt, pa_end);
+
+	  nxt_offset = u16at (at->attr_nxt, 4);
+	  at->attr_nxt += nxt_offset;
+
+	  /*
+	   * Stop and set attr_nxt to NULL when either the next offset is zero,
+	   * or when the pointer is within four bytes of the end of the buffer
+	   * since we could attempt to access attr_nxt + 4 bytes offset above to
+	   * get the next 16-bit 'nxt_offset' value.
+	   */
+	  if (nxt_offset == 0 || at->attr_nxt >= (pa_end - 4))
+	    at->attr_nxt = NULL;
 	}
 
       if (at->attr_nxt >= at->attr_end || at->attr_nxt == NULL)
@@ -473,7 +508,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 						  + 1));
 	  pa = at->attr_nxt + u16at (pa, 4);
 
-	  if (validate_attribute (pa, pa_end) == true)
+	  if (pa >= pa_end)
 	    pa = NULL;
 
 	  while (pa)
@@ -492,7 +527,9 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 		   u32at (pa, 0x10) * (at->mft->data->mft_size << GRUB_NTFS_BLK_SHR),
 		   at->mft->data->mft_size << GRUB_NTFS_BLK_SHR, 0, 0, 0))
 		return NULL;
-	      pa = next_attribute (pa, pa_end);
+	      pa += u16at (pa, 4);
+	      if (pa >= pa_end)
+	        pa = NULL;
 	    }
 	  at->attr_nxt = at->attr_cur;
 	  at->flags &= ~GRUB_NTFS_AF_GPOS;
@@ -739,7 +776,7 @@ read_attr (struct grub_ntfs_attr *at, grub_uint8_t *dest, grub_disk_addr_t ofs,
 	  if (u32at (pa, 8) > vcn)
 	    break;
 	  at->attr_nxt = pa;
-	  pa = next_attribute (pa, at->attr_end);
+	  pa = next_attribute (pa, at->attr_end, true);
 	}
     }
   pp = find_attr (at, attr);
