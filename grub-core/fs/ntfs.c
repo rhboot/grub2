@@ -428,7 +428,7 @@ find_attr (struct grub_ntfs_attr *at, grub_uint8_t attr)
 
       if (*at->attr_cur == GRUB_NTFS_AT_ATTRIBUTE_LIST)
 	at->attr_end = at->attr_cur;
-      if ((*at->attr_cur == attr) || (attr == 0))
+      if ((*at->attr_cur == attr) || (attr == 0) || (nsize == 0))
 	return at->attr_cur;
       at->attr_cur = at->attr_nxt;
     }
@@ -563,6 +563,7 @@ locate_attr (struct grub_ntfs_attr *at, struct grub_ntfs_file *mft,
 	     grub_uint8_t attr)
 {
   grub_uint8_t *pa;
+  grub_uint8_t *last_pa;
 
   if (init_attr (at, mft) != GRUB_ERR_NONE)
     return NULL;
@@ -572,13 +573,16 @@ locate_attr (struct grub_ntfs_attr *at, struct grub_ntfs_file *mft,
     return NULL;
   if ((at->flags & GRUB_NTFS_AF_ALST) == 0)
     {
+      /* Used to make sure we're not stuck in a loop. */
+      last_pa = NULL;
       while (1)
 	{
 	  pa = find_attr (at, attr);
-	  if (pa == NULL)
+	  if (pa == NULL || pa == last_pa)
 	    break;
 	  if (at->flags & GRUB_NTFS_AF_ALST)
 	    return pa;
+	  last_pa = pa;
 	}
       grub_errno = GRUB_ERR_NONE;
       free_attr (at);
@@ -908,6 +912,7 @@ list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos, grub_uint8_t *end_pos
 {
   grub_uint8_t *np;
   int ns;
+  grub_uint16_t pos_incr;
 
   while (1)
     {
@@ -970,7 +975,12 @@ list_file (struct grub_ntfs_file *diro, grub_uint8_t *pos, grub_uint8_t *end_pos
 
 	  grub_free (ustr);
 	}
-      pos += u16at (pos, 8);
+	pos_incr = u16at (pos, 8);
+	if (pos_incr > 0)
+	  pos += pos_incr;
+	else
+	  return 0;
+
     }
   return 0;
 }
@@ -1081,6 +1091,8 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
   int ret = 0;
   grub_size_t bitmap_len;
   struct grub_ntfs_file *mft;
+  /* Used to make sure we're not stuck in a loop. */
+  grub_uint8_t *last_pos = NULL;
   grub_uint32_t tmp_len;
 
   mft = (struct grub_ntfs_file *) dir;
@@ -1101,11 +1113,12 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
   while (1)
     {
       cur_pos = find_attr (at, GRUB_NTFS_AT_INDEX_ROOT);
-      if (cur_pos == NULL)
+      if (cur_pos == NULL || cur_pos == last_pos)
 	{
 	  grub_error (GRUB_ERR_BAD_FS, "no $INDEX_ROOT");
 	  goto done;
 	}
+      last_pos = cur_pos;
 
       /* Resident, Namelen=4, Offset=0x18, Flags=0x00, Name="$I30" */
       if ((u32at (cur_pos, 8) != 0x180400) ||
@@ -1133,9 +1146,17 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
   /* No need to check errors here, as it will already be fine */
   init_attr (at, mft);
 
+  last_pos = NULL;
   while ((cur_pos = find_attr (at, GRUB_NTFS_AT_BITMAP)) != NULL)
     {
       int ofs;
+
+      if (cur_pos == last_pos)
+      {
+        grub_error (GRUB_ERR_BAD_FS, "bitmap attribute loop");
+        goto done;
+      }
+      last_pos = cur_pos;
 
       ofs = cur_pos[0xA];
       /* Namelen=4, Name="$I30" */
@@ -1201,6 +1222,7 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
     }
 
   free_attr (at);
+  last_pos = NULL;
   cur_pos = locate_attr (at, mft, GRUB_NTFS_AT_INDEX_ALLOCATION);
   while (cur_pos != NULL)
     {
@@ -1210,6 +1232,9 @@ grub_ntfs_iterate_dir (grub_fshelp_node_t dir,
 	  (u32at (cur_pos, 0x44) == 0x300033))
 	break;
       cur_pos = find_attr (at, GRUB_NTFS_AT_INDEX_ALLOCATION);
+      if (cur_pos == last_pos)
+        break;
+      last_pos = cur_pos;
     }
 
   if ((!cur_pos) && (bitmap))
