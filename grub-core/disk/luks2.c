@@ -579,6 +579,8 @@ luks2_recover_key (grub_disk_t source,
   if (ret)
     return ret;
 
+  grub_puts_ (N_("Attempting to decrypt master key..."));
+
   if (grub_sub (grub_be_to_cpu64 (header.hdr_size), sizeof (header), &sz))
     return grub_error (GRUB_ERR_OUT_OF_RANGE, "underflow detected while calculating json header size");
 
