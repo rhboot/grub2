@@ -233,7 +233,12 @@ next_attribute (grub_uint8_t *curr_attribute, void *end, bool validate)
     return NULL;
 
   next += u16at (curr_attribute, 4);
-  if (validate && validate_attribute (next, end) == false)
+  if (validate)
+  {
+    if (validate_attribute (next, end) == false)
+      return NULL;
+  }
+  else if (next >= (grub_uint8_t *) end)
     return NULL;
 
   return next;
