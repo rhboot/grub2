@@ -33,19 +33,32 @@ grub_cmd_hello (grub_extcmd_context_t ctxt __attribute__ ((unused)),
 		int argc __attribute__ ((unused)),
 		char **args __attribute__ ((unused)))
 {
-  grub_printf ("%s\n", _("Hello World"));
+  grub_printf ("%s\n", _("Hello GRUB User!"));
+  return 0;
+}
+
+static grub_err_t
+grub_cmd_greet (grub_extcmd_context_t ctxt __attribute__ ((unused)),
+		int argc __attribute__ ((unused)),
+		char **args __attribute__ ((unused)))
+{
+  grub_printf ("%s\n", _("Greetings from GRUB!"));
   return 0;
 }
 
 static grub_extcmd_t cmd;
+static grub_extcmd_t greet_cmd;
 
 GRUB_MOD_INIT(hello)
 {
   cmd = grub_register_extcmd ("hello", grub_cmd_hello, 0, 0,
-			      N_("Say `Hello World'."), 0);
+			      N_("Say `Hello GRUB User!'."), 0);
+  greet_cmd = grub_register_extcmd ("greet", grub_cmd_greet, 0, 0,
+			      N_("Display a friendly greeting."), 0);
 }
 
 GRUB_MOD_FINI(hello)
 {
   grub_unregister_extcmd (cmd);
+  grub_unregister_extcmd (greet_cmd);
 }
