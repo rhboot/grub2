@@ -101,6 +101,9 @@ grub_util_fd_read (grub_util_fd_t fd, char *buf, size_t len)
 {
   ssize_t size = 0;
 
+  if (len > SSIZE_MAX)
+    return -1;
+
   while (len)
     {
       ssize_t ret = read (fd, buf, len);
@@ -130,6 +133,9 @@ ssize_t
 grub_util_fd_write (grub_util_fd_t fd, const char *buf, size_t len)
 {
   ssize_t size = 0;
+
+  if (len > SSIZE_MAX)
+    return -1;
 
   while (len)
     {
