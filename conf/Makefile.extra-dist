@@ -29,6 +29,7 @@ EXTRA_DIST += grub-core/genemuinit.sh
 EXTRA_DIST += grub-core/genemuinitheader.sh
 
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
+EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regcomp-resource-leak.patch
 
 EXTRA_DIST += grub-core/lib/libgcrypt
 EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
