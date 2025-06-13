@@ -136,16 +136,28 @@ done
 # Export the TCTI variable for tpm2-tools
 export TPM2TOOLS_TCTI="device:${tpm2dev}"
 
+# Check if the sha384 bank is available
+if [ "$(tpm2_getcap pcrs | grep sha384)" != "" ]; then
+    with_sha384=true
+fi
+
 # Extend PCR 0
 tpm2_pcrextend 0:sha256=$(echo "test0" | sha256sum | cut -d ' ' -f 1) || exit 99
+if [ "${with_sha384}" = "true" ]; then
+    tpm2_pcrextend 0:sha384=$(echo "test0" | sha384sum | cut -d ' ' -f 1) || exit 99
+fi
 
 # Extend PCR 1
 tpm2_pcrextend 1:sha256=$(echo "test1" | sha256sum | cut -d ' ' -f 1) || exit 99
+if [ "${with_sha384}" = "true" ]; then
+    tpm2_pcrextend 1:sha384=$(echo "test1" | sha384sum | cut -d ' ' -f 1) || exit 99
+fi
 
 tpm2_seal_unseal() {
     srk_alg="$1"
     handle_type="$2"
     srk_test="$3"
+    pcr_bank="$4"
 
     grub_srk_alg=${srk_alg}
 
@@ -170,7 +182,7 @@ tpm2_seal_unseal() {
 	--action=add \
 	--protector=tpm2 \
 	--tpm2key \
-	--tpm2-bank=sha256 \
+	--tpm2-bank="${pcr_bank}" \
 	--tpm2-pcrs=0,1 \
 	--tpm2-keyfile="${lukskeyfile}" \
 	--tpm2-outfile="${sealedkey}" || ret=$?
@@ -228,6 +240,7 @@ EOF
 tpm2_seal_unseal_nv() {
     handle_type="$1"
     key_type="$2"
+    pcr_bank="$3"
 
     extra_opt=""
     extra_grub_opt=""
@@ -241,7 +254,7 @@ tpm2_seal_unseal_nv() {
     if [ "$key_type" = "tpm2key" ]; then
 	extra_opt="--tpm2key"
     else
-	extra_grub_opt="--pcrs=0,1"
+	extra_grub_opt="--pcrs=0,1 -b ${pcr_bank}"
     fi
 
     grub_cfg=${tpm2testdir}/testcase.cfg
@@ -251,7 +264,7 @@ tpm2_seal_unseal_nv() {
 	--tpm2-device="${tpm2dev}" \
 	--action=add \
 	--protector=tpm2 \
-	--tpm2-bank=sha256 \
+	--tpm2-bank="${pcr_bank}" \
 	--tpm2-pcrs=0,1 \
 	--tpm2-keyfile="${lukskeyfile}" \
 	--tpm2-nvindex="${nv_index}" || ret=$?
@@ -293,13 +306,16 @@ EOF
 
 # Testcases for SRK mode
 declare -a srktests=()
-srktests+=("default transient no_fallback_srk")
-srktests+=("RSA transient no_fallback_srk")
-srktests+=("ECC transient no_fallback_srk")
-srktests+=("RSA persistent no_fallback_srk")
-srktests+=("ECC persistent no_fallback_srk")
-srktests+=("RSA transient fallback_srk")
-srktests+=("ECC transient fallback_srk")
+srktests+=("default transient no_fallback_srk sha256")
+srktests+=("RSA transient no_fallback_srk sha256")
+srktests+=("ECC transient no_fallback_srk sha256")
+srktests+=("RSA persistent no_fallback_srk sha256")
+srktests+=("ECC persistent no_fallback_srk sha256")
+srktests+=("RSA transient fallback_srk sha256")
+srktests+=("ECC transient fallback_srk sha256")
+if [ "${with_sha384}" = "true" ]; then
+    srktests+=("default transient no_fallback_srk sha384")
+fi
 
 exit_status=0
 
@@ -319,9 +335,13 @@ done
 
 # Testcases for NV index mode
 declare -a nvtests=()
-nvtests+=("persistent raw")
-nvtests+=("nvindex raw")
-nvtests+=("nvindex tpm2key")
+nvtests+=("persistent raw sha256")
+nvtests+=("nvindex raw sha256")
+nvtests+=("nvindex tpm2key sha256")
+if [ "${with_sha384}" = "true" ]; then
+    nvtests+=("persistent raw sha384")
+    nvtests+=("nvindex tpm2key sha384")
+fi
 
 for i in "${!nvtests[@]}"; do
     tpm2_seal_unseal_nv ${nvtests[$i]} || ret=$?
