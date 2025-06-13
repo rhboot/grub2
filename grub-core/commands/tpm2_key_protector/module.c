@@ -162,6 +162,8 @@ static tpm2_protector_context_t tpm2_protector_ctx = {0};
 
 static grub_command_t tpm2_dump_pcr_cmd;
 
+static TPM_ALG_ID_t tpm2_dump_bank;
+
 static grub_err_t
 tpm2_protector_srk_read_file (const char *filepath, void **buffer, grub_size_t *buffer_size)
 {
@@ -654,6 +656,9 @@ tpm2_protector_policypcr (TPMI_SH_AUTH_SESSION_t session, struct grub_tpm2_buffe
   if (cmd_buf->error != 0)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "failed to unmarshal commandPolicy for TPM2_PolicyPCR");
 
+  /* Record the chosen PCR bank. */
+  tpm2_dump_bank = pcr_sel.pcrSelections[0].hash;
+
   rc = grub_tpm2_policypcr (session, NULL, &pcr_digest, &pcr_sel, NULL);
   if (rc != TPM_RC_SUCCESS)
     return grub_error (GRUB_ERR_BAD_DEVICE, "failed to submit PCR policy (TPM2_PolicyPCR: 0x%x)", rc);
@@ -1091,7 +1096,7 @@ tpm2_protector_key_from_buffer (const tpm2_protector_context_t *ctx,
   if (dump_pcr == true)
     {
       grub_printf ("PCR Mismatch! Check firmware and bootloader before typing passphrase!\n");
-      tpm2_protector_dump_pcr (ctx->bank);
+      tpm2_protector_dump_pcr (tpm2_dump_bank);
     }
 
  exit2:
@@ -1151,7 +1156,7 @@ tpm2_protector_load_persistent (const tpm2_protector_context_t *ctx, TPM_HANDLE_
   if (dump_pcr == true)
     {
       grub_printf ("PCR Mismatch! Check firmware and bootloader before typing passphrase!\n");
-      tpm2_protector_dump_pcr (ctx->bank);
+      tpm2_protector_dump_pcr (tpm2_dump_bank);
     }
 
  exit:
@@ -1272,6 +1277,8 @@ tpm2_protector_check_args (tpm2_protector_context_t *ctx)
   /* Defaults assignment */
   if (ctx->bank == TPM_ALG_ERROR)
     ctx->bank = TPM_ALG_SHA256;
+
+  tpm2_dump_bank = ctx->bank;
 
   if (ctx->pcr_count == 0)
     {
