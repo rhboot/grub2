@@ -483,7 +483,7 @@ protect_tpm2_get_policy_digest (protect_args_t *args, TPM2B_DIGEST_t *digest)
     }
   pcr_concat.size = pcr_concat_len;
 
-  rc = grub_tpm2_hash (NULL, &pcr_concat, args->tpm2_bank, TPM_RH_NULL, &pcr_digest, NULL, NULL);
+  rc = grub_tpm2_hash (NULL, &pcr_concat, TPM_ALG_SHA256, TPM_RH_NULL, &pcr_digest, NULL, NULL);
   if (rc != TPM_RC_SUCCESS)
     {
       fprintf (stderr, "Failed to generate PCR digest (TPM2_Hash: 0x%x)\n", rc);
