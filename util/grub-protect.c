@@ -703,7 +703,7 @@ protect_tpm2_export_tpm2key (const protect_args_t *args, tpm2_sealed_key_t *seal
   struct grub_tpm2_buffer priv_buf;
   int i;
   int ret;
-  grub_err_t err;
+  grub_err_t err = GRUB_ERR_NONE;
 
   if (der_buf == NULL)
     return GRUB_ERR_BAD_ARGUMENT;
