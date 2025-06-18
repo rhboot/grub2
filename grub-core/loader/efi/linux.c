@@ -492,6 +492,8 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   if (!file)
     goto fail;
 
+  grub_loader_unset();
+
   kernel_size = grub_file_size (file);
 
   if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
@@ -513,8 +515,6 @@ fallback:
       return grub_cmd_linux_x86_legacy (cmd, argc, argv);
     }
 #endif
-
-  grub_loader_unset();
 
   grub_dprintf ("linux", "kernel file size: %lld\n", (long long) kernel_size);
   kernel_addr = grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (kernel_size));
