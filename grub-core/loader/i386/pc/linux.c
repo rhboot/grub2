@@ -457,7 +457,7 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
     err = grub_relocator_alloc_chunk_align_safe (relocator, &ch, addr_min, addr_max, size,
 						 0x1000, GRUB_RELOCATOR_PREFERENCE_HIGH, 0);
     if (err)
-      return err;
+      goto fail;
     initrd_chunk = get_virtual_current_address (ch);
     initrd_addr = get_physical_target_address (ch);
   }
