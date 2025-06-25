@@ -223,8 +223,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
       grub_error (GRUB_ERR_BAD_FIRMWARE, "missing loaded_image proto");
       goto unload;
     }
-  loaded_image->load_options_size = len =
-    (grub_strlen (args) + 1) * sizeof (grub_efi_char16_t);
+  len = (grub_strlen (args) + 1) * sizeof (grub_efi_char16_t);
   loaded_image->load_options =
     grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (len));
   if (!loaded_image->load_options)
