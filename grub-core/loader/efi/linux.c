@@ -233,6 +233,8 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 
   len = grub_utf8_to_utf16 (loaded_image->load_options, len,
 			    (grub_uint8_t *) args, args_len, NULL);
+  /* NUL terminate. */
+  ((grub_efi_char16_t *) loaded_image->load_options)[len++] = 0;
   loaded_image->load_options_size = len * sizeof (grub_efi_char16_t);
 
   grub_dprintf ("linux", "starting image %p\n", image_handle);
