@@ -190,7 +190,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   grub_efi_boot_services_t *b;
   grub_efi_status_t status;
   grub_efi_loaded_image_t *loaded_image;
-  int len;
+  grub_size_t len;
   grub_size_t args_len;
 
   mempath = grub_malloc (2 * sizeof (grub_efi_memory_mapped_device_path_t));
