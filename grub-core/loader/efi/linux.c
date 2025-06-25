@@ -191,6 +191,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   grub_efi_status_t status;
   grub_efi_loaded_image_t *loaded_image;
   int len;
+  grub_size_t args_len;
 
   mempath = grub_malloc (2 * sizeof (grub_efi_memory_mapped_device_path_t));
   if (!mempath)
@@ -223,7 +224,8 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
       grub_error (GRUB_ERR_BAD_FIRMWARE, "missing loaded_image proto");
       goto unload;
     }
-  len = (grub_strlen (args) + 1) * sizeof (grub_efi_char16_t);
+  args_len = grub_strlen (args);
+  len = (args_len + 1) * sizeof (grub_efi_char16_t);
   loaded_image->load_options =
     grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (len));
   if (!loaded_image->load_options)
@@ -231,7 +233,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 
   loaded_image->load_options_size =
     2 * grub_utf8_to_utf16 (loaded_image->load_options, len,
-			    (grub_uint8_t *) args, len, NULL);
+			    (grub_uint8_t *) args, args_len, NULL);
 
   grub_dprintf ("linux", "starting image %p\n", image_handle);
   status = b->start_image (image_handle, 0, NULL);
