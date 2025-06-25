@@ -117,7 +117,8 @@ grub_utf8_process (grub_uint8_t c, grub_uint32_t *code, int *count)
 /* Convert a (possibly null-terminated) UTF-8 string of at most SRCSIZE
    bytes (if SRCSIZE is -1, it is ignored) in length to a UTF-16 string.
    Return the number of characters converted. DEST must be able to hold
-   at least DESTSIZE characters. If an invalid sequence is found, return -1.
+   at least DESTSIZE characters. If an invalid sequence is found, it is
+   replaced by a question mark ('?').
    If SRCEND is not NULL, then *SRCEND is set to the next byte after the
    last byte used in SRC.  */
 static inline grub_size_t
