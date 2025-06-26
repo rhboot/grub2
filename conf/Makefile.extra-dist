@@ -32,6 +32,7 @@ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regcomp-resource-leak.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regexec-resource-leak.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-gcc-15-compile.patch
+EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
 
 EXTRA_DIST += grub-core/lib/libgcrypt
 EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
