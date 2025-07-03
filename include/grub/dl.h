@@ -259,6 +259,7 @@ grub_dl_set_persistent (grub_dl_t mod __attribute__((unused)))
 static inline int
 grub_dl_is_persistent (grub_dl_t mod __attribute__((unused)))
 {
+  return 0;
 }
 #else
 static inline void
