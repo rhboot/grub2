@@ -290,9 +290,9 @@ single_binary_unload (struct xen_boot_binary *binary)
 static void
 all_binaries_unload (void)
 {
-  struct xen_boot_binary *binary;
+  struct xen_boot_binary *binary, *next_binary;
 
-  FOR_LIST_ELEMENTS (binary, module_head)
+  FOR_LIST_ELEMENTS_SAFE (binary, next_binary, module_head)
   {
     single_binary_unload (binary);
   }
