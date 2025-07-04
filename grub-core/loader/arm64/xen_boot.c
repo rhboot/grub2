@@ -247,13 +247,17 @@ fail:
 static grub_err_t
 xen_boot (void)
 {
+  grub_addr_t start;
+
   grub_err_t err = finalize_params_xen_boot ();
   if (err)
     return err;
 
-  return grub_arch_efi_linux_boot_image (xen_hypervisor->start,
-					  xen_hypervisor->size,
-					  xen_hypervisor->cmdline);
+  start = xen_boot_address_align (xen_hypervisor->start,
+				  xen_hypervisor->align);
+  return grub_arch_efi_linux_boot_image (start,
+					 xen_hypervisor->size,
+					 xen_hypervisor->cmdline);
 }
 
 static void
