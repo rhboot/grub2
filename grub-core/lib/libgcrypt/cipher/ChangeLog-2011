@@ -1,9 +1,37 @@
 2011-12-01  Werner Koch  <wk@g10code.com>
 
-        NB: ChangeLog files are no longer manually maintained.  Starting
-        on December 1st, 2011 we put change information only in the GIT
-        commit log, and generate a top-level ChangeLog file from logs at
-        "make dist".  See doc/HACKING for details.
+	NB: ChangeLog files are no longer manually maintained.  Starting
+	on December 1st, 2011 we put change information only in the GIT
+	commit log, and generate a top-level ChangeLog file from logs at
+	"make dist".  See doc/HACKING for details.
+
+2011-09-16  Werner Koch  <wk@g10code.com>
+
+	* primegen.c (_gcry_primegen_init): New.
+
+2011-09-15  Werner Koch  <wk@g10code.com>
+
+	* cipher-cbc.c, cipher-cfb.c, cipher-ofb.c, cipher-ctr.c: New.
+	* cipher-aeswrap.c: New.
+	* cipher-internal.h: New.
+	* cipher.c (cipher_context_alignment_t, struct gcry_cipher_handle)
+	(CTX_MAGIC_NORMAL, CTX_MAGIC_SECURE, NEED_16BYTE_ALIGNED_CONTEXT)
+	(MAX_BLOCKSIZE): Move to cipher-internal.h.
+	(do_aeswrap_encrypt, do_aeswrap_encrypt)
+	(do_cbc_encrypt, do_cbc_decrypt, do_ctr_encrypt, do_ctr_decrypt)
+	(do_ofb_encrypt, do_ofb_decrypt, do_ctr_encrypt): Move to the
+	respective new cipher-foo.c files.
+	(do_ctr_decrypt): Remove.
+
+2011-09-15  Werner Koch  <wk@g10code.com>
+
+	* pubkey.c (gcry_pk_list): Remove.
+	(gcry_pk_unregister): Remove.
+	* md.c (gcry_md_list): Remove.
+	(gcry_md_unregister): Remove.
+	* cipher.c (gcry_cipher_list): Remove.
+	(gcry_cipher_unregister): Remove.
+	* ac.c: Remove.
 
 2011-06-29  Werner Koch  <wk@g10code.com>
 
@@ -4245,3 +4273,7 @@ Mon Feb 16 10:08:47 1998  Werner Koch  (wk@isil.d.shuttle.de)
  This file is distributed in the hope that it will be useful, but
  WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Local Variables:
+buffer-read-only: t
+End:

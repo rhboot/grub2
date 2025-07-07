@@ -15,8 +15,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -48,7 +48,7 @@ _gcry_mpih_addmul_1( mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
   s1_ptr -= j;
 
   cy_limb = 0;
-  do
+  do 
     {
       umul_ppmm( prod_high, prod_low, s1_ptr[j], s2_limb );
 
@@ -59,9 +59,9 @@ _gcry_mpih_addmul_1( mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
       prod_low = x + prod_low;
       cy_limb += prod_low < x?1:0;
       res_ptr[j] = prod_low;
-    }
+    } 
   while ( ++j );
-
+    
   return cy_limb;
 }
 

@@ -20,20 +20,23 @@
 
 ## Process this file with automake to produce Makefile.in
 
-EXTRA_DIST = Manifest libgcrypt-config.in libgcrypt.m4 libgcrypt.vers \
-             gcrypt.h.in libgcrypt.def
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libgcrypt.pc
 
+EXTRA_DIST = libgcrypt-config.in libgcrypt.m4 libgcrypt.vers \
+             gcrypt.h.in libgcrypt.def libgcrypt.pc.in gen-note-integrity.sh
+
+if USE_GPGRT_CONFIG
+noinst_SCRIPTS = libgcrypt-config
+else
 bin_SCRIPTS = libgcrypt-config
+endif
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libgcrypt.m4
-include_HEADERS = gcrypt.h gcrypt-module.h
+nodist_include_HEADERS = gcrypt.h
 
 lib_LTLIBRARIES = libgcrypt.la
-bin_PROGRAMS = dumpsexp hmac256
-if USE_RANDOM_DAEMON
-sbin_PROGRAMS = gcryptrnd
-bin_PROGRAMS += getrandom
-endif USE_RANDOM_DAEMON
+bin_PROGRAMS = dumpsexp hmac256 mpicalc
 
 # Depending on the architecture some targets require libgpg-error.
 if HAVE_W32CE_SYSTEM
@@ -44,6 +47,8 @@ arch_gpg_error_cflags =
 arch_gpg_error_libs   =
 endif
 
+AM_CFLAGS = $(GPG_ERROR_CFLAGS)
+AM_CCASFLAGS = $(NOEXECSTACK_FLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
   libgcrypt_version_script_cmd = -Wl,--version-script=$(srcdir)/libgcrypt.vers
@@ -51,14 +56,19 @@ else
   libgcrypt_version_script_cmd =
 endif
 
-libgcrypt_la_CFLAGS = $(GPG_ERROR_CFLAGS)
-libgcrypt_la_SOURCES = g10lib.h visibility.c visibility.h types.h \
-	cipher.h cipher-proto.h \
-	misc.c global.c sexp.c hwfeatures.c \
+libgcrypt_la_CFLAGS = $(GPG_ERROR_CFLAGS) @DEF_HMAC_BINARY_CHECK@
+libgcrypt_la_SOURCES = \
+        gcrypt-int.h g10lib.h visibility.c visibility.h types.h \
+	gcrypt-testapi.h cipher.h cipher-proto.h \
+	misc.c global.c sexp.c hwfeatures.c hwf-common.h \
 	stdmem.c stdmem.h secmem.c secmem.h \
-	mpi.h missing-string.c module.c fips.c \
-	hmac256.c hmac256.h \
-	ath.h ath.c
+	mpi.h missing-string.c fips.c \
+	context.c context.h const-time.h const-time.c \
+	ec-context.h
+
+EXTRA_libgcrypt_la_SOURCES = hwf-x86.c hwf-arm.c hwf-ppc.c hwf-s390x.c
+gcrypt_hwf_modules = @GCRYPT_HWF_MODULES@
+
 
 if HAVE_W32_SYSTEM
 
@@ -74,8 +84,10 @@ SUFFIXES = .rc .lo
 gcrypt_res = versioninfo.lo
 no_undefined = -no-undefined
 export_symbols = -export-symbols $(srcdir)/libgcrypt.def
+extra_ltoptions = -XCClinker -static-libgcc
 
 install-def-file:
+	-$(INSTALL) -d $(DESTDIR)$(libdir)
 	$(INSTALL) $(srcdir)/libgcrypt.def $(DESTDIR)$(libdir)/libgcrypt.def
 
 uninstall-def-file:
@@ -89,6 +101,7 @@ gcrypt_res =
 gcrypt_res_ldflag =
 no_undefined =
 export_symbols =
+extra_ltoptions =
 install-def-file:
 uninstall-def-file:
 
@@ -97,47 +110,57 @@ gcrypt_deps =
 endif !HAVE_W32_SYSTEM
 
 
-libgcrypt_la_LDFLAGS = $(no_undefined) $(export_symbols) \
+libgcrypt_la_LDFLAGS = $(no_undefined) $(export_symbols) $(extra_ltoptions) \
 	$(libgcrypt_version_script_cmd) -version-info \
 	@LIBGCRYPT_LT_CURRENT@:@LIBGCRYPT_LT_REVISION@:@LIBGCRYPT_LT_AGE@
 libgcrypt_la_DEPENDENCIES = \
+         $(gcrypt_hwf_modules) \
 	../cipher/libcipher.la \
 	../random/librandom.la \
 	../mpi/libmpi.la \
 	../compat/libcompat.la \
 	$(srcdir)/libgcrypt.vers $(gcrypt_deps)
 libgcrypt_la_LIBADD = $(gcrypt_res) \
+        $(gcrypt_hwf_modules) \
 	../cipher/libcipher.la \
 	../random/librandom.la \
 	../mpi/libmpi.la \
-	../compat/libcompat.la  $(GPG_ERROR_LIBS)
+	../compat/libcompat.la $(DL_LIBS) $(GPG_ERROR_LIBS)
 
 
 dumpsexp_SOURCES = dumpsexp.c
 dumpsexp_CFLAGS = $(arch_gpg_error_cflags)
 dumpsexp_LDADD = $(arch_gpg_error_libs)
 
-hmac256_SOURCES = hmac256.c
-hmac256_CFLAGS = -DSTANDALONE $(arch_gpg_error_cflags)
+mpicalc_SOURCES = mpicalc.c
+mpicalc_CFLAGS = $(GPG_ERROR_CFLAGS)
+mpicalc_LDADD = libgcrypt.la $(GPG_ERROR_LIBS)
+EXTRA_mpicalc_DEPENDENCIES = libgcrypt.la.done
+
+hmac256_SOURCES = hmac256.c hmac256.h
+hmac256_CFLAGS = -DSTANDALONE @DEF_HMAC_BINARY_CHECK@ \
+	$(arch_gpg_error_cflags)
 hmac256_LDADD = $(arch_gpg_error_libs)
 
-if USE_RANDOM_DAEMON
-gcryptrnd_SOURCES = gcryptrnd.c
-gcryptrnd_CFLAGS = $(GPG_ERROR_CFLAGS) $(PTH_CFLAGS)
-gcryptrnd_LDADD = libgcrypt.la $(GPG_ERROR_LIBS) $(PTH_LIBS)
+CLEANFILES = libgcrypt.la.done
+if USE_HMAC_BINARY_CHECK
+CLEANFILES += libgcrypt.so.hmac
 
-getrandom_SOURCES = getrandom.c
-endif USE_RANDOM_DAEMON
+libgcrypt.la.done: libgcrypt.so.hmac
+	$(OBJCOPY) --add-section .note.fdo.integrity=libgcrypt.so.hmac \
+	  --set-section-flags .note.fdo.integrity=noload,readonly \
+	  .libs/libgcrypt.so .libs/libgcrypt.so.new
+	mv -f .libs/libgcrypt.so.new .libs/libgcrypt.so.*.*
+	@touch libgcrypt.la.done
 
+libgcrypt.so.hmac: hmac256 libgcrypt.la
+	ECHO_N=$(ECHO_N) READELF=$(READELF) AWK=$(AWK) \
+	$(srcdir)/gen-note-integrity.sh > $@
+else !USE_HMAC_BINARY_CHECK
+libgcrypt.la.done: libgcrypt.la
+	@touch libgcrypt.la.done
+endif !USE_HMAC_BINARY_CHECK
 
 install-data-local: install-def-file
 
 uninstall-local: uninstall-def-file
-
-# FIXME: We need to figure out how to get the actual name (parsing
-# libgcrypt.la?) and how to create the hmac file already at link time
-# so that it can be used without installing libgcrypt first.
-#install-exec-hook:
-#	./hmac256 "What am I, a doctor or a moonshuttle conductor?" \
-#          < $(DESTDIR)$(libdir)/libgcrypt.so.11.5.0 \
-#          > $(DESTDIR)$(libdir)/.libgcrypt.so.11.5.0.hmac

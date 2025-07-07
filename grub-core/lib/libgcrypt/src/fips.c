@@ -25,20 +25,20 @@
 #include <string.h>
 #ifdef ENABLE_HMAC_BINARY_CHECK
 # include <dlfcn.h>
+# include <elf.h>
+# include <limits.h>
+# include <link.h>
 #endif
 #ifdef HAVE_SYSLOG
 # include <syslog.h>
 #endif /*HAVE_SYSLOG*/
 
-#include "g10lib.h"
-#include "ath.h"
-#include "cipher-proto.h"
-#include "hmac256.h"
-
-
-/* The name of the file used to foce libgcrypt into fips mode. */
+/* The name of the file used to force libgcrypt into fips mode. */
 #define FIPS_FORCE_FILE "/etc/gcrypt/fips_enabled"
 
+#include "g10lib.h"
+#include "cipher-proto.h"
+#include "../random/random.h"
 
 /* The states of the finite state machine used in fips mode.  */
 enum module_states
@@ -58,18 +58,10 @@ enum module_states
    that fips mode is the default unless changed by the initialization
    code. To check whether fips mode is enabled, use the function
    fips_mode()! */
-static int no_fips_mode_required;
-
-/* Flag to indicate that we are in the enforced FIPS mode.  */
-static int enforced_fips_mode;
-
-/* If this flag is set, the application may no longer assume that the
-   process is running in FIPS mode.  This flag is protected by the
-   FSM_LOCK.  */
-static int inactive_fips_mode;
+int _gcry_no_fips_mode_required;
 
 /* This is the lock we use to protect the FSM.  */
-static ath_mutex_t fsm_lock = ATH_MUTEX_INITIALIZER;
+GPGRT_LOCK_DEFINE (fsm_lock);
 
 /* The current state of the FSM.  The whole state machinery is only
    used while in fips mode. Change this only while holding fsm_lock. */
@@ -92,36 +84,18 @@ static void fips_new_state (enum module_states new_state);
 
 
 
-/* Check whether the OS is in FIPS mode and record that in a module
-   local variable.  If FORCE is passed as true, fips mode will be
-   enabled anyway. Note: This function is not thread-safe and should
-   be called before any threads are created.  This function may only
-   be called once.  */
-void
-_gcry_initialize_fips_mode (int force)
+/*
+ * Returns 1 if the FIPS mode is to be activated based on the
+ * environment variable LIBGCRYPT_FORCE_FIPS_MODE, the file defined by
+ * FIPS_FORCE_FILE, or /proc/sys/crypto/fips_enabled.
+ * This function aborts on misconfigured filesystems.
+ */
+static int
+check_fips_system_setting (void)
 {
-  static int done;
-  gpg_error_t err;
-
-  /* Make sure we are not accidently called twice.  */
-  if (done)
-    {
-      if ( fips_mode () )
-        {
-          fips_new_state (STATE_FATALERROR);
-          fips_noreturn ();
-        }
-      /* If not in fips mode an assert is sufficient.  */
-      gcry_assert (!done);
-    }
-  done = 1;
-
-  /* If the calling application explicitly requested fipsmode, do so.  */
-  if (force)
-    {
-      gcry_assert (!no_fips_mode_required);
-      goto leave;
-    }
+  /* Do we have the environment variable set?  */
+  if (getenv ("LIBGCRYPT_FORCE_FIPS_MODE"))
+    return 1;
 
   /* For testing the system it is useful to override the system
      provided detection of the FIPS mode and force FIPS mode using a
@@ -129,10 +103,7 @@ _gcry_initialize_fips_mode (int force)
      confusion on whether /etc/gcrypt/ or /usr/local/etc/gcrypt/ is
      actually used.  The file itself may be empty.  */
   if ( !access (FIPS_FORCE_FILE, F_OK) )
-    {
-      gcry_assert (!no_fips_mode_required);
-      goto leave;
-    }
+    return 1;
 
   /* Checking based on /proc file properties.  */
   {
@@ -149,8 +120,7 @@ _gcry_initialize_fips_mode (int force)
           {
             /* System is in fips mode.  */
             fclose (fp);
-            gcry_assert (!no_fips_mode_required);
-            goto leave;
+            return 1;
           }
         fclose (fp);
       }
@@ -171,49 +141,87 @@ _gcry_initialize_fips_mode (int force)
       }
   }
 
+  return 0;
+}
+
+/*
+ * Initial check if the FIPS mode should be activated on startup.
+ * Called by the constructor at the initialization of the library.
+ */
+int
+_gcry_fips_to_activate (void)
+{
+  return check_fips_system_setting ();
+}
+
+
+/* Check whether the OS is in FIPS mode and record that in a module
+   local variable.  If FORCE is passed as true, fips mode will be
+   enabled anyway. Note: This function is not thread-safe and should
+   be called before any threads are created.  This function may only
+   be called once.  */
+void
+_gcry_initialize_fips_mode (int force)
+{
+  static int done;
+  gpg_error_t err;
+
+  /* Make sure we are not accidentally called twice.  */
+  if (done)
+    {
+      if ( fips_mode () )
+        {
+          fips_new_state (STATE_FATALERROR);
+          fips_noreturn ();
+        }
+      /* If not in fips mode an assert is sufficient.  */
+      gcry_assert (!done);
+    }
+  done = 1;
+
+  /* If the calling application explicitly requested fipsmode, do so.  */
+  if (force)
+    {
+      gcry_assert (!_gcry_no_fips_mode_required);
+      goto leave;
+    }
+
+  /* If the system explicitly requested fipsmode, do so.  */
+  if (check_fips_system_setting ())
+    {
+      gcry_assert (!_gcry_no_fips_mode_required);
+      goto leave;
+    }
+
   /* Fips not not requested, set flag.  */
-  no_fips_mode_required = 1;
+  _gcry_no_fips_mode_required = 1;
 
  leave:
-  if (!no_fips_mode_required)
+  if (!_gcry_no_fips_mode_required)
     {
       /* Yes, we are in FIPS mode.  */
-      FILE *fp;
 
       /* Intitialize the lock to protect the FSM.  */
-      err = ath_mutex_init (&fsm_lock);
+      err = gpgrt_lock_init (&fsm_lock);
       if (err)
         {
           /* If that fails we can't do anything but abort the
              process. We need to use log_info so that the FSM won't
              get involved.  */
           log_info ("FATAL: failed to create the FSM lock in libgcrypt: %s\n",
-                     strerror (err));
+                    gpg_strerror (err));
 #ifdef HAVE_SYSLOG
           syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
                   "creating FSM lock failed: %s - abort",
-                  strerror (err));
+                  gpg_strerror (err));
 #endif /*HAVE_SYSLOG*/
           abort ();
         }
 
-
-      /* If the FIPS force files exists, is readable and has a number
-         != 0 on its first line, we enable the enforced fips mode.  */
-      fp = fopen (FIPS_FORCE_FILE, "r");
-      if (fp)
-        {
-          char line[256];
-
-          if (fgets (line, sizeof line, fp) && atoi (line))
-            enforced_fips_mode = 1;
-          fclose (fp);
-        }
-
       /* Now get us into the INIT state.  */
       fips_new_state (STATE_INIT);
-
     }
+
   return;
 }
 
@@ -222,15 +230,15 @@ lock_fsm (void)
 {
   gpg_error_t err;
 
-  err = ath_mutex_lock (&fsm_lock);
+  err = gpgrt_lock_lock (&fsm_lock);
   if (err)
     {
       log_info ("FATAL: failed to acquire the FSM lock in libgrypt: %s\n",
-                strerror (err));
+                gpg_strerror (err));
 #ifdef HAVE_SYSLOG
       syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
               "acquiring FSM lock failed: %s - abort",
-              strerror (err));
+              gpg_strerror (err));
 #endif /*HAVE_SYSLOG*/
       abort ();
     }
@@ -241,97 +249,19 @@ unlock_fsm (void)
 {
   gpg_error_t err;
 
-  err = ath_mutex_unlock (&fsm_lock);
+  err = gpgrt_lock_unlock (&fsm_lock);
   if (err)
     {
       log_info ("FATAL: failed to release the FSM lock in libgrypt: %s\n",
-                strerror (err));
+                gpg_strerror (err));
 #ifdef HAVE_SYSLOG
       syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
               "releasing FSM lock failed: %s - abort",
-              strerror (err));
+              gpg_strerror (err));
 #endif /*HAVE_SYSLOG*/
       abort ();
     }
 }
-
-
-/* This function returns true if fips mode is enabled.  This is
-   independent of the fips required finite state machine and only used
-   to enable fips specific code.  Please use the fips_mode macro
-   instead of calling this function directly. */
-int
-_gcry_fips_mode (void)
-{
-  /* No locking is required because we have the requirement that this
-     variable is only initialized once with no other threads
-     existing.  */
-  return !no_fips_mode_required;
-}
-
-
-/* Return a flag telling whether we are in the enforced fips mode.  */
-int
-_gcry_enforced_fips_mode (void)
-{
-  if (!_gcry_fips_mode ())
-    return 0;
-  return enforced_fips_mode;
-}
-
-/* Set a flag telling whether we are in the enforced fips mode.  */
-void
-_gcry_set_enforced_fips_mode (void)
-{
-  enforced_fips_mode = 1;
-}
-
-/* If we do not want to enforce the fips mode, we can set a flag so
-   that the application may check whether it is still in fips mode.
-   TEXT will be printed as part of a syslog message.  This function
-   may only be be called if in fips mode. */
-void
-_gcry_inactivate_fips_mode (const char *text)
-{
-  gcry_assert (_gcry_fips_mode ());
-
-  if (_gcry_enforced_fips_mode () )
-    {
-      /* Get us into the error state. */
-      fips_signal_error (text);
-      return;
-    }
-
-  lock_fsm ();
-  if (!inactive_fips_mode)
-    {
-      inactive_fips_mode = 1;
-      unlock_fsm ();
-#ifdef HAVE_SYSLOG
-      syslog (LOG_USER|LOG_WARNING, "Libgcrypt warning: "
-              "%s - FIPS mode inactivated", text);
-#endif /*HAVE_SYSLOG*/
-    }
-  else
-    unlock_fsm ();
-}
-
-
-/* Return the FIPS mode inactive flag.  If it is true the FIPS mode is
-   not anymore active.  */
-int
-_gcry_is_fips_mode_inactive (void)
-{
-  int flag;
-
-  if (!_gcry_fips_mode ())
-    return 0;
-  lock_fsm ();
-  flag = inactive_fips_mode;
-  unlock_fsm ();
-  return flag;
-}
-
 
 
 static const char *
@@ -378,10 +308,13 @@ _gcry_fips_is_operational (void)
              (GCRYCTL_INITIALIZATION_FINISHED) where the latter will
              run the selftests.  The drawback of these on-demand
              self-tests are a small chance that self-tests are
-             performed by severeal threads; that is no problem because
+             performed by several threads; that is no problem because
              our FSM make sure that we won't oversee any error. */
           unlock_fsm ();
           _gcry_fips_run_selftests (0);
+
+          /* Release resources for random.  */
+          _gcry_random_close_fds ();
           lock_fsm ();
         }
 
@@ -409,6 +342,170 @@ _gcry_fips_test_operational (void)
       unlock_fsm ();
     }
   return result;
+}
+
+int
+_gcry_fips_indicator_cipher (va_list arg_ptr)
+{
+  enum gcry_cipher_algos alg = va_arg (arg_ptr, enum gcry_cipher_algos);
+  enum gcry_cipher_modes mode;
+
+  switch (alg)
+    {
+    case GCRY_CIPHER_AES:
+    case GCRY_CIPHER_AES192:
+    case GCRY_CIPHER_AES256:
+      mode = va_arg (arg_ptr, enum gcry_cipher_modes);
+      switch (mode)
+        {
+        case GCRY_CIPHER_MODE_ECB:
+        case GCRY_CIPHER_MODE_CBC:
+        case GCRY_CIPHER_MODE_CFB:
+        case GCRY_CIPHER_MODE_CFB8:
+        case GCRY_CIPHER_MODE_OFB:
+        case GCRY_CIPHER_MODE_CTR:
+        case GCRY_CIPHER_MODE_CCM:
+        case GCRY_CIPHER_MODE_GCM:
+        case GCRY_CIPHER_MODE_XTS:
+        case GCRY_CIPHER_MODE_AESWRAP:
+          return GPG_ERR_NO_ERROR;
+        default:
+          return GPG_ERR_NOT_SUPPORTED;
+        }
+    default:
+      return GPG_ERR_NOT_SUPPORTED;
+    }
+}
+
+int
+_gcry_fips_indicator_mac (va_list arg_ptr)
+{
+  enum gcry_mac_algos alg = va_arg (arg_ptr, enum gcry_mac_algos);
+
+  switch (alg)
+    {
+    case GCRY_MAC_CMAC_AES:
+    case GCRY_MAC_HMAC_SHA1:
+    case GCRY_MAC_HMAC_SHA224:
+    case GCRY_MAC_HMAC_SHA256:
+    case GCRY_MAC_HMAC_SHA384:
+    case GCRY_MAC_HMAC_SHA512:
+    case GCRY_MAC_HMAC_SHA512_224:
+    case GCRY_MAC_HMAC_SHA512_256:
+    case GCRY_MAC_HMAC_SHA3_224:
+    case GCRY_MAC_HMAC_SHA3_256:
+    case GCRY_MAC_HMAC_SHA3_384:
+    case GCRY_MAC_HMAC_SHA3_512:
+      return GPG_ERR_NO_ERROR;
+    default:
+      return GPG_ERR_NOT_SUPPORTED;
+    }
+}
+
+int
+_gcry_fips_indicator_md (va_list arg_ptr)
+{
+  enum gcry_md_algos alg = va_arg (arg_ptr, enum gcry_md_algos);
+
+  switch (alg)
+    {
+    case GCRY_MD_SHA1:
+    case GCRY_MD_SHA224:
+    case GCRY_MD_SHA256:
+    case GCRY_MD_SHA384:
+    case GCRY_MD_SHA512:
+    case GCRY_MD_SHA512_224:
+    case GCRY_MD_SHA512_256:
+    case GCRY_MD_SHA3_224:
+    case GCRY_MD_SHA3_256:
+    case GCRY_MD_SHA3_384:
+    case GCRY_MD_SHA3_512:
+    case GCRY_MD_SHAKE128:
+    case GCRY_MD_SHAKE256:
+    case GCRY_MD_CSHAKE128:
+    case GCRY_MD_CSHAKE256:
+      return GPG_ERR_NO_ERROR;
+    default:
+      return GPG_ERR_NOT_SUPPORTED;
+    }
+}
+
+int
+_gcry_fips_indicator_kdf (va_list arg_ptr)
+{
+  enum gcry_kdf_algos alg = va_arg (arg_ptr, enum gcry_kdf_algos);
+
+  switch (alg)
+    {
+    case GCRY_KDF_PBKDF2:
+      return GPG_ERR_NO_ERROR;
+    default:
+      return GPG_ERR_NOT_SUPPORTED;
+    }
+}
+
+int
+_gcry_fips_indicator_function (va_list arg_ptr)
+{
+  const char *function = va_arg (arg_ptr, const char *);
+
+  if (strcmp (function, "gcry_pk_sign") == 0 ||
+      strcmp (function, "gcry_pk_verify") == 0 ||
+      strcmp (function, "gcry_pk_encrypt") == 0 ||
+      strcmp (function, "gcry_pk_decrypt") == 0 ||
+      strcmp (function, "gcry_pk_random_override_new") == 0)
+    return GPG_ERR_NOT_SUPPORTED;
+
+  return GPG_ERR_NO_ERROR;
+}
+
+/* Note: the array should be sorted.  */
+static const char *valid_string_in_sexp[] = {
+  "curve",
+  "d",
+  "data",
+  "e",
+  "ecdsa",
+  "eddsa",
+  "flags",
+  "genkey",
+  "hash",
+  "n",
+  "nbits",
+  "pkcs1",
+  "private-key",
+  "pss",
+  "public-key",
+  "q",
+  "r",
+  "raw",
+  "rsa",
+  "rsa-use-e",
+  "s",
+  "salt-length",
+  "sig-val",
+  "value"
+};
+
+static int
+compare_string (const void *v1, const void *v2)
+{
+  const char * const *p_str1 = v1;
+  const char * const *p_str2 = v2;
+
+  return strcmp (*p_str1, *p_str2);
+}
+
+int
+_gcry_fips_indicator_pk_flags (va_list arg_ptr)
+{
+  const char *flag = va_arg (arg_ptr, const char *);
+
+  if (bsearch (&flag, valid_string_in_sexp, DIM (valid_string_in_sexp),
+               sizeof (char *), compare_string))
+    return GPG_ERR_NO_ERROR;
+
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -456,7 +553,6 @@ run_cipher_selftests (int extended)
 {
   static int algos[] =
     {
-      GCRY_CIPHER_3DES,
       GCRY_CIPHER_AES128,
       GCRY_CIPHER_AES192,
       GCRY_CIPHER_AES256,
@@ -487,7 +583,9 @@ run_digest_selftests (int extended)
     {
       GCRY_MD_SHA1,
       GCRY_MD_SHA224,
+#ifndef ENABLE_HMAC_BINARY_CHECK
       GCRY_MD_SHA256,
+#endif
       GCRY_MD_SHA384,
       GCRY_MD_SHA512,
       0
@@ -508,17 +606,24 @@ run_digest_selftests (int extended)
 }
 
 
-/* Run self-tests for all HMAC algorithms.  Return 0 on success. */
+/* Run self-tests for MAC algorithms.  Return 0 on success. */
 static int
-run_hmac_selftests (int extended)
+run_mac_selftests (int extended)
 {
   static int algos[] =
     {
-      GCRY_MD_SHA1,
-      GCRY_MD_SHA224,
-      GCRY_MD_SHA256,
-      GCRY_MD_SHA384,
-      GCRY_MD_SHA512,
+      GCRY_MAC_HMAC_SHA1,
+      GCRY_MAC_HMAC_SHA224,
+#ifndef ENABLE_HMAC_BINARY_CHECK
+      GCRY_MAC_HMAC_SHA256,
+#endif
+      GCRY_MAC_HMAC_SHA384,
+      GCRY_MAC_HMAC_SHA512,
+      GCRY_MAC_HMAC_SHA3_224,
+      GCRY_MAC_HMAC_SHA3_256,
+      GCRY_MAC_HMAC_SHA3_384,
+      GCRY_MAC_HMAC_SHA3_512,
+      GCRY_MAC_CMAC_AES,
       0
     };
   int idx;
@@ -527,9 +632,32 @@ run_hmac_selftests (int extended)
 
   for (idx=0; algos[idx]; idx++)
     {
-      err = _gcry_hmac_selftest (algos[idx], extended, reporter);
-      reporter ("hmac", algos[idx], NULL,
+      err = _gcry_mac_selftest (algos[idx], extended, reporter);
+      reporter ("mac", algos[idx], NULL,
                 err? gpg_strerror (err):NULL);
+      if (err)
+        anyerr = 1;
+    }
+  return anyerr;
+}
+
+/* Run self-tests for all KDF algorithms.  Return 0 on success. */
+static int
+run_kdf_selftests (int extended)
+{
+  static int algos[] =
+    {
+      GCRY_KDF_PBKDF2,
+      0
+    };
+  int idx;
+  gpg_error_t err;
+  int anyerr = 0;
+
+  for (idx=0; algos[idx]; idx++)
+    {
+      err = _gcry_kdf_selftest (algos[idx], extended, reporter);
+      reporter ("kdf", algos[idx], NULL, err? gpg_strerror (err):NULL);
       if (err)
         anyerr = 1;
     }
@@ -544,9 +672,12 @@ run_pubkey_selftests (int extended)
 {
   static int algos[] =
     {
+#if USE_RSA
       GCRY_PK_RSA,
-      GCRY_PK_DSA,
-      /* GCRY_PK_ECDSA is not enabled in fips mode.  */
+#endif /* USE_RSA */
+#if USE_ECC
+      GCRY_PK_ECC,
+#endif /* USE_ECC */
       0
     };
   int idx;
@@ -578,94 +709,266 @@ run_random_selftests (void)
   return !!err;
 }
 
+#ifdef ENABLE_HMAC_BINARY_CHECK
+# ifndef KEY_FOR_BINARY_CHECK
+# define KEY_FOR_BINARY_CHECK "What am I, a doctor or a moonshuttle conductor?"
+# endif
+#define HMAC_LEN 32
+
+/*
+ * In the ELF file opened as FP, fill the ELF header to the pointer
+ * EHDR_P, determine the maximum offset of segments in R_OFFSET.
+ * Also, find the section which contains the hmac value and return it
+ * in HMAC.  Rewinds FP to the beginning on success.
+ */
+static gpg_error_t
+get_file_offset (FILE *fp, ElfW (Ehdr) *ehdr_p,
+                 unsigned long *r_offset, unsigned char hmac[HMAC_LEN])
+{
+  ElfW (Phdr) phdr;
+  ElfW (Shdr) shdr;
+  int i;
+  unsigned long off_segment = 0;
+
+  /* Read the ELF header */
+  if (fseek (fp, 0, SEEK_SET) != 0)
+    return gpg_error_from_syserror ();
+  if (fread (ehdr_p, sizeof (*ehdr_p), 1, fp) != 1)
+    return gpg_error_from_syserror ();
+
+  /* The program header entry size should match the size of the phdr struct */
+  if (ehdr_p->e_phentsize != sizeof (phdr))
+    return gpg_error (GPG_ERR_INV_OBJ);
+  if (ehdr_p->e_phoff == 0)
+    return gpg_error (GPG_ERR_INV_OBJ);
+
+  /* Jump to the first program header */
+  if (fseek (fp, ehdr_p->e_phoff, SEEK_SET) != 0)
+    return gpg_error_from_syserror ();
+
+  /* Iterate over the program headers, determine the last offset of
+     segments.  */
+  for (i = 0; i < ehdr_p->e_phnum; i++)
+    {
+      unsigned long off;
+
+      if (fread (&phdr, sizeof (phdr), 1, fp) != 1)
+        return gpg_error_from_syserror ();
+
+      off = phdr.p_offset + phdr.p_filesz;
+      if (off_segment < off)
+        off_segment = off;
+    }
+
+  if (!off_segment)
+    /* No segment found in the file */
+    return gpg_error (GPG_ERR_INV_OBJ);
+
+  /* The section header entry size should match the size of the shdr struct */
+  if (ehdr_p->e_shentsize != sizeof (shdr))
+    return gpg_error (GPG_ERR_INV_OBJ);
+  if (ehdr_p->e_shoff == 0)
+    return gpg_error (GPG_ERR_INV_OBJ);
+
+  /* Jump to the first section header */
+  if (fseek (fp, ehdr_p->e_shoff, SEEK_SET) != 0)
+    return gpg_error_from_syserror ();
+
+  /* Iterate over the section headers, determine the note section,
+     read the hmac value.  */
+  for (i = 0; i < ehdr_p->e_shnum; i++)
+    {
+      long off;
+
+      if (fread (&shdr, sizeof (shdr), 1, fp) != 1)
+        return gpg_error_from_syserror ();
+
+      off = ftell (fp);
+      if (off < 0)
+        return gpg_error_from_syserror ();
+      if (shdr.sh_type == SHT_NOTE && shdr.sh_flags == 0 && shdr.sh_size == 48)
+        {
+          const char header_of_the_note[] = {
+            0x04, 0x00, 0x00, 0x00,
+            0x20, 0x00, 0x00, 0x00,
+            0xca, 0xfe, 0x2a, 0x8e,
+            'F', 'D', 'O', 0x00
+          };
+          unsigned char header[16];
+
+          /* Jump to the note section.  */
+          if (fseek (fp, shdr.sh_offset, SEEK_SET) != 0)
+            return gpg_error_from_syserror ();
+
+          if (fread (header, sizeof (header), 1, fp) != 1)
+            return gpg_error_from_syserror ();
+
+          if (!memcmp (header, header_of_the_note, 16))
+            {
+              /* Found.  Read the hmac value into HMAC.  */
+              if (fread (hmac, HMAC_LEN, 1, fp) != 1)
+                return gpg_error_from_syserror ();
+              break;
+            }
+
+          /* Back to the next section header.  */
+          if (fseek (fp, off, SEEK_SET) != 0)
+            return gpg_error_from_syserror ();
+        }
+    }
+
+  if (i == ehdr_p->e_shnum)
+    /* The note section not found.  */
+    return gpg_error (GPG_ERR_INV_OBJ);
+
+  /* Fix up the ELF header, clean all section information.  */
+  ehdr_p->e_shoff = 0;
+  ehdr_p->e_shentsize = 0;
+  ehdr_p->e_shnum = 0;
+  ehdr_p->e_shstrndx = 0;
+
+  *r_offset = off_segment;
+  if (fseek (fp, 0, SEEK_SET) != 0)
+    return gpg_error_from_syserror ();
+
+  return 0;
+}
+
+static gpg_error_t
+hmac256_check (const char *filename, const char *key)
+{
+  gpg_error_t err;
+  FILE *fp;
+  gcry_md_hd_t hd;
+  const size_t buffer_size = 32768;
+  size_t nread;
+  char *buffer;
+  unsigned long offset = 0;
+  unsigned long pos = 0;
+  ElfW (Ehdr) ehdr;
+  unsigned char hmac[HMAC_LEN];
+
+  fp = fopen (filename, "rb");
+  if (!fp)
+    return gpg_error (GPG_ERR_INV_OBJ);
+
+  err = get_file_offset (fp, &ehdr, &offset, hmac);
+  if (err)
+    {
+      fclose (fp);
+      return err;
+    }
+
+  err = _gcry_md_open (&hd, GCRY_MD_SHA256, GCRY_MD_FLAG_HMAC);
+  if (err)
+    {
+      fclose (fp);
+      return err;
+    }
+
+  err = _gcry_md_setkey (hd, key, strlen (key));
+  if (err)
+    {
+      fclose (fp);
+      _gcry_md_close (hd);
+      return err;
+    }
+
+  buffer = xtrymalloc (buffer_size);
+  if (!buffer)
+    {
+      err = gpg_error_from_syserror ();
+      fclose (fp);
+      _gcry_md_close (hd);
+      return err;
+    }
+
+  while (1)
+    {
+      nread = fread (buffer, 1, buffer_size, fp);
+      if (pos + nread >= offset)
+        nread = offset - pos;
+
+      /* Copy the fixed ELF header at the beginning.  */
+      if (pos == 0)
+        memcpy (buffer, &ehdr, sizeof (ehdr));
+
+      _gcry_md_write (hd, buffer, nread);
+
+      if (nread < buffer_size)
+        break;
+
+      pos += nread;
+    }
+
+  if (ferror (fp))
+    err = gpg_error (GPG_ERR_INV_HANDLE);
+  else
+    {
+      unsigned char *digest;
+
+      digest = _gcry_md_read (hd, 0);
+      if (!memcmp (digest, hmac, HMAC_LEN))
+        /* Success.  */
+        err = 0;
+      else
+        err = gpg_error (GPG_ERR_CHECKSUM);
+    }
+
+  _gcry_md_close (hd);
+  xfree (buffer);
+  fclose (fp);
+
+  return err;
+}
+
 /* Run an integrity check on the binary.  Returns 0 on success.  */
 static int
 check_binary_integrity (void)
 {
-#ifdef ENABLE_HMAC_BINARY_CHECK
   gpg_error_t err;
   Dl_info info;
-  unsigned char digest[32];
-  int dlen;
-  char *fname = NULL;
-  const char key[] = "What am I, a doctor or a moonshuttle conductor?";
+  const char *key = KEY_FOR_BINARY_CHECK;
 
-  if (!dladdr ("gcry_check_version", &info))
+  if (!dladdr (hmac256_check, &info))
     err = gpg_error_from_syserror ();
   else
-    {
-      dlen = _gcry_hmac256_file (digest, sizeof digest, info.dli_fname,
-                                 key, strlen (key));
-      if (dlen < 0)
-        err = gpg_error_from_syserror ();
-      else if (dlen != 32)
-        err = gpg_error (GPG_ERR_INTERNAL);
-      else
-        {
-          fname = gcry_malloc (strlen (info.dli_fname) + 1 + 5 + 1 );
-          if (!fname)
-            err = gpg_error_from_syserror ();
-          else
-            {
-              FILE *fp;
-              char *p;
+    err = hmac256_check (info.dli_fname, key);
 
-              /* Prefix the basename with a dot.  */
-              strcpy (fname, info.dli_fname);
-              p = strrchr (fname, '/');
-              if (p)
-                p++;
-              else
-                p = fname;
-              memmove (p+1, p, strlen (p)+1);
-              *p = '.';
-              strcat (fname, ".hmac");
-
-              /* Open the file.  */
-              fp = fopen (fname, "r");
-              if (!fp)
-                err = gpg_error_from_syserror ();
-              else
-                {
-                  /* A buffer of 64 bytes plus one for a LF and one to
-                     detect garbage.  */
-                  unsigned char buffer[64+1+1];
-                  const unsigned char *s;
-                  int n;
-
-                  /* The HMAC files consists of lowercase hex digits
-                     only with an optional trailing linefeed.  Fail if
-                     there is any garbage.  */
-                  err = gpg_error (GPG_ERR_SELFTEST_FAILED);
-                  n = fread (buffer, 1, sizeof buffer, fp);
-                  if (n == 64 || (n == 65 && buffer[64] == '\n'))
-                    {
-                      buffer[64] = 0;
-                      for (n=0, s= buffer;
-                           n < 32 && loxdigit_p (s) && loxdigit_p (s+1);
-                           n++, s += 2)
-                        buffer[n] = loxtoi_2 (s);
-                      if ( n == 32 && !memcmp (digest, buffer, 32) )
-                        err = 0;
-                    }
-                  fclose (fp);
-                }
-            }
-        }
-    }
-  reporter ("binary", 0, fname, err? gpg_strerror (err):NULL);
+  reporter ("binary", 0, NULL, err? gpg_strerror (err):NULL);
 #ifdef HAVE_SYSLOG
   if (err)
     syslog (LOG_USER|LOG_ERR, "Libgcrypt error: "
-            "integrity check using `%s' failed: %s",
-            fname? fname:"[?]", gpg_strerror (err));
+            "integrity check failed: %s",
+            gpg_strerror (err));
 #endif /*HAVE_SYSLOG*/
-  gcry_free (fname);
   return !!err;
-#else
-  return 0;
-#endif
 }
+
+
+/* Run self-tests for HMAC-SHA256 algorithm before verifying library integrity.
+ * Return 0 on success. */
+static int
+run_hmac_sha256_selftests (int extended)
+{
+  gpg_error_t err;
+  int anyerr = 0;
+
+  err = _gcry_md_selftest (GCRY_MD_SHA256, extended, reporter);
+  reporter ("digest", GCRY_MD_SHA256, NULL,
+            err? gpg_strerror (err):NULL);
+  if (err)
+    anyerr = 1;
+
+  err = _gcry_mac_selftest (GCRY_MAC_HMAC_SHA256, extended, reporter);
+  reporter ("mac", GCRY_MAC_HMAC_SHA256, NULL,
+            err? gpg_strerror (err):NULL);
+  if (err)
+    anyerr = 1;
+
+  return anyerr;
+}
+#endif
 
 
 /* Run the self-tests.  If EXTENDED is true, extended versions of the
@@ -679,13 +982,29 @@ _gcry_fips_run_selftests (int extended)
   if (fips_mode ())
     fips_new_state (STATE_SELFTEST);
 
+#ifdef ENABLE_HMAC_BINARY_CHECK
+  if (run_hmac_sha256_selftests (extended))
+    goto leave;
+
+  if (fips_mode ())
+    {
+      /* Now check the integrity of the binary.  We do this this after
+         having checked the HMAC code.  */
+      if (check_binary_integrity ())
+        goto leave;
+    }
+#endif
+
   if (run_cipher_selftests (extended))
     goto leave;
 
   if (run_digest_selftests (extended))
     goto leave;
 
-  if (run_hmac_selftests (extended))
+  if (run_mac_selftests (extended))
+    goto leave;
+
+  if (run_kdf_selftests (extended))
     goto leave;
 
   /* Run random tests before the pubkey tests because the latter
@@ -694,11 +1013,6 @@ _gcry_fips_run_selftests (int extended)
     goto leave;
 
   if (run_pubkey_selftests (extended))
-    goto leave;
-
-  /* Now check the integrity of the binary.  We do this this after
-     having checked the HMAC code.  */
-  if (check_binary_integrity ())
     goto leave;
 
   /* All selftests passed.  */

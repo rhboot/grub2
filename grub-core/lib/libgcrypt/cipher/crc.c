@@ -14,8 +14,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  */
 
@@ -31,12 +31,77 @@
 #include "bufhelp.h"
 
 
+/* USE_INTEL_PCLMUL indicates whether to compile CRC with Intel PCLMUL/SSE4.1
+ * code.  */
+#undef USE_INTEL_PCLMUL
+#if defined(ENABLE_PCLMUL_SUPPORT) && defined(ENABLE_SSE41_SUPPORT)
+# if ((defined(__i386__) && SIZEOF_UNSIGNED_LONG == 4) || defined(__x86_64__))
+#  if __GNUC__ >= 4
+#   define USE_INTEL_PCLMUL 1
+#  endif
+# endif
+#endif /* USE_INTEL_PCLMUL */
+
+/* USE_ARM_PMULL indicates whether to compile GCM with ARMv8 PMULL code. */
+#undef USE_ARM_PMULL
+#if defined(ENABLE_ARM_CRYPTO_SUPPORT)
+# if defined(__AARCH64EL__) && \
+    defined(HAVE_COMPATIBLE_GCC_AARCH64_PLATFORM_AS) && \
+    defined(HAVE_GCC_INLINE_ASM_AARCH64_CRYPTO)
+#  define USE_ARM_PMULL 1
+# endif
+#endif /* USE_ARM_PMULL */
+
+/* USE_PPC_VPMSUM indicates whether to enable PowerPC vector
+ * accelerated code. */
+#undef USE_PPC_VPMSUM
+#ifdef ENABLE_PPC_CRYPTO_SUPPORT
+# if defined(HAVE_COMPATIBLE_CC_PPC_ALTIVEC) && \
+     defined(HAVE_GCC_INLINE_ASM_PPC_ALTIVEC)
+#  if __GNUC__ >= 4
+#   define USE_PPC_VPMSUM 1
+#  endif
+# endif
+#endif /* USE_PPC_VPMSUM */
+
+
 typedef struct
 {
   u32 CRC;
+#ifdef USE_INTEL_PCLMUL
+  unsigned int use_pclmul:1;           /* Intel PCLMUL shall be used.  */
+#endif
+#ifdef USE_ARM_PMULL
+  unsigned int use_pmull:1;            /* ARMv8 PMULL shall be used. */
+#endif
+#ifdef USE_PPC_VPMSUM
+  unsigned int use_vpmsum:1;           /* POWER vpmsum shall be used. */
+#endif
   byte buf[4];
 }
 CRC_CONTEXT;
+
+
+#ifdef USE_INTEL_PCLMUL
+/*-- crc-intel-pclmul.c --*/
+void _gcry_crc32_intel_pclmul (u32 *pcrc, const byte *inbuf, size_t inlen);
+void _gcry_crc24rfc2440_intel_pclmul (u32 *pcrc, const byte *inbuf,
+				      size_t inlen);
+#endif
+
+#ifdef USE_ARM_PMULL
+/*-- crc-armv8-ce.c --*/
+void _gcry_crc32_armv8_ce_pmull (u32 *pcrc, const byte *inbuf, size_t inlen);
+void _gcry_crc24rfc2440_armv8_ce_pmull (u32 *pcrc, const byte *inbuf,
+					size_t inlen);
+#endif
+
+#ifdef USE_PPC_VPMSUM
+/*-- crc-ppc.c --*/
+void _gcry_crc32_ppc8_vpmsum (u32 *pcrc, const byte *inbuf, size_t inlen);
+void _gcry_crc24rfc2440_ppc8_vpmsum (u32 *pcrc, const byte *inbuf,
+				     size_t inlen);
+#endif
 
 
 /*
@@ -335,9 +400,24 @@ crc32_next4 (u32 crc, u32 data)
 }
 
 static void
-crc32_init (void *context)
+crc32_init (void *context, unsigned int flags)
 {
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
+  u32 hwf = _gcry_get_hw_features ();
+
+#ifdef USE_INTEL_PCLMUL
+  ctx->use_pclmul = (hwf & HWF_INTEL_SSE4_1) && (hwf & HWF_INTEL_PCLMUL);
+#endif
+#ifdef USE_ARM_PMULL
+  ctx->use_pmull = (hwf & HWF_ARM_NEON) && (hwf & HWF_ARM_PMULL);
+#endif
+#ifdef USE_PPC_VPMSUM
+  ctx->use_vpmsum = !!(hwf & HWF_PPC_ARCH_2_07);
+#endif
+
+  (void)flags;
+  (void)hwf;
+
   ctx->CRC = 0 ^ 0xffffffffL;
 }
 
@@ -347,6 +427,28 @@ crc32_write (void *context, const void *inbuf_arg, size_t inlen)
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
   const byte *inbuf = inbuf_arg;
   u32 crc;
+
+#ifdef USE_INTEL_PCLMUL
+  if (ctx->use_pclmul)
+    {
+      _gcry_crc32_intel_pclmul(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
+#ifdef USE_ARM_PMULL
+  if (ctx->use_pmull)
+    {
+      _gcry_crc32_armv8_ce_pmull(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
+#ifdef USE_PPC_VPMSUM
+  if (ctx->use_vpmsum)
+    {
+      _gcry_crc32_ppc8_vpmsum(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
 
   if (!inbuf || !inlen)
     return;
@@ -397,9 +499,24 @@ crc32_final (void *context)
 /* CRC of the string "123456789" is 0x2dfd2d88 */
 
 static void
-crc32rfc1510_init (void *context)
+crc32rfc1510_init (void *context, unsigned int flags)
 {
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
+  u32 hwf = _gcry_get_hw_features ();
+
+#ifdef USE_INTEL_PCLMUL
+  ctx->use_pclmul = (hwf & HWF_INTEL_SSE4_1) && (hwf & HWF_INTEL_PCLMUL);
+#endif
+#ifdef USE_ARM_PMULL
+  ctx->use_pmull = (hwf & HWF_ARM_NEON) && (hwf & HWF_ARM_PMULL);
+#endif
+#ifdef USE_PPC_VPMSUM
+  ctx->use_vpmsum = !!(hwf & HWF_PPC_ARCH_2_07);
+#endif
+
+  (void)flags;
+  (void)hwf;
+
   ctx->CRC = 0;
 }
 
@@ -688,7 +805,8 @@ static const u32 crc24_table[1024] =
 static inline
 u32 crc24_init (void)
 {
-  return 0xce04b7;
+  /* Transformed to 32-bit CRC by multiplied by x⁸ and then byte swapped. */
+  return 0xce04b7; /* _gcry_bswap(0xb704ce << 8) */
 }
 
 static inline
@@ -707,7 +825,7 @@ u32 crc24_next4 (u32 crc, u32 data)
   crc = crc24_table[(crc & 0xff) + 0x300] ^
         crc24_table[((crc >> 8) & 0xff) + 0x200] ^
         crc24_table[((crc >> 16) & 0xff) + 0x100] ^
-        crc24_table[(crc >> 24) & 0xff];
+        crc24_table[(data >> 24) & 0xff];
   return crc;
 }
 
@@ -718,9 +836,24 @@ u32 crc24_final (u32 crc)
 }
 
 static void
-crc24rfc2440_init (void *context)
+crc24rfc2440_init (void *context, unsigned int flags)
 {
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
+  u32 hwf = _gcry_get_hw_features ();
+
+#ifdef USE_INTEL_PCLMUL
+  ctx->use_pclmul = (hwf & HWF_INTEL_SSE4_1) && (hwf & HWF_INTEL_PCLMUL);
+#endif
+#ifdef USE_ARM_PMULL
+  ctx->use_pmull = (hwf & HWF_ARM_NEON) && (hwf & HWF_ARM_PMULL);
+#endif
+#ifdef USE_PPC_VPMSUM
+  ctx->use_vpmsum = !!(hwf & HWF_PPC_ARCH_2_07);
+#endif
+
+  (void)hwf;
+  (void)flags;
+
   ctx->CRC = crc24_init();
 }
 
@@ -730,6 +863,28 @@ crc24rfc2440_write (void *context, const void *inbuf_arg, size_t inlen)
   const unsigned char *inbuf = inbuf_arg;
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
   u32 crc;
+
+#ifdef USE_INTEL_PCLMUL
+  if (ctx->use_pclmul)
+    {
+      _gcry_crc24rfc2440_intel_pclmul(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
+#ifdef USE_ARM_PMULL
+  if (ctx->use_pmull)
+    {
+      _gcry_crc24rfc2440_armv8_ce_pmull(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
+#ifdef USE_PPC_VPMSUM
+  if (ctx->use_vpmsum)
+    {
+      _gcry_crc24rfc2440_ppc8_vpmsum(&ctx->CRC, inbuf, inlen);
+      return;
+    }
+#endif
 
   if (!inbuf || !inlen)
     return;
@@ -769,25 +924,32 @@ crc24rfc2440_final (void *context)
   buf_put_le32 (ctx->buf, ctx->CRC);
 }
 
-gcry_md_spec_t _gcry_digest_spec_crc32 =
+/* We allow the CRC algorithms even in FIPS mode because they are
+   actually no cryptographic primitives.  */
+
+const gcry_md_spec_t _gcry_digest_spec_crc32 =
   {
+    GCRY_MD_CRC32, {0, 1},
     "CRC32", NULL, 0, NULL, 4,
-    crc32_init, crc32_write, crc32_final, crc32_read,
+    crc32_init, crc32_write, crc32_final, crc32_read, NULL,
+    NULL,
     sizeof (CRC_CONTEXT)
   };
 
-gcry_md_spec_t _gcry_digest_spec_crc32_rfc1510 =
+const gcry_md_spec_t _gcry_digest_spec_crc32_rfc1510 =
   {
+    GCRY_MD_CRC32_RFC1510, {0, 1},
     "CRC32RFC1510", NULL, 0, NULL, 4,
-    crc32rfc1510_init, crc32_write,
-    crc32rfc1510_final, crc32_read,
+    crc32rfc1510_init, crc32_write, crc32rfc1510_final, crc32_read, NULL,
+    NULL,
     sizeof (CRC_CONTEXT)
   };
 
-gcry_md_spec_t _gcry_digest_spec_crc24_rfc2440 =
+const gcry_md_spec_t _gcry_digest_spec_crc24_rfc2440 =
   {
+    GCRY_MD_CRC24_RFC2440, {0, 1},
     "CRC24RFC2440", NULL, 0, NULL, 3,
-    crc24rfc2440_init, crc24rfc2440_write,
-    crc24rfc2440_final, crc32_read,
+    crc24rfc2440_init, crc24rfc2440_write, crc24rfc2440_final, crc32_read, NULL,
+    NULL,
     sizeof (CRC_CONTEXT)
   };

@@ -16,8 +16,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -49,10 +49,15 @@
 	GLOBL	C_SYMBOL_NAME(_gcry_mpih_mul_1)
 C_SYMBOL_NAME(_gcry_mpih_mul_1:)
 
+	CFI_STARTPROC()
 	INSN1(push,l	,R(edi))
+	CFI_PUSH(%edi)
 	INSN1(push,l	,R(esi))
+	CFI_PUSH(%esi)
 	INSN1(push,l	,R(ebx))
+	CFI_PUSH(%ebx)
 	INSN1(push,l	,R(ebp))
+	CFI_PUSH(%ebp)
 
 	INSN2(mov,l	,R(res_ptr),MEM_DISP(esp,20))
 	INSN2(mov,l	,R(s1_ptr),MEM_DISP(esp,24))
@@ -77,8 +82,13 @@ Loop:
 	INSN2(mov,l	,R(eax),R(ebx))
 
 	INSN1(pop,l	,R(ebp))
+	CFI_POP(%ebp)
 	INSN1(pop,l	,R(ebx))
+	CFI_POP(%ebx)
 	INSN1(pop,l	,R(esi))
+	CFI_POP(%esi)
 	INSN1(pop,l	,R(edi))
-	ret
+	CFI_POP(%edi)
+	ret_spec_stop
+	CFI_ENDPROC()
 

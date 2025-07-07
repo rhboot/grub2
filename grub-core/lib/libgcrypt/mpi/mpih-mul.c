@@ -15,8 +15,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -39,7 +39,7 @@
 	    mul_n_basecase (prodp, up, vp, size);	\
 	else						\
 	    mul_n (prodp, up, vp, size, tspace);	\
-    } while (0);
+    } while (0)
 
 #define MPN_SQR_N_RECURSE(prodp, up, size, tspace) \
     do {					    \
@@ -47,7 +47,7 @@
 	    _gcry_mpih_sqr_n_basecase (prodp, up, size);	 \
 	else					    \
 	    _gcry_mpih_sqr_n (prodp, up, size, tspace);	 \
-    } while (0);
+    } while (0)
 
 
 
@@ -353,7 +353,7 @@ _gcry_mpih_mul_n( mpi_ptr_t prodp,
 	    _gcry_mpih_sqr_n_basecase( prodp, up, size );
 	else {
 	    mpi_ptr_t tspace;
-	    secure = gcry_is_secure( up );
+	    secure = _gcry_is_secure( up );
 	    tspace = mpi_alloc_limb_space( 2 * size, secure );
 	    _gcry_mpih_sqr_n( prodp, up, size, tspace );
 	    _gcry_mpi_free_limb_space (tspace, 2 * size );
@@ -364,7 +364,7 @@ _gcry_mpih_mul_n( mpi_ptr_t prodp,
 	    mul_n_basecase( prodp, up, vp, size );
 	else {
 	    mpi_ptr_t tspace;
-	    secure = gcry_is_secure( up ) || gcry_is_secure( vp );
+	    secure = _gcry_is_secure( up ) || _gcry_is_secure( vp );
 	    tspace = mpi_alloc_limb_space( 2 * size, secure );
 	    mul_n (prodp, up, vp, size, tspace);
 	    _gcry_mpi_free_limb_space (tspace, 2 * size );
@@ -386,9 +386,9 @@ _gcry_mpih_mul_karatsuba_case( mpi_ptr_t prodp,
 	if( ctx->tspace )
 	    _gcry_mpi_free_limb_space( ctx->tspace, ctx->tspace_nlimbs );
         ctx->tspace_nlimbs = 2 * vsize;
-	ctx->tspace = mpi_alloc_limb_space( 2 * vsize,
-				            (gcry_is_secure( up )
-                                            || gcry_is_secure( vp )) );
+	ctx->tspace = mpi_alloc_limb_space (2 * vsize,
+				            (_gcry_is_secure (up)
+                                             || _gcry_is_secure (vp)));
 	ctx->tspace_size = vsize;
     }
 
@@ -402,8 +402,9 @@ _gcry_mpih_mul_karatsuba_case( mpi_ptr_t prodp,
 	    if( ctx->tp )
 		_gcry_mpi_free_limb_space( ctx->tp, ctx->tp_nlimbs );
             ctx->tp_nlimbs = 2 * vsize;
-	    ctx->tp = mpi_alloc_limb_space( 2 * vsize, gcry_is_secure( up )
-						      || gcry_is_secure( vp ) );
+	    ctx->tp = mpi_alloc_limb_space (2 * vsize,
+                                            (_gcry_is_secure (up)
+                                             || _gcry_is_secure (vp)));
 	    ctx->tp_size = vsize;
 	}
 
@@ -423,7 +424,7 @@ _gcry_mpih_mul_karatsuba_case( mpi_ptr_t prodp,
 	}
 	else {
 	    if( !ctx->next ) {
-		ctx->next = gcry_xcalloc( 1, sizeof *ctx );
+		ctx->next = xcalloc( 1, sizeof *ctx );
 	    }
 	    _gcry_mpih_mul_karatsuba_case( ctx->tspace,
 					vp, vsize,
@@ -452,7 +453,7 @@ _gcry_mpih_release_karatsuba_ctx( struct karatsuba_ctx *ctx )
             _gcry_mpi_free_limb_space( ctx->tp, ctx->tp_nlimbs );
 	if( ctx->tspace )
 	    _gcry_mpi_free_limb_space( ctx->tspace, ctx->tspace_nlimbs );
-	gcry_free( ctx );
+	xfree( ctx );
     }
 }
 

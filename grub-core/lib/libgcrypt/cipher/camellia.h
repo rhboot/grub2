@@ -3,19 +3,21 @@
  * Copyright (C) 2006,2007
  * NTT (Nippon Telegraph and Telephone Corporation).
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This file is part of Libgcrypt.
  *
- * This library is distributed in the hope that it will be useful,
+ * Libgcrypt is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * Libgcrypt is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 #ifndef HEADER_CAMELLIA_H
@@ -30,6 +32,18 @@
  */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+/* USE_ARM_ASM indicates whether to use ARM assembly code. */
+# undef USE_ARM_ASM
+# if defined(__ARMEL__)
+#  ifdef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
+#   define USE_ARM_ASM 1
+#  endif
+# endif
+# if defined(__AARCH64EL__)
+#  ifdef HAVE_COMPATIBLE_GCC_AARCH64_PLATFORM_AS
+#   define USE_ARM_ASM 1
+#  endif
+# endif
 #endif
 #ifdef CAMELLIA_EXT_SYM_PREFIX
 #define CAMELLIA_PREFIX1(x,y) x ## y
@@ -63,6 +77,7 @@ void Camellia_Ekeygen(const int keyBitLength,
 		      const unsigned char *rawKey,
 		      KEY_TABLE_TYPE keyTable);
 
+#ifndef USE_ARM_ASM
 void Camellia_EncryptBlock(const int keyBitLength,
 			   const unsigned char *plaintext,
 			   const KEY_TABLE_TYPE keyTable,
@@ -72,6 +87,7 @@ void Camellia_DecryptBlock(const int keyBitLength,
 			   const unsigned char *cipherText,
 			   const KEY_TABLE_TYPE keyTable,
 			   unsigned char *plaintext);
+#endif /*!USE_ARM_ASM*/
 
 
 #ifdef  __cplusplus
