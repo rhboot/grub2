@@ -551,7 +551,7 @@ for cipher_file in cipher_files:
                     confutil.write ("  common = grub-core/lib/libgcrypt-grub/cipher/%s;\n" % src)
             if modname == "gcry_ecc":
                 conf.write ("  common = lib/libgcrypt-grub/mpi/ec.c;\n")
-                conf.write ("  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';\n")
+                conf.write ("  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';\n")
             elif modname == "gcry_rijndael" or modname == "gcry_md4" or modname == "gcry_md5" or modname == "gcry_rmd160" or modname == "gcry_sha1" or modname == "gcry_sha256" or modname == "gcry_sha512" or modname == "gcry_tiger":
                 # Alignment checked by hand
                 conf.write ("  cflags = '$(CFLAGS_GCRY) -Wno-cast-align';\n");
