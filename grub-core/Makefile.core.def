@@ -2181,6 +2181,22 @@ module = {
 };
 
 module = {
+  name = dsa_sexp_test;
+  common = tests/dsa_sexp_test.c;
+
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cppflags = '$(CPPFLAGS_GCRY)';
+};
+
+module = {
+  name = rsa_sexp_test;
+  common = tests/rsa_sexp_test.c;
+
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cppflags = '$(CPPFLAGS_GCRY)';
+};
+
+module = {
   name = signature_test;
   common = tests/signature_test.c;
   common = tests/signatures.h;
