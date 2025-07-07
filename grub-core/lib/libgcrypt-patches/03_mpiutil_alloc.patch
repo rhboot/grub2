@@ -1,0 +1,18 @@
+mpiutil: Fix NULL pointer dereference in case of failed alloc
+
+Signed-off-by: Vladimir Serbinenko <phcoder@gmail.com>
+
+diff --git a/grub-core/lib/libgcrypt/mpi/mpiutil.c b/grub-core/lib/libgcrypt/mpi/mpiutil.c
+index 3a372374f..dc53db09d 100644
+--- a/grub-core/lib/libgcrypt-grub/mpi/mpiutil.c
++++ b/grub-core/lib/libgcrypt-grub/mpi/mpiutil.c
+@@ -432,6 +432,9 @@ _gcry_mpi_alloc_like( gcry_mpi_t a )
+ 	int n = (a->sign+7)/8;
+ 	void *p = _gcry_is_secure(a->d)? xtrymalloc_secure (n)
+                                        : xtrymalloc (n);
++	if ( !p ) {
++            _gcry_fatal_error (GPG_ERR_ENOMEM, NULL);
++	}
+ 	memcpy( p, a->d, n );
+ 	b = mpi_set_opaque( NULL, p, a->sign );
+     }

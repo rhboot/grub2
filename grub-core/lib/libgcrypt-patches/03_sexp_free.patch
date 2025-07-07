@@ -1,0 +1,35 @@
+sexp: Add missing free on error path
+
+Signed-off-by: Vladimir Serbinenko <phcoder@gmail.com>
+
+diff --git a/grub-core/lib/libgcrypt/src/sexp.c b/grub-core/lib/libgcrypt/src/sexp.c
+index d15f1a790..250559f75 100644
+--- a/grub-core/lib/libgcrypt-grub/src/sexp.c
++++ b/grub-core/lib/libgcrypt-grub/src/sexp.c
+@@ -1157,6 +1157,17 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
+                               }                                            \
+                        } while (0)
+ 
++#define MAKE_SPACE_EXTRA_CLEANUP(n, cleanup)  do {				\
++                            gpg_err_code_t _ms_err = make_space (&c, (n)); \
++                            if (_ms_err)                                   \
++                              {                                            \
++                                err = _ms_err;                             \
++                                *erroff = p - buffer;                      \
++				cleanup;				   \
++                                goto leave;                                \
++                              }                                            \
++                       } while (0)
++
+   /* The STORE_LEN macro is used to store the length N at buffer P. */
+ #define STORE_LEN(p,n) do {						   \
+ 			    DATALEN ashort = (n);			   \
+@@ -1368,7 +1379,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
+                   goto leave;
+                 }
+ 
+-              MAKE_SPACE (datalen);
++              MAKE_SPACE_EXTRA_CLEANUP (datalen, xfree (b64buf));
+               *c.pos++ = ST_DATA;
+               STORE_LEN (c.pos, datalen);
+               for (i = 0; i < datalen; i++)
