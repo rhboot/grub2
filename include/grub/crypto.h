@@ -586,7 +586,13 @@ void grub_gcry_fini_all (void);
 int
 grub_get_random (void *out, grub_size_t len);
 
+#define GRUB_UTIL_MODNAME(x) .modname = x,
+#else
+#define GRUB_UTIL_MODNAME(x)
 #endif
+
+#define GRUB_BLAKE2B_BLOCK_SIZE 128
+#define GRUB_BLAKE2S_BLOCK_SIZE 64
 
 typedef struct _gpgrt_b64state *gpgrt_b64state_t;
 gpgrt_b64state_t gpgrt_b64dec_start (const char *title);
@@ -595,4 +601,7 @@ gpg_error_t      gpgrt_b64dec_proc (gpgrt_b64state_t state,
                                     grub_size_t *r_nbytes);
 gpg_error_t      gpgrt_b64dec_finish (gpgrt_b64state_t state);
 const char *gpg_strerror (gpg_error_t err);
+
+gcry_err_code_t blake2b_vl_hash (const void *in, grub_size_t inlen,
+                                 grub_size_t outputlen, void *output);
 #endif
