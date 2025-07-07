@@ -1,0 +1,80 @@
+--- a/grub-core/lib/libgcrypt-grub/cipher/blake2.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/blake2.c
+@@ -841,68 +841,6 @@
+   return blake2s_init(c, key, keylen);
+ }
+ 
+-/* Selftests from "RFC 7693, Appendix E. BLAKE2b and BLAKE2s Self-Test
+- * Module C Source". */
+-static void selftest_seq(byte *out, size_t len, u32 seed)
+-{
+-  size_t i;
+-  u32 t, a, b;
+-
+-  a = 0xDEAD4BAD * seed;
+-  b = 1;
+-
+-  for (i = 0; i < len; i++)
+-    {
+-      t = a + b;
+-      a = b;
+-      b = t;
+-      out[i] = (t >> 24) & 0xFF;
+-    }
+-}
+-
+-
+-
+-
+-gcry_err_code_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
+-					   const unsigned char *key,
+-					   size_t keylen, int algo)
+-{
+-  gcry_err_code_t rc;
+-  switch (algo)
+-    {
+-    case GCRY_MD_BLAKE2B_512:
+-      rc = blake2b_init_ctx (ctx, flags, key, keylen, 512);
+-      break;
+-    case GCRY_MD_BLAKE2B_384:
+-      rc = blake2b_init_ctx (ctx, flags, key, keylen, 384);
+-      break;
+-    case GCRY_MD_BLAKE2B_256:
+-      rc = blake2b_init_ctx (ctx, flags, key, keylen, 256);
+-      break;
+-    case GCRY_MD_BLAKE2B_160:
+-      rc = blake2b_init_ctx (ctx, flags, key, keylen, 160);
+-      break;
+-    case GCRY_MD_BLAKE2S_256:
+-      rc = blake2s_init_ctx (ctx, flags, key, keylen, 256);
+-      break;
+-    case GCRY_MD_BLAKE2S_224:
+-      rc = blake2s_init_ctx (ctx, flags, key, keylen, 224);
+-      break;
+-    case GCRY_MD_BLAKE2S_160:
+-      rc = blake2s_init_ctx (ctx, flags, key, keylen, 160);
+-      break;
+-    case GCRY_MD_BLAKE2S_128:
+-      rc = blake2s_init_ctx (ctx, flags, key, keylen, 128);
+-      break;
+-    default:
+-      rc = GPG_ERR_DIGEST_ALGO;
+-      break;
+-    }
+-
+-  return rc;
+-}
+-
+-
+ #define DEFINE_BLAKE2_VARIANT(bs, BS, dbits, oid_branch) \
+   static void blake2##bs##_##dbits##_init(void *ctx, unsigned int flags) \
+   { \
+@@ -936,7 +874,7 @@
+       dbits / 8, blake2##bs##_##dbits##_init, blake2##bs##_write, \
+       blake2##bs##_final, blake2##bs##_read, NULL, \
+       _gcry_blake2##bs##_##dbits##_hash_buffers, \
+-      sizeof (BLAKE2##BS##_CONTEXT), selftests_blake2##bs \
++      sizeof (BLAKE2##BS##_CONTEXT) \
+     , \
+     GRUB_UTIL_MODNAME("gcry_blake2") \
+     .blocksize = GRUB_BLAKE2 ## BS ## _BLOCK_SIZE \

@@ -120,7 +120,8 @@ mdblocksizes = {"_gcry_digest_spec_crc32" : 64,
                 "_gcry_digest_spec_gost3411_94": 32,
                 "_gcry_digest_spec_gost3411_cp": 32,
                 "_gcry_digest_spec_cshake128": 64,
-                "_gcry_digest_spec_cshake256": 64}
+                "_gcry_digest_spec_cshake256": 64,
+                "_gcry_digest_spec_blake2": "GRUB_BLAKE2 ## BS ## _BLOCK_SIZE"}
 
 cryptolist = codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8")
 
@@ -209,6 +210,7 @@ for cipher_file in cipher_files:
         skip = 0
         skip2 = False
         ismd = False
+        ismddefine = False
         mdarg = 0
         ispk = False
         iscipher = False
@@ -245,19 +247,19 @@ for cipher_file in cipher_files:
                 mdarg = mdarg + len (spl) - 1
             if ismd or iscipher or ispk:
                 if not re.search (" *};", line) is None:
+                    escapenl = " \\" if ismddefine else ""
                     if not iscomma:
-                        fw.write ("    ,\n")
-                    fw.write ("#ifdef GRUB_UTIL\n");
-                    fw.write ("    .modname = \"%s\",\n" % modname);
-                    fw.write ("#endif\n");
+                        fw.write (f"    ,{escapenl}\n")
+                    fw.write (f"    GRUB_UTIL_MODNAME(\"%s\"){escapenl}\n" % modname);
                     if ismd:
                         if not (mdname in mdblocksizes):
                             print ("ERROR: Unknown digest blocksize: %s\n"
                                    % mdname)
                             exit (1)
-                        fw.write ("    .blocksize = %s\n"
+                        fw.write (f"    .blocksize = %s{escapenl}\n"
                                   % mdblocksizes [mdname])
                     ismd = False
+                    ismddefine = False
                     mdarg = 0
                     iscipher = False
                     ispk = False
@@ -281,7 +283,7 @@ for cipher_file in cipher_files:
                 hold = False
                 # We're optimising for size and exclude anything needing good
                 # randomness.
-                if re.match ("(_gcry_hash_selftest_check_one|bulk_selftest_setkey|run_selftests|do_tripledes_set_extra_info|selftest|sm4_selftest|_gcry_[a-z0-9_]*_hash_buffers|_gcry_sha1_hash_buffer|tripledes_set2keys|_gcry_rmd160_mixblock|serpent_test|dsa_generate_ext|test_keys|gen_k|sign|gen_x931_parm_xp|generate_x931|generate_key|dsa_generate|dsa_sign|ecc_sign|generate|generate_fips186|_gcry_register_pk_dsa_progress|_gcry_register_pk_ecc_progress|progress|scanval|ec2os|ecc_generate_ext|ecc_generate|ecc_get_param|_gcry_register_pk_dsa_progress|gen_x931_parm_xp|gen_x931_parm_xi|rsa_decrypt|rsa_sign|rsa_generate_ext|rsa_generate|secret|check_exponent|rsa_blind|rsa_unblind|extract_a_from_sexp|curve_free|curve_copy|point_set|_gcry_dsa_gen_rfc6979_k|bits2octets|int2octets|_gcry_md_debug|_gcry_md_selftest|_gcry_md_is_enabled|_gcry_md_is_secure|_gcry_md_init|_gcry_md_info|md_get_algo|md_extract|_gcry_md_get |_gcry_md_get_algo |_gcry_md_extract|_gcry_md_setkey|md_setkey|prepare_macpads|_gcry_md_algo_name|search_oid|spec_from_oid|spec_from_name|spec_from_algo|map_algo|cshake_hash_buffers)", line) is not None:
+                if re.match ("(_gcry_hash_selftest_check_one|bulk_selftest_setkey|run_selftests|do_tripledes_set_extra_info|selftest|sm4_selftest|_gcry_[a-z0-9_]*_hash_buffers|_gcry_sha1_hash_buffer|tripledes_set2keys|_gcry_rmd160_mixblock|serpent_test|dsa_generate_ext|test_keys|gen_k|sign|gen_x931_parm_xp|generate_x931|generate_key|dsa_generate|dsa_sign|ecc_sign|generate|generate_fips186|_gcry_register_pk_dsa_progress|_gcry_register_pk_ecc_progress|progress|scanval|ec2os|ecc_generate_ext|ecc_generate|ecc_get_param|_gcry_register_pk_dsa_progress|gen_x931_parm_xp|gen_x931_parm_xi|rsa_decrypt|rsa_sign|rsa_generate_ext|rsa_generate|secret|check_exponent|rsa_blind|rsa_unblind|extract_a_from_sexp|curve_free|curve_copy|point_set|_gcry_dsa_gen_rfc6979_k|bits2octets|int2octets|_gcry_md_debug|_gcry_md_selftest|_gcry_md_is_enabled|_gcry_md_is_secure|_gcry_md_init|_gcry_md_info|md_get_algo|md_extract|_gcry_md_get |_gcry_md_get_algo |_gcry_md_extract|_gcry_md_setkey|md_setkey|prepare_macpads|_gcry_md_algo_name|search_oid|spec_from_oid|spec_from_name|spec_from_algo|map_algo|cshake_hash_buffers|selftest_seq)", line) is not None:
 
                     skip = 1
                     if not re.match ("selftest", line) is None and cipher_file == "idea.c":
@@ -355,6 +357,13 @@ for cipher_file in cipher_files:
                 ispk = True
                 iscryptostart = True
 
+            m = re.match (r"DEFINE_BLAKE2_VARIANT\((.), (.), ([0-9]*)", line)
+            if isc and not m is None:
+                bs = m.groups()[0]
+                bits = m.groups()[2]
+                mdname = f"_gcry_digest_spec_blake2{bs}_{bits}"
+                mdnames.append (mdname)
+
             m = re.match ("(const )?gcry_md_spec_t", line)
             if isc and not m is None:
                 assert (not ismd)
@@ -366,6 +375,19 @@ for cipher_file in cipher_files:
                 mdname = re.match("[a-zA-Z0-9_]*",mdname).group ()
                 mdnames.append (mdname)
                 ismd = True
+                ismddefine = False
+                mdarg = 0
+                iscryptostart = True
+            m = re.match ("  (const )?gcry_md_spec_t _gcry_digest_spec_blake2.*\\\\", line)
+            if isc and not m is None:
+                assert (not ismd)
+                assert (not ispk)
+                assert (not iscipher)
+                assert (not iscryptostart)
+                line = removeprefix(line, "  const ")
+                ismd = True
+                ismddefine = True
+                mdname = "_gcry_digest_spec_blake2"
                 mdarg = 0
                 iscryptostart = True
             m = re.match (r"static const char \*selftest.*;$", line)
