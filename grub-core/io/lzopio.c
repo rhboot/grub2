@@ -345,7 +345,7 @@ test_header (grub_file_t file)
     if (! context)
       return 0;
 
-    hcheck->init(context);
+    hcheck->init(context, 0);
 
     /* MAGIC is not included in check calculation.  */
     hcheck->write(context, &header.lzop_version, sizeof(header)- LZOP_MAGIC_SIZE);

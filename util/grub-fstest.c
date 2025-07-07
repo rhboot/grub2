@@ -358,7 +358,7 @@ static void
 cmd_crc (char *pathname)
 {
   grub_uint8_t *crc32_context = xmalloc (GRUB_MD_CRC32->contextsize);
-  GRUB_MD_CRC32->init(crc32_context);
+  GRUB_MD_CRC32->init(crc32_context, 0);
 
   read_file (pathname, crc_hook, crc32_context);
   GRUB_MD_CRC32->final(crc32_context);

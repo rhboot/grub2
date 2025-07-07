@@ -68,7 +68,7 @@ grub_cmd_xnu_uuid (grub_command_t cmd __attribute__ ((unused)),
   ctx = grub_zalloc (GRUB_MD_MD5->contextsize);
   if (!ctx)
     return grub_errno;
-  GRUB_MD_MD5->init (ctx);
+  GRUB_MD_MD5->init (ctx, 0);
   GRUB_MD_MD5->write (ctx, hash_prefix, sizeof (hash_prefix));
   GRUB_MD_MD5->write (ctx, &serial, sizeof (serial));
   GRUB_MD_MD5->final (ctx);
