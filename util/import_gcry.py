@@ -617,6 +617,7 @@ for src in sorted (os.listdir (os.path.join (indir, "src"))):
     if src == "g10lib.h":
         fw.write("#include <cipher_wrap.h>\n")
         fw.write("#include <grub/crypto.h>\n")
+        fw.write("#include <stdlib.h>\n")
         fw.write (f.read ().replace ("(printf,f,a)", "(__printf__,f,a)").replace ("#include \"../compat/libcompat.h\"", "").replace("#define N_(a) (a)", ""))
         f.close ()
         fw.close ()
