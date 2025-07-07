@@ -1,0 +1,15 @@
+Don't use 64-bit division on platforms where it's slow
+
+diff --git a/grub-core/lib/libgcrypt/mpi/longlong.h b/grub-core/lib/libgcrypt/mpi/longlong.h
+index 21bd1a7ef..672448724 100644
+--- a/grub-core/lib/libgcrypt-grub/mpi/longlong.h
++++ b/grub-core/lib/libgcrypt-grub/mpi/longlong.h
+@@ -1711,7 +1711,7 @@ typedef unsigned int UTItype __attribute__ ((mode (TI)));
+   } while (0)
+ 
+ /* Use double word type if available. */
+-#if !defined (udiv_qrnnd) && defined (UDWtype)
++#if !defined (udiv_qrnnd) && defined (UDWtype) && !defined(__arm__) && !defined(__mips__) && !defined(__powerpc__)
+ #  define udiv_qrnnd(q, r, nh, nl, d) \
+   do {									\
+     UWtype __d = (d);							\
