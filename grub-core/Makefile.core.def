@@ -995,7 +995,7 @@ module = {
 module = {
   name = pgp;
   common = commands/pgp.c;
-  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';
   cppflags = '$(CPPFLAGS_GCRY)';
 };
 
@@ -2197,7 +2197,7 @@ module = {
   name = dsa_sexp_test;
   common = tests/dsa_sexp_test.c;
 
-  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';
   cppflags = '$(CPPFLAGS_GCRY)';
 };
 
@@ -2205,7 +2205,7 @@ module = {
   name = rsa_sexp_test;
   common = tests/rsa_sexp_test.c;
 
-  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';
   cppflags = '$(CPPFLAGS_GCRY)';
 };
 
@@ -2578,7 +2578,7 @@ module = {
   common = lib/libgcrypt_wrap/mem.c;
   common = lib/libgcrypt-grub/cipher/md.c;
 
-  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare -Wno-unused-but-set-variable';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-unused-but-set-variable';
   cppflags = '$(CPPFLAGS_GCRY)';
 };
 
@@ -2590,7 +2590,7 @@ module = {
   common = lib/libgcrypt-grub/src/sexp.c;
   common = lib/b64dec.c;
 
-  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';
   cppflags = '$(CPPFLAGS_GCRY)';
 };
 
