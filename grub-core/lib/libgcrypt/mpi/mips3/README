@@ -9,7 +9,7 @@ RELEVANT OPTIMIZATION ISSUES
 
    On the R4600, branches takes a single cycle
 
-   On the R8000, branches often take no noticable cycles, as they are
+   On the R8000, branches often take no noticeable cycles, as they are
    executed in a separate function unit..
 
 2. The R4000 and R4400 have a load latency of 4 cycles.

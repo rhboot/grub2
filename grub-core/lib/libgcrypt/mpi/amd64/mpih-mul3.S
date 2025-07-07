@@ -17,8 +17,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -40,16 +40,17 @@
  *		     mpi_limb_t s2_limb)     (rcx)
  */
 	TEXT
+	ALIGN(4)
 	GLOBL	C_SYMBOL_NAME(_gcry_mpih_submul_1)
 C_SYMBOL_NAME(_gcry_mpih_submul_1:)
-
+	FUNC_ENTRY()
 	movq	%rdx, %r11
 	leaq	(%rsi,%r11,8), %rsi
 	leaq	(%rdi,%r11,8), %rdi
 	negq	%r11
 	xorl	%r8d, %r8d
 
-	ALIGN(3)			/* minimal alignment for claimed speed */
+	ALIGN(4)			/* minimal alignment for claimed speed */
 .Loop:	movq	(%rsi,%r11,8), %rax
 	movq	(%rdi,%r11,8), %r10
 	mulq	%rcx
@@ -63,4 +64,4 @@ C_SYMBOL_NAME(_gcry_mpih_submul_1:)
 	jne	.Loop
 
 	movq	%r8, %rax
-	ret
+	FUNC_EXIT()

@@ -14,8 +14,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 #include <config.h>
@@ -24,10 +24,11 @@
 #include <string.h>
 
 #include "g10lib.h"
-#include "rmd.h"
+#include "hash-common.h"
 #include "cipher.h" /* Only used for the rmd160_hash_buffer() prototype. */
 
 #include "bithelp.h"
+#include "bufhelp.h"
 
 /*********************************
  * RIPEMD-160 is not patented, see (as of 25.10.97)
@@ -139,57 +140,50 @@
  * 1 million times "a"   52783243c1697bdbe16d37f97f68f08325dc1528
  */
 
+typedef struct
+{
+  gcry_md_block_ctx_t bctx;
+  u32  h0,h1,h2,h3,h4;
+} RMD160_CONTEXT;
 
-void
-_gcry_rmd160_init (void *context)
+
+static unsigned int
+transform ( void *ctx, const unsigned char *data, size_t nblks );
+
+static void
+rmd160_init (void *context, unsigned int flags)
 {
   RMD160_CONTEXT *hd = context;
+
+  (void)flags;
 
   hd->h0 = 0x67452301;
   hd->h1 = 0xEFCDAB89;
   hd->h2 = 0x98BADCFE;
   hd->h3 = 0x10325476;
   hd->h4 = 0xC3D2E1F0;
-  hd->nblocks = 0;
-  hd->count = 0;
-}
 
+  hd->bctx.nblocks = 0;
+  hd->bctx.nblocks_high = 0;
+  hd->bctx.count = 0;
+  hd->bctx.blocksize_shift = _gcry_ctz(64);
+  hd->bctx.bwrite = transform;
+}
 
 
 /****************
  * Transform the message X which consists of 16 32-bit-words
  */
-static void
-transform ( RMD160_CONTEXT *hd, const unsigned char *data )
+static unsigned int
+transform_blk ( void *ctx, const unsigned char *data )
 {
-  register u32 a,b,c,d,e;
-  u32 aa,bb,cc,dd,ee,t;
-#ifdef WORDS_BIGENDIAN
+  RMD160_CONTEXT *hd = ctx;
+  register u32 al, ar, bl, br, cl, cr, dl, dr, el, er;
   u32 x[16];
-  {
-    int i;
-    byte *p2;
-    const byte *p1;
-    for (i=0, p1=data, p2=(byte*)x; i < 16; i++, p2 += 4 )
-      {
-        p2[3] = *p1++;
-        p2[2] = *p1++;
-        p2[1] = *p1++;
-        p2[0] = *p1++;
-      }
-  }
-#else
-  /* This version is better because it is always aligned;
-   * The performance penalty on a 586-100 is about 6% which
-   * is acceptable - because the data is more local it might
-   * also be possible that this is faster on some machines.
-   * This function (when compiled with -02 on gcc 2.7.2)
-   * executes on a 586-100 (39.73 bogomips) at about 1900kb/sec;
-   * [measured with a 4MB data and "gpgm --print-md rmd160"] */
-  u32 x[16];
-  memcpy( x, data, 64 );
-#endif
+  int i;
 
+  for ( i = 0; i < 16; i++ )
+    x[i] = buf_get_le32(data + i * 4);
 
 #define K0  0x00000000
 #define K1  0x5A827999
@@ -206,278 +200,228 @@ transform ( RMD160_CONTEXT *hd, const unsigned char *data )
 #define F2(x,y,z)   ( ((x) | ~(y)) ^ (z) )
 #define F3(x,y,z)   ( ((x) & (z)) | ((y) & ~(z)) )
 #define F4(x,y,z)   ( (x) ^ ((y) | ~(z)) )
-#define R(a,b,c,d,e,f,k,r,s) do { t = a + f(b,c,d) + k + x[r]; \
-				  a = rol(t,s) + e;	       \
+#define R(a,b,c,d,e,f,k,r,s) do { a += f(b,c,d) + k + x[r]; \
+				  a = rol(a,s) + e;	       \
 				  c = rol(c,10);	       \
 				} while(0)
 
-  /* left lane */
-  a = hd->h0;
-  b = hd->h1;
-  c = hd->h2;
-  d = hd->h3;
-  e = hd->h4;
-  R( a, b, c, d, e, F0, K0,  0, 11 );
-  R( e, a, b, c, d, F0, K0,  1, 14 );
-  R( d, e, a, b, c, F0, K0,  2, 15 );
-  R( c, d, e, a, b, F0, K0,  3, 12 );
-  R( b, c, d, e, a, F0, K0,  4,  5 );
-  R( a, b, c, d, e, F0, K0,  5,  8 );
-  R( e, a, b, c, d, F0, K0,  6,  7 );
-  R( d, e, a, b, c, F0, K0,  7,  9 );
-  R( c, d, e, a, b, F0, K0,  8, 11 );
-  R( b, c, d, e, a, F0, K0,  9, 13 );
-  R( a, b, c, d, e, F0, K0, 10, 14 );
-  R( e, a, b, c, d, F0, K0, 11, 15 );
-  R( d, e, a, b, c, F0, K0, 12,  6 );
-  R( c, d, e, a, b, F0, K0, 13,  7 );
-  R( b, c, d, e, a, F0, K0, 14,  9 );
-  R( a, b, c, d, e, F0, K0, 15,  8 );
-  R( e, a, b, c, d, F1, K1,  7,  7 );
-  R( d, e, a, b, c, F1, K1,  4,  6 );
-  R( c, d, e, a, b, F1, K1, 13,  8 );
-  R( b, c, d, e, a, F1, K1,  1, 13 );
-  R( a, b, c, d, e, F1, K1, 10, 11 );
-  R( e, a, b, c, d, F1, K1,  6,  9 );
-  R( d, e, a, b, c, F1, K1, 15,  7 );
-  R( c, d, e, a, b, F1, K1,  3, 15 );
-  R( b, c, d, e, a, F1, K1, 12,  7 );
-  R( a, b, c, d, e, F1, K1,  0, 12 );
-  R( e, a, b, c, d, F1, K1,  9, 15 );
-  R( d, e, a, b, c, F1, K1,  5,  9 );
-  R( c, d, e, a, b, F1, K1,  2, 11 );
-  R( b, c, d, e, a, F1, K1, 14,  7 );
-  R( a, b, c, d, e, F1, K1, 11, 13 );
-  R( e, a, b, c, d, F1, K1,  8, 12 );
-  R( d, e, a, b, c, F2, K2,  3, 11 );
-  R( c, d, e, a, b, F2, K2, 10, 13 );
-  R( b, c, d, e, a, F2, K2, 14,  6 );
-  R( a, b, c, d, e, F2, K2,  4,  7 );
-  R( e, a, b, c, d, F2, K2,  9, 14 );
-  R( d, e, a, b, c, F2, K2, 15,  9 );
-  R( c, d, e, a, b, F2, K2,  8, 13 );
-  R( b, c, d, e, a, F2, K2,  1, 15 );
-  R( a, b, c, d, e, F2, K2,  2, 14 );
-  R( e, a, b, c, d, F2, K2,  7,  8 );
-  R( d, e, a, b, c, F2, K2,  0, 13 );
-  R( c, d, e, a, b, F2, K2,  6,  6 );
-  R( b, c, d, e, a, F2, K2, 13,  5 );
-  R( a, b, c, d, e, F2, K2, 11, 12 );
-  R( e, a, b, c, d, F2, K2,  5,  7 );
-  R( d, e, a, b, c, F2, K2, 12,  5 );
-  R( c, d, e, a, b, F3, K3,  1, 11 );
-  R( b, c, d, e, a, F3, K3,  9, 12 );
-  R( a, b, c, d, e, F3, K3, 11, 14 );
-  R( e, a, b, c, d, F3, K3, 10, 15 );
-  R( d, e, a, b, c, F3, K3,  0, 14 );
-  R( c, d, e, a, b, F3, K3,  8, 15 );
-  R( b, c, d, e, a, F3, K3, 12,  9 );
-  R( a, b, c, d, e, F3, K3,  4,  8 );
-  R( e, a, b, c, d, F3, K3, 13,  9 );
-  R( d, e, a, b, c, F3, K3,  3, 14 );
-  R( c, d, e, a, b, F3, K3,  7,  5 );
-  R( b, c, d, e, a, F3, K3, 15,  6 );
-  R( a, b, c, d, e, F3, K3, 14,  8 );
-  R( e, a, b, c, d, F3, K3,  5,  6 );
-  R( d, e, a, b, c, F3, K3,  6,  5 );
-  R( c, d, e, a, b, F3, K3,  2, 12 );
-  R( b, c, d, e, a, F4, K4,  4,  9 );
-  R( a, b, c, d, e, F4, K4,  0, 15 );
-  R( e, a, b, c, d, F4, K4,  5,  5 );
-  R( d, e, a, b, c, F4, K4,  9, 11 );
-  R( c, d, e, a, b, F4, K4,  7,  6 );
-  R( b, c, d, e, a, F4, K4, 12,  8 );
-  R( a, b, c, d, e, F4, K4,  2, 13 );
-  R( e, a, b, c, d, F4, K4, 10, 12 );
-  R( d, e, a, b, c, F4, K4, 14,  5 );
-  R( c, d, e, a, b, F4, K4,  1, 12 );
-  R( b, c, d, e, a, F4, K4,  3, 13 );
-  R( a, b, c, d, e, F4, K4,  8, 14 );
-  R( e, a, b, c, d, F4, K4, 11, 11 );
-  R( d, e, a, b, c, F4, K4,  6,  8 );
-  R( c, d, e, a, b, F4, K4, 15,  5 );
-  R( b, c, d, e, a, F4, K4, 13,  6 );
+  /* left lane and right lanes interleaved */
+  al = ar = hd->h0;
+  bl = br = hd->h1;
+  cl = cr = hd->h2;
+  dl = dr = hd->h3;
+  el = er = hd->h4;
+  R( al, bl, cl, dl, el, F0, K0,  0, 11 );
+  R( ar, br, cr, dr, er, F4, KK0,	5,  8);
+  R( el, al, bl, cl, dl, F0, K0,  1, 14 );
+  R( er, ar, br, cr, dr, F4, KK0, 14,  9);
+  R( dl, el, al, bl, cl, F0, K0,  2, 15 );
+  R( dr, er, ar, br, cr, F4, KK0,	7,  9);
+  R( cl, dl, el, al, bl, F0, K0,  3, 12 );
+  R( cr, dr, er, ar, br, F4, KK0,	0, 11);
+  R( bl, cl, dl, el, al, F0, K0,  4,  5 );
+  R( br, cr, dr, er, ar, F4, KK0,	9, 13);
+  R( al, bl, cl, dl, el, F0, K0,  5,  8 );
+  R( ar, br, cr, dr, er, F4, KK0,	2, 15);
+  R( el, al, bl, cl, dl, F0, K0,  6,  7 );
+  R( er, ar, br, cr, dr, F4, KK0, 11, 15);
+  R( dl, el, al, bl, cl, F0, K0,  7,  9 );
+  R( dr, er, ar, br, cr, F4, KK0,	4,  5);
+  R( cl, dl, el, al, bl, F0, K0,  8, 11 );
+  R( cr, dr, er, ar, br, F4, KK0, 13,  7);
+  R( bl, cl, dl, el, al, F0, K0,  9, 13 );
+  R( br, cr, dr, er, ar, F4, KK0,	6,  7);
+  R( al, bl, cl, dl, el, F0, K0, 10, 14 );
+  R( ar, br, cr, dr, er, F4, KK0, 15,  8);
+  R( el, al, bl, cl, dl, F0, K0, 11, 15 );
+  R( er, ar, br, cr, dr, F4, KK0,	8, 11);
+  R( dl, el, al, bl, cl, F0, K0, 12,  6 );
+  R( dr, er, ar, br, cr, F4, KK0,	1, 14);
+  R( cl, dl, el, al, bl, F0, K0, 13,  7 );
+  R( cr, dr, er, ar, br, F4, KK0, 10, 14);
+  R( bl, cl, dl, el, al, F0, K0, 14,  9 );
+  R( br, cr, dr, er, ar, F4, KK0,	3, 12);
+  R( al, bl, cl, dl, el, F0, K0, 15,  8 );
+  R( ar, br, cr, dr, er, F4, KK0, 12,  6);
+  R( el, al, bl, cl, dl, F1, K1,  7,  7 );
+  R( er, ar, br, cr, dr, F3, KK1,	6,  9);
+  R( dl, el, al, bl, cl, F1, K1,  4,  6 );
+  R( dr, er, ar, br, cr, F3, KK1, 11, 13);
+  R( cl, dl, el, al, bl, F1, K1, 13,  8 );
+  R( cr, dr, er, ar, br, F3, KK1,	3, 15);
+  R( bl, cl, dl, el, al, F1, K1,  1, 13 );
+  R( br, cr, dr, er, ar, F3, KK1,	7,  7);
+  R( al, bl, cl, dl, el, F1, K1, 10, 11 );
+  R( ar, br, cr, dr, er, F3, KK1,	0, 12);
+  R( el, al, bl, cl, dl, F1, K1,  6,  9 );
+  R( er, ar, br, cr, dr, F3, KK1, 13,  8);
+  R( dl, el, al, bl, cl, F1, K1, 15,  7 );
+  R( dr, er, ar, br, cr, F3, KK1,	5,  9);
+  R( cl, dl, el, al, bl, F1, K1,  3, 15 );
+  R( cr, dr, er, ar, br, F3, KK1, 10, 11);
+  R( bl, cl, dl, el, al, F1, K1, 12,  7 );
+  R( br, cr, dr, er, ar, F3, KK1, 14,  7);
+  R( al, bl, cl, dl, el, F1, K1,  0, 12 );
+  R( ar, br, cr, dr, er, F3, KK1, 15,  7);
+  R( el, al, bl, cl, dl, F1, K1,  9, 15 );
+  R( er, ar, br, cr, dr, F3, KK1,	8, 12);
+  R( dl, el, al, bl, cl, F1, K1,  5,  9 );
+  R( dr, er, ar, br, cr, F3, KK1, 12,  7);
+  R( cl, dl, el, al, bl, F1, K1,  2, 11 );
+  R( cr, dr, er, ar, br, F3, KK1,	4,  6);
+  R( bl, cl, dl, el, al, F1, K1, 14,  7 );
+  R( br, cr, dr, er, ar, F3, KK1,	9, 15);
+  R( al, bl, cl, dl, el, F1, K1, 11, 13 );
+  R( ar, br, cr, dr, er, F3, KK1,	1, 13);
+  R( el, al, bl, cl, dl, F1, K1,  8, 12 );
+  R( er, ar, br, cr, dr, F3, KK1,	2, 11);
+  R( dl, el, al, bl, cl, F2, K2,  3, 11 );
+  R( dr, er, ar, br, cr, F2, KK2, 15,  9);
+  R( cl, dl, el, al, bl, F2, K2, 10, 13 );
+  R( cr, dr, er, ar, br, F2, KK2,	5,  7);
+  R( bl, cl, dl, el, al, F2, K2, 14,  6 );
+  R( br, cr, dr, er, ar, F2, KK2,	1, 15);
+  R( al, bl, cl, dl, el, F2, K2,  4,  7 );
+  R( ar, br, cr, dr, er, F2, KK2,	3, 11);
+  R( el, al, bl, cl, dl, F2, K2,  9, 14 );
+  R( er, ar, br, cr, dr, F2, KK2,	7,  8);
+  R( dl, el, al, bl, cl, F2, K2, 15,  9 );
+  R( dr, er, ar, br, cr, F2, KK2, 14,  6);
+  R( cl, dl, el, al, bl, F2, K2,  8, 13 );
+  R( cr, dr, er, ar, br, F2, KK2,	6,  6);
+  R( bl, cl, dl, el, al, F2, K2,  1, 15 );
+  R( br, cr, dr, er, ar, F2, KK2,	9, 14);
+  R( al, bl, cl, dl, el, F2, K2,  2, 14 );
+  R( ar, br, cr, dr, er, F2, KK2, 11, 12);
+  R( el, al, bl, cl, dl, F2, K2,  7,  8 );
+  R( er, ar, br, cr, dr, F2, KK2,	8, 13);
+  R( dl, el, al, bl, cl, F2, K2,  0, 13 );
+  R( dr, er, ar, br, cr, F2, KK2, 12,  5);
+  R( cl, dl, el, al, bl, F2, K2,  6,  6 );
+  R( cr, dr, er, ar, br, F2, KK2,	2, 14);
+  R( bl, cl, dl, el, al, F2, K2, 13,  5 );
+  R( br, cr, dr, er, ar, F2, KK2, 10, 13);
+  R( al, bl, cl, dl, el, F2, K2, 11, 12 );
+  R( ar, br, cr, dr, er, F2, KK2,	0, 13);
+  R( el, al, bl, cl, dl, F2, K2,  5,  7 );
+  R( er, ar, br, cr, dr, F2, KK2,	4,  7);
+  R( dl, el, al, bl, cl, F2, K2, 12,  5 );
+  R( dr, er, ar, br, cr, F2, KK2, 13,  5);
+  R( cl, dl, el, al, bl, F3, K3,  1, 11 );
+  R( cr, dr, er, ar, br, F1, KK3,	8, 15);
+  R( bl, cl, dl, el, al, F3, K3,  9, 12 );
+  R( br, cr, dr, er, ar, F1, KK3,	6,  5);
+  R( al, bl, cl, dl, el, F3, K3, 11, 14 );
+  R( ar, br, cr, dr, er, F1, KK3,	4,  8);
+  R( el, al, bl, cl, dl, F3, K3, 10, 15 );
+  R( er, ar, br, cr, dr, F1, KK3,	1, 11);
+  R( dl, el, al, bl, cl, F3, K3,  0, 14 );
+  R( dr, er, ar, br, cr, F1, KK3,	3, 14);
+  R( cl, dl, el, al, bl, F3, K3,  8, 15 );
+  R( cr, dr, er, ar, br, F1, KK3, 11, 14);
+  R( bl, cl, dl, el, al, F3, K3, 12,  9 );
+  R( br, cr, dr, er, ar, F1, KK3, 15,  6);
+  R( al, bl, cl, dl, el, F3, K3,  4,  8 );
+  R( ar, br, cr, dr, er, F1, KK3,	0, 14);
+  R( el, al, bl, cl, dl, F3, K3, 13,  9 );
+  R( er, ar, br, cr, dr, F1, KK3,	5,  6);
+  R( dl, el, al, bl, cl, F3, K3,  3, 14 );
+  R( dr, er, ar, br, cr, F1, KK3, 12,  9);
+  R( cl, dl, el, al, bl, F3, K3,  7,  5 );
+  R( cr, dr, er, ar, br, F1, KK3,	2, 12);
+  R( bl, cl, dl, el, al, F3, K3, 15,  6 );
+  R( br, cr, dr, er, ar, F1, KK3, 13,  9);
+  R( al, bl, cl, dl, el, F3, K3, 14,  8 );
+  R( ar, br, cr, dr, er, F1, KK3,	9, 12);
+  R( el, al, bl, cl, dl, F3, K3,  5,  6 );
+  R( er, ar, br, cr, dr, F1, KK3,	7,  5);
+  R( dl, el, al, bl, cl, F3, K3,  6,  5 );
+  R( dr, er, ar, br, cr, F1, KK3, 10, 15);
+  R( cl, dl, el, al, bl, F3, K3,  2, 12 );
+  R( cr, dr, er, ar, br, F1, KK3, 14,  8);
+  R( bl, cl, dl, el, al, F4, K4,  4,  9 );
+  R( br, cr, dr, er, ar, F0, KK4, 12,  8);
+  R( al, bl, cl, dl, el, F4, K4,  0, 15 );
+  R( ar, br, cr, dr, er, F0, KK4, 15,  5);
+  R( el, al, bl, cl, dl, F4, K4,  5,  5 );
+  R( er, ar, br, cr, dr, F0, KK4, 10, 12);
+  R( dl, el, al, bl, cl, F4, K4,  9, 11 );
+  R( dr, er, ar, br, cr, F0, KK4,	4,  9);
+  R( cl, dl, el, al, bl, F4, K4,  7,  6 );
+  R( cr, dr, er, ar, br, F0, KK4,	1, 12);
+  R( bl, cl, dl, el, al, F4, K4, 12,  8 );
+  R( br, cr, dr, er, ar, F0, KK4,	5,  5);
+  R( al, bl, cl, dl, el, F4, K4,  2, 13 );
+  R( ar, br, cr, dr, er, F0, KK4,	8, 14);
+  R( el, al, bl, cl, dl, F4, K4, 10, 12 );
+  R( er, ar, br, cr, dr, F0, KK4,	7,  6);
+  R( dl, el, al, bl, cl, F4, K4, 14,  5 );
+  R( dr, er, ar, br, cr, F0, KK4,	6,  8);
+  R( cl, dl, el, al, bl, F4, K4,  1, 12 );
+  R( cr, dr, er, ar, br, F0, KK4,	2, 13);
+  R( bl, cl, dl, el, al, F4, K4,  3, 13 );
+  R( br, cr, dr, er, ar, F0, KK4, 13,  6);
+  R( al, bl, cl, dl, el, F4, K4,  8, 14 );
+  R( ar, br, cr, dr, er, F0, KK4, 14,  5);
+  R( el, al, bl, cl, dl, F4, K4, 11, 11 );
+  R( er, ar, br, cr, dr, F0, KK4,	0, 15);
+  R( dl, el, al, bl, cl, F4, K4,  6,  8 );
+  R( dr, er, ar, br, cr, F0, KK4,	3, 13);
+  R( cl, dl, el, al, bl, F4, K4, 15,  5 );
+  R( cr, dr, er, ar, br, F0, KK4,	9, 11);
+  R( bl, cl, dl, el, al, F4, K4, 13,  6 );
+  R( br, cr, dr, er, ar, F0, KK4, 11, 11);
 
-  aa = a; bb = b; cc = c; dd = d; ee = e;
+  dr += cl + hd->h1;
+  hd->h1 = hd->h2 + dl + er;
+  hd->h2 = hd->h3 + el + ar;
+  hd->h3 = hd->h4 + al + br;
+  hd->h4 = hd->h0 + bl + cr;
+  hd->h0 = dr;
 
-  /* right lane */
-  a = hd->h0;
-  b = hd->h1;
-  c = hd->h2;
-  d = hd->h3;
-  e = hd->h4;
-  R( a, b, c, d, e, F4, KK0,	5,  8);
-  R( e, a, b, c, d, F4, KK0, 14,  9);
-  R( d, e, a, b, c, F4, KK0,	7,  9);
-  R( c, d, e, a, b, F4, KK0,	0, 11);
-  R( b, c, d, e, a, F4, KK0,	9, 13);
-  R( a, b, c, d, e, F4, KK0,	2, 15);
-  R( e, a, b, c, d, F4, KK0, 11, 15);
-  R( d, e, a, b, c, F4, KK0,	4,  5);
-  R( c, d, e, a, b, F4, KK0, 13,  7);
-  R( b, c, d, e, a, F4, KK0,	6,  7);
-  R( a, b, c, d, e, F4, KK0, 15,  8);
-  R( e, a, b, c, d, F4, KK0,	8, 11);
-  R( d, e, a, b, c, F4, KK0,	1, 14);
-  R( c, d, e, a, b, F4, KK0, 10, 14);
-  R( b, c, d, e, a, F4, KK0,	3, 12);
-  R( a, b, c, d, e, F4, KK0, 12,  6);
-  R( e, a, b, c, d, F3, KK1,	6,  9);
-  R( d, e, a, b, c, F3, KK1, 11, 13);
-  R( c, d, e, a, b, F3, KK1,	3, 15);
-  R( b, c, d, e, a, F3, KK1,	7,  7);
-  R( a, b, c, d, e, F3, KK1,	0, 12);
-  R( e, a, b, c, d, F3, KK1, 13,  8);
-  R( d, e, a, b, c, F3, KK1,	5,  9);
-  R( c, d, e, a, b, F3, KK1, 10, 11);
-  R( b, c, d, e, a, F3, KK1, 14,  7);
-  R( a, b, c, d, e, F3, KK1, 15,  7);
-  R( e, a, b, c, d, F3, KK1,	8, 12);
-  R( d, e, a, b, c, F3, KK1, 12,  7);
-  R( c, d, e, a, b, F3, KK1,	4,  6);
-  R( b, c, d, e, a, F3, KK1,	9, 15);
-  R( a, b, c, d, e, F3, KK1,	1, 13);
-  R( e, a, b, c, d, F3, KK1,	2, 11);
-  R( d, e, a, b, c, F2, KK2, 15,  9);
-  R( c, d, e, a, b, F2, KK2,	5,  7);
-  R( b, c, d, e, a, F2, KK2,	1, 15);
-  R( a, b, c, d, e, F2, KK2,	3, 11);
-  R( e, a, b, c, d, F2, KK2,	7,  8);
-  R( d, e, a, b, c, F2, KK2, 14,  6);
-  R( c, d, e, a, b, F2, KK2,	6,  6);
-  R( b, c, d, e, a, F2, KK2,	9, 14);
-  R( a, b, c, d, e, F2, KK2, 11, 12);
-  R( e, a, b, c, d, F2, KK2,	8, 13);
-  R( d, e, a, b, c, F2, KK2, 12,  5);
-  R( c, d, e, a, b, F2, KK2,	2, 14);
-  R( b, c, d, e, a, F2, KK2, 10, 13);
-  R( a, b, c, d, e, F2, KK2,	0, 13);
-  R( e, a, b, c, d, F2, KK2,	4,  7);
-  R( d, e, a, b, c, F2, KK2, 13,  5);
-  R( c, d, e, a, b, F1, KK3,	8, 15);
-  R( b, c, d, e, a, F1, KK3,	6,  5);
-  R( a, b, c, d, e, F1, KK3,	4,  8);
-  R( e, a, b, c, d, F1, KK3,	1, 11);
-  R( d, e, a, b, c, F1, KK3,	3, 14);
-  R( c, d, e, a, b, F1, KK3, 11, 14);
-  R( b, c, d, e, a, F1, KK3, 15,  6);
-  R( a, b, c, d, e, F1, KK3,	0, 14);
-  R( e, a, b, c, d, F1, KK3,	5,  6);
-  R( d, e, a, b, c, F1, KK3, 12,  9);
-  R( c, d, e, a, b, F1, KK3,	2, 12);
-  R( b, c, d, e, a, F1, KK3, 13,  9);
-  R( a, b, c, d, e, F1, KK3,	9, 12);
-  R( e, a, b, c, d, F1, KK3,	7,  5);
-  R( d, e, a, b, c, F1, KK3, 10, 15);
-  R( c, d, e, a, b, F1, KK3, 14,  8);
-  R( b, c, d, e, a, F0, KK4, 12,  8);
-  R( a, b, c, d, e, F0, KK4, 15,  5);
-  R( e, a, b, c, d, F0, KK4, 10, 12);
-  R( d, e, a, b, c, F0, KK4,	4,  9);
-  R( c, d, e, a, b, F0, KK4,	1, 12);
-  R( b, c, d, e, a, F0, KK4,	5,  5);
-  R( a, b, c, d, e, F0, KK4,	8, 14);
-  R( e, a, b, c, d, F0, KK4,	7,  6);
-  R( d, e, a, b, c, F0, KK4,	6,  8);
-  R( c, d, e, a, b, F0, KK4,	2, 13);
-  R( b, c, d, e, a, F0, KK4, 13,  6);
-  R( a, b, c, d, e, F0, KK4, 14,  5);
-  R( e, a, b, c, d, F0, KK4,	0, 15);
-  R( d, e, a, b, c, F0, KK4,	3, 13);
-  R( c, d, e, a, b, F0, KK4,	9, 11);
-  R( b, c, d, e, a, F0, KK4, 11, 11);
-
-
-  t	   = hd->h1 + d + cc;
-  hd->h1 = hd->h2 + e + dd;
-  hd->h2 = hd->h3 + a + ee;
-  hd->h3 = hd->h4 + b + aa;
-  hd->h4 = hd->h0 + c + bb;
-  hd->h0 = t;
+  return /*burn_stack*/ 104+5*sizeof(void*);
 }
 
 
-/* Update the message digest with the contents
- * of INBUF with length INLEN.
- */
-static void
-rmd160_write ( void *context, const void *inbuf_arg, size_t inlen)
+static unsigned int
+transform ( void *c, const unsigned char *data, size_t nblks )
 {
-  const unsigned char *inbuf = inbuf_arg;
-  RMD160_CONTEXT *hd = context;
+  unsigned int burn;
 
-  if( hd->count == 64 )  /* flush the buffer */
+  do
     {
-      transform( hd, hd->buf );
-      _gcry_burn_stack (108+5*sizeof(void*));
-      hd->count = 0;
-      hd->nblocks++;
+      burn = transform_blk (c, data);
+      data += 64;
     }
-  if( !inbuf )
-    return;
-  if( hd->count )
-    {
-      for( ; inlen && hd->count < 64; inlen-- )
-        hd->buf[hd->count++] = *inbuf++;
-      rmd160_write( hd, NULL, 0 );
-      if( !inlen )
-        return;
-    }
+  while (--nblks);
 
-  while( inlen >= 64 )
-    {
-      transform( hd, inbuf );
-      hd->count = 0;
-      hd->nblocks++;
-      inlen -= 64;
-      inbuf += 64;
-    }
-  _gcry_burn_stack (108+5*sizeof(void*));
-  for( ; inlen && hd->count < 64; inlen-- )
-    hd->buf[hd->count++] = *inbuf++;
-}
-
-/****************
- * Apply the rmd160 transform function on the buffer which must have
- * a length 64 bytes. Do not use this function together with the
- * other functions, use rmd160_init to initialize internal variables.
- * Returns: 16 bytes in buffer with the mixed contentes of buffer.
- */
-void
-_gcry_rmd160_mixblock ( RMD160_CONTEXT *hd, void *blockof64byte )
-{
-  char *p = blockof64byte;
-
-  transform ( hd, blockof64byte );
-#define X(a) do { *(u32*)p = hd->h##a ; p += 4; } while(0)
-  X(0);
-  X(1);
-  X(2);
-  X(3);
-  X(4);
-#undef X
+  return burn;
 }
 
 
-/* The routine terminates the computation
+/*
+ * The routine terminates the computation
  */
-
 static void
 rmd160_final( void *context )
 {
   RMD160_CONTEXT *hd = context;
-  u32 t, msb, lsb;
+  u32 t, th, msb, lsb;
   byte *p;
+  unsigned int burn;
 
-  rmd160_write(hd, NULL, 0); /* flush */;
+  t = hd->bctx.nblocks;
+  if (sizeof t == sizeof hd->bctx.nblocks)
+    th = hd->bctx.nblocks_high;
+  else
+    th = hd->bctx.nblocks >> 32;
 
-  t = hd->nblocks;
   /* multiply by 64 to make a byte count */
   lsb = t << 6;
-  msb = t >> 26;
+  msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if( (lsb += hd->count) < t )
+  if( (lsb += hd->bctx.count) < t )
     msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
@@ -485,45 +429,41 @@ rmd160_final( void *context )
   msb <<= 3;
   msb |= t >> 29;
 
-  if( hd->count < 56 )  /* enough room */
+  if (hd->bctx.count < 56)  /* enough room */
     {
-      hd->buf[hd->count++] = 0x80; /* pad */
-      while( hd->count < 56 )
-        hd->buf[hd->count++] = 0;  /* pad */
-    }
-  else  /* need one extra block */
-    {
-      hd->buf[hd->count++] = 0x80; /* pad character */
-      while( hd->count < 64 )
-        hd->buf[hd->count++] = 0;
-      rmd160_write(hd, NULL, 0);  /* flush */;
-      memset(hd->buf, 0, 56 ); /* fill next block with zeroes */
-    }
-  /* append the 64 bit count */
-  hd->buf[56] = lsb	   ;
-  hd->buf[57] = lsb >>  8;
-  hd->buf[58] = lsb >> 16;
-  hd->buf[59] = lsb >> 24;
-  hd->buf[60] = msb	   ;
-  hd->buf[61] = msb >>  8;
-  hd->buf[62] = msb >> 16;
-  hd->buf[63] = msb >> 24;
-  transform( hd, hd->buf );
-  _gcry_burn_stack (108+5*sizeof(void*));
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad */
+      if (hd->bctx.count < 56)
+	memset (&hd->bctx.buf[hd->bctx.count], 0, 56 - hd->bctx.count);
 
-  p = hd->buf;
-#ifdef WORDS_BIGENDIAN
-#define X(a) do { *p++ = hd->h##a	   ; *p++ = hd->h##a >> 8;	\
-	          *p++ = hd->h##a >> 16; *p++ = hd->h##a >> 24; } while(0)
-#else /* little endian */
-#define X(a) do { *(u32*)p = hd->h##a ; p += 4; } while(0)
-#endif
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 60, msb);
+      burn = transform (hd, hd->bctx.buf, 1);
+    }
+  else /* need one extra block */
+    {
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
+      /* fill pad and next block with zeroes */
+      memset (&hd->bctx.buf[hd->bctx.count], 0, 64 - hd->bctx.count + 56);
+
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 64 + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 64 + 60, msb);
+      burn = transform (hd, hd->bctx.buf, 2);
+    }
+
+  p = hd->bctx.buf;
+#define X(a) do { buf_put_le32(p, hd->h##a); p += 4; } while(0)
   X(0);
   X(1);
   X(2);
   X(3);
   X(4);
 #undef X
+
+  hd->bctx.count = 0;
+
+  _gcry_burn_stack (burn);
 }
 
 static byte *
@@ -531,31 +471,37 @@ rmd160_read( void *context )
 {
   RMD160_CONTEXT *hd = context;
 
-  return hd->buf;
+  return hd->bctx.buf;
 }
 
 
 
 /****************
- * Shortcut functions which puts the hash value of the supplied buffer
+ * Shortcut functions which puts the hash value of the supplied buffer iov
  * into outbuf which must have a size of 20 bytes.
  */
-void
-_gcry_rmd160_hash_buffer (void *outbuf, const void *buffer, size_t length )
+static void
+_gcry_rmd160_hash_buffers (void *outbuf, size_t nbytes,
+			   const gcry_buffer_t *iov, int iovcnt)
 {
   RMD160_CONTEXT hd;
 
-  _gcry_rmd160_init ( &hd );
-  rmd160_write ( &hd, buffer, length );
+  (void)nbytes;
+
+  rmd160_init (&hd, 0);
+  for (;iovcnt > 0; iov++, iovcnt--)
+    _gcry_md_block_write (&hd,
+                          (const char*)iov[0].data + iov[0].off, iov[0].len);
   rmd160_final ( &hd );
-  memcpy ( outbuf, hd.buf, 20 );
+  memcpy ( outbuf, hd.bctx.buf, 20 );
 }
 
-static byte asn[15] = /* Object ID is 1.3.36.3.2.1 */
+
+static const byte asn[15] = /* Object ID is 1.3.36.3.2.1 */
   { 0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x24, 0x03,
     0x02, 0x01, 0x05, 0x00, 0x04, 0x14 };
 
-static gcry_md_oid_spec_t oid_spec_rmd160[] =
+static const gcry_md_oid_spec_t oid_spec_rmd160[] =
   {
     /* rsaSignatureWithripemd160 */
     { "1.3.36.3.3.1.2" },
@@ -564,9 +510,11 @@ static gcry_md_oid_spec_t oid_spec_rmd160[] =
     { NULL }
   };
 
-gcry_md_spec_t _gcry_digest_spec_rmd160 =
+const gcry_md_spec_t _gcry_digest_spec_rmd160 =
   {
+    GCRY_MD_RMD160, {0, 0},
     "RIPEMD160", asn, DIM (asn), oid_spec_rmd160, 20,
-    _gcry_rmd160_init, rmd160_write, rmd160_final, rmd160_read,
+    rmd160_init, _gcry_md_block_write, rmd160_final, rmd160_read, NULL,
+    _gcry_rmd160_hash_buffers,
     sizeof (RMD160_CONTEXT)
   };

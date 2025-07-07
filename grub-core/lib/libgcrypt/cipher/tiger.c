@@ -14,8 +14,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 /* See http://www.cs.technion.ac.il/~biham/Reports/Tiger/  */
@@ -27,16 +27,14 @@
 
 #include "g10lib.h"
 #include "cipher.h"
-
-/* We really need a 64 bit type for this code.  */
-#ifdef HAVE_U64_TYPEDEF
+#include "hash-common.h"
+#include "bithelp.h"
+#include "bufhelp.h"
 
 typedef struct
 {
+  gcry_md_block_ctx_t bctx;
   u64  a, b, c;
-  byte buf[64];
-  int  count;
-  u32  nblocks;
   int  variant;  /* 0 = old code, 1 = fixed code, 2 - TIGER2.  */
 } TIGER_CONTEXT;
 
@@ -588,6 +586,9 @@ static u64 sbox4[256] = {
   U64_C(0xc83223f1720aef96) /* 1022 */, U64_C(0xc3a0396f7363a51f) /* 1023 */
 };
 
+static unsigned int
+transform ( void *ctx, const unsigned char *data, size_t nblks );
+
 static void
 do_init (void *context, int variant)
 {
@@ -596,130 +597,103 @@ do_init (void *context, int variant)
   hd->a = 0x0123456789abcdefLL;
   hd->b = 0xfedcba9876543210LL;
   hd->c = 0xf096a5b4c3b2e187LL;
-  hd->nblocks = 0;
-  hd->count = 0;
+
+  hd->bctx.nblocks = 0;
+  hd->bctx.nblocks_high = 0;
+  hd->bctx.count = 0;
+  hd->bctx.blocksize_shift = _gcry_ctz(64);
+  hd->bctx.bwrite = transform;
   hd->variant = variant;
 }
 
 static void
-tiger_init (void *context)
+tiger_init (void *context, unsigned int flags)
 {
+  (void)flags;
+
   do_init (context, 0);
 }
 
 static void
-tiger1_init (void *context)
+tiger1_init (void *context, unsigned int flags)
 {
+  (void)flags;
+
   do_init (context, 1);
 }
 
 static void
-tiger2_init (void *context)
+tiger2_init (void *context, unsigned int flags)
 {
+  (void)flags;
+
   do_init (context, 2);
 }
 
-static void
-tiger_round( u64 *ra, u64 *rb, u64 *rc, u64 x, int mul )
-{
-  u64 a = *ra;
-  u64 b = *rb;
-  u64 c = *rc;
 
-  c ^= x;
-  a -= (  sbox1[  c        & 0xff ] ^ sbox2[ (c >> 16) & 0xff ]
-        ^ sbox3[ (c >> 32) & 0xff ] ^ sbox4[ (c >> 48) & 0xff ]);
-  b += (  sbox4[ (c >>  8) & 0xff ] ^ sbox3[ (c >> 24) & 0xff ]
-        ^ sbox2[ (c >> 40) & 0xff ] ^ sbox1[ (c >> 56) & 0xff ]);
-  b *= mul;
-
-  *ra = a;
-  *rb = b;
-  *rc = c;
-}
+#define tiger_round(xa, xb, xc, xx, xmul) { \
+  xc ^= xx; \
+  xa -= (  sbox1[  (xc)        & 0xff ] ^ sbox2[ ((xc) >> 16) & 0xff ] \
+         ^ sbox3[ ((xc) >> 32) & 0xff ] ^ sbox4[ ((xc) >> 48) & 0xff ]); \
+  xb += (  sbox4[ ((xc) >>  8) & 0xff ] ^ sbox3[ ((xc) >> 24) & 0xff ] \
+         ^ sbox2[ ((xc) >> 40) & 0xff ] ^ sbox1[ ((xc) >> 56) & 0xff ]); \
+  xb *= xmul; }
 
 
-static void
-pass( u64 *ra, u64 *rb, u64 *rc, u64 *x, int mul )
-{
-  u64 a = *ra;
-  u64 b = *rb;
-  u64 c = *rc;
-
-  tiger_round( &a, &b, &c, x[0], mul );
-  tiger_round( &b, &c, &a, x[1], mul );
-  tiger_round( &c, &a, &b, x[2], mul );
-  tiger_round( &a, &b, &c, x[3], mul );
-  tiger_round( &b, &c, &a, x[4], mul );
-  tiger_round( &c, &a, &b, x[5], mul );
-  tiger_round( &a, &b, &c, x[6], mul );
-  tiger_round( &b, &c, &a, x[7], mul );
-
-  *ra = a;
-  *rb = b;
-  *rc = c;
-}
+#define pass(ya, yb, yc, yx, ymul) { \
+  tiger_round( ya, yb, yc, yx[0], ymul ); \
+  tiger_round( yb, yc, ya, yx[1], ymul ); \
+  tiger_round( yc, ya, yb, yx[2], ymul ); \
+  tiger_round( ya, yb, yc, yx[3], ymul ); \
+  tiger_round( yb, yc, ya, yx[4], ymul ); \
+  tiger_round( yc, ya, yb, yx[5], ymul ); \
+  tiger_round( ya, yb, yc, yx[6], ymul ); \
+  tiger_round( yb, yc, ya, yx[7], ymul ); }
 
 
-static void
-key_schedule( u64 *x )
-{
-  x[0] -= x[7] ^ 0xa5a5a5a5a5a5a5a5LL;
-  x[1] ^= x[0];
-  x[2] += x[1];
-  x[3] -= x[2] ^ ((~x[1]) << 19 );
-  x[4] ^= x[3];
-  x[5] += x[4];
-  x[6] -= x[5] ^ ((~x[4]) >> 23 );
-  x[7] ^= x[6];
-  x[0] += x[7];
-  x[1] -= x[0] ^ ((~x[7]) << 19 );
-  x[2] ^= x[1];
-  x[3] += x[2];
-  x[4] -= x[3] ^ ((~x[2]) >> 23 );
-  x[5] ^= x[4];
-  x[6] += x[5];
-  x[7] -= x[6] ^ 0x0123456789abcdefLL;
-}
+#define key_schedule(x) { \
+  x[0] -= x[7] ^ 0xa5a5a5a5a5a5a5a5LL; \
+  x[1] ^= x[0]; \
+  x[2] += x[1]; \
+  x[3] -= x[2] ^ ((~x[1]) << 19 ); \
+  x[4] ^= x[3]; \
+  x[5] += x[4]; \
+  x[6] -= x[5] ^ ((~x[4]) >> 23 ); \
+  x[7] ^= x[6]; \
+  x[0] += x[7]; \
+  x[1] -= x[0] ^ ((~x[7]) << 19 ); \
+  x[2] ^= x[1]; \
+  x[3] += x[2]; \
+  x[4] -= x[3] ^ ((~x[2]) >> 23 ); \
+  x[5] ^= x[4]; \
+  x[6] += x[5]; \
+  x[7] -= x[6] ^ 0x0123456789abcdefLL; }
 
 
 /****************
  * Transform the message DATA which consists of 512 bytes (8 words)
  */
-static void
-transform ( TIGER_CONTEXT *hd, const unsigned char *data )
+static unsigned int
+transform_blk ( void *ctx, const unsigned char *data )
 {
+  TIGER_CONTEXT *hd = ctx;
   u64 a,b,c,aa,bb,cc;
   u64 x[8];
-#ifdef WORDS_BIGENDIAN
-#define MKWORD(d,n) \
-		(  ((u64)(d)[8*(n)+7]) << 56 | ((u64)(d)[8*(n)+6]) << 48  \
-		 | ((u64)(d)[8*(n)+5]) << 40 | ((u64)(d)[8*(n)+4]) << 32  \
-		 | ((u64)(d)[8*(n)+3]) << 24 | ((u64)(d)[8*(n)+2]) << 16  \
-		 | ((u64)(d)[8*(n)+1]) << 8  | ((u64)(d)[8*(n)	])	 )
-  x[0] = MKWORD(data, 0);
-  x[1] = MKWORD(data, 1);
-  x[2] = MKWORD(data, 2);
-  x[3] = MKWORD(data, 3);
-  x[4] = MKWORD(data, 4);
-  x[5] = MKWORD(data, 5);
-  x[6] = MKWORD(data, 6);
-  x[7] = MKWORD(data, 7);
-#undef MKWORD
-#else
-  memcpy( &x[0], data, 64 );
-#endif
+  int i;
+
+  for ( i = 0; i < 8; i++ )
+    x[i] = buf_get_le64(data + i * 8);
 
   /* save */
   a = aa = hd->a;
   b = bb = hd->b;
   c = cc = hd->c;
 
-  pass( &a, &b, &c, x, 5);
+  pass( a, b, c, x, 5);
   key_schedule( x );
-  pass( &c, &a, &b, x, 7);
+  pass( c, a, b, x, 7);
   key_schedule( x );
-  pass( &b, &c, &a, x, 9);
+  pass( b, c, a, x, 9);
 
   /* feedforward */
   a ^= aa;
@@ -729,48 +703,24 @@ transform ( TIGER_CONTEXT *hd, const unsigned char *data )
   hd->a = a;
   hd->b = b;
   hd->c = c;
+
+  return /*burn_stack*/ 21*8+11*sizeof(void*);
 }
 
 
-
-/* Update the message digest with the contents
- * of INBUF with length INLEN.
- */
-static void
-tiger_write ( void *context, const void *inbuf_arg, size_t inlen)
+static unsigned int
+transform ( void *c, const unsigned char *data, size_t nblks )
 {
-  const unsigned char *inbuf = inbuf_arg;
-  TIGER_CONTEXT *hd = context;
+  unsigned int burn;
 
-  if( hd->count == 64 ) /* flush the buffer */
+  do
     {
-      transform( hd, hd->buf );
-      _gcry_burn_stack (21*8+11*sizeof(void*));
-      hd->count = 0;
-      hd->nblocks++;
+      burn = transform_blk (c, data);
+      data += 64;
     }
-  if( !inbuf )
-    return;
-  if( hd->count )
-    {
-      for( ; inlen && hd->count < 64; inlen-- )
-        hd->buf[hd->count++] = *inbuf++;
-      tiger_write( hd, NULL, 0 );
-      if( !inlen )
-        return;
-    }
+  while (--nblks);
 
-  while( inlen >= 64 )
-    {
-      transform( hd, inbuf );
-      hd->count = 0;
-      hd->nblocks++;
-      inlen -= 64;
-      inbuf += 64;
-    }
-  _gcry_burn_stack (21*8+11*sizeof(void*));
-  for( ; inlen && hd->count < 64; inlen-- )
-    hd->buf[hd->count++] = *inbuf++;
+  return burn;
 }
 
 
@@ -781,19 +731,23 @@ static void
 tiger_final( void *context )
 {
   TIGER_CONTEXT *hd = context;
-  u32 t, msb, lsb;
+  u32 t, th, msb, lsb;
   byte *p;
+  unsigned int burn;
   byte pad = hd->variant == 2? 0x80 : 0x01;
 
-  tiger_write(hd, NULL, 0); /* flush */;
+  t = hd->bctx.nblocks;
+  if (sizeof t == sizeof hd->bctx.nblocks)
+    th = hd->bctx.nblocks_high;
+  else
+    th = hd->bctx.nblocks >> 32;
 
-  t = hd->nblocks;
   /* multiply by 64 to make a byte count */
   lsb = t << 6;
-  msb = t >> 26;
+  msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if( (lsb += hd->count) < t )
+  if( (lsb += hd->bctx.count) < t )
     msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
@@ -801,45 +755,32 @@ tiger_final( void *context )
   msb <<= 3;
   msb |= t >> 29;
 
-  if( hd->count < 56 )  /* enough room */
+  if( hd->bctx.count < 56 )  /* enough room */
     {
-      hd->buf[hd->count++] = pad;
-      while( hd->count < 56 )
-        hd->buf[hd->count++] = 0;  /* pad */
+      hd->bctx.buf[hd->bctx.count++] = pad;
+      if (hd->bctx.count < 56)
+	memset (&hd->bctx.buf[hd->bctx.count], 0, 56 - hd->bctx.count);
+
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 60, msb);
+      burn = transform( hd, hd->bctx.buf, 1 );
     }
   else  /* need one extra block */
     {
-      hd->buf[hd->count++] = pad; /* pad character */
-      while( hd->count < 64 )
-        hd->buf[hd->count++] = 0;
-      tiger_write(hd, NULL, 0);  /* flush */;
-      memset(hd->buf, 0, 56 ); /* fill next block with zeroes */
-    }
-  /* append the 64 bit count */
-  hd->buf[56] = lsb	   ;
-  hd->buf[57] = lsb >>  8;
-  hd->buf[58] = lsb >> 16;
-  hd->buf[59] = lsb >> 24;
-  hd->buf[60] = msb	   ;
-  hd->buf[61] = msb >>  8;
-  hd->buf[62] = msb >> 16;
-  hd->buf[63] = msb >> 24;
-  transform( hd, hd->buf );
-  _gcry_burn_stack (21*8+11*sizeof(void*));
+      hd->bctx.buf[hd->bctx.count++] = pad; /* pad character */
+      /* fill pad and next block with zeroes */
+      memset (&hd->bctx.buf[hd->bctx.count], 0, 64 - hd->bctx.count + 56);
 
-  p = hd->buf;
-#ifdef WORDS_BIGENDIAN
-#define X(a) do { *(u64*)p = hd->a ; p += 8; } while(0)
-#else /* little endian */
-#define X(a) do { *p++ = hd->a >> 56; *p++ = hd->a >> 48; \
-	          *p++ = hd->a >> 40; *p++ = hd->a >> 32; \
-	          *p++ = hd->a >> 24; *p++ = hd->a >> 16; \
-	          *p++ = hd->a >>  8; *p++ = hd->a;       } while(0)
-#endif
-#define Y(a) do { *p++ = hd->a      ; *p++ = hd->a >> 8;  \
-	          *p++ = hd->a >> 16; *p++ = hd->a >> 24; \
-	          *p++ = hd->a >> 32; *p++ = hd->a >> 40; \
-	          *p++ = hd->a >> 48; *p++ = hd->a >> 56; } while(0)
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 64 + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 64 + 60, msb);
+      burn = transform( hd, hd->bctx.buf, 2 );
+    }
+
+  p = hd->bctx.buf;
+#define X(a) do { buf_put_be64(p, hd->a); p += 8; } while(0)
+#define Y(a) do { buf_put_le64(p, hd->a); p += 8; } while(0)
   if (hd->variant == 0)
     {
       X(a);
@@ -854,6 +795,10 @@ tiger_final( void *context )
     }
 #undef X
 #undef Y
+
+  hd->bctx.count = 0;
+
+  _gcry_burn_stack (burn);
 }
 
 static byte *
@@ -861,7 +806,7 @@ tiger_read( void *context )
 {
   TIGER_CONTEXT *hd = context;
 
-  return hd->buf;
+  return hd->bctx.buf;
 }
 
 
@@ -869,43 +814,47 @@ tiger_read( void *context )
 /* This is the old TIGER variant based on the unfixed reference
    implementation.  IT was used in GnupG up to 1.3.2.  We don't provide
    an OID anymore because that would not be correct.  */
-gcry_md_spec_t _gcry_digest_spec_tiger =
+const gcry_md_spec_t _gcry_digest_spec_tiger =
   {
+    GCRY_MD_TIGER, {0, 0},
     "TIGER192", NULL, 0, NULL, 24,
-    tiger_init, tiger_write, tiger_final, tiger_read,
+    tiger_init, _gcry_md_block_write, tiger_final, tiger_read, NULL,
+    NULL,
     sizeof (TIGER_CONTEXT)
   };
 
 
 
 /* This is the fixed TIGER implementation.  */
-static byte asn1[19] = /* Object ID is 1.3.6.1.4.1.11591.12.2 */
+static const byte asn1[19] = /* Object ID is 1.3.6.1.4.1.11591.12.2 */
   { 0x30, 0x29, 0x30, 0x0d, 0x06, 0x09, 0x2b, 0x06,
     0x01, 0x04, 0x01, 0xda, 0x47, 0x0c, 0x02,
     0x05, 0x00, 0x04, 0x18 };
 
-static gcry_md_oid_spec_t oid_spec_tiger1[] =
+static const gcry_md_oid_spec_t oid_spec_tiger1[] =
   {
     /* GNU.digestAlgorithm TIGER */
     { "1.3.6.1.4.1.11591.12.2" },
     { NULL }
   };
 
-gcry_md_spec_t _gcry_digest_spec_tiger1 =
+const gcry_md_spec_t _gcry_digest_spec_tiger1 =
   {
+    GCRY_MD_TIGER1, {0, 0},
     "TIGER", asn1, DIM (asn1), oid_spec_tiger1, 24,
-    tiger1_init, tiger_write, tiger_final, tiger_read,
+    tiger1_init, _gcry_md_block_write, tiger_final, tiger_read, NULL,
+    NULL,
     sizeof (TIGER_CONTEXT)
   };
 
 
 
 /* This is TIGER2 which usues a changed padding algorithm.  */
-gcry_md_spec_t _gcry_digest_spec_tiger2 =
+const gcry_md_spec_t _gcry_digest_spec_tiger2 =
   {
+    GCRY_MD_TIGER2, {0, 0},
     "TIGER2", NULL, 0, NULL, 24,
-    tiger2_init, tiger_write, tiger_final, tiger_read,
+    tiger2_init, _gcry_md_block_write, tiger_final, tiger_read, NULL,
+    NULL,
     sizeof (TIGER_CONTEXT)
   };
-
-#endif /* HAVE_U64_TYPEDEF */

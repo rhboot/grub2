@@ -14,8 +14,8 @@
 ;; GNU Lesser General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU Lesser General Public
-;; License along with this program; if not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+;; License along with this program; if not, see <https://www.gnu.org/licenses/>.
+;; SPDX-License-Identifier: LGPL-2.1-or-later
 ;;
 
 ;; Note: This file should be updated manually and the ordinals shall
@@ -118,7 +118,7 @@ EXPORTS
       gcry_mpi_set_flag  @88
       gcry_mpi_clear_flag  @89
       gcry_mpi_get_flag  @90
-
+      gcry_mpi_get_ui    @91
 
       gcry_cipher_open  @92
       gcry_cipher_close  @93
@@ -132,7 +132,8 @@ EXPORTS
       gcry_cipher_decrypt  @101
       gcry_cipher_get_algo_keylen  @102
       gcry_cipher_get_algo_blklen  @103
-      gcry_cipher_list  @104
+
+;; @104 used to be part of the module register interface
 
       gcry_pk_encrypt  @105
       gcry_pk_decrypt  @106
@@ -146,33 +147,13 @@ EXPORTS
       gcry_pk_map_name  @114
       gcry_pk_get_nbits  @115
       gcry_pk_get_keygrip  @116
-      gcry_pk_list  @117
 
-      gcry_ac_data_new  @118
-      gcry_ac_data_destroy  @119
-      gcry_ac_data_set  @120
-      gcry_ac_data_copy  @121
-      gcry_ac_data_length  @122
-      gcry_ac_data_get_name  @123
-      gcry_ac_data_get_index  @124
-      gcry_ac_data_clear  @125
-      gcry_ac_open  @126
-      gcry_ac_close  @127
-      gcry_ac_key_init  @128
-      gcry_ac_key_pair_generate  @129
-      gcry_ac_key_pair_extract  @130
-      gcry_ac_key_data_get  @131
-      gcry_ac_key_test  @132
-      gcry_ac_key_get_nbits  @133
-      gcry_ac_key_get_grip  @134
-      gcry_ac_key_destroy  @135
-      gcry_ac_key_pair_destroy  @136
-      gcry_ac_data_encrypt  @137
-      gcry_ac_data_decrypt  @138
-      gcry_ac_data_sign  @139
-      gcry_ac_data_verify  @140
-      gcry_ac_id_to_name  @141
-      gcry_ac_name_to_id  @142
+;; @117 used to be part of the module register interface
+
+;;
+;; 118 to 142 were used in previous Libgcrypt versions for the gcry_ac
+;; interface
+;;
 
       gcry_md_open  @143
       gcry_md_close  @144
@@ -192,8 +173,7 @@ EXPORTS
       gcry_md_algo_name  @158
       gcry_md_map_name  @159
       gcry_md_setkey  @160
-      gcry_md_list  @161
-
+;; @161 used to be part of the module register interface
       gcry_randomize  @162
       gcry_random_add_bytes  @163
       gcry_random_bytes  @164
@@ -209,21 +189,15 @@ EXPORTS
 
       gcry_md_debug  @172
 
-      gcry_cipher_register  @173
-      gcry_cipher_unregister @174
-      gcry_md_register  @175
-      gcry_md_unregister @176
-      gcry_pk_register  @177
-      gcry_pk_unregister @178
-
-      gcry_ac_data_from_sexp  @179
-      gcry_ac_data_to_sexp  @180
-      gcry_ac_io_init  @181
-      gcry_ac_io_init_va  @182
-      gcry_ac_data_encrypt_scheme  @183
-      gcry_ac_data_decrypt_scheme  @184
-      gcry_ac_data_sign_scheme  @185
-      gcry_ac_data_verify_scheme  @186
+;; @173 used to be part of the module register interface
+;; @174 used to be part of the module register interface
+;; @175 used to be part of the module register interface
+;; @176 used to be part of the module register interface
+;; @177 used to be part of the module register interface
+;; @178 used to be part of the module register interface
+;;
+;; @179 to @186 used to be part of the removed gcry_ac interface
+;;
 
       gcry_sexp_nth_string  @187
 
@@ -237,3 +211,100 @@ EXPORTS
       gcry_pk_get_param     @193
 
       gcry_kdf_derive       @194
+
+      gcry_mpi_snatch       @195
+
+      gcry_mpi_point_new        @196
+      gcry_mpi_point_release    @197
+      gcry_mpi_point_get        @198
+      gcry_mpi_point_snatch_get @199
+      gcry_mpi_point_set        @200
+      gcry_mpi_point_snatch_set @201
+
+      gcry_ctx_release          @202
+
+      gcry_mpi_ec_new           @203
+      gcry_mpi_ec_get_mpi       @204
+      gcry_mpi_ec_get_point     @205
+      gcry_mpi_ec_set_mpi       @206
+      gcry_mpi_ec_set_point     @207
+      gcry_mpi_ec_get_affine    @208
+      gcry_mpi_ec_dup           @209
+      gcry_mpi_ec_add           @210
+      gcry_mpi_ec_mul           @211
+
+      gcry_pubkey_get_sexp      @212
+
+      _gcry_mpi_get_const       @213
+
+      gcry_sexp_nth_buffer      @214
+
+      gcry_mpi_is_neg           @215
+      gcry_mpi_neg              @216
+      gcry_mpi_abs              @217
+
+      gcry_mpi_ec_curve_point   @218
+
+      gcry_md_hash_buffers      @219
+
+      gcry_log_debug            @220
+      gcry_log_debughex         @221
+      gcry_log_debugmpi         @222
+      gcry_log_debugpnt         @223
+      gcry_log_debugsxp         @224
+
+      gcry_sexp_extract_param   @225
+
+      gcry_cipher_authenticate  @226
+      gcry_cipher_gettag        @227
+      gcry_cipher_checktag      @228
+
+      gcry_mpi_set_opaque_copy  @229
+
+      gcry_mac_algo_info        @230
+      gcry_mac_algo_name        @231
+      gcry_mac_map_name         @232
+      gcry_mac_get_algo_maclen  @233
+      gcry_mac_get_algo_keylen  @234
+      gcry_mac_open             @235
+      gcry_mac_close            @236
+      gcry_mac_setkey           @237
+      gcry_mac_setiv            @238
+      gcry_mac_write            @239
+      gcry_mac_read             @240
+      gcry_mac_verify           @241
+      gcry_mac_ctl              @242
+      gcry_mac_get_algo         @243
+
+      gcry_mpi_ec_sub           @244
+
+      gcry_md_extract           @245
+
+      gcry_mpi_ec_decode_point  @246
+
+      gcry_get_config           @247
+
+      gcry_mpi_point_copy       @248
+
+      gcry_ecc_get_algo_keylen  @249
+      gcry_ecc_mul_point        @250
+
+      gcry_pk_hash_sign         @255
+      gcry_pk_hash_verify       @256
+      gcry_pk_random_override_new @257
+
+      gcry_kdf_open             @258
+      gcry_kdf_compute          @259
+      gcry_kdf_final            @260
+      gcry_kdf_close            @261
+
+      gcry_cipher_setup_geniv   @262
+      gcry_cipher_geniv         @263
+
+      gcry_kem_keypair          @264
+      gcry_kem_encap            @265
+      gcry_kem_decap            @266
+
+      gcry_md_hash_buffers_ext  @267
+
+;; end of file with public symbols for Windows.

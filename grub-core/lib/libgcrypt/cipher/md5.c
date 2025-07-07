@@ -15,8 +15,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * According to the definition of MD5 in RFC 1321 from April 1992.
  * NOTE: This is *not* the same file as the one from glibc.
@@ -40,28 +40,35 @@
 #include "cipher.h"
 
 #include "bithelp.h"
+#include "bufhelp.h"
+#include "hash-common.h"
 
 
 typedef struct {
+    gcry_md_block_ctx_t bctx;
     u32 A,B,C,D;	  /* chaining variables */
-    u32  nblocks;
-    byte buf[64];
-    int  count;
 } MD5_CONTEXT;
 
+static unsigned int
+transform ( void *ctx, const unsigned char *data, size_t datalen );
 
 static void
-md5_init( void *context )
+md5_init( void *context, unsigned int flags)
 {
   MD5_CONTEXT *ctx = context;
+
+  (void)flags;
 
   ctx->A = 0x67452301;
   ctx->B = 0xefcdab89;
   ctx->C = 0x98badcfe;
   ctx->D = 0x10325476;
 
-  ctx->nblocks = 0;
-  ctx->count = 0;
+  ctx->bctx.nblocks = 0;
+  ctx->bctx.nblocks_high = 0;
+  ctx->bctx.count = 0;
+  ctx->bctx.blocksize_shift = _gcry_ctz(64);
+  ctx->bctx.bwrite = transform;
 }
 
 
@@ -76,35 +83,22 @@ md5_init( void *context )
 
 
 /****************
- * transform n*64 bytes
+ * transform 64 bytes
  */
-static void
-transform ( MD5_CONTEXT *ctx, const unsigned char *data )
+static unsigned int
+transform_blk ( void *c, const unsigned char *data )
 {
+  MD5_CONTEXT *ctx = c;
   u32 correct_words[16];
   register u32 A = ctx->A;
   register u32 B = ctx->B;
   register u32 C = ctx->C;
   register u32 D = ctx->D;
   u32 *cwp = correct_words;
+  int i;
 
-#ifdef WORDS_BIGENDIAN
-  {
-    int i;
-    byte *p2;
-    const byte *p1;
-    for(i=0, p1=data, p2=(byte*)correct_words; i < 16; i++, p2 += 4 )
-      {
-        p2[3] = *p1++;
-	p2[2] = *p1++;
-	p2[1] = *p1++;
-	p2[0] = *p1++;
-      }
-  }
-#else
-  memcpy( correct_words, data, 64 );
-#endif
-
+  for ( i = 0; i < 16; i++ )
+    correct_words[i] = buf_get_le32(data + i * 4);
 
 #define OP(a, b, c, d, s, T) \
   do			         	   \
@@ -208,53 +202,25 @@ transform ( MD5_CONTEXT *ctx, const unsigned char *data )
   ctx->B += B;
   ctx->C += C;
   ctx->D += D;
+
+  return /*burn_stack*/ 80+6*sizeof(void*);
 }
 
 
-
-/* The routine updates the message-digest context to
- * account for the presence of each of the characters inBuf[0..inLen-1]
- * in the message whose digest is being computed.
- */
-static void
-md5_write( void *context, const void *inbuf_arg , size_t inlen)
+static unsigned int
+transform ( void *c, const unsigned char *data, size_t nblks )
 {
-  const unsigned char *inbuf = inbuf_arg;
-  MD5_CONTEXT *hd = context;
+  unsigned int burn;
 
-  if( hd->count == 64 )  /* flush the buffer */
+  do
     {
-      transform( hd, hd->buf );
-      _gcry_burn_stack (80+6*sizeof(void*));
-      hd->count = 0;
-      hd->nblocks++;
+      burn = transform_blk (c, data);
+      data += 64;
     }
-  if( !inbuf )
-    return;
+  while (--nblks);
 
-  if( hd->count )
-    {
-      for( ; inlen && hd->count < 64; inlen-- )
-        hd->buf[hd->count++] = *inbuf++;
-      md5_write( hd, NULL, 0 );
-      if( !inlen )
-        return;
-    }
-  _gcry_burn_stack (80+6*sizeof(void*));
-
-  while( inlen >= 64 )
-    {
-      transform( hd, inbuf );
-      hd->count = 0;
-      hd->nblocks++;
-      inlen -= 64;
-      inbuf += 64;
-    }
-  for( ; inlen && hd->count < 64; inlen-- )
-    hd->buf[hd->count++] = *inbuf++;
-
+  return burn;
 }
-
 
 
 /* The routine final terminates the message-digest computation and
@@ -267,18 +233,22 @@ static void
 md5_final( void *context)
 {
   MD5_CONTEXT *hd = context;
-  u32 t, msb, lsb;
+  u32 t, th, msb, lsb;
   byte *p;
+  unsigned int burn;
 
-  md5_write(hd, NULL, 0); /* flush */;
+  t = hd->bctx.nblocks;
+  if (sizeof t == sizeof hd->bctx.nblocks)
+    th = hd->bctx.nblocks_high;
+  else
+    th = hd->bctx.nblocks >> 32;
 
-  t = hd->nblocks;
   /* multiply by 64 to make a byte count */
   lsb = t << 6;
-  msb = t >> 26;
+  msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if( (lsb += hd->count) < t )
+  if( (lsb += hd->bctx.count) < t )
     msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
@@ -286,59 +256,54 @@ md5_final( void *context)
   msb <<= 3;
   msb |= t >> 29;
 
-  if( hd->count < 56 )  /* enough room */
+  if (hd->bctx.count < 56)  /* enough room */
     {
-      hd->buf[hd->count++] = 0x80; /* pad */
-      while( hd->count < 56 )
-        hd->buf[hd->count++] = 0;  /* pad */
-    }
-  else  /* need one extra block */
-    {
-      hd->buf[hd->count++] = 0x80; /* pad character */
-      while( hd->count < 64 )
-        hd->buf[hd->count++] = 0;
-      md5_write(hd, NULL, 0);  /* flush */;
-      memset(hd->buf, 0, 56 ); /* fill next block with zeroes */
-    }
-  /* append the 64 bit count */
-  hd->buf[56] = lsb	   ;
-  hd->buf[57] = lsb >>  8;
-  hd->buf[58] = lsb >> 16;
-  hd->buf[59] = lsb >> 24;
-  hd->buf[60] = msb	   ;
-  hd->buf[61] = msb >>  8;
-  hd->buf[62] = msb >> 16;
-  hd->buf[63] = msb >> 24;
-  transform( hd, hd->buf );
-  _gcry_burn_stack (80+6*sizeof(void*));
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad */
+      if (hd->bctx.count < 56)
+	memset (&hd->bctx.buf[hd->bctx.count], 0, 56 - hd->bctx.count);
 
-  p = hd->buf;
-#ifdef WORDS_BIGENDIAN
-#define X(a) do { *p++ = hd->a      ; *p++ = hd->a >> 8;      \
-	          *p++ = hd->a >> 16; *p++ = hd->a >> 24; } while(0)
-#else /* little endian */
-#define X(a) do { *(u32*)p = (*hd).a ; p += 4; } while(0)
-#endif
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 60, msb);
+      burn = transform (hd, hd->bctx.buf, 1);
+    }
+  else /* need one extra block */
+    {
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
+      /* fill pad and next block with zeroes */
+      memset (&hd->bctx.buf[hd->bctx.count], 0, 64 - hd->bctx.count + 56);
+
+      /* append the 64 bit count */
+      buf_put_le32(hd->bctx.buf + 64 + 56, lsb);
+      buf_put_le32(hd->bctx.buf + 64 + 60, msb);
+      burn = transform (hd, hd->bctx.buf, 2);
+    }
+
+  p = hd->bctx.buf;
+#define X(a) do { buf_put_le32(p, hd->a); p += 4; } while(0)
   X(A);
   X(B);
   X(C);
   X(D);
 #undef X
 
+  hd->bctx.count = 0;
+
+  _gcry_burn_stack (burn);
 }
 
 static byte *
 md5_read( void *context )
 {
   MD5_CONTEXT *hd = (MD5_CONTEXT *) context;
-  return hd->buf;
+  return hd->bctx.buf;
 }
 
-static byte asn[18] = /* Object ID is 1.2.840.113549.2.5 */
+static const byte asn[18] = /* Object ID is 1.2.840.113549.2.5 */
   { 0x30, 0x20, 0x30, 0x0c, 0x06, 0x08, 0x2a, 0x86,0x48,
     0x86, 0xf7, 0x0d, 0x02, 0x05, 0x05, 0x00, 0x04, 0x10 };
 
-static gcry_md_oid_spec_t oid_spec_md5[] =
+static const gcry_md_oid_spec_t oid_spec_md5[] =
   {
     /* iso.member-body.us.rsadsi.pkcs.pkcs-1.4 (md5WithRSAEncryption) */
     { "1.2.840.113549.1.1.4" },
@@ -347,9 +312,11 @@ static gcry_md_oid_spec_t oid_spec_md5[] =
     { NULL },
   };
 
-gcry_md_spec_t _gcry_digest_spec_md5 =
+const gcry_md_spec_t _gcry_digest_spec_md5 =
   {
+    GCRY_MD_MD5, {0, 1},
     "MD5", asn, DIM (asn), oid_spec_md5, 16,
-    md5_init, md5_write, md5_final, md5_read,
+    md5_init, _gcry_md_block_write, md5_final, md5_read, NULL,
+    NULL,
     sizeof (MD5_CONTEXT)
   };

@@ -42,106 +42,380 @@
 
 #include "g10lib.h"
 #include "bithelp.h"
+#include "bufhelp.h"
 #include "cipher.h"
 #include "hash-common.h"
 
+
+/* USE_SSSE3 indicates whether to compile with Intel SSSE3 code. */
+#undef USE_SSSE3
+#if defined(__x86_64__) && defined(HAVE_GCC_INLINE_ASM_SSSE3) && \
+    defined(HAVE_INTEL_SYNTAX_PLATFORM_AS) && \
+    (defined(HAVE_COMPATIBLE_GCC_AMD64_PLATFORM_AS) || \
+     defined(HAVE_COMPATIBLE_GCC_WIN64_PLATFORM_AS))
+# define USE_SSSE3 1
+#endif
+
+/* USE_AVX indicates whether to compile with Intel AVX code. */
+#undef USE_AVX
+#if defined(__x86_64__) && defined(HAVE_GCC_INLINE_ASM_AVX) && \
+    defined(HAVE_INTEL_SYNTAX_PLATFORM_AS) && \
+    (defined(HAVE_COMPATIBLE_GCC_AMD64_PLATFORM_AS) || \
+     defined(HAVE_COMPATIBLE_GCC_WIN64_PLATFORM_AS))
+# define USE_AVX 1
+#endif
+
+/* USE_AVX2 indicates whether to compile with Intel AVX2/BMI2 code. */
+#undef USE_AVX2
+#if defined(__x86_64__) && defined(HAVE_GCC_INLINE_ASM_AVX2) && \
+    defined(HAVE_GCC_INLINE_ASM_BMI2) && \
+    defined(HAVE_INTEL_SYNTAX_PLATFORM_AS) && \
+    (defined(HAVE_COMPATIBLE_GCC_AMD64_PLATFORM_AS) || \
+     defined(HAVE_COMPATIBLE_GCC_WIN64_PLATFORM_AS))
+# define USE_AVX2 1
+#endif
+
+/* USE_SHAEXT indicates whether to compile with Intel SHA Extension code. */
+#undef USE_SHAEXT
+#if defined(HAVE_GCC_INLINE_ASM_SHAEXT) && \
+    defined(HAVE_GCC_INLINE_ASM_SSE41) && \
+    defined(ENABLE_SHAEXT_SUPPORT)
+# define USE_SHAEXT 1
+#endif
+
+/* USE_ARM_CE indicates whether to enable ARMv8 Crypto Extension assembly
+ * code. */
+#undef USE_ARM_CE
+#ifdef ENABLE_ARM_CRYPTO_SUPPORT
+# if defined(HAVE_ARM_ARCH_V6) && defined(__ARMEL__) \
+     && defined(HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS) \
+     && defined(HAVE_GCC_INLINE_ASM_AARCH32_CRYPTO)
+#  define USE_ARM_CE 1
+# elif defined(__AARCH64EL__) \
+       && defined(HAVE_COMPATIBLE_GCC_AARCH64_PLATFORM_AS) \
+       && defined(HAVE_GCC_INLINE_ASM_AARCH64_CRYPTO)
+#  define USE_ARM_CE 1
+# endif
+#endif
+
+/* USE_PPC_CRYPTO indicates whether to enable PowerPC vector crypto
+ * accelerated code. */
+#undef USE_PPC_CRYPTO
+#ifdef ENABLE_PPC_CRYPTO_SUPPORT
+# if defined(HAVE_COMPATIBLE_CC_PPC_ALTIVEC) && \
+     defined(HAVE_GCC_INLINE_ASM_PPC_ALTIVEC)
+#  if __GNUC__ >= 4
+#   define USE_PPC_CRYPTO 1
+#  endif
+# endif
+#endif
+
+/* USE_S390X_CRYPTO indicates whether to enable zSeries code. */
+#undef USE_S390X_CRYPTO
+#if defined(HAVE_GCC_INLINE_ASM_S390X)
+# define USE_S390X_CRYPTO 1
+#endif /* USE_S390X_CRYPTO */
+
+
 typedef struct {
-  u32  h0,h1,h2,h3,h4,h5,h6,h7;
-  u32  nblocks;
-  byte buf[64];
-  int  count;
+  gcry_md_block_ctx_t bctx;
+  u32  h[8];
+#ifdef USE_S390X_CRYPTO
+  u32  final_len_msb, final_len_lsb; /* needs to be right after h[7]. */
+  int  use_s390x_crypto;
+#endif
 } SHA256_CONTEXT;
 
 
-static void
-sha256_init (void *context)
+/* Assembly implementations use SystemV ABI, ABI conversion and additional
+ * stack to store XMM6-XMM15 needed on Win64. */
+#undef ASM_FUNC_ABI
+#undef ASM_EXTRA_STACK
+#if defined(USE_SSSE3) || defined(USE_AVX) || defined(USE_AVX2) || \
+    defined(USE_SHAEXT)
+# ifdef HAVE_COMPATIBLE_GCC_WIN64_PLATFORM_AS
+#  define ASM_FUNC_ABI __attribute__((sysv_abi))
+#  define ASM_EXTRA_STACK (10 * 16 + sizeof(void *) * 4)
+# else
+#  define ASM_FUNC_ABI
+#  define ASM_EXTRA_STACK 0
+# endif
+#endif
+
+
+#ifdef USE_SSSE3
+unsigned int _gcry_sha256_transform_amd64_ssse3(const void *input_data,
+                                                u32 state[8],
+                                                size_t num_blks) ASM_FUNC_ABI;
+
+static unsigned int
+do_sha256_transform_amd64_ssse3(void *ctx, const unsigned char *data,
+                                size_t nblks)
 {
-  SHA256_CONTEXT *hd = context;
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_amd64_ssse3 (data, hd->h, nblks)
+         + ASM_EXTRA_STACK;
+}
+#endif
 
-  hd->h0 = 0x6a09e667;
-  hd->h1 = 0xbb67ae85;
-  hd->h2 = 0x3c6ef372;
-  hd->h3 = 0xa54ff53a;
-  hd->h4 = 0x510e527f;
-  hd->h5 = 0x9b05688c;
-  hd->h6 = 0x1f83d9ab;
-  hd->h7 = 0x5be0cd19;
+#ifdef USE_AVX
+unsigned int _gcry_sha256_transform_amd64_avx(const void *input_data,
+                                              u32 state[8],
+                                              size_t num_blks) ASM_FUNC_ABI;
 
-  hd->nblocks = 0;
-  hd->count = 0;
+static unsigned int
+do_sha256_transform_amd64_avx(void *ctx, const unsigned char *data,
+                              size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_amd64_avx (data, hd->h, nblks)
+         + ASM_EXTRA_STACK;
+}
+#endif
+
+#ifdef USE_AVX2
+unsigned int _gcry_sha256_transform_amd64_avx2(const void *input_data,
+                                               u32 state[8],
+                                               size_t num_blks) ASM_FUNC_ABI;
+
+static unsigned int
+do_sha256_transform_amd64_avx2(void *ctx, const unsigned char *data,
+                               size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_amd64_avx2 (data, hd->h, nblks)
+         + ASM_EXTRA_STACK;
+}
+#endif
+
+#ifdef USE_SHAEXT
+/* Does not need ASM_FUNC_ABI */
+unsigned int
+_gcry_sha256_transform_intel_shaext(u32 state[8],
+                                    const unsigned char *input_data,
+                                    size_t num_blks);
+
+static unsigned int
+do_sha256_transform_intel_shaext(void *ctx, const unsigned char *data,
+                                 size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_intel_shaext (hd->h, data, nblks);
+}
+#endif
+
+#ifdef USE_ARM_CE
+unsigned int _gcry_sha256_transform_armv8_ce(u32 state[8],
+                                             const void *input_data,
+                                             size_t num_blks);
+
+static unsigned int
+do_sha256_transform_armv8_ce(void *ctx, const unsigned char *data,
+                             size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_armv8_ce (hd->h, data, nblks);
+}
+#endif
+
+#ifdef USE_PPC_CRYPTO
+unsigned int _gcry_sha256_transform_ppc8(u32 state[8],
+					 const unsigned char *input_data,
+					 size_t num_blks);
+
+unsigned int _gcry_sha256_transform_ppc9(u32 state[8],
+					 const unsigned char *input_data,
+					 size_t num_blks);
+
+static unsigned int
+do_sha256_transform_ppc8(void *ctx, const unsigned char *data, size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_ppc8 (hd->h, data, nblks);
+}
+
+static unsigned int
+do_sha256_transform_ppc9(void *ctx, const unsigned char *data, size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+  return _gcry_sha256_transform_ppc9 (hd->h, data, nblks);
+}
+#endif
+
+#ifdef USE_S390X_CRYPTO
+#include "asm-inline-s390x.h"
+
+static unsigned int
+do_sha256_transform_s390x (void *ctx, const unsigned char *data, size_t nblks)
+{
+  SHA256_CONTEXT *hd = ctx;
+
+  kimd_execute (KMID_FUNCTION_SHA256, hd->h, data, nblks * 64);
+  return 0;
+}
+
+static unsigned int
+do_sha256_final_s390x (void *ctx, const unsigned char *data, size_t datalen,
+		       u32 len_msb, u32 len_lsb)
+{
+  SHA256_CONTEXT *hd = ctx;
+
+  /* Make sure that 'final_len' is positioned at correct offset relative
+   * to 'h[0]'. This is because we are passing 'h[0]' pointer as start of
+   * parameter block to 'klmd' instruction. */
+
+  gcry_assert (offsetof (SHA256_CONTEXT, final_len_msb)
+	       - offsetof (SHA256_CONTEXT, h[0]) == 8 * sizeof(u32));
+  gcry_assert (offsetof (SHA256_CONTEXT, final_len_lsb)
+	       - offsetof (SHA256_CONTEXT, final_len_msb) == 1 * sizeof(u32));
+
+  hd->final_len_msb = len_msb;
+  hd->final_len_lsb = len_lsb;
+
+  klmd_execute (KMID_FUNCTION_SHA256, hd->h, data, datalen);
+  return 0;
+}
+#endif
+
+
+static unsigned int
+do_transform_generic (void *ctx, const unsigned char *data, size_t nblks);
+
+
+static void
+sha256_common_init (SHA256_CONTEXT *hd)
+{
+  unsigned int features = _gcry_get_hw_features ();
+
+  hd->bctx.nblocks = 0;
+  hd->bctx.nblocks_high = 0;
+  hd->bctx.count = 0;
+  hd->bctx.blocksize_shift = _gcry_ctz(64);
+
+  /* Order of feature checks is important here; last match will be
+   * selected.  Keep slower implementations at the top and faster at
+   * the bottom.  */
+  hd->bctx.bwrite = do_transform_generic;
+#ifdef USE_SSSE3
+  if ((features & HWF_INTEL_SSSE3) != 0)
+    hd->bctx.bwrite = do_sha256_transform_amd64_ssse3;
+#endif
+#ifdef USE_AVX
+  /* AVX implementation uses SHLD which is known to be slow on non-Intel CPUs.
+   * Therefore use this implementation on Intel CPUs only. */
+  if ((features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD))
+    hd->bctx.bwrite = do_sha256_transform_amd64_avx;
+#endif
+#ifdef USE_AVX2
+  if ((features & HWF_INTEL_AVX2) && (features & HWF_INTEL_BMI2))
+    hd->bctx.bwrite = do_sha256_transform_amd64_avx2;
+#endif
+#ifdef USE_SHAEXT
+  if ((features & HWF_INTEL_SHAEXT) && (features & HWF_INTEL_SSE4_1))
+    hd->bctx.bwrite = do_sha256_transform_intel_shaext;
+#endif
+#ifdef USE_ARM_CE
+  if ((features & HWF_ARM_SHA2) != 0)
+    hd->bctx.bwrite = do_sha256_transform_armv8_ce;
+#endif
+#ifdef USE_PPC_CRYPTO
+  if ((features & HWF_PPC_VCRYPTO) != 0)
+    hd->bctx.bwrite = do_sha256_transform_ppc8;
+  if ((features & HWF_PPC_VCRYPTO) != 0 && (features & HWF_PPC_ARCH_3_00) != 0)
+    hd->bctx.bwrite = do_sha256_transform_ppc9;
+#endif
+#ifdef USE_S390X_CRYPTO
+  hd->use_s390x_crypto = 0;
+  if ((features & HWF_S390X_MSA) != 0)
+    {
+      if ((kimd_query () & km_function_to_mask (KMID_FUNCTION_SHA256)) &&
+	  (klmd_query () & km_function_to_mask (KMID_FUNCTION_SHA256)))
+	{
+	  hd->bctx.bwrite = do_sha256_transform_s390x;
+	  hd->use_s390x_crypto = 1;
+	}
+    }
+#endif
+  (void)features;
 }
 
 
 static void
-sha224_init (void *context)
+sha256_init (void *context, unsigned int flags)
 {
   SHA256_CONTEXT *hd = context;
 
-  hd->h0 = 0xc1059ed8;
-  hd->h1 = 0x367cd507;
-  hd->h2 = 0x3070dd17;
-  hd->h3 = 0xf70e5939;
-  hd->h4 = 0xffc00b31;
-  hd->h5 = 0x68581511;
-  hd->h6 = 0x64f98fa7;
-  hd->h7 = 0xbefa4fa4;
+  (void)flags;
 
-  hd->nblocks = 0;
-  hd->count = 0;
+  hd->h[0] = 0x6a09e667;
+  hd->h[1] = 0xbb67ae85;
+  hd->h[2] = 0x3c6ef372;
+  hd->h[3] = 0xa54ff53a;
+  hd->h[4] = 0x510e527f;
+  hd->h[5] = 0x9b05688c;
+  hd->h[6] = 0x1f83d9ab;
+  hd->h[7] = 0x5be0cd19;
+
+  sha256_common_init (hd);
+}
+
+
+static void
+sha224_init (void *context, unsigned int flags)
+{
+  SHA256_CONTEXT *hd = context;
+
+  (void)flags;
+
+  hd->h[0] = 0xc1059ed8;
+  hd->h[1] = 0x367cd507;
+  hd->h[2] = 0x3070dd17;
+  hd->h[3] = 0xf70e5939;
+  hd->h[4] = 0xffc00b31;
+  hd->h[5] = 0x68581511;
+  hd->h[6] = 0x64f98fa7;
+  hd->h[7] = 0xbefa4fa4;
+
+  sha256_common_init (hd);
 }
 
 
 /*
   Transform the message X which consists of 16 32-bit-words. See FIPS
   180-2 for details.  */
-#define S0(x) (ror ((x), 7) ^ ror ((x), 18) ^ ((x) >> 3))       /* (4.6) */
-#define S1(x) (ror ((x), 17) ^ ror ((x), 19) ^ ((x) >> 10))     /* (4.7) */
 #define R(a,b,c,d,e,f,g,h,k,w) do                                 \
           {                                                       \
             t1 = (h) + Sum1((e)) + Cho((e),(f),(g)) + (k) + (w);  \
             t2 = Sum0((a)) + Maj((a),(b),(c));                    \
-            h = g;                                                \
-            g = f;                                                \
-            f = e;                                                \
-            e = d + t1;                                           \
-            d = c;                                                \
-            c = b;                                                \
-            b = a;                                                \
-            a = t1 + t2;                                          \
+            d += t1;                                              \
+            h  = t1 + t2;                                         \
           } while (0)
 
 /* (4.2) same as SHA-1's F1.  */
-static inline u32
-Cho (u32 x, u32 y, u32 z)
-{
-  return (z ^ (x & (y ^ z)));
-}
+#define Cho(x, y, z)  (z ^ (x & (y ^ z)))
 
 /* (4.3) same as SHA-1's F3 */
-static inline u32
-Maj (u32 x, u32 y, u32 z)
-{
-  return ((x & y) | (z & (x|y)));
-}
+#define Maj(x, y, z)  ((x & y) + (z & (x ^ y)))
 
 /* (4.4) */
-static inline u32
-Sum0 (u32 x)
-{
-  return (ror (x, 2) ^ ror (x, 13) ^ ror (x, 22));
-}
+#define Sum0(x)       (ror (x, 2) ^ ror (x, 13) ^ ror (x, 22))
 
 /* (4.5) */
-static inline u32
-Sum1 (u32 x)
-{
-  return (ror (x, 6) ^ ror (x, 11) ^ ror (x, 25));
-}
+#define Sum1(x)       (ror (x, 6) ^ ror (x, 11) ^ ror (x, 25))
 
+/* Message expansion */
+#define S0(x) (ror ((x), 7) ^ ror ((x), 18) ^ ((x) >> 3))       /* (4.6) */
+#define S1(x) (ror ((x), 17) ^ ror ((x), 19) ^ ((x) >> 10))     /* (4.7) */
+#define I(i) ( w[i] = buf_get_be32(data + i * 4) )
+#define W(i) ( w[i&0x0f] =    S1(w[(i-2) &0x0f]) \
+                            +    w[(i-7) &0x0f]  \
+                            + S0(w[(i-15)&0x0f]) \
+                            +    w[(i-16)&0x0f] )
 
-static void
-transform (SHA256_CONTEXT *hd, const unsigned char *data)
+static unsigned int
+do_transform_generic (void *ctx, const unsigned char *data, size_t nblks)
 {
+  SHA256_CONTEXT *hd = ctx;
   static const u32 K[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
     0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -161,143 +435,108 @@ transform (SHA256_CONTEXT *hd, const unsigned char *data)
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
   };
 
-  u32 a,b,c,d,e,f,g,h,t1,t2;
-  u32 x[16];
-  u32 w[64];
-  int i;
-
-  a = hd->h0;
-  b = hd->h1;
-  c = hd->h2;
-  d = hd->h3;
-  e = hd->h4;
-  f = hd->h5;
-  g = hd->h6;
-  h = hd->h7;
-
-#ifdef WORDS_BIGENDIAN
-  memcpy (x, data, 64);
-#else
-  {
-    byte *p2;
-
-    for (i=0, p2=(byte*)x; i < 16; i++, p2 += 4 )
-      {
-        p2[3] = *data++;
-        p2[2] = *data++;
-        p2[1] = *data++;
-        p2[0] = *data++;
-      }
-  }
-#endif
-
-  for (i=0; i < 16; i++)
-    w[i] = x[i];
-  for (; i < 64; i++)
-    w[i] = S1(w[i-2]) + w[i-7] + S0(w[i-15]) + w[i-16];
-
-  for (i=0; i < 64;)
+  do
     {
-#if 0
-      R(a,b,c,d,e,f,g,h,K[i],w[i]);
-      i++;
-#else
-      t1 = h + Sum1 (e) + Cho (e, f, g) + K[i] + w[i];
-      t2 = Sum0 (a) + Maj (a, b, c);
-      d += t1;
-      h  = t1 + t2;
 
-      t1 = g + Sum1 (d) + Cho (d, e, f) + K[i+1] + w[i+1];
-      t2 = Sum0 (h) + Maj (h, a, b);
-      c += t1;
-      g  = t1 + t2;
+      u32 a,b,c,d,e,f,g,h,t1,t2;
+      u32 w[16];
 
-      t1 = f + Sum1 (c) + Cho (c, d, e) + K[i+2] + w[i+2];
-      t2 = Sum0 (g) + Maj (g, h, a);
-      b += t1;
-      f  = t1 + t2;
+      a = hd->h[0];
+      b = hd->h[1];
+      c = hd->h[2];
+      d = hd->h[3];
+      e = hd->h[4];
+      f = hd->h[5];
+      g = hd->h[6];
+      h = hd->h[7];
 
-      t1 = e + Sum1 (b) + Cho (b, c, d) + K[i+3] + w[i+3];
-      t2 = Sum0 (f) + Maj (f, g, h);
-      a += t1;
-      e  = t1 + t2;
+      R(a, b, c, d, e, f, g, h, K[0], I(0));
+      R(h, a, b, c, d, e, f, g, K[1], I(1));
+      R(g, h, a, b, c, d, e, f, K[2], I(2));
+      R(f, g, h, a, b, c, d, e, K[3], I(3));
+      R(e, f, g, h, a, b, c, d, K[4], I(4));
+      R(d, e, f, g, h, a, b, c, K[5], I(5));
+      R(c, d, e, f, g, h, a, b, K[6], I(6));
+      R(b, c, d, e, f, g, h, a, K[7], I(7));
+      R(a, b, c, d, e, f, g, h, K[8], I(8));
+      R(h, a, b, c, d, e, f, g, K[9], I(9));
+      R(g, h, a, b, c, d, e, f, K[10], I(10));
+      R(f, g, h, a, b, c, d, e, K[11], I(11));
+      R(e, f, g, h, a, b, c, d, K[12], I(12));
+      R(d, e, f, g, h, a, b, c, K[13], I(13));
+      R(c, d, e, f, g, h, a, b, K[14], I(14));
+      R(b, c, d, e, f, g, h, a, K[15], I(15));
 
-      t1 = d + Sum1 (a) + Cho (a, b, c) + K[i+4] + w[i+4];
-      t2 = Sum0 (e) + Maj (e, f, g);
-      h += t1;
-      d  = t1 + t2;
+      R(a, b, c, d, e, f, g, h, K[16], W(16));
+      R(h, a, b, c, d, e, f, g, K[17], W(17));
+      R(g, h, a, b, c, d, e, f, K[18], W(18));
+      R(f, g, h, a, b, c, d, e, K[19], W(19));
+      R(e, f, g, h, a, b, c, d, K[20], W(20));
+      R(d, e, f, g, h, a, b, c, K[21], W(21));
+      R(c, d, e, f, g, h, a, b, K[22], W(22));
+      R(b, c, d, e, f, g, h, a, K[23], W(23));
+      R(a, b, c, d, e, f, g, h, K[24], W(24));
+      R(h, a, b, c, d, e, f, g, K[25], W(25));
+      R(g, h, a, b, c, d, e, f, K[26], W(26));
+      R(f, g, h, a, b, c, d, e, K[27], W(27));
+      R(e, f, g, h, a, b, c, d, K[28], W(28));
+      R(d, e, f, g, h, a, b, c, K[29], W(29));
+      R(c, d, e, f, g, h, a, b, K[30], W(30));
+      R(b, c, d, e, f, g, h, a, K[31], W(31));
 
-      t1 = c + Sum1 (h) + Cho (h, a, b) + K[i+5] + w[i+5];
-      t2 = Sum0 (d) + Maj (d, e, f);
-      g += t1;
-      c  = t1 + t2;
+      R(a, b, c, d, e, f, g, h, K[32], W(32));
+      R(h, a, b, c, d, e, f, g, K[33], W(33));
+      R(g, h, a, b, c, d, e, f, K[34], W(34));
+      R(f, g, h, a, b, c, d, e, K[35], W(35));
+      R(e, f, g, h, a, b, c, d, K[36], W(36));
+      R(d, e, f, g, h, a, b, c, K[37], W(37));
+      R(c, d, e, f, g, h, a, b, K[38], W(38));
+      R(b, c, d, e, f, g, h, a, K[39], W(39));
+      R(a, b, c, d, e, f, g, h, K[40], W(40));
+      R(h, a, b, c, d, e, f, g, K[41], W(41));
+      R(g, h, a, b, c, d, e, f, K[42], W(42));
+      R(f, g, h, a, b, c, d, e, K[43], W(43));
+      R(e, f, g, h, a, b, c, d, K[44], W(44));
+      R(d, e, f, g, h, a, b, c, K[45], W(45));
+      R(c, d, e, f, g, h, a, b, K[46], W(46));
+      R(b, c, d, e, f, g, h, a, K[47], W(47));
 
-      t1 = b + Sum1 (g) + Cho (g, h, a) + K[i+6] + w[i+6];
-      t2 = Sum0 (c) + Maj (c, d, e);
-      f += t1;
-      b  = t1 + t2;
+      R(a, b, c, d, e, f, g, h, K[48], W(48));
+      R(h, a, b, c, d, e, f, g, K[49], W(49));
+      R(g, h, a, b, c, d, e, f, K[50], W(50));
+      R(f, g, h, a, b, c, d, e, K[51], W(51));
+      R(e, f, g, h, a, b, c, d, K[52], W(52));
+      R(d, e, f, g, h, a, b, c, K[53], W(53));
+      R(c, d, e, f, g, h, a, b, K[54], W(54));
+      R(b, c, d, e, f, g, h, a, K[55], W(55));
+      R(a, b, c, d, e, f, g, h, K[56], W(56));
+      R(h, a, b, c, d, e, f, g, K[57], W(57));
+      R(g, h, a, b, c, d, e, f, K[58], W(58));
+      R(f, g, h, a, b, c, d, e, K[59], W(59));
+      R(e, f, g, h, a, b, c, d, K[60], W(60));
+      R(d, e, f, g, h, a, b, c, K[61], W(61));
+      R(c, d, e, f, g, h, a, b, K[62], W(62));
+      R(b, c, d, e, f, g, h, a, K[63], W(63));
 
-      t1 = a + Sum1 (f) + Cho (f, g, h) + K[i+7] + w[i+7];
-      t2 = Sum0 (b) + Maj (b, c, d);
-      e += t1;
-      a  = t1 + t2;
+      hd->h[0] += a;
+      hd->h[1] += b;
+      hd->h[2] += c;
+      hd->h[3] += d;
+      hd->h[4] += e;
+      hd->h[5] += f;
+      hd->h[6] += g;
+      hd->h[7] += h;
 
-      i += 8;
-#endif
+      data += 64;
     }
+  while (--nblks);
 
-  hd->h0 += a;
-  hd->h1 += b;
-  hd->h2 += c;
-  hd->h3 += d;
-  hd->h4 += e;
-  hd->h5 += f;
-  hd->h6 += g;
-  hd->h7 += h;
+  return 26*4 + 32 + 3 * sizeof(void*);
 }
+
 #undef S0
 #undef S1
 #undef R
-
-
-/* Update the message digest with the contents of INBUF with length
-  INLEN.  */
-static void
-sha256_write (void *context, const void *inbuf_arg, size_t inlen)
-{
-  const unsigned char *inbuf = inbuf_arg;
-  SHA256_CONTEXT *hd = context;
-
-  if (hd->count == 64)
-    { /* flush the buffer */
-      transform (hd, hd->buf);
-      _gcry_burn_stack (74*4+32);
-      hd->count = 0;
-      hd->nblocks++;
-    }
-  if (!inbuf)
-    return;
-  if (hd->count)
-    {
-      for (; inlen && hd->count < 64; inlen--)
-        hd->buf[hd->count++] = *inbuf++;
-      sha256_write (hd, NULL, 0);
-      if (!inlen)
-        return;
-    }
-
-  while (inlen >= 64)
-    {
-      transform (hd, inbuf);
-      hd->count = 0;
-      hd->nblocks++;
-      inlen -= 64;
-      inbuf += 64;
-    }
-  _gcry_burn_stack (74*4+32);
-  for (; inlen && hd->count < 64; inlen--)
-    hd->buf[hd->count++] = *inbuf++;
-}
 
 
 /*
@@ -309,18 +548,22 @@ static void
 sha256_final(void *context)
 {
   SHA256_CONTEXT *hd = context;
-  u32 t, msb, lsb;
+  u32 t, th, msb, lsb;
   byte *p;
+  unsigned int burn;
 
-  sha256_write (hd, NULL, 0); /* flush */;
+  t = hd->bctx.nblocks;
+  if (sizeof t == sizeof hd->bctx.nblocks)
+    th = hd->bctx.nblocks_high;
+  else
+    th = hd->bctx.nblocks >> 32;
 
-  t = hd->nblocks;
   /* multiply by 64 to make a byte count */
   lsb = t << 6;
-  msb = t >> 26;
+  msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if ((lsb += hd->count) < t)
+  if ((lsb += hd->bctx.count) < t)
     msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
@@ -328,39 +571,39 @@ sha256_final(void *context)
   msb <<= 3;
   msb |= t >> 29;
 
-  if (hd->count < 56)
-    { /* enough room */
-      hd->buf[hd->count++] = 0x80; /* pad */
-      while (hd->count < 56)
-        hd->buf[hd->count++] = 0;  /* pad */
+  if (0)
+    { }
+#ifdef USE_S390X_CRYPTO
+  else if (hd->use_s390x_crypto)
+    {
+      burn = do_sha256_final_s390x (hd, hd->bctx.buf, hd->bctx.count, msb, lsb);
     }
-  else
-    { /* need one extra block */
-      hd->buf[hd->count++] = 0x80; /* pad character */
-      while (hd->count < 64)
-        hd->buf[hd->count++] = 0;
-      sha256_write (hd, NULL, 0);  /* flush */;
-      memset (hd->buf, 0, 56 ); /* fill next block with zeroes */
-    }
-  /* append the 64 bit count */
-  hd->buf[56] = msb >> 24;
-  hd->buf[57] = msb >> 16;
-  hd->buf[58] = msb >>  8;
-  hd->buf[59] = msb;
-  hd->buf[60] = lsb >> 24;
-  hd->buf[61] = lsb >> 16;
-  hd->buf[62] = lsb >>  8;
-  hd->buf[63] = lsb;
-  transform (hd, hd->buf);
-  _gcry_burn_stack (74*4+32);
-
-  p = hd->buf;
-#ifdef WORDS_BIGENDIAN
-#define X(a) do { *(u32*)p = hd->h##a ; p += 4; } while(0)
-#else /* little endian */
-#define X(a) do { *p++ = hd->h##a >> 24; *p++ = hd->h##a >> 16;	 \
-		  *p++ = hd->h##a >> 8; *p++ = hd->h##a; } while(0)
 #endif
+  else if (hd->bctx.count < 56)  /* enough room */
+    {
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad */
+      if (hd->bctx.count < 56)
+	memset (&hd->bctx.buf[hd->bctx.count], 0, 56 - hd->bctx.count);
+
+      /* append the 64 bit count */
+      buf_put_be32(hd->bctx.buf + 56, msb);
+      buf_put_be32(hd->bctx.buf + 60, lsb);
+      burn = (*hd->bctx.bwrite) (hd, hd->bctx.buf, 1);
+    }
+  else  /* need one extra block */
+    {
+      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
+      /* fill pad and next block with zeroes */
+      memset (&hd->bctx.buf[hd->bctx.count], 0, 64 - hd->bctx.count + 56);
+
+      /* append the 64 bit count */
+      buf_put_be32(hd->bctx.buf + 64 + 56, msb);
+      buf_put_be32(hd->bctx.buf + 64 + 60, lsb);
+      burn = (*hd->bctx.bwrite) (hd, hd->bctx.buf, 2);
+    }
+
+  p = hd->bctx.buf;
+#define X(a) do { buf_put_be32(p, hd->h[a]); p += 4; } while(0)
   X(0);
   X(1);
   X(2);
@@ -370,6 +613,10 @@ sha256_final(void *context)
   X(6);
   X(7);
 #undef X
+
+  hd->bctx.count = 0;
+
+  _gcry_burn_stack (burn);
 }
 
 static byte *
@@ -377,7 +624,45 @@ sha256_read (void *context)
 {
   SHA256_CONTEXT *hd = context;
 
-  return hd->buf;
+  return hd->bctx.buf;
+}
+
+
+/* Shortcut functions which puts the hash value of the supplied buffer iov
+ * into outbuf which must have a size of 32 bytes.  */
+static void
+_gcry_sha256_hash_buffers (void *outbuf, size_t nbytes,
+			   const gcry_buffer_t *iov, int iovcnt)
+{
+  SHA256_CONTEXT hd;
+
+  (void)nbytes;
+
+  sha256_init (&hd, 0);
+  for (;iovcnt > 0; iov++, iovcnt--)
+    _gcry_md_block_write (&hd,
+                          (const char*)iov[0].data + iov[0].off, iov[0].len);
+  sha256_final (&hd);
+  memcpy (outbuf, hd.bctx.buf, 32);
+}
+
+
+/* Shortcut functions which puts the hash value of the supplied buffer iov
+ * into outbuf which must have a size of 28 bytes.  */
+static void
+_gcry_sha224_hash_buffers (void *outbuf, size_t nbytes,
+			   const gcry_buffer_t *iov, int iovcnt)
+{
+  SHA256_CONTEXT hd;
+
+  (void)nbytes;
+
+  sha224_init (&hd, 0);
+  for (;iovcnt > 0; iov++, iovcnt--)
+    _gcry_md_block_write (&hd,
+                          (const char*)iov[0].data + iov[0].off, iov[0].len);
+  sha256_final (&hd);
+  memcpy (outbuf, hd.bctx.buf, 28);
 }
 
 
@@ -503,52 +788,54 @@ run_selftests (int algo, int extended, selftest_report_func_t report)
 
 
 
-static byte asn224[19] = /* Object ID is 2.16.840.1.101.3.4.2.4 */
+static const byte asn224[19] = /* Object ID is 2.16.840.1.101.3.4.2.4 */
   { 0x30, 0x2D, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48,
     0x01, 0x65, 0x03, 0x04, 0x02, 0x04, 0x05, 0x00, 0x04,
     0x1C
   };
 
-static gcry_md_oid_spec_t oid_spec_sha224[] =
+static const gcry_md_oid_spec_t oid_spec_sha224[] =
   {
     /* From RFC3874, Section 4 */
     { "2.16.840.1.101.3.4.2.4" },
+    /* ANSI X9.62  ecdsaWithSHA224 */
+    { "1.2.840.10045.4.3.1" },
     { NULL },
   };
 
-static byte asn256[19] = /* Object ID is  2.16.840.1.101.3.4.2.1 */
+static const byte asn256[19] = /* Object ID is  2.16.840.1.101.3.4.2.1 */
   { 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
     0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05,
     0x00, 0x04, 0x20 };
 
-static gcry_md_oid_spec_t oid_spec_sha256[] =
+static const gcry_md_oid_spec_t oid_spec_sha256[] =
   {
     /* According to the OpenPGP draft rfc2440-bis06 */
     { "2.16.840.1.101.3.4.2.1" },
     /* PKCS#1 sha256WithRSAEncryption */
     { "1.2.840.113549.1.1.11" },
+    /* ANSI X9.62  ecdsaWithSHA256 */
+    { "1.2.840.10045.4.3.2" },
 
     { NULL },
   };
 
-gcry_md_spec_t _gcry_digest_spec_sha224 =
+const gcry_md_spec_t _gcry_digest_spec_sha224 =
   {
+    GCRY_MD_SHA224, {0, 1},
     "SHA224", asn224, DIM (asn224), oid_spec_sha224, 28,
-    sha224_init, sha256_write, sha256_final, sha256_read,
-    sizeof (SHA256_CONTEXT)
-  };
-md_extra_spec_t _gcry_digest_extraspec_sha224 =
-  {
+    sha224_init, _gcry_md_block_write, sha256_final, sha256_read, NULL,
+    _gcry_sha224_hash_buffers,
+    sizeof (SHA256_CONTEXT),
     run_selftests
   };
 
-gcry_md_spec_t _gcry_digest_spec_sha256 =
+const gcry_md_spec_t _gcry_digest_spec_sha256 =
   {
+    GCRY_MD_SHA256, {0, 1},
     "SHA256", asn256, DIM (asn256), oid_spec_sha256, 32,
-    sha256_init, sha256_write, sha256_final, sha256_read,
-    sizeof (SHA256_CONTEXT)
-  };
-md_extra_spec_t _gcry_digest_extraspec_sha256 =
-  {
+    sha256_init, _gcry_md_block_write, sha256_final, sha256_read, NULL,
+    _gcry_sha256_hash_buffers,
+    sizeof (SHA256_CONTEXT),
     run_selftests
   };
