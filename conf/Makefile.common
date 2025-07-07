@@ -84,7 +84,7 @@ CPPFLAGS_GNULIB = -I$(top_builddir)/grub-core/lib/gnulib -I$(top_srcdir)/grub-co
 CFLAGS_POSIX = -fno-builtin
 CPPFLAGS_POSIX = -I$(top_srcdir)/grub-core/lib/posix_wrap
 
-CFLAGS_GCRY = -Wno-error=sign-compare -Wno-missing-field-initializers -Wno-redundant-decls -Wno-undef $(CFLAGS_POSIX)
+CFLAGS_GCRY = -Wno-sign-compare -Wno-missing-field-initializers -Wno-redundant-decls -Wno-undef $(CFLAGS_POSIX)
 CPPFLAGS_GCRY = -I$(top_srcdir)/grub-core/lib/libgcrypt_wrap $(CPPFLAGS_POSIX) -D_GCRYPT_IN_LIBGCRYPT=1 -D_GCRYPT_CONFIG_H_INCLUDED=1 -I$(top_srcdir)/include/grub/gcrypt
 
 CPPFLAGS_EFIEMU = -I$(top_srcdir)/grub-core/efiemu/runtime
