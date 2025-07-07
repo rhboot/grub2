@@ -249,15 +249,15 @@ for cipher_file in cipher_files:
                 if not re.search (" *};", line) is None:
                     escapenl = " \\" if ismddefine else ""
                     if not iscomma:
-                        fw.write (f"    ,{escapenl}\n")
-                    fw.write (f"    GRUB_UTIL_MODNAME(\"%s\"){escapenl}\n" % modname);
+                        fw.write ("    ,%s\n" % escapenl)
+                    fw.write ("    GRUB_UTIL_MODNAME(\"%s\")%s\n" % (modname, escapenl))
                     if ismd:
                         if not (mdname in mdblocksizes):
                             print ("ERROR: Unknown digest blocksize: %s\n"
                                    % mdname)
                             exit (1)
-                        fw.write (f"    .blocksize = %s{escapenl}\n"
-                                  % mdblocksizes [mdname])
+                        fw.write ("    .blocksize = %s%s\n"
+                                  % (mdblocksizes [mdname], escapenl))
                     ismd = False
                     ismddefine = False
                     mdarg = 0
@@ -361,7 +361,7 @@ for cipher_file in cipher_files:
             if isc and not m is None:
                 bs = m.groups()[0]
                 bits = m.groups()[2]
-                mdname = f"_gcry_digest_spec_blake2{bs}_{bits}"
+                mdname = "_gcry_digest_spec_blake2%s_%s" % (bs, bits)
                 mdnames.append (mdname)
 
             m = re.match ("(const )?gcry_md_spec_t", line)
