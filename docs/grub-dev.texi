@@ -493,6 +493,7 @@ to update it.
 * Gnulib::
 * jsmn::
 * minilzo::
+* libgcrypt::
 @end menu
 
 @node Gnulib
@@ -582,6 +583,43 @@ rm -r grub-core/lib/minilzo/*
 cp minilzo-2.08/*.[hc] grub-core/lib/minilzo
 rm -r minilzo-2.08*
 @end example
+
+@node libgcrypt
+@section libgcrypt
+
+libgcrypt is a GNU implementation of crypto library. To import a new version
+you need to unpack the release tarball into grub-core/lib/libgcrypt. Delete
+following files/directories:
+* acinclude.m4
+* aclocal.m4
+* autogen.rc
+* autogen.sh
+* build-aux
+* ChangeLog
+* ChangeLog-2011
+* doc
+* INSTALL
+* m4
+* Makefile.am
+* Makefile.in
+* NEWS
+* random
+* tests
+* TODO
+* */Makefile.in
+* mpi/hppa1.1
+
+Regenerate the file gost-sb.h:
+grub-core/lib/libgcrypt/cipher$ gcc -o gost-s-box gost-s-box.c
+grub-core/lib/libgcrypt/cipher$ ./gost-s-box gost-sb.h
+
+Then rerun ./bootstrap and pay attention to the errors. Especially to warnings
+that a file isn't a module as it means that some file is actually unused by
+GRUB. If any, find where it declares its cipher or hash and add a pattern to
+import_gcry.py. See commit ``libgcrypt: Import blake family of hashes'' for an
+example. If file reallly is useless to GRUB in its current state, add it to
+whitelist in import_gcry.py.
+Compile and fix any new errors. Put patches into grub-core/lib/libgcrypt-patches
 
 @node Porting
 @chapter Porting
