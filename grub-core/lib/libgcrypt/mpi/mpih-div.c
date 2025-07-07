@@ -15,8 +15,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -48,7 +48,7 @@ _gcry_mpih_mod_1(mpi_ptr_t dividend_ptr, mpi_size_t dividend_size,
 {
     mpi_size_t i;
     mpi_limb_t n1, n0, r;
-    int dummy;
+    mpi_limb_t dummy GCC_ATTR_UNUSED;
 
     /* Botch: Should this be handled at all?  Rely on callers?	*/
     if( !dividend_size )
@@ -212,10 +212,8 @@ _gcry_mpih_divrem( mpi_ptr_t qp, mpi_size_t qextra_limbs,
 
     switch(dsize) {
       case 0:
-	/* We are asked to divide by zero, so go ahead and do it!  (To make
-	   the compiler not remove this statement, return the value.)  */
-	grub_fatal ("mpi division by zero");
-	return 0;
+	_gcry_divide_by_zero();
+	break;
 
       case 1:
 	{
@@ -398,7 +396,7 @@ _gcry_mpih_divmod_1( mpi_ptr_t quot_ptr,
 {
     mpi_size_t i;
     mpi_limb_t n1, n0, r;
-    int dummy;
+    mpi_limb_t dummy GCC_ATTR_UNUSED;
 
     if( !dividend_size )
 	return 0;

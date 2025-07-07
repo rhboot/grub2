@@ -3,6 +3,7 @@
  *
  *      Copyright (C) 1992, 1994, 1995, 1998, 
  *                    2001, 2002, 2006 Free Software Foundation, Inc.
+ *      Copyright (C) 2023 Jussi Kivilinna <jussi.kivilinna@iki.fi>
  *
  * This file is part of Libgcrypt.
  *
@@ -17,8 +18,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -39,25 +40,80 @@
  *		   mpi_ptr_t s2_ptr,		rdx
  *		   mpi_size_t size)		rcx
  */
-
-.text
+	TEXT
+	ALIGN(4)
 	.globl C_SYMBOL_NAME(_gcry_mpih_add_n)
 C_SYMBOL_NAME(_gcry_mpih_add_n:)
-	leaq	(%rsi,%rcx,8), %rsi
-	leaq	(%rdi,%rcx,8), %rdi
-	leaq	(%rdx,%rcx,8), %rdx
-	negq	%rcx
-	xorl	%eax, %eax		/* clear cy */
+	FUNC_ENTRY()
+	movl	%ecx, %r9d
+	andl	$3, %r9d
+	je	.Lprehandle0
+	cmpl	$2, %r9d
+	jb	.Lprehandle1
+	je	.Lprehandle2
+
+#define FIRST_ADD() \
+	movq	(%rsi), %rax; \
+	addq	(%rdx), %rax; \
+	movq	%rax, (%rdi)
+
+#define NEXT_ADD(offset) \
+	movq	offset(%rsi), %rax; \
+	adcq	offset(%rdx), %rax; \
+	movq	%rax, offset(%rdi)
+
+.Lprehandle3:
+	leaq	-2(%rcx), %rcx
+	FIRST_ADD();
+	NEXT_ADD(8);
+	NEXT_ADD(16);
+	decq	%rcx
+	je	.Lend
+	leaq	24(%rsi), %rsi
+	leaq	24(%rdx), %rdx
+	leaq	24(%rdi), %rdi
+	jmp	.Loop
+
+	ALIGN(3)
+.Lprehandle2:
+	leaq	-1(%rcx), %rcx
+	FIRST_ADD();
+	NEXT_ADD(8);
+	decq	%rcx
+	je	.Lend
+	leaq	16(%rsi), %rsi
+	leaq	16(%rdx), %rdx
+	leaq	16(%rdi), %rdi
+	jmp	.Loop
+
+	ALIGN(3)
+.Lprehandle1:
+	FIRST_ADD();
+	decq	%rcx
+	je	.Lend
+	leaq	8(%rsi), %rsi
+	leaq	8(%rdx), %rdx
+	leaq	8(%rdi), %rdi
+	jmp	.Loop
+
+	ALIGN(3)
+.Lprehandle0:
+	clc				/* clear cy */
 
 	ALIGN(4)			/* minimal alignment for claimed speed */
-.Loop:	movq	(%rsi,%rcx,8), %rax
-	movq	(%rdx,%rcx,8), %r10
-	adcq	%r10, %rax
-	movq	%rax, (%rdi,%rcx,8)
-	incq	%rcx
+.Loop:	leaq	-3(%rcx), %rcx
+	NEXT_ADD(0);
+	NEXT_ADD(8);
+	NEXT_ADD(16);
+	NEXT_ADD(24);
+	leaq	32(%rsi), %rsi
+	leaq	32(%rdx), %rdx
+	leaq	32(%rdi), %rdi
+	decq	%rcx
 	jne	.Loop
 
-	movq	%rcx, %rax		/* zero %rax */
-	adcq	%rax, %rax
-	ret
-	
+	ALIGN(2)
+.Lend:
+	movl	$0, %eax		/* zero %rax */
+	adcl	%eax, %eax
+	FUNC_EXIT()

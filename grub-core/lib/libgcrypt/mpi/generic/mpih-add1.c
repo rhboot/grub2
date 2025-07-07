@@ -1,5 +1,5 @@
 /* mpihelp-add_1.c  -  MPI helper functions
- * Copyright (C) 1994, 1996, 1997, 1998,
+ * Copyright (C) 1994, 1996, 1997, 1998, 
  *               2000, 2002 Free Software Foundation, Inc.
  *
  * This file is part of Libgcrypt.
@@ -15,8 +15,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -48,7 +48,7 @@ _gcry_mpih_add_n (mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
   res_ptr -= j;
 
   cy = 0;
-  do
+  do 
     {
       y = s2_ptr[j];
       x = s1_ptr[j];
@@ -57,7 +57,7 @@ _gcry_mpih_add_n (mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
       y += x; 		  /* add other addend */
       cy += y < x;	  /* get out carry from that add, combine */
       res_ptr[j] = y;
-    }
+    } 
   while ( ++j );
 
   return cy;

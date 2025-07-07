@@ -17,8 +17,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -45,13 +45,21 @@
 	ALIGN (3)
 	.globl C_SYMBOL_NAME(_gcry_mpih_sub_n)
 C_SYMBOL_NAME(_gcry_mpih_sub_n:)
+	CFI_STARTPROC()
 	pushl %edi
+	CFI_PUSH(%edi)
 	pushl %esi
+	CFI_PUSH(%esi)
 
 	movl 12(%esp),%edi		/* res_ptr */
 	movl 16(%esp),%esi		/* s1_ptr */
 	movl 20(%esp),%edx		/* s2_ptr */
 	movl 24(%esp),%ecx		/* size */
+
+#if defined __CET__ && (__CET__ & 1) != 0
+	pushl	%ebx
+	CFI_PUSH(%ebx)
+#endif
 
 	movl	%ecx,%eax
 	shrl	$3,%ecx 		/* compute count for unrolled loop */
@@ -64,41 +72,70 @@ C_SYMBOL_NAME(_gcry_mpih_sub_n:)
 	subl	%eax,%esi		/* ... by a constant when we ... */
 	subl	%eax,%edx		/* ... enter the loop */
 	shrl	$2,%eax 		/* restore previous value */
+#if defined __CET__ && (__CET__ & 1) != 0
+	leal	-4(,%eax,4),%ebx	/* Count for 4-byte endbr32 */
+#endif
 #ifdef PIC
 /* Calculate start address in loop for PIC.  Due to limitations in some
    assemblers, Loop-L0-3 cannot be put into the leal */
 	call	L0
+	CFI_ADJUST_CFA_OFFSET(4)
 L0:	leal	(%eax,%eax,8),%eax
 	addl	(%esp),%eax
 	addl	$(Loop-L0-3),%eax
 	addl	$4,%esp
+	CFI_ADJUST_CFA_OFFSET(-4)
 #else
 /* Calculate start address in loop for non-PIC.  */
 	leal	(Loop - 3)(%eax,%eax,8),%eax
+#endif
+#if defined __CET__ && (__CET__ & 1) != 0
+	addl	%ebx,%eax		/* Adjust for endbr32 */
 #endif
 	jmp	*%eax			/* jump into loop */
 	ALIGN (3)
 Loop:	movl	(%esi),%eax
 	sbbl	(%edx),%eax
 	movl	%eax,(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	4(%esi),%eax
 	sbbl	4(%edx),%eax
 	movl	%eax,4(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	8(%esi),%eax
 	sbbl	8(%edx),%eax
 	movl	%eax,8(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	12(%esi),%eax
 	sbbl	12(%edx),%eax
 	movl	%eax,12(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	16(%esi),%eax
 	sbbl	16(%edx),%eax
 	movl	%eax,16(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	20(%esi),%eax
 	sbbl	20(%edx),%eax
 	movl	%eax,20(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	24(%esi),%eax
 	sbbl	24(%edx),%eax
 	movl	%eax,24(%edi)
+#ifdef _CET_ENDBR
+	_CET_ENDBR
+#endif
 	movl	28(%esi),%eax
 	sbbl	28(%edx),%eax
 	movl	%eax,28(%edi)
@@ -111,7 +148,15 @@ Loop:	movl	(%esi),%eax
 	sbbl	%eax,%eax
 	negl	%eax
 
+#if defined __CET__ && (__CET__ & 1) != 0
+	popl	%ebx
+	CFI_POP(%ebx)
+#endif
+
 	popl %esi
+	CFI_POP(%esi)
 	popl %edi
-	ret
+	CFI_POP(%edi)
+	ret_spec_stop
+	CFI_ENDPROC()
 

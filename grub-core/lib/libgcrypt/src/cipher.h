@@ -4,7 +4,7 @@
  * This file is part of Libgcrypt.
  *
  * Libgcrypt is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser general Public License as
+ * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
  *
@@ -14,19 +14,37 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #ifndef G10_CIPHER_H
 #define G10_CIPHER_H
 
-#include <gcrypt.h>
+#include "gcrypt-int.h"
 
 #define DBG_CIPHER _gcry_get_debug_flag( 1 )
 
 #include "../random/random.h"
 
 #define PUBKEY_FLAG_NO_BLINDING    (1 << 0)
+#define PUBKEY_FLAG_RFC6979        (1 << 1)
+#define PUBKEY_FLAG_FIXEDLEN       (1 << 2)
+#define PUBKEY_FLAG_LEGACYRESULT   (1 << 3)
+#define PUBKEY_FLAG_RAW_FLAG       (1 << 4)
+#define PUBKEY_FLAG_TRANSIENT_KEY  (1 << 5)
+#define PUBKEY_FLAG_USE_X931       (1 << 6)
+#define PUBKEY_FLAG_USE_FIPS186    (1 << 7)
+#define PUBKEY_FLAG_USE_FIPS186_2  (1 << 8)
+#define PUBKEY_FLAG_PARAM          (1 << 9)
+#define PUBKEY_FLAG_COMP           (1 << 10)
+#define PUBKEY_FLAG_NOCOMP         (1 << 11)
+#define PUBKEY_FLAG_EDDSA          (1 << 12)
+#define PUBKEY_FLAG_GOST           (1 << 13)
+#define PUBKEY_FLAG_NO_KEYTEST     (1 << 14)
+#define PUBKEY_FLAG_DJB_TWEAK      (1 << 15)
+#define PUBKEY_FLAG_SM2            (1 << 16)
+#define PUBKEY_FLAG_PREHASH        (1 << 17)
+
 
 enum pk_operation
   {
@@ -40,6 +58,7 @@ enum pk_encoding
   {
     PUBKEY_ENC_RAW,
     PUBKEY_ENC_PKCS1,
+    PUBKEY_ENC_PKCS1_RAW,
     PUBKEY_ENC_OAEP,
     PUBKEY_ENC_PSS,
     PUBKEY_ENC_UNKNOWN
@@ -70,31 +89,41 @@ struct pk_encoding_ctx
 
 #include "cipher-proto.h"
 
+/* The internal encryption modes. */
+enum gcry_cipher_internal_modes
+  {
+    GCRY_CIPHER_MODE_INTERNAL = 0x10000,
+    GCRY_CIPHER_MODE_CMAC     = 0x10000 + 1   /* Cipher-based MAC. */
+  };
 
-/*-- rmd160.c --*/
-void _gcry_rmd160_hash_buffer (void *outbuf,
-                               const void *buffer, size_t length);
+
+/*-- cipher.c --*/
+gcry_err_code_t _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
+					    int algo, int mode,
+					    unsigned int flags);
+
+/*-- cipher-cmac.c --*/
+gcry_err_code_t _gcry_cipher_cmac_authenticate
+/*           */ (gcry_cipher_hd_t c, const unsigned char *abuf, size_t abuflen);
+gcry_err_code_t _gcry_cipher_cmac_get_tag
+/*           */ (gcry_cipher_hd_t c,
+                 unsigned char *outtag, size_t taglen);
+gcry_err_code_t _gcry_cipher_cmac_check_tag
+/*           */ (gcry_cipher_hd_t c,
+                 const unsigned char *intag, size_t taglen);
+gcry_err_code_t _gcry_cipher_cmac_set_subkeys
+/*           */ (gcry_cipher_hd_t c);
+
 /*-- sha1.c --*/
 void _gcry_sha1_hash_buffer (void *outbuf,
                              const void *buffer, size_t length);
 
-/*-- rijndael.c --*/
-void _gcry_aes_cfb_enc (void *context, unsigned char *iv,
-                        void *outbuf, const void *inbuf,
-                        unsigned int nblocks);
-void _gcry_aes_cfb_dec (void *context, unsigned char *iv,
-                        void *outbuf_arg, const void *inbuf_arg,
-                        unsigned int nblocks);
-void _gcry_aes_cbc_enc (void *context, unsigned char *iv,
-                        void *outbuf_arg, const void *inbuf_arg,
-                        unsigned int nblocks, int cbc_mac);
-void _gcry_aes_cbc_dec (void *context, unsigned char *iv,
-                        void *outbuf_arg, const void *inbuf_arg,
-                        unsigned int nblocks);
-void _gcry_aes_ctr_enc (void *context, unsigned char *ctr,
-                        void *outbuf_arg, const void *inbuf_arg,
-                        unsigned int nblocks);
-
+/*-- blake2.c --*/
+gcry_err_code_t blake2b_vl_hash (const void *in, size_t inlen,
+                                 size_t outputlen, void *output);
+gcry_err_code_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
+					   const unsigned char *key,
+					   size_t keylen, int algo);
 
 /*-- dsa.c --*/
 void _gcry_register_pk_dsa_progress (gcry_handler_progress_t cbc, void *cb_data);
@@ -113,8 +142,11 @@ void _gcry_register_pk_ecc_progress (gcry_handler_progress_t cbc,
 void _gcry_register_primegen_progress (gcry_handler_progress_t cb,
                                        void *cb_data);
 
+/*-- keccak.c --*/
+gpg_err_code_t _gcry_cshake_customize (void *context,
+                                       struct gcry_cshake_customization *p);
+
 /*-- pubkey.c --*/
-const char * _gcry_pk_aliased_algo_name (int algorithm);
 
 /* Declarations for the cipher specifications.  */
 extern gcry_cipher_spec_t _gcry_cipher_spec_blowfish;
@@ -131,52 +163,69 @@ extern gcry_cipher_spec_t _gcry_cipher_spec_serpent128;
 extern gcry_cipher_spec_t _gcry_cipher_spec_serpent192;
 extern gcry_cipher_spec_t _gcry_cipher_spec_serpent256;
 extern gcry_cipher_spec_t _gcry_cipher_spec_rfc2268_40;
+extern gcry_cipher_spec_t _gcry_cipher_spec_rfc2268_128;
 extern gcry_cipher_spec_t _gcry_cipher_spec_seed;
 extern gcry_cipher_spec_t _gcry_cipher_spec_camellia128;
 extern gcry_cipher_spec_t _gcry_cipher_spec_camellia192;
 extern gcry_cipher_spec_t _gcry_cipher_spec_camellia256;
 extern gcry_cipher_spec_t _gcry_cipher_spec_idea;
-
-extern cipher_extra_spec_t _gcry_cipher_extraspec_tripledes;
-extern cipher_extra_spec_t _gcry_cipher_extraspec_aes;
-extern cipher_extra_spec_t _gcry_cipher_extraspec_aes192;
-extern cipher_extra_spec_t _gcry_cipher_extraspec_aes256;
-
+extern gcry_cipher_spec_t _gcry_cipher_spec_salsa20;
+extern gcry_cipher_spec_t _gcry_cipher_spec_salsa20r12;
+extern gcry_cipher_spec_t _gcry_cipher_spec_gost28147;
+extern gcry_cipher_spec_t _gcry_cipher_spec_gost28147_mesh;
+extern gcry_cipher_spec_t _gcry_cipher_spec_chacha20;
+extern gcry_cipher_spec_t _gcry_cipher_spec_sm4;
+extern gcry_cipher_spec_t _gcry_cipher_spec_aria128;
+extern gcry_cipher_spec_t _gcry_cipher_spec_aria192;
+extern gcry_cipher_spec_t _gcry_cipher_spec_aria256;
 
 /* Declarations for the digest specifications.  */
-extern gcry_md_spec_t _gcry_digest_spec_crc32;
-extern gcry_md_spec_t _gcry_digest_spec_crc32_rfc1510;
-extern gcry_md_spec_t _gcry_digest_spec_crc24_rfc2440;
-extern gcry_md_spec_t _gcry_digest_spec_md4;
-extern gcry_md_spec_t _gcry_digest_spec_md5;
-extern gcry_md_spec_t _gcry_digest_spec_rmd160;
-extern gcry_md_spec_t _gcry_digest_spec_sha1;
-extern gcry_md_spec_t _gcry_digest_spec_sha224;
-extern gcry_md_spec_t _gcry_digest_spec_sha256;
-extern gcry_md_spec_t _gcry_digest_spec_sha512;
-extern gcry_md_spec_t _gcry_digest_spec_sha384;
-extern gcry_md_spec_t _gcry_digest_spec_tiger;
-extern gcry_md_spec_t _gcry_digest_spec_tiger1;
-extern gcry_md_spec_t _gcry_digest_spec_tiger2;
-extern gcry_md_spec_t _gcry_digest_spec_whirlpool;
-
-extern md_extra_spec_t _gcry_digest_extraspec_sha1;
-extern md_extra_spec_t _gcry_digest_extraspec_sha224;
-extern md_extra_spec_t _gcry_digest_extraspec_sha256;
-extern md_extra_spec_t _gcry_digest_extraspec_sha384;
-extern md_extra_spec_t _gcry_digest_extraspec_sha512;
+extern const gcry_md_spec_t _gcry_digest_spec_crc32;
+extern const gcry_md_spec_t _gcry_digest_spec_crc32_rfc1510;
+extern const gcry_md_spec_t _gcry_digest_spec_crc24_rfc2440;
+extern const gcry_md_spec_t _gcry_digest_spec_gost3411_94;
+extern const gcry_md_spec_t _gcry_digest_spec_gost3411_cp;
+extern const gcry_md_spec_t _gcry_digest_spec_stribog_256;
+extern const gcry_md_spec_t _gcry_digest_spec_stribog_512;
+extern const gcry_md_spec_t _gcry_digest_spec_md2;
+extern const gcry_md_spec_t _gcry_digest_spec_md4;
+extern const gcry_md_spec_t _gcry_digest_spec_md5;
+extern const gcry_md_spec_t _gcry_digest_spec_rmd160;
+extern const gcry_md_spec_t _gcry_digest_spec_sha1;
+extern const gcry_md_spec_t _gcry_digest_spec_sha224;
+extern const gcry_md_spec_t _gcry_digest_spec_sha256;
+extern const gcry_md_spec_t _gcry_digest_spec_sha384;
+extern const gcry_md_spec_t _gcry_digest_spec_sha512;
+extern const gcry_md_spec_t _gcry_digest_spec_sha512_224;
+extern const gcry_md_spec_t _gcry_digest_spec_sha512_256;
+extern const gcry_md_spec_t _gcry_digest_spec_sha3_224;
+extern const gcry_md_spec_t _gcry_digest_spec_sha3_256;
+extern const gcry_md_spec_t _gcry_digest_spec_sha3_512;
+extern const gcry_md_spec_t _gcry_digest_spec_sha3_384;
+extern const gcry_md_spec_t _gcry_digest_spec_shake128;
+extern const gcry_md_spec_t _gcry_digest_spec_shake256;
+extern const gcry_md_spec_t _gcry_digest_spec_cshake128;
+extern const gcry_md_spec_t _gcry_digest_spec_cshake256;
+extern const gcry_md_spec_t _gcry_digest_spec_tiger;
+extern const gcry_md_spec_t _gcry_digest_spec_tiger1;
+extern const gcry_md_spec_t _gcry_digest_spec_tiger2;
+extern const gcry_md_spec_t _gcry_digest_spec_whirlpool;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2b_512;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2b_384;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2b_256;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2b_160;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2s_256;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2s_224;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2s_160;
+extern const gcry_md_spec_t _gcry_digest_spec_blake2s_128;
+extern const gcry_md_spec_t _gcry_digest_spec_sm3;
 
 /* Declarations for the pubkey cipher specifications.  */
 extern gcry_pk_spec_t _gcry_pubkey_spec_rsa;
 extern gcry_pk_spec_t _gcry_pubkey_spec_elg;
 extern gcry_pk_spec_t _gcry_pubkey_spec_dsa;
-extern gcry_pk_spec_t _gcry_pubkey_spec_ecdsa;
-extern gcry_pk_spec_t _gcry_pubkey_spec_ecdh;
-
-extern pk_extra_spec_t _gcry_pubkey_extraspec_rsa;
-extern pk_extra_spec_t _gcry_pubkey_extraspec_dsa;
-extern pk_extra_spec_t _gcry_pubkey_extraspec_elg;
-extern pk_extra_spec_t _gcry_pubkey_extraspec_ecdsa;
+extern gcry_pk_spec_t _gcry_pubkey_spec_ecc;
+extern gcry_pk_spec_t _gcry_pubkey_spec_kem;
 
 
 #endif /*G10_CIPHER_H*/

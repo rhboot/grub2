@@ -14,8 +14,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
 #include <config.h>
@@ -39,7 +39,7 @@ static void barrett_mulm( gcry_mpi_t w, gcry_mpi_t u, gcry_mpi_t v, gcry_mpi_t m
 static gcry_mpi_t init_barrett( gcry_mpi_t m, int *k, gcry_mpi_t *r1, gcry_mpi_t *r2 );
 static int calc_barrett( gcry_mpi_t r, gcry_mpi_t x, gcry_mpi_t m, gcry_mpi_t y, int k, gcry_mpi_t r1, gcry_mpi_t r2  );
 #else
-#define barrett_mulm( w, u, v, m, y, k, r1, r2 ) gcry_mpi_mulm( (w), (u), (v), (m) )
+#define barrett_mulm( w, u, v, m, y, k, r1, r2 ) _gcry_mpi_mulm( (w), (u), (v), (m) )
 #endif
 
 
@@ -89,7 +89,7 @@ _gcry_mpi_mulpowm( gcry_mpi_t res, gcry_mpi_t *basearray, gcry_mpi_t *exparray, 
     gcry_assert (t);
     gcry_assert (k < 10);
 
-    G = gcry_xcalloc( (1<<k) , sizeof *G );
+    G = xcalloc( (1<<k) , sizeof *G );
 #ifdef USE_BARRETT
     barrett_y = init_barrett( m, &barrett_k, &barrett_r1, &barrett_r2 );
 #endif
@@ -130,7 +130,7 @@ _gcry_mpi_mulpowm( gcry_mpi_t res, gcry_mpi_t *basearray, gcry_mpi_t *exparray, 
 #endif
     for(i=0; i < (1<<k); i++ )
 	mpi_free(G[i]);
-    gcry_free(G);
+    xfree(G);
 }
 
 
@@ -204,7 +204,7 @@ calc_barrett( gcry_mpi_t r, gcry_mpi_t x, gcry_mpi_t m, gcry_mpi_t y, int k, gcr
 	r2->nlimbs = k+1;
     mpi_sub( r, r1, r2 );
 
-    if( mpi_is_neg( r ) ) {
+    if( mpi_has_sign (r) ) {
 	gcry_mpi_t tmp;
 
 	tmp = mpi_alloc( k + 2 );

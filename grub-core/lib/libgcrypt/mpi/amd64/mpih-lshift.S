@@ -17,8 +17,8 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: LGPL-2.1-or-later
  *
  * Note: This code is heavily based on the GNU MP Library.
  *	 Actually it's the same code with only minor changes in the
@@ -39,39 +39,41 @@
  *		   unsigned cnt)	rcx
  */
 
-.text
+	TEXT
+	ALIGN(4)
 	.globl C_SYMBOL_NAME(_gcry_mpih_lshift)
 C_SYMBOL_NAME(_gcry_mpih_lshift:)
-	movq	-8(%rsi,%rdx,8), %mm7
-	movd	%ecx, %mm1
+	FUNC_ENTRY()
+	/* Note: %xmm6 and %xmm7 not used for WIN64 ABI compatibility. */
+	movq	-8(%rsi,%rdx,8), %xmm4
+	movd	%ecx, %xmm1
 	movl	$64, %eax
 	subl	%ecx, %eax
-	movd	%eax, %mm0
-	movq	%mm7, %mm3
-	psrlq	%mm0, %mm7
-	movd	%mm7, %rax
+	movd	%eax, %xmm0
+	movdqa	%xmm4, %xmm3
+	psrlq	%xmm0, %xmm4
+	movq	%xmm4, %rax
 	subq	$2, %rdx
 	jl	.Lendo
 
 	ALIGN(4)			/* minimal alignment for claimed speed */
-.Loop:	movq	(%rsi,%rdx,8), %mm6
-	movq	%mm6, %mm2
-	psrlq	%mm0, %mm6
-	psllq	%mm1, %mm3
-	por	%mm6, %mm3
-	movq	%mm3, 8(%rdi,%rdx,8)
+.Loop:	movq	(%rsi,%rdx,8), %xmm5
+	movdqa	%xmm5, %xmm2
+	psrlq	%xmm0, %xmm5
+	psllq	%xmm1, %xmm3
+	por	%xmm5, %xmm3
+	movq	%xmm3, 8(%rdi,%rdx,8)
 	je	.Lende
-	movq	-8(%rsi,%rdx,8), %mm7
-	movq	%mm7, %mm3
-	psrlq	%mm0, %mm7
-	psllq	%mm1, %mm2
-	por	%mm7, %mm2
-	movq	%mm2, (%rdi,%rdx,8)
+	movq	-8(%rsi,%rdx,8), %xmm4
+	movdqa	%xmm4, %xmm3
+	psrlq	%xmm0, %xmm4
+	psllq	%xmm1, %xmm2
+	por	%xmm4, %xmm2
+	movq	%xmm2, (%rdi,%rdx,8)
 	subq	$2, %rdx
 	jge	.Loop
 
-.Lendo:	movq	%mm3, %mm2
-.Lende:	psllq	%mm1, %mm2
-	movq	%mm2, (%rdi)
-	emms
-	ret
+.Lendo:	movdqa	%xmm3, %xmm2
+.Lende:	psllq	%xmm1, %xmm2
+	movq	%xmm2, (%rdi)
+	FUNC_EXIT()

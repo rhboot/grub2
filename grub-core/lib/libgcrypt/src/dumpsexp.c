@@ -1,18 +1,19 @@
 /* dumpsexp.c - Dump S-expressions.
  * Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+ * Copyright (C) 2010 g10 Code GmbH.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 3 of the License,
- * or (at your option) any later version.
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <config.h>
@@ -43,8 +44,8 @@ print_version (int with_help)
 {
   fputs (MYVERSION_LINE "\n"
          "Copyright (C) 2010 Free Software Foundation, Inc.\n"
-         "License GPLv3+: GNU GPL version 3 or later "
-         "<http://gnu.org/licenses/gpl.html>\n"
+         "License LGPLv2.1+: GNU LGPL version 2.1 or later "
+         "<http://gnu.org/licenses/>\n"
          "This is free software: you are free to change and redistribute it.\n"
          "There is NO WARRANTY, to the extent permitted by law.\n",
          stdout);
@@ -413,6 +414,7 @@ parse_and_print (FILE *fp)
     }
   state = INIT_STATE;
 
+  (void)level; /* The value is not used, but useful in debug session.  */
 
   while ((c = my_getc (fp)) != EOF )
     {
@@ -546,6 +548,7 @@ parse_and_print (FILE *fp)
           state = IN_DATA;
           printctl ("begindata");
           init_data ();
+	  /* fall through */
         case IN_DATA:
           if (datalen)
             {

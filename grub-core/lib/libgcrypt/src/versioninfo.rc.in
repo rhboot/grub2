@@ -39,7 +39,7 @@ BEGIN
             VALUE "FileDescription", "Libgcrypt - The GNU Crypto Library\0"
             VALUE "FileVersion", "@LIBGCRYPT_LT_CURRENT@.@LIBGCRYPT_LT_AGE@.@LIBGCRYPT_LT_REVISION@.@BUILD_REVISION@\0"
             VALUE "InternalName", "libgcrypt\0"
-            VALUE "LegalCopyright", "Copyright © 2012 Free Software Foundation, Inc.\0"
+            VALUE "LegalCopyright", "Copyright © 2021 g10 Code GmbH\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "libgcrypt.dll\0"
             VALUE "PrivateBuild", "\0"

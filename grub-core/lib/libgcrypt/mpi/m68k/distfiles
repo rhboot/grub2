@@ -1,4 +1,3 @@
-Manifest
 syntax.h
 mpih-lshift.S
 mpih-rshift.S
