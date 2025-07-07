@@ -136,41 +136,27 @@ struct signature_v4_header
   grub_uint16_t hashed_sub;
 } GRUB_PACKED;
 
-const char *hashes[] = {
-  [0x01] = "md5",
-  [0x02] = "sha1",
-  [0x03] = "ripemd160",
-  [0x08] = "sha256",
-  [0x09] = "sha384",
-  [0x0a] = "sha512",
-  [0x0b] = "sha224"
-};
-
 struct gcry_pk_spec *grub_crypto_pk_dsa;
 struct gcry_pk_spec *grub_crypto_pk_ecdsa;
 struct gcry_pk_spec *grub_crypto_pk_rsa;
 
-static int
-dsa_pad (gcry_mpi_t *hmpi, grub_uint8_t *hval,
-	 const gcry_md_spec_t *hash, struct grub_public_subkey *sk);
-static int
-rsa_pad (gcry_mpi_t *hmpi, grub_uint8_t *hval,
-	 const gcry_md_spec_t *hash, struct grub_public_subkey *sk);
-
 struct
 {
   const char *name;
+  const char *sigsexp;
   grub_size_t nmpisig;
+  const char *pubsexp;
   grub_size_t nmpipub;
   struct gcry_pk_spec **algo;
-  int (*pad) (gcry_mpi_t *hmpi, grub_uint8_t *hval,
-	      const gcry_md_spec_t *hash, struct grub_public_subkey *sk);
+  const char *padding;
   const char *module;
 } pkalgos[] =
   {
-    [1] = { "rsa", 1, 2, &grub_crypto_pk_rsa, rsa_pad, "gcry_rsa" },
-    [3] = { "rsa", 1, 2, &grub_crypto_pk_rsa, rsa_pad, "gcry_rsa" },
-    [17] = { "dsa", 2, 4, &grub_crypto_pk_dsa, dsa_pad, "gcry_dsa" },
+    [1] = { "rsa", "(sig-val (rsa (s %M)))", 1, "(public-key (dsa (n %M) (e %M)))", 2, &grub_crypto_pk_rsa, "pkcs1", "gcry_rsa" },
+    [3] = { "rsa", "(sig-val (rsa (s %M)))", 1, "(public-key (dsa (n %M) (e %M)))", 2, &grub_crypto_pk_rsa, "pkcs1", "gcry_rsa" },
+    [17] = { "dsa", "(sig-val (dsa (r %M) (s %M)))", 2,
+	     "(public-key (dsa (p %M) (q %M) (g %M) (y %M)))",
+	     4, &grub_crypto_pk_dsa, "raw", "gcry_dsa" },
   };
 
 struct grub_public_key
@@ -196,7 +182,7 @@ free_pk (struct grub_public_key *pk)
       grub_size_t i;
       for (i = 0; i < ARRAY_SIZE (sk->mpis); i++)
 	if (sk->mpis[i])
-	  gcry_mpi_release (sk->mpis[i]);
+	  _gcry_mpi_release (sk->mpis[i]);
       nsk = sk->next;
       grub_free (sk);
     }
@@ -303,7 +289,7 @@ grub_load_public_key (grub_file_t f)
 	goto fail;
 
       grub_memset (fingerprint_context, 0, GRUB_MD_SHA1->contextsize);
-      GRUB_MD_SHA1->init (fingerprint_context);
+      GRUB_MD_SHA1->init (fingerprint_context, 0);
       GRUB_MD_SHA1->write (fingerprint_context, "\x99", 1);
       len_be = grub_cpu_to_be16 (len);
       GRUB_MD_SHA1->write (fingerprint_context, &len_be, sizeof (len_be));
@@ -336,7 +322,7 @@ grub_load_public_key (grub_file_t f)
 
 	  GRUB_MD_SHA1->write (fingerprint_context, buffer, lb + sizeof (grub_uint16_t));
 
-	  if (gcry_mpi_scan (&sk->mpis[i], GCRYMPI_FMT_PGP,
+	  if (_gcry_mpi_scan (&sk->mpis[i], GCRYMPI_FMT_PGP,
 			     buffer, lb + sizeof (grub_uint16_t), 0))
 	    {
 	      grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
@@ -394,51 +380,6 @@ grub_crypto_pk_locate_subkey_in_trustdb (grub_uint64_t keyid)
   return 0;
 }
 
-
-static int
-dsa_pad (gcry_mpi_t *hmpi, grub_uint8_t *hval,
-	 const gcry_md_spec_t *hash, struct grub_public_subkey *sk)
-{
-  unsigned nbits = gcry_mpi_get_nbits (sk->mpis[1]);
-  grub_dprintf ("crypt", "must be %u bits got %d bits\n", nbits,
-		(int)(8 * hash->mdlen));
-  return gcry_mpi_scan (hmpi, GCRYMPI_FMT_USG, hval,
-			nbits / 8 < (unsigned) hash->mdlen ? nbits / 8
-			: (unsigned) hash->mdlen, 0);
-}
-
-static int
-rsa_pad (gcry_mpi_t *hmpi, grub_uint8_t *hval,
-	 const gcry_md_spec_t *hash, struct grub_public_subkey *sk)
-{
-  grub_size_t tlen, emlen, fflen;
-  grub_uint8_t *em, *emptr;
-  unsigned nbits = gcry_mpi_get_nbits (sk->mpis[0]);
-  int ret;
-  tlen = hash->mdlen + hash->asnlen;
-  emlen = (nbits + 7) / 8;
-  if (emlen < tlen + 11)
-    return 1;
-
-  em = grub_malloc (emlen);
-  if (!em)
-    return 1;
-
-  em[0] = 0x00;
-  em[1] = 0x01;
-  fflen = emlen - tlen - 3;
-  for (emptr = em + 2; emptr < em + 2 + fflen; emptr++)
-    *emptr = 0xff;
-  *emptr++ = 0x00;
-  grub_memcpy (emptr, hash->asnoid, hash->asnlen);
-  emptr += hash->asnlen;
-  grub_memcpy (emptr, hval, hash->mdlen);
-
-  ret = gcry_mpi_scan (hmpi, GCRYMPI_FMT_USG, em, emlen, 0);
-  grub_free (em);
-  return ret;
-}
-
 struct grub_pubkey_context
 {
   grub_file_t sig;
@@ -483,15 +424,12 @@ grub_verify_signature_init (struct grub_pubkey_context *ctxt, grub_file_t sig)
   if (t != 0)
     return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
 
-  if (h >= ARRAY_SIZE (hashes) || hashes[h] == NULL)
-    return grub_error (GRUB_ERR_BAD_SIGNATURE, "unknown hash");
-
   if (pk >= ARRAY_SIZE (pkalgos) || pkalgos[pk].name == NULL)
     return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
 
-  ctxt->hash = grub_crypto_lookup_md_by_name (hashes[h]);
+  ctxt->hash = grub_crypto_lookup_md_by_algo (h);
   if (!ctxt->hash)
-    return grub_error (GRUB_ERR_BAD_SIGNATURE, "hash `%s' not loaded", hashes[h]);
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "hash `%d' not loaded", h);
 
   grub_dprintf ("crypt", "alive\n");
 
@@ -499,7 +437,7 @@ grub_verify_signature_init (struct grub_pubkey_context *ctxt, grub_file_t sig)
   if (!ctxt->hash_context)
     return grub_errno;
 
-  ctxt->hash->init (ctxt->hash_context);
+  ctxt->hash->init (ctxt->hash_context, 0);
   ctxt->sig = sig;
 
   return GRUB_ERR_NONE;
@@ -528,7 +466,6 @@ grub_verify_signature_real (struct grub_pubkey_context *ctxt,
   grub_uint16_t unhashed_sub;
   grub_ssize_t r;
   grub_uint8_t hash_start[2];
-  gcry_mpi_t hmpi;
   grub_uint64_t keyid = 0;
   struct grub_public_subkey *sk;
 
@@ -620,7 +557,7 @@ grub_verify_signature_real (struct grub_pubkey_context *ctxt,
       grub_memcpy (readbuf, &l, sizeof (l));
       grub_dprintf ("crypt", "alive\n");
 
-      if (gcry_mpi_scan (&mpis[i], GCRYMPI_FMT_PGP,
+      if (_gcry_mpi_scan (&mpis[i], GCRYMPI_FMT_PGP,
 			 readbuf, lb + sizeof (grub_uint16_t), 0))
 	goto fail;
       grub_dprintf ("crypt", "alive\n");
@@ -638,8 +575,6 @@ grub_verify_signature_real (struct grub_pubkey_context *ctxt,
       goto fail;
     }
 
-  if (pkalgos[pk].pad (&hmpi, hval, ctxt->hash, sk))
-    goto fail;
   if (!*pkalgos[pk].algo)
     {
       grub_dl_load (pkalgos[pk].module);
@@ -652,7 +587,24 @@ grub_verify_signature_real (struct grub_pubkey_context *ctxt,
 		  pkalgos[pk].module);
       goto fail;
     }
-  if ((*pkalgos[pk].algo)->verify (0, hmpi, mpis, sk->mpis, 0, 0))
+
+  gcry_sexp_t hsexp, pubkey, sig;
+  grub_size_t errof;
+
+  if(_gcry_sexp_build(&hsexp, &errof, "(data (flags %s) (hash %s %b))", pkalgos[pk].padding, ctxt->hash->name, ctxt->hash->mdlen, hval))
+    goto fail;
+
+  if(_gcry_sexp_build(&pubkey, &errof, pkalgos[pk].pubsexp, sk->mpis[0], sk->mpis[1], sk->mpis[2], sk->mpis[3]))
+    goto fail;
+
+  if(_gcry_sexp_build(&sig, &errof, pkalgos[pk].sigsexp, mpis[0], mpis[1]))
+    goto fail;
+
+  _gcry_sexp_dump(sig);
+  _gcry_sexp_dump(hsexp);
+  _gcry_sexp_dump(pubkey);
+
+  if ((*pkalgos[pk].algo)->verify (sig, hsexp, pubkey))
     goto fail;
 
   grub_free (readbuf);

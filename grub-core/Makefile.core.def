@@ -975,8 +975,8 @@ module = {
 module = {
   name = pgp;
   common = commands/pgp.c;
-  cflags = '$(CFLAGS_POSIX)';
-  cppflags = '-I$(srcdir)/lib/posix_wrap';
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
+  cppflags = '$(CPPFLAGS_GCRY)';
 };
 
 module = {
@@ -2539,7 +2539,23 @@ module = {
   common = lib/libgcrypt-grub/mpi/mpicoder.c;
   common = lib/libgcrypt-grub/mpi/mpih-rshift.c;
   common = lib/libgcrypt-grub/mpi/mpi-inline.c;
+  common = lib/libgcrypt-grub/mpi/mpih-const-time.c;
+  common = lib/libgcrypt-grub/mpi/mpi-scan.c;
+  common = lib/libgcrypt-grub/src/const-time.c;
   common = lib/libgcrypt_wrap/mem.c;
+  common = lib/libgcrypt-grub/cipher/md.c;
+
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare -Wno-unused-but-set-variable';
+  cppflags = '$(CPPFLAGS_GCRY)';
+};
+
+module = {
+  name = pubkey;
+  common = lib/libgcrypt-grub/cipher/pubkey-util.c;
+  common = lib/libgcrypt-grub/cipher/rsa-common.c;
+  common = lib/libgcrypt-grub/cipher/dsa-common.c;
+  common = lib/libgcrypt-grub/src/sexp.c;
+  common = lib/b64dec.c;
 
   cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls -Wno-sign-compare';
   cppflags = '$(CPPFLAGS_GCRY)';

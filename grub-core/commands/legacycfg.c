@@ -624,7 +624,7 @@ check_password_md5_real (const char *entered,
   if (!ctx)
     return 0;
 
-  GRUB_MD_MD5->init (ctx);
+  GRUB_MD_MD5->init (ctx, 0);
   GRUB_MD_MD5->write (ctx, entered, enteredlen);
   GRUB_MD_MD5->write (ctx, pw->salt + 3, pw->saltlen - 3);
   GRUB_MD_MD5->write (ctx, entered, enteredlen);
@@ -632,7 +632,7 @@ check_password_md5_real (const char *entered,
   GRUB_MD_MD5->final (ctx);
   grub_memcpy (alt_result, digest, MD5_HASHLEN);
 
-  GRUB_MD_MD5->init (ctx);
+  GRUB_MD_MD5->init (ctx, 0);
   GRUB_MD_MD5->write (ctx, entered, enteredlen);
   GRUB_MD_MD5->write (ctx, pw->salt, pw->saltlen); /* include the $1$ header */
   for (i = enteredlen; i > 16; i -= 16)
@@ -648,7 +648,7 @@ check_password_md5_real (const char *entered,
     {
       grub_memcpy (alt_result, digest, 16);
 
-      GRUB_MD_MD5->init (ctx);
+      GRUB_MD_MD5->init (ctx, 0);
       if ((i & 1) != 0)
 	GRUB_MD_MD5->write (ctx, entered, enteredlen);
       else

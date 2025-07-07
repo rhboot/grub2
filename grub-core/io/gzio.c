@@ -1201,7 +1201,7 @@ initialize_tables (grub_gzio_t gzio)
   gzio->td = NULL;
 
   if (gzio->hcontext)
-    gzio->hdesc->init(gzio->hcontext);
+    gzio->hdesc->init(gzio->hcontext, 0);
 }
 
 

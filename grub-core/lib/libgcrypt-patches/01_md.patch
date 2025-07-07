@@ -1,0 +1,124 @@
+--- a/grub-core/lib/libgcrypt-grub/cipher/md.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/md.c
+@@ -20,11 +20,25 @@
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with this program; if not, see <http://www.gnu.org/licenses/>.
+  */
++#include <config.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
+ 
+ 
+ #include "g10lib.h"
+ #include "cipher.h"
+ 
++#define _gcry_md_selftest(a,b,c) 0
++typedef struct gcry_md_list
++{
++  const gcry_md_spec_t *spec;
++  struct gcry_md_list *next;
++  size_t actual_struct_size;     /* Allocated size of this structure. */
++  PROPERLY_ALIGNED_TYPE context[1];
++} GcryDigestEntry;
++
+ 
+ /* This is the list of the digest implementations included in
+    libgcrypt.  */
+@@ -53,7 +67,6 @@
+ static void md_close (gcry_md_hd_t a);
+ static void md_write (gcry_md_hd_t a, const void *inbuf, size_t inlen);
+ static byte *md_read( gcry_md_hd_t a, int algo );
+-static int md_get_algo( gcry_md_hd_t a );
+ static int md_digest_length( int algo );
+ static void md_start_debug ( gcry_md_hd_t a, const char *suffix );
+ static void md_stop_debug ( gcry_md_hd_t a );
+@@ -186,9 +199,6 @@
+ 
+   if (! err)
+     {
+-      /* Hmmm, should we really do that? - yes [-wk] */
+-      _gcry_fast_random_poll ();
+-
+       if (algo)
+ 	{
+ 	  err = md_enable (hd, algo);
+@@ -437,14 +447,6 @@
+ {
+   GcryDigestEntry *r;
+ 
+-  if (a->ctx->debug)
+-    {
+-      if (a->bufpos && fwrite (a->buf, a->bufpos, 1, a->ctx->debug) != 1)
+-	BUG();
+-      if (inlen && fwrite (inbuf, inlen, 1, a->ctx->debug) != 1)
+-	BUG();
+-    }
+-
+   for (r = a->ctx->list; r; r = r->next)
+     {
+       if (a->bufpos)
+@@ -695,6 +697,7 @@
+       return;
+     }
+ 
++#if 0
+   if (spec->hash_buffers != NULL)
+     {
+       gcry_buffer_t iov;
+@@ -711,6 +714,7 @@
+       spec->hash_buffers (digest, spec->mdlen, &iov, 1);
+     }
+   else
++#endif
+     {
+       /* For the others we do not have a fast function, so we use the
+          normal functions. */
+@@ -893,43 +896,15 @@
+ static void
+ md_start_debug ( gcry_md_hd_t md, const char *suffix )
+ {
+-  static int idx=0;
+-  char buf[50];
+-
+-  if (fips_mode ())
+-    return;
+-
+-  if ( md->ctx->debug )
+-    {
+-      log_debug("Oops: md debug already started\n");
+-      return;
+-    }
+-  idx++;
+-  snprintf (buf, DIM(buf)-1, "dbgmd-%05d.%.10s", idx, suffix );
+-  md->ctx->debug = fopen(buf, "w");
+-  if ( !md->ctx->debug )
+-    log_debug("md debug: can't open %s\n", buf );
++  (void) md;
++  (void) suffix;
+ }
+ 
+ 
+ static void
+ md_stop_debug( gcry_md_hd_t md )
+ {
+-  if ( md->ctx->debug )
+-    {
+-      if ( md->bufpos )
+-        md_write ( md, NULL, 0 );
+-      fclose (md->ctx->debug);
+-      md->ctx->debug = NULL;
+-    }
+-
+-  {  /* a kludge to pull in the __muldi3 for Solaris */
+-    volatile u32 a = (u32)(uintptr_t)md;
+-    volatile u64 b = 42;
+-    volatile u64 c;
+-    c = a * b;
+-    (void)c;
+-  }
++  (void) md;
+ }
+ 
+ 

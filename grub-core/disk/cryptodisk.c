@@ -302,7 +302,7 @@ grub_cryptodisk_endecrypt (struct grub_cryptodisk *dev,
 	      return GPG_ERR_OUT_OF_MEMORY;
 
 	    tmp = grub_cpu_to_le64 (sector << log_sector_size);
-	    dev->iv_hash->init (ctx);
+	    dev->iv_hash->init (ctx, 0);
 	    dev->iv_hash->write (ctx, dev->iv_prefix, dev->iv_prefix_len);
 	    dev->iv_hash->write (ctx, &tmp, sizeof (tmp));
 	    dev->iv_hash->final (ctx);

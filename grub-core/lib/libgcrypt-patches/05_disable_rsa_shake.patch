@@ -1,0 +1,36 @@
+diff --git a/grub-core/lib/libgcrypt/cipher/rsa-common.c b/grub-core/lib/libgcrypt/cipher/rsa-common.c
+index 1920eedd8..c4819208b 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/rsa-common.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/rsa-common.c
+@@ -912,6 +912,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
+   memcpy (p, salt, saltlen);
+ 
+   /* Step 9: dbmask = MGF(H, emlen - hlen - 1).  */
++#if 0
+   if (algo == GCRY_MD_SHAKE128 || algo == GCRY_MD_SHAKE256)
+     {
+       gcry_buffer_t iov;
+@@ -925,6 +926,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
+                                      &iov, 1);
+     }
+   else
++#endif
+     mgf1 (dbmask, emlen - hlen - 1, h, hlen, algo);
+ 
+   /* Step 10: maskedDB = DB ^ dbMask */
+@@ -1086,6 +1088,7 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, int hashed_already,
+     }
+ 
+   /* Step 7: dbmask = MGF(H, emlen - hlen - 1).  */
++#if 0
+   if (algo == GCRY_MD_SHAKE128 || algo == GCRY_MD_SHAKE256)
+     {
+       gcry_buffer_t iov;
+@@ -1099,6 +1202,7 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, int hashed_already,
+                                      &iov, 1);
+     }
+   else
++#endif
+     mgf1 (dbmask, emlen - hlen - 1, h, hlen, algo);
+ 
+   /* Step 8: maskedDB = DB ^ dbMask.  */
