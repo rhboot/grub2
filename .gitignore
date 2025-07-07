@@ -294,7 +294,7 @@ widthspec.bin
 # things very common editors create that we never want
 *~
 .*.sw?
-*.patch
+# *.patch
 
 # stuff you're likely to make while building test trees
 grub.cfg

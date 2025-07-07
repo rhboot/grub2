@@ -29,4 +29,13 @@ gpg_err_source (gpg_error_t err __attribute__ ((unused)))
 gcry_err_code_t
 gpg_error_from_syserror (void);
 
+gcry_err_code_t
+gpg_err_code_from_syserror (void);
+
+gcry_err_code_t
+gpg_error_from_errno (int err);
+
+gcry_err_code_t
+gpg_err_code_from_errno (int err);
+
 #endif

@@ -298,57 +298,6 @@ void _gcry_set_gettext_handler (const char *(*f)(const char*));
 void _gcry_set_progress_handler (gcry_handler_progress_t cb, void *cb_data);
 
 
-/* Return a pointer to a string containing a description of the error
-   code in the error value ERR.  */
-static inline const char *
-_gcry_strerror (gcry_error_t err)
-{
-  return gpg_strerror (err);
-}
-
-/* Return a pointer to a string containing a description of the error
-   source in the error value ERR.  */
-static inline const char *
-_gcry_strsource (gcry_error_t err)
-{
-  return gpg_strsource (err);
-}
-
-/* Retrieve the error code for the system error ERR.  This returns
-   GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
-   this).  */
-static inline gcry_err_code_t
-_gcry_err_code_from_errno (int err)
-{
-  return gpg_err_code_from_errno (err);
-}
-
-/* Retrieve the system error for the error code CODE.  This returns 0
-   if CODE is not a system error code.  */
-static inline int
-_gcry_err_code_to_errno (gcry_err_code_t code)
-{
-  return gpg_err_code_to_errno (code);
-}
-
-/* Return an error value with the error source SOURCE and the system
-   error ERR.  */
-static inline gcry_error_t
-_gcry_err_make_from_errno (gpg_err_source_t source, int err)
-{
-  return gpg_err_make_from_errno (source, err);
-}
-
-
-/* Return an error value with the system error ERR.  */
-static inline gcry_error_t
-_gcry_error_from_errno (int err)
-{
-  return gpg_error (gpg_err_code_from_errno (err));
-}
-
-
-
 gpg_err_code_t _gcry_sexp_new (gcry_sexp_t *retsexp,
                                const void *buffer, size_t length,
                                int autodetect);

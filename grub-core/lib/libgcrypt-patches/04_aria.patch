@@ -1,0 +1,22 @@
+diff --git a/grub-core/lib/libgcrypt/cipher/aria.c b/grub-core/lib/libgcrypt/cipher/aria.c
+index bc2d43841..cfc5a74f2 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/aria.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/aria.c
+@@ -1013,7 +1013,7 @@ aria_crypt(ARIA_context *ctx, byte *out, const byte *in,
+   return 4 * sizeof(void *) + 4 * sizeof(u32); /* stack burn depth */
+ }
+ 
+-unsigned int
++static unsigned int
+ aria_encrypt(void *c, byte *outbuf, const byte *inbuf)
+ {
+   ARIA_context *ctx = (ARIA_context *)c;
+@@ -1023,7 +1023,7 @@ aria_encrypt(void *c, byte *outbuf, const byte *inbuf)
+   return aria_crypt (ctx, outbuf, inbuf, ctx->enc_key);
+ }
+ 
+-unsigned int
++static unsigned int
+ aria_decrypt(void *c, byte *outbuf, const byte *inbuf)
+ {
+   ARIA_context *ctx = (ARIA_context *)c;

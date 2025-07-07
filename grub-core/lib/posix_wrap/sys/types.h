@@ -39,12 +39,16 @@ typedef grub_int32_t int32_t;
 typedef grub_int64_t int64_t;
 
 #define HAVE_U64_TYPEDEF 1
+#define HAVE_TYPE_U64 1
 typedef grub_uint64_t u64;
 #define HAVE_U32_TYPEDEF 1
+#define HAVE_TYPE_U32 1
 typedef grub_uint32_t u32;
 #define HAVE_U16_TYPEDEF 1
+#define HAVE_TYPE_U16 1
 typedef grub_uint16_t u16;
 #define HAVE_BYTE_TYPEDEF 1
+#define HAVE_TYPE_BYTE 1
 typedef grub_uint8_t byte;
 
 typedef grub_addr_t uintptr_t;

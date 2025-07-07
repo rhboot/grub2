@@ -19,6 +19,8 @@
 #ifndef GRUB_GCRY_WRAP_HEADER
 #define GRUB_GCRY_WRAP_HEADER 1
 
+#define USE_SHA512 1
+
 #include <grub/types.h>
 #include <grub/mm.h>
 #include <grub/misc.h>
@@ -35,9 +37,11 @@
 #undef __GNU_LIBRARY__
 #define __GNU_LIBRARY__ 1
 
+#undef HAVE_U64
+#undef U64_C
+#define HAVE_U64 1
+#define UINT64_C(c) (c ## ULL)
 #define U64_C(c) (c ## ULL)
-
-#define PUBKEY_FLAG_NO_BLINDING    (1 << 0)
 
 #define CIPHER_INFO_NO_WEAK_KEY    1
 
@@ -73,5 +77,18 @@ _gcry_fips_mode (void)
 #include <grub/gcrypt/gcrypt.h>
 
 #define gcry_mpi_mod _gcry_mpi_mod
+
+#define strtol grub_strtol
+#define strtoul grub_strtoul
+#define atoi(nptr) (strtol((nptr), NULL, 10))
+
+#define stpcpy grub_stpcpy
+
+#define spec_from_algo grub_crypto_lookup_md_by_algo
+
+struct gcry_cshake_customization;
+
+gpg_err_code_t
+_gcry_cshake_customize (void *context, struct gcry_cshake_customization *p);
 
 #endif
