@@ -1049,3 +1049,60 @@ grub_efi_find_configuration_table (const grub_guid_t *target_guid)
 
   return 0;
 }
+
+static const grub_efi_loader_t *override_loader = NULL;
+
+grub_err_t
+grub_efi_register_loader (const grub_efi_loader_t *loader)
+{
+  if (override_loader != NULL)
+    return grub_error (GRUB_ERR_BUG, "trying to register different loader");
+  override_loader = loader;
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_efi_unregister_loader (const grub_efi_loader_t *loader)
+{
+  if (loader != override_loader)
+    return grub_error (GRUB_ERR_BUG, "trying to unregister different loader");
+
+  override_loader = NULL;
+  return GRUB_ERR_NONE;
+}
+
+grub_efi_status_t
+grub_efi_load_image (grub_efi_boolean_t boot_policy,
+		     grub_efi_handle_t parent_image_handle,
+		     grub_efi_device_path_t *file_path, void *source_buffer,
+		     grub_efi_uintn_t source_size,
+		     grub_efi_handle_t *image_handle)
+{
+  if (override_loader != NULL)
+    return override_loader->load_image (boot_policy, parent_image_handle,
+					file_path, source_buffer, source_size,
+					image_handle);
+  return grub_efi_system_table->boot_services->load_image (
+      boot_policy, parent_image_handle, file_path, source_buffer, source_size,
+      image_handle);
+}
+
+grub_efi_status_t
+grub_efi_start_image (grub_efi_handle_t image_handle,
+		      grub_efi_uintn_t *exit_data_size,
+		      grub_efi_char16_t **exit_data)
+{
+  if (override_loader != NULL)
+    return override_loader->start_image (image_handle, exit_data_size,
+					 exit_data);
+  return grub_efi_system_table->boot_services->start_image (
+      image_handle, exit_data_size, exit_data);
+}
+
+grub_efi_status_t
+grub_efi_unload_image (grub_efi_handle_t image_handle)
+{
+  if (override_loader != NULL)
+    return override_loader->unload_image (image_handle);
+  return grub_efi_system_table->boot_services->unload_image (image_handle);
+}

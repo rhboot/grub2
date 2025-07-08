@@ -187,7 +187,6 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 {
   grub_efi_memory_mapped_device_path_t *mempath;
   grub_efi_handle_t image_handle;
-  grub_efi_boot_services_t *b;
   grub_efi_status_t status;
   grub_efi_loaded_image_t *loaded_image;
   grub_size_t len;
@@ -208,10 +207,9 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   mempath[1].header.subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
   mempath[1].header.length = sizeof (grub_efi_device_path_t);
 
-  b = grub_efi_system_table->boot_services;
-  status = b->load_image (0, grub_efi_image_handle,
-			  (grub_efi_device_path_t *) mempath,
-			  (void *) addr, size, &image_handle);
+  status = grub_efi_load_image (0, grub_efi_image_handle,
+				(grub_efi_device_path_t *)mempath,
+				(void *)addr, size, &image_handle);
   if (status != GRUB_EFI_SUCCESS)
     return grub_error (GRUB_ERR_BAD_OS, "cannot load image");
 
@@ -238,7 +236,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   loaded_image->load_options_size = len * sizeof (grub_efi_char16_t);
 
   grub_dprintf ("linux", "starting image %p\n", image_handle);
-  status = b->start_image (image_handle, 0, NULL);
+  status = grub_efi_start_image (image_handle, 0, NULL);
 
   /* When successful, not reached */
   grub_error (GRUB_ERR_BAD_OS, "start_image() returned 0x%" PRIxGRUB_EFI_UINTN_T, status);
@@ -246,7 +244,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
 		       GRUB_EFI_BYTES_TO_PAGES (len));
   loaded_image->load_options = NULL;
 unload:
-  b->unload_image (image_handle);
+  grub_efi_unload_image (image_handle);
 
   return grub_errno;
 }
