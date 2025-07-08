@@ -33,6 +33,7 @@
 #include <grub/efi/efi.h>
 #include <grub/efi/disk.h>
 #include <grub/efi/memory.h>
+#include <grub/efi/sb.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
 #include <grub/net.h>
@@ -337,16 +338,20 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
     }
 #endif
 
-  status = grub_efi_load_image (0, grub_efi_image_handle, file_path,
-				boot_image, size, &image_handle);
-  if (status != GRUB_EFI_SUCCESS)
+  image_handle = grub_efi_get_last_verified_image_handle ();
+  if (image_handle == NULL)
     {
-      if (status == GRUB_EFI_OUT_OF_RESOURCES)
-	grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of resources");
-      else
-	grub_error (GRUB_ERR_BAD_OS, "cannot load image");
+      status = grub_efi_load_image (0, grub_efi_image_handle, file_path,
+				boot_image, size, &image_handle);
+      if (status != GRUB_EFI_SUCCESS)
+	{
+	  if (status == GRUB_EFI_OUT_OF_RESOURCES)
+	    grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of resources");
+	  else
+	    grub_error (GRUB_ERR_BAD_OS, "cannot load image");
 
-      goto fail;
+	  goto fail;
+	}
     }
 
   /* LoadImage does not set a device handler when the image is
