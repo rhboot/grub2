@@ -21,6 +21,7 @@
 
 #include <grub/types.h>
 #include <grub/dl.h>
+#include <grub/efi/api.h>
 
 #define GRUB_EFI_SECUREBOOT_MODE_UNSET		0
 #define GRUB_EFI_SECUREBOOT_MODE_UNKNOWN	1
@@ -33,6 +34,9 @@ EXPORT_FUNC (grub_efi_get_secureboot) (void);
 
 extern bool
 EXPORT_FUNC (grub_is_using_legacy_shim_lock_protocol) (void);
+
+extern grub_efi_handle_t
+EXPORT_FUNC (grub_efi_get_last_verified_image_handle) (void);
 
 extern void
 grub_shim_lock_verifier_setup (void);

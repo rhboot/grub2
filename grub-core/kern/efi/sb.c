@@ -36,6 +36,8 @@ static grub_guid_t shim_loader_guid = GRUB_EFI_SHIM_IMAGE_LOADER_GUID;
 static grub_efi_loader_t *shim_loader = NULL;
 static grub_efi_shim_lock_protocol_t *shim_lock = NULL;
 
+static grub_efi_handle_t last_verified_image_handle = NULL;
+
 /*
  * Determine whether we're in secure boot mode.
  *
@@ -181,11 +183,25 @@ shim_lock_verifier_write (void *context __attribute__ ((unused)), void *buf, gru
 
   if (shim_loader != NULL)
     {
+      if (last_verified_image_handle != NULL)
+        {
+          /*
+	   * Unload the previous image because ownership of the handle was
+	   * not transfered to a loader, and a new image is being loaded.
+	   */
+          shim_loader->unload_image (last_verified_image_handle);
+          last_verified_image_handle = NULL;
+        }
+
       if (shim_loader->load_image (false, grub_efi_image_handle, NULL, buf, size, &image_handle) != GRUB_EFI_SUCCESS)
-	/* If verification fails no handle is produced */
+	/* If verification fails no handle is produced. */
         return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad shim loader signature"));
 
-      shim_loader->unload_image (image_handle);
+      /*
+       * Not unloading the image here because chainloader and linux
+       * might use this handle to avoid double TPM measurements.
+       */
+      last_verified_image_handle = image_handle;
       return GRUB_ERR_NONE;
     }
   if (shim_lock != NULL)
@@ -242,4 +258,18 @@ bool
 grub_is_using_legacy_shim_lock_protocol (void)
 {
   return (shim_loader == NULL && shim_lock != NULL) ? true : false;
+}
+
+grub_efi_handle_t
+grub_efi_get_last_verified_image_handle (void)
+{
+  grub_efi_handle_t tmp = last_verified_image_handle;
+
+  /*
+   * This function is intended to act as a "transfer of ownership"
+   * of the handle. We set it to NULL so that it cannot be buggily
+   * retrieved more than once and reused for the wrong image.
+   */
+  last_verified_image_handle = NULL;
+  return tmp;
 }
