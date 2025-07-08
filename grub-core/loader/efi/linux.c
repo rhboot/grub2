@@ -207,11 +207,20 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   mempath[1].header.subtype = GRUB_EFI_END_ENTIRE_DEVICE_PATH_SUBTYPE;
   mempath[1].header.length = sizeof (grub_efi_device_path_t);
 
-  status = grub_efi_load_image (0, grub_efi_image_handle,
-				(grub_efi_device_path_t *)mempath,
-				(void *)addr, size, &image_handle);
-  if (status != GRUB_EFI_SUCCESS)
-    return grub_error (GRUB_ERR_BAD_OS, "cannot load image");
+  image_handle = grub_efi_get_last_verified_image_handle ();
+  if (image_handle == NULL)
+    {
+      status = grub_efi_load_image (0, grub_efi_image_handle,
+				    (grub_efi_device_path_t *) mempath,
+				    (void *) addr, size, &image_handle);
+      if (status != GRUB_EFI_SUCCESS)
+	{
+	  grub_free (mempath);
+	  return grub_error (GRUB_ERR_BAD_OS, "cannot load image");
+	}
+    }
+
+  grub_free (mempath);
 
   grub_dprintf ("linux", "linux command line: '%s'\n", args);
 
