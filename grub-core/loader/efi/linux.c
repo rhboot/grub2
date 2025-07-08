@@ -464,10 +464,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 
   grub_dl_ref (my_mod);
 
-  if (grub_is_shim_lock_enabled () == true)
+  if (grub_is_using_legacy_shim_lock_protocol () == true)
     {
 #if defined(__i386__) || defined(__x86_64__)
-      grub_dprintf ("linux", "shim_lock enabled, falling back to legacy Linux kernel loader\n");
+      grub_dprintf ("linux", "using legacy shim_lock protocol, falling back to legacy Linux kernel loader\n");
 
       err = grub_cmd_linux_x86_legacy (cmd, argc, argv);
 
@@ -476,7 +476,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
       else
 	goto fail;
 #else
-      grub_dprintf ("linux", "shim_lock enabled, trying Linux kernel EFI stub loader\n");
+      grub_dprintf ("linux", "using legacy shim_lock protocol on non-x86, only db verifiable kernels will work\n");
 #endif
     }
 

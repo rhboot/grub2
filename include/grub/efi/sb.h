@@ -32,7 +32,7 @@ extern grub_uint8_t
 EXPORT_FUNC (grub_efi_get_secureboot) (void);
 
 extern bool
-EXPORT_FUNC (grub_is_shim_lock_enabled) (void);
+EXPORT_FUNC (grub_is_using_legacy_shim_lock_protocol) (void);
 
 extern void
 grub_shim_lock_verifier_setup (void);
