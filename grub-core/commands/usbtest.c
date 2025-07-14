@@ -90,7 +90,7 @@ grub_usb_get_string (grub_usb_device_t dev, grub_uint8_t index, int langid,
 			      0x06, (3 << 8) | index,
 			      langid, descstr.length, (char *) descstrp);
 
-  if (descstrp->length == 0)
+  if (descstrp->length < 2)
     {
       grub_free (descstrp);
       *string = grub_strdup ("");
