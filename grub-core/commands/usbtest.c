@@ -99,7 +99,7 @@ grub_usb_get_string (grub_usb_device_t dev, grub_uint8_t index, int langid,
       return GRUB_USB_ERR_NONE;
     }
 
-  *string = grub_malloc (descstr.length * 2 + 1);
+  *string = grub_malloc (descstrp->length * 2 + 1);
   if (! *string)
     {
       grub_free (descstrp);
