@@ -372,6 +372,8 @@ grub_efi_initrd_load_file2 (grub_efi_load_file2_t *this,
 
   if (grub_initrd_load (&initrd_ctx, buffer))
     status = GRUB_EFI_DEVICE_ERROR;
+  else
+    *buffer_size = initrd_size;
 
   grub_initrd_close (&initrd_ctx);
   return status;
