@@ -27,6 +27,7 @@
 grub_err_t
 EXPORT_FUNC(grub_efi_linux_boot) (grub_addr_t kernel_address,
                                   grub_size_t kernel_size,
+                                  grub_size_t kernel_start,
                                   grub_off_t handover_offset,
                                   void *kernel_param, int nx_enabled);
 
@@ -37,5 +38,10 @@ EXPORT_FUNC(grub_efi_check_nx_image_support) (grub_addr_t kernel_addr,
 
 grub_err_t
 EXPORT_FUNC(grub_efi_check_nx_required) (int *nx_required);
+
+grub_err_t
+EXPORT_FUNC(grub_efi_mem_set_att) (grub_addr_t k_address,
+				   grub_size_t k_size,
+				   grub_size_t k_start, int nx_supported);
 
 #endif /* ! GRUB_EFI_LINUX_HEADER */
