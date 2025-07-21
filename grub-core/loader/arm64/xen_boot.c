@@ -174,7 +174,7 @@ prepare_xen_module_params (struct xen_boot_binary *module, void *xen_boot_fdt)
 		    module->cmdline, module->cmdline, module->cmdline_size);
 
       retval = grub_fdt_set_prop (xen_boot_fdt, module_node, "bootargs",
-				  module->cmdline, module->cmdline_size + 1);
+				  module->cmdline, module->cmdline_size);
       if (retval)
 	return grub_error (GRUB_ERR_IO, "failed to update FDT");
     }
