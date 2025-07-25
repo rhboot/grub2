@@ -39,6 +39,7 @@
 grub_err_t grub_tpm_measure (unsigned char *buf, grub_size_t size,
 			     grub_uint8_t pcr, const char *description);
 int grub_tpm_present (void);
+grub_uint32_t grub_tpm2_active_pcr_banks (void);
 
 static inline bool
 grub_is_tpm_fail_fatal (void)

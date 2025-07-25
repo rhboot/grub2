@@ -28,6 +28,7 @@
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/partition.h>
+#include <grub/tpm.h>
 #include <grub/types.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
@@ -127,12 +128,34 @@ set_loader_device_part_uuid (void)
   return status;
 }
 
+static grub_err_t
+set_loader_active_pcr_banks (void)
+{
+  grub_efi_uint32_t active_pcr_banks;
+  char *active_pcr_banks_str;
+  grub_err_t status;
+
+  active_pcr_banks = grub_tpm2_active_pcr_banks();
+  active_pcr_banks_str = grub_xasprintf ("0x%08x", active_pcr_banks);
+  if (active_pcr_banks_str == NULL)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("cannot allocate active PCR banks string"));
+
+  status = grub_efi_set_variable_to_string ("LoaderTpm2ActivePcrBanks",
+					     &bli_vendor_guid,
+					     active_pcr_banks_str,
+					     GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS |
+					     GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
+  grub_free (active_pcr_banks_str);
+  return status;
+}
+
 GRUB_MOD_INIT (bli)
 {
   grub_efi_set_variable_to_string ("LoaderInfo", &bli_vendor_guid, PACKAGE_STRING,
 				   GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS |
 				   GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
   set_loader_device_part_uuid ();
+  set_loader_active_pcr_banks ();
   /* No error here is critical, other than being logged */
   grub_print_error ();
 }
