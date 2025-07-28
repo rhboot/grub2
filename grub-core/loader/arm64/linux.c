@@ -182,7 +182,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args,
 
   grub_dprintf ("linux", "linux command line: '%s'\n", args);
 
-  retval = grub_efi_linux_boot (addr, size, handover_offset,
+  retval = grub_efi_linux_boot (addr, size, 0, handover_offset,
 				(void *)addr, nx_supported);
 
   /* Never reached... */

@@ -71,6 +71,17 @@ struct grub_dos_header
   grub_uint32_t lfanew;
 };
 
+struct grub_msdos_image_header
+{
+  /* This is always 'MZ'. (GRUB_PE32_MAGIC)  */
+  grub_uint16_t msdos_magic;
+
+  grub_uint16_t reserved[29];
+
+  /* The file offset of the PE image header. */
+  grub_uint32_t pe_image_header_offset;
+};
+
 /* According to the spec, the minimal alignment is 512 bytes...
    But some examples (such as EFI drivers in the Intel
    Sample Implementation) use 32 bytes (0x20) instead, and it seems
@@ -307,6 +318,23 @@ struct grub_pe32_section_table
 
 #define GRUB_PE32_SIGNATURE_SIZE		4
 #define GRUB_PE32_SIGNATURE			"PE\0\0"
+
+struct grub_pe_image_header
+{
+  /* This is always PE\0\0.  */
+  char signature[GRUB_PE32_SIGNATURE_SIZE];
+
+  /* The COFF file header.  */
+  struct grub_pe32_coff_header coff_header;
+
+#if GRUB_TARGET_SIZEOF_VOID_P == 8
+  /* The Optional header.  */
+  struct grub_pe64_optional_header optional_header;
+#else
+  /* The Optional header.  */
+  struct grub_pe32_optional_header optional_header;
+#endif
+};
 
 struct grub_pe32_header
 {
