@@ -41,6 +41,7 @@ static grub_command_t cmd_linuxefi, cmd_initrdefi;
 struct grub_linuxefi_context {
   void *kernel_mem;
   grub_uint64_t kernel_size;
+  grub_uint64_t kernel_start;
   grub_uint32_t handover_offset;
   struct linux_kernel_params *params;
   char *cmdline;
@@ -169,6 +170,7 @@ grub_linuxefi_boot (void *data)
 
   return grub_efi_linux_boot ((grub_addr_t)context->kernel_mem,
 			      context->kernel_size,
+			      context->kernel_start,
 			      context->handover_offset,
 			      context->params,
 			      context->nx_supported);
@@ -527,7 +529,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
 		LOW_U32(kernel_mem));
   lh->code32_start = LOW_U32(kernel_mem);
 
-  grub_memcpy (kernel_mem, (char *)kernel + start, filelen - start);
+  grub_memcpy (kernel_mem, (char *)kernel, filelen);
 
   lh->type_of_loader = 0x6;
   grub_dprintf ("linux", "setting lh->type_of_loader = 0x%02x\n",
@@ -544,6 +546,7 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
   context->kernel_mem = kernel_mem;
   context->kernel_size = kernel_size;
+  context->kernel_start = start;
   context->handover_offset = handover_offset;
   context->params = params;
   context->cmdline = cmdline;
