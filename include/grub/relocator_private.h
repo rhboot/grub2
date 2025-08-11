@@ -27,6 +27,7 @@ extern grub_size_t grub_relocator_align;
 extern grub_size_t grub_relocator_forward_size;
 extern grub_size_t grub_relocator_backward_size;
 extern grub_size_t grub_relocator_jumper_size;
+extern grub_size_t grub_relocator_preamble_size;
 
 void
 grub_cpu_relocator_init (void);
@@ -39,6 +40,7 @@ void grub_cpu_relocator_forward (void *rels, void *src, void *tgt,
 void grub_cpu_relocator_backward (void *rels, void *src, void *tgt,
 				 grub_size_t size);
 void grub_cpu_relocator_jumper (void *rels, grub_addr_t addr);
+void grub_cpu_relocator_preamble (void *rels);
 
 /* Remark: GRUB_RELOCATOR_FIRMWARE_REQUESTS_QUANT_LOG = 1 or 2
    aren't supported.  */

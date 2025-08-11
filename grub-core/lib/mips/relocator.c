@@ -45,12 +45,18 @@ grub_size_t grub_relocator_align = sizeof (grub_uint32_t);
 grub_size_t grub_relocator_forward_size;
 grub_size_t grub_relocator_backward_size;
 grub_size_t grub_relocator_jumper_size = JUMP_SIZEOF + REGW_SIZEOF;
+grub_size_t grub_relocator_preamble_size = 0;
 
 void
 grub_cpu_relocator_init (void)
 {
   grub_relocator_forward_size = RELOCATOR_SIZEOF(forward);
   grub_relocator_backward_size = RELOCATOR_SIZEOF(backward);
+}
+
+void
+grub_cpu_relocator_preamble (void *rels __attribute__ ((unused)))
+{
 }
 
 static void

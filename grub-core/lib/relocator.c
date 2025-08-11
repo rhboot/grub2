@@ -110,7 +110,7 @@ grub_relocator_new (void)
     return NULL;
 
   ret->postchunks = ~(grub_phys_addr_t) 0;
-  ret->relocators_size = grub_relocator_jumper_size;
+  ret->relocators_size = grub_relocator_jumper_size + grub_relocator_preamble_size;
   grub_dprintf ("relocator", "relocators_size=%lu\n",
 		(unsigned long) ret->relocators_size);
   return ret;
@@ -1604,6 +1604,9 @@ grub_relocator_prepare_relocs (struct grub_relocator *rel, grub_addr_t addr,
     sorted = from;
     grub_free (to);
   }
+
+  grub_cpu_relocator_preamble (rels);
+  rels += grub_relocator_preamble_size;
 
   for (j = 0; j < nchunks; j++)
     {
