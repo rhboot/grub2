@@ -28,6 +28,8 @@ struct grub_blsuki_entry
   grub_size_t keyvals_size;
   int nkeyvals;
   char *filename;
+  char *dirname;
+  char *devid;
   bool visible;
 };
 typedef struct grub_blsuki_entry grub_blsuki_entry_t;
