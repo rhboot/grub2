@@ -401,6 +401,68 @@ grub_strword (const char *haystack, const char *needle)
   return 0;
 }
 
+char *
+grub_strtok_r (char *s, const char *delim, char **save_ptr)
+{
+  char *token;
+  const char *c;
+  bool is_delim;
+
+  if (s == NULL)
+    s = *save_ptr;
+
+  /* Scan leading delimiters. */
+  while (*s != '\0')
+    {
+      is_delim = false;
+      for (c = delim; *c != '\0'; c++)
+	{
+	  if (*s == *c)
+	    {
+	      is_delim = true;
+	      break;
+	    }
+	}
+      if (is_delim == true)
+	s++;
+      else
+	break;
+    }
+
+  if (*s == '\0')
+    {
+      *save_ptr = s;
+      return NULL;
+    }
+
+  /* Find the end of the token. */
+  token = s;
+  while (*s != '\0')
+    {
+      for (c = delim; *c != '\0'; c++)
+	{
+	  if (*s == *c)
+	    {
+	      *s = '\0';
+	      *save_ptr = s + 1;
+	      return token;
+	    }
+	}
+      s++;
+    }
+
+  *save_ptr = s;
+  return token;
+}
+
+char *
+grub_strtok (char *s, const char *delim)
+{
+  static char *last;
+
+  return grub_strtok_r (s, delim, &last);
+}
+
 int
 grub_isspace (int c)
 {

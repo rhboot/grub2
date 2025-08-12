@@ -126,6 +126,9 @@ char *EXPORT_FUNC(grub_strchr) (const char *s, int c);
 char *EXPORT_FUNC(grub_strrchr) (const char *s, int c);
 int EXPORT_FUNC(grub_strword) (const char *s, const char *w);
 
+char *EXPORT_FUNC(grub_strtok_r) (char *s, const char *delim, char **save_ptr);
+char *EXPORT_FUNC(grub_strtok) (char *s, const char *delim);
+
 /* Copied from gnulib.
    Written by Bruno Haible <bruno@clisp.org>, 2005. */
 static inline char *
