@@ -101,7 +101,7 @@ grub_util_read_image (const char *path)
 }
 
 void
-grub_util_write_image_at (const void *img, size_t size, off_t offset, FILE *out,
+grub_util_write_image_at (const void *img, size_t size, grub_off_t offset, FILE *out,
 			  const char *name)
 {
   grub_util_info ("writing 0x%" GRUB_HOST_PRIxLONG_LONG " bytes at offset 0x%"
