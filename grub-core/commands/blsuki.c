@@ -32,6 +32,12 @@
 #include <grub/lib/envblk.h>
 #include <filevercmp.h>
 
+#ifdef GRUB_MACHINE_EFI
+#include <grub/efi/efi.h>
+#include <grub/efi/disk.h>
+#include <grub/efi/pe32.h>
+#endif
+
 #ifdef GRUB_MACHINE_EMU
 #include <grub/emu/misc.h>
 #define GRUB_BOOT_DEVICE "/boot"
@@ -42,14 +48,28 @@
 GRUB_MOD_LICENSE ("GPLv3+");
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
+#define GRUB_UKI_CONFIG_PATH "/EFI/Linux"
 
 #define BLS_EXT_LEN (sizeof (".conf") - 1)
+#define UKI_EXT_LEN (sizeof (".efi") - 1)
 
 /*
  * It is highly unlikely to ever receive a large amount of keyval pairs. A
  * limit of 10000 is more than enough.
  */
 #define BLSUKI_KEYVALS_MAX 10000
+/*
+ * The only sections we read are ".cmdline" and ".osrel". The ".cmdline"
+ * section has a size limit of 4096 and it would be very unlikely for the size
+ * of the ".osrel" section to be 5 times larger than 4096.
+ */
+#define UKI_SECTION_SIZE_MAX (5 * 4096)
+
+enum blsuki_cmd_type
+  {
+    BLSUKI_BLS_CMD,
+    BLSUKI_UKI_CMD,
+  };
 
 static const struct grub_arg_option bls_opt[] =
   {
@@ -61,6 +81,18 @@ static const struct grub_arg_option bls_opt[] =
     {0, 0, 0, 0, 0, 0}
   };
 
+#ifdef GRUB_MACHINE_EFI
+static const struct grub_arg_option uki_opt[] =
+  {
+    {"path", 'p', 0, N_("Specify path to find UKI entries."), N_("DIR"), ARG_TYPE_PATHNAME},
+    {"enable-fallback", 'f', 0, "Fallback to the default BLS path if --path fails to find UKI entries.", 0, ARG_TYPE_NONE},
+    {"show-default", 'd', 0, N_("Allow the default UKI entry to be added to the GRUB menu."), 0, ARG_TYPE_NONE},
+    {"show-non-default", 'n', 0, N_("Allow the non-default UKI entries to be added to the GRUB menu."), 0, ARG_TYPE_NONE},
+    {"entry", 'e', 0, N_("Allow specificUKII entries to be added to the GRUB menu."), N_("FILE"), ARG_TYPE_FILE},
+    {0, 0, 0, 0, 0, 0}
+  };
+#endif
+
 struct keyval
 {
   const char *key;
@@ -71,6 +103,7 @@ struct read_entry_info
 {
   const char *devid;
   const char *dirname;
+  enum blsuki_cmd_type cmd_type;
   grub_file_t file;
 };
 
@@ -82,7 +115,7 @@ struct find_entry_info
   grub_fs_t fs;
 };
 
-static grub_blsuki_entry_t *entries;
+static grub_blsuki_entry_t *entries = NULL;
 
 #define FOR_BLSUKI_ENTRIES(var) FOR_LIST_ELEMENTS (var, entries)
 
@@ -181,7 +214,7 @@ blsuki_add_keyval (grub_blsuki_entry_t *entry, char *key, char *val)
  * Find the value of the key named by keyname. If there are allowed to be
  * more than one, pass a pointer set to -1 to the last parameter the first
  * time, and pass the same pointer through each time after, and it'll return
- * them in sorted order as defined in the BLS fragment file.
+ * them in sorted order.
  */
 static char *
 blsuki_get_val (grub_blsuki_entry_t *entry, const char *keyname, int *last)
@@ -310,20 +343,212 @@ bls_parse_keyvals (grub_file_t f, grub_blsuki_entry_t *entry)
   return err;
 }
 
+#ifdef GRUB_MACHINE_EFI
+/*
+ * This function searches for the .cmdline, .osrel, and .linux sections of a
+ * UKI. We only need to store the data for the .cmdline and .osrel sections,
+ * but we also need to verify that the .linux section exists.
+ */
+static grub_err_t
+uki_parse_keyvals (grub_file_t f, grub_blsuki_entry_t *entry)
+{
+  struct grub_msdos_image_header *dos = NULL;
+  struct grub_pe_image_header *pe = NULL;
+  grub_off_t section_offset = 0;
+  struct grub_pe32_section_table *section = NULL;
+  struct grub_pe32_coff_header *coff_header = NULL;
+  char *val = NULL;
+  char *key = NULL;
+  const char *target[] = {".cmdline", ".osrel", ".linux", NULL};
+  bool has_linux = false;
+  grub_err_t err = GRUB_ERR_NONE;
+
+  dos = grub_zalloc (sizeof (*dos));
+  if (dos == NULL)
+    return grub_errno;
+  if (grub_file_read (f, dos, sizeof (*dos)) < (grub_ssize_t) sizeof (*dos))
+    {
+      err = grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read UKI image header");
+      goto finish;
+    }
+  if (dos->msdos_magic != GRUB_DOS_MAGIC)
+    {
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "plain image kernel is not supported");
+      goto finish;
+    }
+
+  grub_dprintf ("blsuki", "PE/COFF header @ %08x\n", dos->pe_image_header_offset);
+  pe = grub_zalloc (sizeof (*pe));
+  if (pe == NULL)
+    {
+      err = grub_errno;
+      goto finish;
+    }
+  if (grub_file_seek (f, dos->pe_image_header_offset) == (grub_off_t) -1 ||
+      grub_file_read (f, pe, sizeof (*pe)) != sizeof (*pe))
+    {
+      err = grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read COFF image header");
+      goto finish;
+    }
+  if (pe->optional_header.magic != GRUB_PE32_NATIVE_MAGIC)
+    {
+      err = grub_error (GRUB_ERR_BAD_FILE_TYPE, "non-native image not supported");
+      goto finish;
+    }
+
+  coff_header = &(pe->coff_header);
+  section_offset = dos->pe_image_header_offset + sizeof (*pe);
+
+  for (int i = 0; i < coff_header->num_sections; i++)
+    {
+      section = grub_zalloc (sizeof (*section));
+      if (section == NULL)
+	{
+	  err = grub_errno;
+	  goto finish;
+	}
+
+      if (grub_file_seek (f, section_offset) == (grub_off_t) -1 ||
+          grub_file_read (f, section, sizeof (*section)) != sizeof (*section))
+	{
+	  err = grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read section header");
+	  goto finish;
+	}
+
+      key = grub_strndup (section->name, 8);
+      if (key == NULL)
+	{
+	  err = grub_errno;
+	  goto finish;
+	}
+
+      for (int j = 0; target[j] != NULL; j++)
+	{
+	  if (grub_strcmp (key, target[j]) == 0)
+	    {
+	      /*
+	       * We don't need to read the contents of the .linux PE section, but we
+	       * should verify that the section exists.
+	       */
+	      if (grub_strcmp (key, ".linux") == 0)
+		{
+		  has_linux = true;
+		  break;
+		}
+
+	      if (section->raw_data_size > UKI_SECTION_SIZE_MAX)
+		{
+		  err = grub_error (GRUB_ERR_BAD_NUMBER, "UKI section size is larger than expected");
+		  goto finish;
+		}
+
+	      val = grub_zalloc (section->raw_data_size);
+	      if (val == NULL)
+		{
+		  err = grub_errno;
+		  goto finish;
+		}
+
+	      if (grub_file_seek (f, section->raw_data_offset) == (grub_off_t) -1 ||
+		  grub_file_read (f, val, section->raw_data_size) != (grub_ssize_t) section->raw_data_size)
+		{
+		  err = grub_error (GRUB_ERR_FILE_READ_ERROR, "failed to read section");
+		  goto finish;
+		}
+
+	      err = blsuki_add_keyval (entry, key, val);
+	      if (err != GRUB_ERR_NONE)
+		goto finish;
+
+	      break;
+	    }
+	}
+
+      section_offset += sizeof (*section);
+      grub_free (section);
+      grub_free (val);
+      grub_free (key);
+      section = NULL;
+      val = NULL;
+      key = NULL;
+    }
+
+  if (has_linux == false)
+    err = grub_error (GRUB_ERR_NO_KERNEL, "UKI is missing the '.linux' section");
+
+ finish:
+  grub_free (dos);
+  grub_free (pe);
+  grub_free (section);
+  grub_free (val);
+  grub_free (key);
+  return err;
+}
+
+/*
+ * This function obtains the keyval pairs when the .osrel data is input into
+ * the osrel_ptr parameter and returns the keyval pair. Since we are using
+ * grub_strtok_r(), the osrel_ptr will be updated to the following line of
+ * osrel. This function returns NULL when it reaches the end of osrel.
+ */
+static char *
+uki_read_osrel (char **osrel_ptr, char **val_ret)
+{
+  char *key, *val;
+  grub_size_t val_size;
+
+  for (;;)
+    {
+      key = grub_strtok_r (NULL, "\n\r", osrel_ptr);
+      if (key == NULL)
+	return NULL;
+
+      /* Remove leading white space */
+      while (*key == ' ' || *key == '\t')
+	key++;
+
+      /* Skip commented lines */
+      if (*key == '#')
+	continue;
+
+      /* Split key/value */
+      key = grub_strtok_r (key, "=", &val);
+      if (key == NULL || *val == '\0')
+	continue;
+
+      /* Remove quotes from value */
+      val_size = grub_strlen (val);
+      if ((*val == '\"' && val[val_size - 1] == '\"') ||
+	  (*val == '\'' && val[val_size - 1] == '\''))
+	{
+	  val[val_size - 1] = '\0';
+	  val++;
+	}
+
+      *val_ret = val;
+      break;
+    }
+
+  return key;
+}
+#endif
+
 /*
  * If a file hasn't already been opened, this function opens a BLS config file
- * and initializes entry data before parsing keyvals and adding the entry to
- * the list of BLS entries.
+ * or UKI and initializes entry data before parsing keyvals and adding the entry
+ * to the list of BLS or UKI entries.
  */
 static int
 blsuki_read_entry (const char *filename,
 		   const struct grub_dirhook_info *dirhook_info __attribute__ ((__unused__)),
 		   void *data)
 {
-  grub_size_t path_len = 0, filename_len;
-  grub_err_t err;
+  grub_size_t path_len = 0, ext_len = 0, filename_len;
+  grub_err_t err = GRUB_ERR_NONE;
   char *p = NULL;
+  const char *ext = NULL;
   grub_file_t f = NULL;
+  enum grub_file_type file_type = 0;
   grub_blsuki_entry_t *entry;
   struct read_entry_info *info = (struct read_entry_info *) data;
 
@@ -331,17 +556,31 @@ blsuki_read_entry (const char *filename,
 
   filename_len = grub_strlen (filename);
 
+  if (info->cmd_type == BLSUKI_BLS_CMD)
+    {
+      ext = ".conf";
+      ext_len = BLS_EXT_LEN;
+      file_type = GRUB_FILE_TYPE_CONFIG;
+    }
+#ifdef GRUB_MACHINE_EFI
+  else if (info->cmd_type == BLSUKI_UKI_CMD)
+    {
+      ext = ".efi";
+      ext_len = UKI_EXT_LEN;
+      file_type = GRUB_FILE_TYPE_EFI_CHAINLOADED_IMAGE;
+    }
+#endif
+
   if (info->file != NULL)
     f = info->file;
   else
     {
-      if (filename_len < BLS_EXT_LEN ||
-	  grub_strcmp (filename + filename_len - BLS_EXT_LEN, ".conf") != 0)
+      if (filename_len < ext_len ||
+	  grub_strcmp (filename + filename_len - ext_len, ext) != 0)
 	return 0;
 
       p = grub_xasprintf ("(%s)%s/%s", info->devid, info->dirname, filename);
-
-      f = grub_file_open (p, GRUB_FILE_TYPE_CONFIG);
+      f = grub_file_open (p, file_type);
       grub_free (p);
       if (f == NULL)
 	goto finish;
@@ -373,7 +612,26 @@ blsuki_read_entry (const char *filename,
       goto finish;
     }
 
-  err = bls_parse_keyvals (f, entry);
+  entry->dirname = grub_strdup (info->dirname);
+  if (entry->dirname == NULL)
+    {
+      grub_free (entry);
+      goto finish;
+    }
+
+  entry->devid = grub_strdup (info->devid);
+  if (entry->devid == NULL)
+    {
+      grub_free (entry);
+      goto finish;
+    }
+
+  if (info->cmd_type == BLSUKI_BLS_CMD)
+    err = bls_parse_keyvals (f, entry);
+#ifdef GRUB_MACHINE_EFI
+  else if (info->cmd_type == BLSUKI_UKI_CMD)
+    err = uki_parse_keyvals (f, entry);
+#endif
 
   if (err == GRUB_ERR_NONE)
     blsuki_add_entry (entry);
@@ -389,7 +647,7 @@ blsuki_read_entry (const char *filename,
 
 /*
  * This function returns a list of values that had the same key in the BLS
- * config file. The number of entries in this list is returned by the len
+ * config file or UKI. The number of entries in this list is returned by the len
  * parameter.
  */
 static char **
@@ -764,7 +1022,7 @@ bls_create_entry (grub_blsuki_entry_t *entry)
 			linux_cmd, initrd_cmd ? initrd_cmd : "",
 			dt_cmd ? dt_cmd : "");
 
-  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, entry);
+  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, NULL, NULL, entry);
 
  finish:
   grub_free (linux_cmd);
@@ -776,6 +1034,70 @@ bls_create_entry (grub_blsuki_entry_t *entry)
   grub_free (src);
 }
 
+#ifdef GRUB_MACHINE_EFI
+/*
+ * This function puts together the section data received from the UKI and
+ * generates a new entry in the GRUB boot menu.
+ */
+static void
+uki_create_entry (grub_blsuki_entry_t *entry)
+{
+  const char **argv = NULL;
+  char *id = entry->filename;
+  char *title = NULL;
+  char *options = NULL;
+  char *osrel, *osrel_line;
+  char *key = NULL;
+  char *value = NULL;
+  char *src = NULL;
+  bool blsuki_save_default;
+
+  /*
+   * Although .osrel is listed as optional in the UKI specification, the .osrel
+   * section is needed to generate the GRUB menu entry title.
+   */
+  osrel = blsuki_get_val (entry, ".osrel", NULL);
+  if (osrel == NULL)
+    {
+      grub_dprintf ("blsuki", "Skipping file %s with no '.osrel' key.\n", entry->filename);
+      goto finish;
+    }
+
+  osrel_line = osrel;
+  while ((key = uki_read_osrel (&osrel_line, &value)) != NULL)
+    {
+      if (grub_strcmp ("PRETTY_NAME", key) == 0)
+	{
+	  title = value;
+	  break;
+	}
+    }
+
+  options = blsuki_get_val (entry, ".cmdline", NULL);
+
+  argv = grub_zalloc (2 * sizeof (char *));
+  if (argv == NULL)
+    goto finish;
+  argv[0] = title;
+
+  blsuki_save_default = grub_env_get_bool ("blsuki_save_default", false);
+  src = grub_xasprintf ("%schainloader (%s)%s/%s%s%s\n",
+			blsuki_save_default ? "savedefault\n" : "",
+			entry->devid, entry->dirname,
+			entry->filename,
+			(options != NULL) ? " " : "",
+			(options != NULL) ? options : "");
+
+  grub_normal_add_menu_entry (1, argv, NULL, id, NULL, NULL, NULL, src, 0, NULL, NULL, entry);
+
+ finish:
+  grub_free (argv);
+  grub_free (src);
+  grub_free (options);
+  grub_free (osrel);
+}
+#endif
+
 /*
  * This function fills a find_entry_info struct passed in by the info parameter.
  * If the dirname or devid parameters are set to NULL, the dirname and devid
@@ -785,7 +1107,7 @@ bls_create_entry (grub_blsuki_entry_t *entry)
  * device.
  */
 static grub_err_t
-blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, const char *devid)
+blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, const char *devid, enum blsuki_cmd_type cmd_type)
 {
   grub_device_t dev;
   grub_fs_t fs;
@@ -795,10 +1117,23 @@ blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, c
 
   if (devid == NULL)
     {
+      if (cmd_type == BLSUKI_BLS_CMD)
+	{
 #ifdef GRUB_MACHINE_EMU
-      devid = "host";
+	  devid = "host";
 #else
-      devid = grub_env_get ("root");
+	  devid = grub_env_get ("root");
+#endif
+	}
+#ifdef GRUB_MACHINE_EFI
+      else if (cmd_type == BLSUKI_UKI_CMD)
+	{
+	  grub_efi_loaded_image_t *image = grub_efi_get_loaded_image (grub_efi_image_handle);
+
+	  if (image == NULL)
+	    return grub_error (GRUB_ERR_BAD_DEVICE, N_("unable to find boot device"));
+	  devid = grub_efidisk_get_device_name (image->device_handle);
+	}
 #endif
       if (devid == NULL)
 	return grub_error (GRUB_ERR_FILE_NOT_FOUND, N_("variable '%s' isn't set"), "root");
@@ -837,15 +1172,16 @@ blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, c
 }
 
 /*
- * This function searches for BLS config files based on the data in the info
- * parameter. If the fallback option is enabled, the default location will be
- * checked for BLS config files if the first attempt fails.
+ * This function searches for BLS config files and UKIs based on the data in the
+ * info parameter. If the fallback option is enabled, the default location will
+ * be checked for BLS config files or UKIs if the first attempt fails.
  */
 static grub_err_t
-blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
+blsuki_find_entry (struct find_entry_info *info, bool enable_fallback, enum blsuki_cmd_type cmd_type)
 {
   struct read_entry_info read_entry_info;
   char *default_dir = NULL;
+  const char *cmd_dir = NULL;
   char *tmp;
   grub_size_t default_size;
   grub_fs_t dir_fs = NULL;
@@ -862,6 +1198,7 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
       dir_dev = info->dev;
       dir_fs = info->fs;
       read_entry_info.devid = info->devid;
+      read_entry_info.cmd_type = cmd_type;
 
       r = dir_fs->fs_dir (dir_dev, read_entry_info.dirname, blsuki_read_entry,
 			  &read_entry_info);
@@ -874,19 +1211,27 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
       /*
        * If we aren't able to find BLS entries in the directory given by info->dirname,
        * we can fallback to the default location "/boot/loader/entries/" and see if we
-       * can find the files there.
+       * can find the files there. If we can't find UKI entries, fallback to
+       * "/EFI/Linux" on the EFI system partition.
        */
       if (entries == NULL && fallback == false && enable_fallback == true)
 	{
-	  default_size = sizeof (GRUB_BOOT_DEVICE) + sizeof (GRUB_BLS_CONFIG_PATH) - 1;
+	  if (cmd_type == BLSUKI_BLS_CMD)
+	    cmd_dir = GRUB_BLS_CONFIG_PATH;
+#ifdef GRUB_MACHINE_EFI
+	  else if (cmd_type == BLSUKI_UKI_CMD)
+	    cmd_dir = GRUB_UKI_CONFIG_PATH;
+#endif
+
+	  default_size = sizeof (GRUB_BOOT_DEVICE) + grub_strlen (cmd_dir);
 	  default_dir = grub_malloc (default_size);
 	  if (default_dir == NULL)
 	    return grub_errno;
 
 	  tmp = blsuki_update_boot_device (default_dir);
-	  tmp = grub_stpcpy (tmp, GRUB_BLS_CONFIG_PATH);
+	  tmp = grub_stpcpy (tmp, cmd_dir);
 
-	  blsuki_set_find_entry_info (info, default_dir, NULL);
+	  blsuki_set_find_entry_info (info, default_dir, NULL, cmd_type);
 	  grub_dprintf ("blsuki", "Entries weren't found in %s, fallback to %s\n",
 			read_entry_info.dirname, info->dirname);
 	  fallback = true;
@@ -901,15 +1246,17 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
 }
 
 static grub_err_t
-blsuki_load_entries (char *path, bool enable_fallback)
+blsuki_load_entries (char *path, bool enable_fallback, enum blsuki_cmd_type cmd_type)
 {
-  grub_size_t len;
+  grub_size_t len, ext_len = 0;
   static grub_err_t r;
   const char *devid = NULL;
   char *dir = NULL;
   char *default_dir = NULL;
   char *tmp;
+  const char *cmd_dir = NULL;
   grub_size_t dir_size;
+  const char *ext = NULL;
   struct find_entry_info info = {
       .dev = NULL,
       .fs = NULL,
@@ -918,12 +1265,26 @@ blsuki_load_entries (char *path, bool enable_fallback)
   struct read_entry_info rei = {
       .devid = NULL,
       .dirname = NULL,
+      .cmd_type = cmd_type,
   };
 
   if (path != NULL)
     {
+      if (cmd_type == BLSUKI_BLS_CMD)
+	{
+	  ext = ".conf";
+	  ext_len = BLS_EXT_LEN;
+	}
+#ifdef GRUB_MACHINE_EFI
+      else if (cmd_type == BLSUKI_UKI_CMD)
+	{
+	  ext = ".efi";
+	  ext_len = UKI_EXT_LEN;
+	}
+#endif
+
       len = grub_strlen (path);
-      if (len >= BLS_EXT_LEN && grub_strcmp (path + len - BLS_EXT_LEN, ".conf") == 0)
+      if (len >= ext_len && grub_strcmp (path + len - ext_len, ext) == 0)
 	{
 	  rei.file = grub_file_open (path, GRUB_FILE_TYPE_CONFIG);
 	  if (rei.file == NULL)
@@ -952,19 +1313,26 @@ blsuki_load_entries (char *path, bool enable_fallback)
 
   if (dir == NULL)
     {
-      dir_size = sizeof (GRUB_BOOT_DEVICE) + sizeof (GRUB_BLS_CONFIG_PATH) - 2;
+      if (cmd_type == BLSUKI_BLS_CMD)
+	cmd_dir = GRUB_BLS_CONFIG_PATH;
+#ifdef GRUB_MACHINE_EFI
+      else if (cmd_type == BLSUKI_UKI_CMD)
+	cmd_dir = GRUB_UKI_CONFIG_PATH;
+#endif
+
+      dir_size = sizeof (GRUB_BOOT_DEVICE) + grub_strlen (cmd_dir);
       default_dir = grub_malloc (dir_size);
       if (default_dir == NULL)
 	return grub_errno;
 
       tmp = blsuki_update_boot_device (default_dir);
-      tmp = grub_stpcpy (tmp, GRUB_BLS_CONFIG_PATH);
+      tmp = grub_stpcpy (tmp, cmd_dir);
       dir = default_dir;
     }
 
-  r = blsuki_set_find_entry_info (&info, dir, devid);
+  r = blsuki_set_find_entry_info (&info, dir, devid, cmd_type);
   if (r == GRUB_ERR_NONE)
-    r = blsuki_find_entry (&info, enable_fallback);
+    r = blsuki_find_entry (&info, enable_fallback, cmd_type);
 
   if (info.dev != NULL)
     grub_device_close (info.dev);
@@ -1002,11 +1370,11 @@ blsuki_is_default_entry (const char *def_entry, grub_blsuki_entry_t *entry, int 
 }
 
 /*
- * This function creates a GRUB boot menu entry for each BLS entry in the
- * entries list.
+ * This function creates a GRUB boot menu entry for each BLS or UKI  entry in
+ * the entries list.
  */
 static grub_err_t
-blsuki_create_entries (bool show_default, bool show_non_default, char *entry_id)
+blsuki_create_entries (bool show_default, bool show_non_default, char *entry_id, enum blsuki_cmd_type cmd_type)
 {
   const char *def_entry = NULL;
   grub_blsuki_entry_t *entry = NULL;
@@ -1025,7 +1393,12 @@ blsuki_create_entries (bool show_default, bool show_non_default, char *entry_id)
 	  (show_non_default == true && blsuki_is_default_entry (def_entry, entry, idx) == false) ||
 	  (entry_id != NULL && grub_strcmp (entry_id, entry->filename) == 0))
 	{
-	  bls_create_entry (entry);
+	  if (cmd_type == BLSUKI_BLS_CMD)
+	    bls_create_entry (entry);
+#ifdef GRUB_MACHINE_EFI
+	  else if (cmd_type == BLSUKI_UKI_CMD)
+	    uki_create_entry (entry);
+#endif
 	  entry->visible = true;
 	}
 
@@ -1036,8 +1409,7 @@ blsuki_create_entries (bool show_default, bool show_non_default, char *entry_id)
 }
 
 static grub_err_t
-grub_cmd_blscfg (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
-		 char **args __attribute__ ((unused)))
+blsuki_cmd (grub_extcmd_context_t ctxt, enum blsuki_cmd_type cmd_type)
 {
   grub_err_t err;
   struct grub_arg_list *state = ctxt->state;
@@ -1074,14 +1446,32 @@ grub_cmd_blscfg (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
       show_non_default = true;
     }
 
-  err = blsuki_load_entries (path, enable_fallback);
+  err = blsuki_load_entries (path, enable_fallback, cmd_type);
   if (err != GRUB_ERR_NONE)
     return err;
 
-  return blsuki_create_entries (show_default, show_non_default, entry_id);
+  return blsuki_create_entries (show_default, show_non_default, entry_id, cmd_type);
+}
+
+static grub_err_t
+grub_cmd_blscfg (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
+		 char **args __attribute__ ((unused)))
+{
+  return blsuki_cmd (ctxt, BLSUKI_BLS_CMD);
 }
 
 static grub_extcmd_t bls_cmd;
+
+#ifdef GRUB_MACHINE_EFI
+static grub_err_t
+grub_cmd_uki (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
+		 char **args __attribute__ ((unused)))
+{
+  return blsuki_cmd (ctxt, BLSUKI_UKI_CMD);
+}
+
+static grub_extcmd_t uki_cmd;
+#endif
 
 GRUB_MOD_INIT(blsuki)
 {
@@ -1089,9 +1479,17 @@ GRUB_MOD_INIT(blsuki)
 				  N_("[-p|--path] [-f|--enable-fallback] DIR [-d|--show-default] [-n|--show-non-default] [-e|--entry] FILE"),
 				  N_("Import Boot Loader Specification snippets."),
 				  bls_opt);
+#ifdef GRUB_MACHINE_EFI
+  uki_cmd = grub_register_extcmd ("uki", grub_cmd_uki, 0,
+				  N_("[-p|--path] DIR [-f|--enable-fallback] [-d|--show-default] [-n|--show-non-default] [-e|--entry] FILE"),
+				  N_("Import Unified Kernel Images"), uki_opt);
+#endif
 }
 
 GRUB_MOD_FINI(blsuki)
 {
   grub_unregister_extcmd (bls_cmd);
+#ifdef GRUB_MACHINE_EFI
+  grub_unregister_extcmd (uki_cmd);
+#endif
 }
