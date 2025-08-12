@@ -139,6 +139,7 @@ struct mountinfo_entry
   char fstype[ESCAPED_PATH_MAX + 1], device[ESCAPED_PATH_MAX + 1];
 };
 
+#ifdef GRUB_UTIL
 static char **
 grub_util_raid_getmembers (const char *name, int bootable)
 {
@@ -199,6 +200,7 @@ grub_util_raid_getmembers (const char *name, int bootable)
 
   return devicelist;
 }
+#endif
 
 /* Statting something on a btrfs filesystem always returns a virtual device
    major/minor pair rather than the real underlying device, because btrfs
@@ -700,6 +702,7 @@ out:
   return ret;
 }
 
+#ifdef GRUB_UTIL
 static char *
 get_mdadm_uuid (const char *os_dev)
 {
@@ -757,6 +760,7 @@ out:
 
   return name;
 }
+#endif
 
 static int
 grub_util_is_imsm_or_ddf (const char *os_dev)
@@ -1096,6 +1100,7 @@ grub_util_part_to_disk (const char *os_dev, struct stat *st,
   return path;
 }
 
+#ifdef GRUB_UTIL
 static char *
 grub_util_get_raid_grub_dev (const char *os_dev)
 {
@@ -1198,6 +1203,7 @@ grub_util_get_raid_grub_dev (const char *os_dev)
   }
   return grub_dev;
 }
+#endif
 
 enum grub_dev_abstraction_types
 grub_util_get_dev_abstraction_os (const char *os_dev)
@@ -1214,6 +1220,7 @@ grub_util_get_dev_abstraction_os (const char *os_dev)
   return GRUB_DEV_ABSTRACTION_NONE;
 }
 
+#ifdef GRUB_UTIL
 int
 grub_util_pull_device_os (const char *os_dev,
 			  enum grub_dev_abstraction_types ab)
@@ -1270,6 +1277,7 @@ grub_util_get_grub_dev_os (const char *os_dev)
 
   return grub_dev;
 }
+#endif
 
 static void *mp = NULL;
 static void

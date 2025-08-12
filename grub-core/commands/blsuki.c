@@ -32,6 +32,13 @@
 #include <grub/lib/envblk.h>
 #include <filevercmp.h>
 
+#ifdef GRUB_MACHINE_EMU
+#include <grub/emu/misc.h>
+#define GRUB_BOOT_DEVICE "/boot"
+#else
+#define GRUB_BOOT_DEVICE ""
+#endif
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 #define GRUB_BLS_CONFIG_PATH "/loader/entries/"
@@ -78,6 +85,34 @@ struct find_entry_info
 static grub_blsuki_entry_t *entries;
 
 #define FOR_BLSUKI_ENTRIES(var) FOR_LIST_ELEMENTS (var, entries)
+
+/*
+ * BLS appears to make paths relative to the filesystem that snippets are
+ * on, not /. Attempt to cope.
+ */
+static char *blsuki_update_boot_device (char *tmp)
+{
+#ifdef GRUB_MACHINE_EMU
+  static int separate_boot = -1;
+  char *ret;
+
+  if (separate_boot != -1)
+    goto probed;
+
+  separate_boot = 0;
+
+  ret = grub_make_system_path_relative_to_its_root (GRUB_BOOT_DEVICE);
+
+  if (ret != NULL && ret[0] == '\0')
+    separate_boot = 1;
+
+ probed:
+  if (separate_boot == 0)
+    return tmp;
+#endif
+
+  return grub_stpcpy (tmp, GRUB_BOOT_DEVICE);
+}
 
 /*
  * This function will add a new keyval pair to a list of keyvals stored in the
@@ -526,7 +561,7 @@ bls_get_linux (grub_blsuki_entry_t *entry)
   linux_path = blsuki_get_val (entry, "linux", NULL);
   options = blsuki_expand_val (blsuki_get_val (entry, "options", NULL));
 
-  if (grub_add (sizeof ("linux "), grub_strlen (linux_path), &size))
+  if (grub_add (sizeof ("linux " GRUB_BOOT_DEVICE), grub_strlen (linux_path), &size))
     {
       grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected while calculating linux buffer size");
       goto finish;
@@ -548,6 +583,7 @@ bls_get_linux (grub_blsuki_entry_t *entry)
 
   tmp = linux_cmd;
   tmp = grub_stpcpy (tmp, "linux ");
+  tmp = blsuki_update_boot_device (tmp);
   tmp = grub_stpcpy (tmp, linux_path);
   if (options != NULL)
     {
@@ -582,7 +618,7 @@ bls_get_initrd (grub_blsuki_entry_t *entry)
 
       for (i = 0; initrd_list != NULL && initrd_list[i] != NULL; i++)
 	{
-	  if (grub_add (size, 1, &size) ||
+	  if (grub_add (size, sizeof (" " GRUB_BOOT_DEVICE) - 1, &size) ||
 	      grub_add (size, grub_strlen (initrd_list[i]), &size))
 	    {
 	      grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected calculating initrd buffer size");
@@ -605,6 +641,7 @@ bls_get_initrd (grub_blsuki_entry_t *entry)
 	{
 	  grub_dprintf ("blsuki", "adding initrd %s\n", initrd_list[i]);
 	  tmp = grub_stpcpy (tmp, " ");
+	  tmp = blsuki_update_boot_device (tmp);
 	  tmp = grub_stpcpy (tmp, initrd_list[i]);
 	}
       tmp = grub_stpcpy (tmp, "\n");
@@ -630,7 +667,7 @@ bls_get_devicetree (grub_blsuki_entry_t *entry)
   dt_path = blsuki_expand_val (blsuki_get_val (entry, "devicetree", NULL));
   if (dt_path != NULL)
     {
-      if (grub_add (sizeof ("devicetree "), grub_strlen (dt_path), &size) ||
+      if (grub_add (sizeof ("devicetree " GRUB_BOOT_DEVICE), grub_strlen (dt_path), &size) ||
 	  grub_add (size, 1, &size))
 	{
 	  grub_error (GRUB_ERR_OUT_OF_RANGE, "overflow detected calculating device tree buffer size");
@@ -643,6 +680,7 @@ bls_get_devicetree (grub_blsuki_entry_t *entry)
 
       tmp = dt_cmd;
       tmp = grub_stpcpy (dt_cmd, "devicetree ");
+      tmp = blsuki_update_boot_device (tmp);
       tmp = grub_stpcpy (tmp, dt_path);
       tmp = grub_stpcpy (tmp, "\n");
     }
@@ -757,7 +795,11 @@ blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, c
 
   if (devid == NULL)
     {
+#ifdef GRUB_MACHINE_EMU
+      devid = "host";
+#else
       devid = grub_env_get ("root");
+#endif
       if (devid == NULL)
 	return grub_error (GRUB_ERR_FILE_NOT_FOUND, N_("variable '%s' isn't set"), "root");
     }
@@ -799,10 +841,13 @@ blsuki_set_find_entry_info (struct find_entry_info *info, const char *dirname, c
  * parameter. If the fallback option is enabled, the default location will be
  * checked for BLS config files if the first attempt fails.
  */
-static void
+static grub_err_t
 blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
 {
   struct read_entry_info read_entry_info;
+  char *default_dir = NULL;
+  char *tmp;
+  grub_size_t default_size;
   grub_fs_t dir_fs = NULL;
   grub_device_t dir_dev = NULL;
   bool fallback = false;
@@ -833,7 +878,15 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
        */
       if (entries == NULL && fallback == false && enable_fallback == true)
 	{
-	  blsuki_set_find_entry_info (info, GRUB_BLS_CONFIG_PATH, NULL);
+	  default_size = sizeof (GRUB_BOOT_DEVICE) + sizeof (GRUB_BLS_CONFIG_PATH) - 1;
+	  default_dir = grub_malloc (default_size);
+	  if (default_dir == NULL)
+	    return grub_errno;
+
+	  tmp = blsuki_update_boot_device (default_dir);
+	  tmp = grub_stpcpy (tmp, GRUB_BLS_CONFIG_PATH);
+
+	  blsuki_set_find_entry_info (info, default_dir, NULL);
 	  grub_dprintf ("blsuki", "Entries weren't found in %s, fallback to %s\n",
 			read_entry_info.dirname, info->dirname);
 	  fallback = true;
@@ -842,6 +895,9 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback)
 	fallback = false;
     }
   while (fallback == true);
+
+  grub_free (default_dir);
+  return GRUB_ERR_NONE;
 }
 
 static grub_err_t
@@ -851,6 +907,9 @@ blsuki_load_entries (char *path, bool enable_fallback)
   static grub_err_t r;
   const char *devid = NULL;
   char *dir = NULL;
+  char *default_dir = NULL;
+  char *tmp;
+  grub_size_t dir_size;
   struct find_entry_info info = {
       .dev = NULL,
       .fs = NULL,
@@ -892,15 +951,25 @@ blsuki_load_entries (char *path, bool enable_fallback)
     }
 
   if (dir == NULL)
-    dir = (char *) GRUB_BLS_CONFIG_PATH;
+    {
+      dir_size = sizeof (GRUB_BOOT_DEVICE) + sizeof (GRUB_BLS_CONFIG_PATH) - 2;
+      default_dir = grub_malloc (dir_size);
+      if (default_dir == NULL)
+	return grub_errno;
+
+      tmp = blsuki_update_boot_device (default_dir);
+      tmp = grub_stpcpy (tmp, GRUB_BLS_CONFIG_PATH);
+      dir = default_dir;
+    }
 
   r = blsuki_set_find_entry_info (&info, dir, devid);
   if (r == GRUB_ERR_NONE)
-    blsuki_find_entry (&info, enable_fallback);
+    r = blsuki_find_entry (&info, enable_fallback);
 
   if (info.dev != NULL)
     grub_device_close (info.dev);
 
+  grub_free (default_dir);
   return r;
 }
 

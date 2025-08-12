@@ -39,7 +39,7 @@ void grub_fini_all (void);
 void grub_find_zpool_from_dir (const char *dir,
 			       char **poolname, char **poolfs);
 
-char *grub_make_system_path_relative_to_its_root (const char *path)
+char *EXPORT_FUNC (grub_make_system_path_relative_to_its_root) (const char *path)
  WARN_UNUSED_RESULT;
 int
 grub_util_device_is_mapped (const char *dev);

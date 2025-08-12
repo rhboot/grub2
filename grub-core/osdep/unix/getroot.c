@@ -16,8 +16,8 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
 #include <config-util.h>
+#include <config.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -567,6 +567,7 @@ grub_guess_root_devices (const char *dir_in)
 
 #endif
 
+#ifdef GRUB_UTIL
 void
 grub_util_pull_lvm_by_command (const char *os_dev)
 {
@@ -663,6 +664,7 @@ out:
   free (buf);
   free (vgid);
 }
+#endif
 
 /* ZFS has similar problems to those of btrfs (see above).  */
 void
