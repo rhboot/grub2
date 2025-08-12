@@ -3275,6 +3275,7 @@ These variables have special meaning to GRUB.
 
 @menu
 * biosnum::
+* blsuki_save_default::
 * check_appended_signatures::
 * check_signatures::
 * chosen::
@@ -3339,13 +3340,17 @@ this.
 For an alternative approach which also changes BIOS drive mappings for the
 chain-loaded system, @pxref{drivemap}.
 
+@node blsuki_save_default
+@subsection blsuki_save_default
+
+If this variable is set, menu entries generated from BLS config files
+(@pxref{blscfg}) will be set as the default boot entry when selected.
 
 @node check_appended_signatures
 @subsection check_appended_signatures
 
 This variable controls whether GRUB enforces appended signature validation on
 certain loaded files. @xref{Using appended signatures}.
-
 
 @node check_signatures
 @subsection check_signatures
@@ -4355,6 +4360,7 @@ you forget a command, you can run the command @command{help}
 * background_image::            Load background image for active terminal
 * badram::                      Filter out bad regions of RAM
 * blocklist::                   Print a block list
+* blscfg::                      Load Boot Loader Specification menu entries
 * boot::                        Start up your operating system
 * cat::                         Show the contents of a file
 * clear::                       Clear the screen
@@ -4539,6 +4545,72 @@ Note: The command is not allowed when lockdown is enforced (@pxref{Lockdown}).
 
 @deffn Command blocklist file
 Print a block list (@pxref{Block list syntax}) for @var{file}.
+@end deffn
+
+
+@node blscfg
+@subsection blscfg
+
+@deffn Command blscfg [@option{-p|--path} dir] [@option{-f|--enable-fallback}] [@option{-d|--show-default}] [@option{-n|--show-non-default}] [@option{-e|--entry} file]
+Load Boot Loader Specification (BLS) entries into the GRUB menu. Boot entries
+generated from @command{blscfg} won't interfere with entries from @file{grub.cfg} appearing in
+the GRUB menu. Also, entries generated from @command{blscfg} exists only in memory and
+don't update @file{grub.cfg}.
+
+By default, the BLS entries are stored in the @file{/loader/entries} directory in the
+boot partition. If BLS entries are stored elsewhere, the @option{--path} option can be
+used to check a different directory instead of the default location. If no BLS
+entries are found while using the @option{--path} option, the @option{--enable-fallback} option
+can be used to check for entries in the default location.
+
+The @option{--show-default} option allows the default boot entry to be added to the
+GRUB menu from the BLS entries.
+
+The @option{--show-non-default} option allows non-default boot entries to be added to
+the GRUB menu from the BLS entries.
+
+The @option{--entry} option allows specific boot entries to be added to the GRUB menu
+from the BLS entries.
+
+The @option{--entry}, @option{--show-default}, and @option{--show-non-default} options
+are used to filter which BLS entries are added to the GRUB menu. If none are
+used, all entries in the default location or the location specified by @option{--path}
+will be added to the GRUB menu.
+
+A BLS config file example:
+@example
+# /boot/loader/entries/6a9857a393724b7a981ebb5b8495b9ea-3.8.0-2.fc19.x86_64.conf
+title        Fedora 19 (Rawhide)
+sort-key     fedora
+machine-id   6a9857a393724b7a981ebb5b8495b9ea
+version      3.8.0-2.fc19.x86_64
+options      root=UUID=6d3376e4-fc93-4509-95ec-a21d68011da2 quiet
+architecture x64
+linux        /6a9857a393724b7a981ebb5b8495b9ea/3.8.0-2.fc19.x86_64/linux
+initrd       /6a9857a393724b7a981ebb5b8495b9ea/3.8.0-2.fc19.x86_64/initrd
+@end example
+
+For more information on BLS entry keys as well as other information on BLS,
+see: @uref{https://uapi-group.org/specifications/specs/boot_loader_specification/, The Boot Loader Specification}. For the GRUB, there are a few additional
+BLS entry keys based on the @command{menuentry} command (@pxref{menuentry}).
+
+The @code{grub_class} key may be used any number of times to group menu entries into
+classes. Menu themes may display different classes using different styles.
+
+The @code{grub_users} key grants specific users access to specific menu
+entries.  @xref{Security}.
+
+The @code{grub_hotkey} key associates a hotkey with a menu entry.
+@var{key} may be a single letter, or one of the aliases @samp{backspace},
+@samp{tab}, or @samp{delete}.
+
+The @code{grub_args} key can be used for any other argument to be passed as positonal
+parameters when the list of commands generated from the BLS config file are
+executed.
+
+Variable expansion using the @samp{$} character (@xref{Shell-like scripting}) may be
+used with BLS config files for the GRUB but might not be compatible with other
+bootloaders.
 @end deffn
 
 

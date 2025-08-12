@@ -955,7 +955,7 @@ static void create_entry (struct bls_entry *entry)
 			clinux, options ? " " : "", options ? options : "",
 			initrd ? initrd : "", dt ? dt : "");
 
-  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index, entry);
+  grub_normal_add_menu_entry (argc, argv, classes, id, users, hotkey, NULL, src, 0, &index, entry, NULL);
   grub_dprintf ("blscfg", "Added entry %d id:\"%s\"\n", index, id);
 
 finish:

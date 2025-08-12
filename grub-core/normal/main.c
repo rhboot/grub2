@@ -75,6 +75,10 @@ grub_normal_free_menu (grub_menu_t menu)
 	{
 	  entry->bls->visible = 0;
 	}
+      if (entry->blsuki)
+	{
+	  entry->blsuki->visible = 0;
+	}
 
       grub_free ((void *) entry->id);
       grub_free ((void *) entry->users);
