@@ -3344,7 +3344,8 @@ chain-loaded system, @pxref{drivemap}.
 @subsection blsuki_save_default
 
 If this variable is set, menu entries generated from BLS config files
-(@pxref{blscfg}) will be set as the default boot entry when selected.
+(@pxref{blscfg}) or UKI files (@pxref{uki}) will be set as the default boot
+entry when selected.
 
 @node check_appended_signatures
 @subsection check_appended_signatures
@@ -4434,6 +4435,7 @@ you forget a command, you can run the command @command{help}
 * true::                        Do nothing, successfully
 * trust::                       Add public key to list of trusted keys
 * trust_certificate::           Add an x509 certificate to the list of trusted certificates
+* uki::                         Load Unified Kernel Image menu entries
 * unset::                       Unset an environment variable
 @comment * vbeinfo::                     List available video modes
 * verify_appended::             Verify appended digital signature
@@ -6061,6 +6063,38 @@ See @xref{Using appended signatures} for more information.
 Unset the environment variable @var{envvar}.
 @end deffn
 
+
+@node uki
+@subsection uki
+
+@deffn Command uki [@option{-p|--path} dir] [@option{-f|--enable-fallback}] [@option{-d|--show-default}] [@option{-n|--show-non-default}] [@option{-e|--entry} file]
+Load Unified Kernel Image (UKI) files into the GRUB menu. Boot entries
+generated from @command{uki} won't interfere with entries from @file{grub.cfg} appearing in the
+GRUB menu. Also, entries generated from @command{uki} exists only in memory and don't
+update @file{grub.cfg}.
+
+By default, the UKI files are stored in the @file{/EFI/Linux} directory in the EFI
+system partition. If UKI files are stored elsewhere, the @option{--path} option can be
+used to check a different directory instead of the default location. If no UKI
+files are found while using the @option{--path} option, the @option{--enable-fallback} option can
+be used to check for files in the default location.
+
+The @option{--show-default} option allows the default boot entry to be added to the
+GRUB menu from the UKI files.
+
+The @option{--show-non-default} option allows non-default boot entries to be added to
+the GRUB menu from the UKI files.
+
+The @option{--entry} option allows specific boot entries to be added to the GRUB menu
+from the UKI files.
+
+The @option{--entry}, @option{--show-default}, and @option{--show-non-default} options
+are used to filter which UKI files are added to the GRUB menu. If none are
+used, all files in the default location or the location specified by @option{--path}
+will be added to the GRUB menu.
+
+For more information on UKI, see: @uref{https://uapi-group.org/specifications/specs/unified_kernel_image/, The Unified Kernel Image Specification}
+@end deffn
 
 @ignore
 @node vbeinfo
