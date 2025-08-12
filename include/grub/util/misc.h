@@ -36,7 +36,7 @@ char *grub_util_read_image (const char *path);
 void grub_util_load_image (const char *path, char *buf);
 void grub_util_write_image (const char *img, size_t size, FILE *out,
 			    const char *name);
-void grub_util_write_image_at (const void *img, size_t size, off_t offset,
+void grub_util_write_image_at (const void *img, size_t size, grub_off_t offset,
 			       FILE *out, const char *name);
 
 char *make_system_path_relative_to_its_root (const char *path);
