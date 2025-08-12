@@ -21,6 +21,7 @@
 #include <grub/net.h>
 #include <grub/normal.h>
 #include <grub/dl.h>
+#include <grub/menu.h>
 #include <grub/misc.h>
 #include <grub/file.h>
 #include <grub/mm.h>
@@ -65,6 +66,11 @@ grub_normal_free_menu (grub_menu_t menu)
 	  for (i = 0; entry->args[i]; i++)
 	    grub_free (entry->args[i]);
 	  grub_free (entry->args);
+	}
+
+      if (entry->blsuki)
+	{
+	  entry->blsuki->visible = 0;
 	}
 
       grub_free ((void *) entry->id);

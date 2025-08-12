@@ -848,6 +848,18 @@ module = {
 };
 
 module = {
+  name = blsuki;
+  common = commands/blsuki.c;
+  common = lib/gnulib/filevercmp.c;
+  enable = powerpc_ieee1275;
+  enable = efi;
+  enable = i386_pc;
+  enable = emu;
+  cflags = '$(CFLAGS_POSIX) $(CFLAGS_GNULIB)';
+  cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB)';
+};
+
+module = {
   name = boot;
   common = commands/boot.c;
   i386_pc = lib/i386/pc/biosnum.c;
