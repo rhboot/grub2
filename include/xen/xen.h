@@ -823,8 +823,8 @@ struct start_info {
                                 /* (PFN of pre-loaded module if           */
                                 /*  SIF_MOD_START_PFN set in flags).      */
     unsigned long mod_len;      /* Size (bytes) of pre-loaded module.     */
-#define MAX_GUEST_CMDLINE 1024
-    int8_t cmd_line[MAX_GUEST_CMDLINE];
+#define GRUB_XEN_MAX_GUEST_CMDLINE 1024
+    int8_t cmd_line[GRUB_XEN_MAX_GUEST_CMDLINE];
     /* The pfn range here covers both page table and p->m table frames.   */
     unsigned long first_p2m_pfn;/* 1st pfn forming initial P->M table.    */
     unsigned long nr_p2m_frames;/* # of pfns forming initial P->M table.  */
