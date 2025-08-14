@@ -581,6 +581,8 @@ grub_machine_init (void)
   grub_xendisk_init ();
 
   grub_boot_init ();
+
+  grub_parse_xen_cmdline ();
 }
 
 void

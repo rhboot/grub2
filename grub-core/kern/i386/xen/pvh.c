@@ -352,6 +352,10 @@ grub_xen_setup_pvh (void)
   grub_xen_mm_init_regions ();
 
   grub_rsdp_addr = pvh_start_info->rsdp_paddr;
+
+  grub_strncpy ((char *) grub_xen_start_page_addr->cmd_line,
+		(const char *)(grub_addr_t) pvh_start_info->cmdline_paddr,
+		GRUB_XEN_MAX_GUEST_CMDLINE);
 }
 
 grub_err_t

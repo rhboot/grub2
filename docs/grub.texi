@@ -3271,6 +3271,7 @@ GRUB.  Others may be used freely in GRUB configuration files.
 @menu
 * Special environment variables::
 * Environment block::
+* Passing environment variables through Xen::
 @end menu
 
 
@@ -3870,6 +3871,57 @@ using BIOS or EFI functions (no ATA, USB or IEEE1275).
 
 @command{grub-mkconfig} uses this facility to implement
 @samp{GRUB_SAVEDEFAULT} (@pxref{Simple configuration}).
+
+@node Passing environment variables through Xen
+@section Passing environment variables through Xen
+
+If you are using a GRUB image as the kernel for a PV or PVH Xen virtual
+machine, you can pass environment variables from Xen's dom0 to the VM through
+the Xen-provided kernel command line. When combined with a properly configured
+guest, this can be used to customize the guest's behavior on bootup via the
+VM's Xen configuration file.
+
+GRUB will parse the kernel command line passed to it by Xen during bootup.
+The command line will be split into space-delimited words. Single and
+double quotes may be used to quote words or portions of words that contain
+spaces. Single quotes will be considered part of a word if inside double
+quotes, and vice versa. Arbitrary characters may be backslash-escaped to make
+them a literal component of a word rather than being parsed as quotes or word
+separators. The command line must consist entirely of printable 7-bit ASCII
+characters and spaces. If a non-printing ASCII character is found anywhere in
+the command line, the entire command line will be ignored by GRUB. (This
+splitter algorithm is meant to behave somewhat like Bash's word splitting.)
+
+Each word should be a variable assignment in the format ``variable'' or
+``variable=value''. Variable names must contain only the characters A-Z, a-z,
+and underscore (``_''). Variable names must begin with the string
+``xen_grub_env_''. Variable values can contain arbitrary printable 7-bit
+ASCII characters and space. If any variable contains an illegal name, that
+variable will be ignored.
+
+If a variable name and value are both specified, the variable will be set to
+the specified value. If only a variable name is specified, the variable's
+value will be set to ``1''.
+
+The following is a simple example of how to use this functionality to append
+arbitrary variables to a guest's kernel command line:
+
+@example
+# In the Xen configuration file for the guest
+name = "linux_vm"
+type = "pvh"
+kernel = "/path/to/grub-i386-xen_pvh.bin"
+extra = "xen_grub_env_linux_append='loglevel=3'"
+memory = 1024
+disk = [ "file:/srv/vms/linux_vm.img,sda,w" ]
+
+# In the guest's GRUB configuration file
+menuentry "Linux VM with dom0-specified kernel parameters" @{
+    search --set=root --label linux_vm --hint hd0,msdos1
+    linux /boot/vmlinuz root=LABEL=linux_vm $@{xen_grub_env_linux_append@}
+    initrd /boot/initrd.img
+@}
+@end example
 
 @node Modules
 @chapter Modules

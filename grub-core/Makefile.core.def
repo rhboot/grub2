@@ -248,6 +248,7 @@ kernel = {
   xen = term/xen/console.c;
   xen = disk/xen/xendisk.c;
   xen = commands/boot.c;
+  xen = kern/xen/cmdline.c;
 
   i386_xen_pvh = commands/boot.c;
   i386_xen_pvh = disk/xen/xendisk.c;
@@ -255,6 +256,7 @@ kernel = {
   i386_xen_pvh = kern/i386/xen/tsc.c;
   i386_xen_pvh = kern/i386/xen/pvh.c;
   i386_xen_pvh = kern/xen/init.c;
+  i386_xen_pvh = kern/xen/cmdline.c;
   i386_xen_pvh = term/xen/console.c;
 
   ia64_efi = kern/ia64/efi/startup.S;
