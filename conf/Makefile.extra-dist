@@ -34,8 +34,33 @@ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regexec-resource-leak.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-gcc-15-compile.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
 
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/01_md.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/02_keccak_sse.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/03_mpiutil_alloc.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/03_sexp_free.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/04_aria.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/05_disable_rsa_shake.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/06_blake.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/07_disable_64div.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/08_sexp_leak.patch
+
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0001-libtasn1-disable-code-not-needed-in-grub.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0002-libtasn1-replace-strcat-with-strcpy-in-_asn1_str_cat.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0003-libtasn1-replace-strcat-with-_asn1_str_cat.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0004-libtasn1-adjust-the-header-paths-in-libtasn1.h.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0005-libtasn1-Use-grub_divmod64-for-division.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0006-libtasn1-fix-the-potential-buffer-overrun.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0007-asn1_test-include-asn1_test.h-only.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0008-asn1_test-rename-the-main-functions-to-the-test-name.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0009-asn1_test-return-either-0-or-1-to-reflect-the-result.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0010-asn1_test-remove-verbose-and-the-unnecessary-printf.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0011-asn1_test-print-the-error-messages-with-grub_printf.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0012-asn1_test-use-the-grub-specific-functions-and-types.patch
+EXTRA_DIST += grub-core/lib/libtasn1-patches/0013-asn1_test-enable-the-testcase-only-when-GRUB_LONG_MA.patch
+
 EXTRA_DIST += grub-core/lib/libgcrypt
 EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
+EXTRA_DIST += grub-core/lib/libtasn1
 EXTRA_DIST += $(shell find $(top_srcdir)/include -name '*.h')
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/lib -name '*.h')
 EXTRA_DIST += grub-core/efiemu/runtime/config.h
