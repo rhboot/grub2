@@ -464,9 +464,7 @@ geli_recover_key (grub_disk_t source, grub_cryptodisk_t dev, grub_cryptomount_ar
       grub_crypto_hmac_write (hnd, header.salt, sizeof (header.salt));
       grub_crypto_hmac_write (hnd, cargs->key_data, cargs->key_len);
 
-      gcry_err = grub_crypto_hmac_fini (hnd, geomkey);
-      if (gcry_err)
-	return grub_crypto_gcry_error (gcry_err);
+      grub_crypto_hmac_fini (hnd, geomkey);
     }
 
   gcry_err = grub_crypto_hmac_buffer (dev->hash, geomkey,

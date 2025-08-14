@@ -511,8 +511,14 @@ void
 grub_crypto_hmac_write (struct grub_crypto_hmac_handle *hnd,
 			const void *data,
 			grub_size_t datalen);
-gcry_err_code_t
+void
 grub_crypto_hmac_fini (struct grub_crypto_hmac_handle *hnd, void *out);
+void
+grub_crypto_hmac_reset (struct grub_crypto_hmac_handle *hnd);
+void
+grub_crypto_hmac_final (struct grub_crypto_hmac_handle *hnd, void *out);
+void
+grub_crypto_hmac_free (struct grub_crypto_hmac_handle *hnd);
 
 gcry_err_code_t
 grub_crypto_hmac_buffer (const struct gcry_md_spec *md,

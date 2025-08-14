@@ -31,7 +31,9 @@ struct grub_crypto_hmac_handle
 {
   const struct gcry_md_spec *md;
   void *ctx;
-  void *opad;
+  void *ctx2;
+  void *ctx_cache;
+  void *ctx2_cache;
 };
 
 static gcry_cipher_spec_t *grub_ciphers = NULL;
@@ -443,7 +445,8 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
 {
   grub_uint8_t *helpkey = NULL;
   grub_uint8_t *ipad = NULL, *opad = NULL;
-  void *ctx = NULL;
+  void *ctx = NULL, *ctx2 = NULL;
+  void *ctx_cache = NULL, *ctx2_cache = NULL;
   struct grub_crypto_hmac_handle *ret = NULL;
   unsigned i;
 
@@ -452,6 +455,18 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
 
   ctx = grub_malloc (md->contextsize);
   if (!ctx)
+    goto err;
+
+  ctx2 = grub_malloc (md->contextsize);
+  if (!ctx2)
+    goto err;
+
+  ctx_cache = grub_malloc (md->contextsize);
+  if (!ctx_cache)
+    goto err;
+
+  ctx2_cache = grub_malloc (md->contextsize);
+  if (!ctx2_cache)
     goto err;
 
   if ( keylen > md->blocksize )
@@ -483,12 +498,21 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
   grub_free (helpkey);
   helpkey = NULL;
 
+  /* inner pad */
   md->init (ctx, 0);
-
-  md->write (ctx, ipad, md->blocksize); /* inner pad */
+  md->write (ctx, ipad, md->blocksize);
+  grub_memcpy (ctx_cache, ctx, md->contextsize);
   grub_memset (ipad, 0, md->blocksize);
   grub_free (ipad);
   ipad = NULL;
+
+  /* outer pad */
+  md->init (ctx2, 0);
+  md->write (ctx2, opad, md->blocksize);
+  grub_memcpy (ctx2_cache, ctx2, md->contextsize);
+  grub_memset (opad, 0, md->blocksize);
+  grub_free (opad);
+  opad = NULL;
 
   ret = grub_malloc (sizeof (*ret));
   if (!ret)
@@ -496,13 +520,18 @@ grub_crypto_hmac_init (const struct gcry_md_spec *md,
 
   ret->md = md;
   ret->ctx = ctx;
-  ret->opad = opad;
+  ret->ctx2 = ctx2;
+  ret->ctx_cache = ctx_cache;
+  ret->ctx2_cache = ctx2_cache;
 
   return ret;
 
  err:
   grub_free (helpkey);
   grub_free (ctx);
+  grub_free (ctx2);
+  grub_free (ctx_cache);
+  grub_free (ctx2_cache);
   grub_free (ipad);
   grub_free (opad);
   return NULL;
@@ -516,37 +545,48 @@ grub_crypto_hmac_write (struct grub_crypto_hmac_handle *hnd,
   hnd->md->write (hnd->ctx, data, datalen);
 }
 
-gcry_err_code_t
+void
 grub_crypto_hmac_fini (struct grub_crypto_hmac_handle *hnd, void *out)
 {
-  grub_uint8_t *p;
-  grub_uint8_t *ctx2;
+  grub_crypto_hmac_final (hnd, out);
+  grub_crypto_hmac_free (hnd);
+}
 
-  ctx2 = grub_malloc (hnd->md->contextsize);
-  if (!ctx2)
-    return GPG_ERR_OUT_OF_MEMORY;
+void
+grub_crypto_hmac_reset (struct grub_crypto_hmac_handle *hnd)
+{
+  grub_memcpy (hnd->ctx, hnd->ctx_cache, hnd->md->contextsize);
+  grub_memcpy (hnd->ctx2, hnd->ctx2_cache, hnd->md->contextsize);
+}
+
+void
+grub_crypto_hmac_final (struct grub_crypto_hmac_handle *hnd, void *out)
+{
+  grub_uint8_t *p;
 
   hnd->md->final (hnd->ctx);
   hnd->md->read (hnd->ctx);
   p = hnd->md->read (hnd->ctx);
 
-  hnd->md->init (ctx2, 0);
-  hnd->md->write (ctx2, hnd->opad, hnd->md->blocksize);
-  hnd->md->write (ctx2, p, hnd->md->mdlen);
-  hnd->md->final (ctx2);
-  grub_memset (hnd->opad, 0, hnd->md->blocksize);
-  grub_free (hnd->opad);
+  hnd->md->write (hnd->ctx2, p, hnd->md->mdlen);
+  hnd->md->final (hnd->ctx2);
+
+  grub_memcpy (out, hnd->md->read (hnd->ctx2), hnd->md->mdlen);
+}
+
+void
+grub_crypto_hmac_free (struct grub_crypto_hmac_handle *hnd)
+{
   grub_memset (hnd->ctx, 0, hnd->md->contextsize);
   grub_free (hnd->ctx);
-
-  grub_memcpy (out, hnd->md->read (ctx2), hnd->md->mdlen);
-  grub_memset (ctx2, 0, hnd->md->contextsize);
-  grub_free (ctx2);
-
+  grub_memset (hnd->ctx2, 0, hnd->md->contextsize);
+  grub_free (hnd->ctx2);
+  grub_memset (hnd->ctx_cache, 0, hnd->md->contextsize);
+  grub_free (hnd->ctx_cache);
+  grub_memset (hnd->ctx2_cache, 0, hnd->md->contextsize);
+  grub_free (hnd->ctx2_cache);
   grub_memset (hnd, 0, sizeof (*hnd));
   grub_free (hnd);
-
-  return GPG_ERR_NO_ERROR;
 }
 
 gcry_err_code_t
@@ -561,7 +601,8 @@ grub_crypto_hmac_buffer (const struct gcry_md_spec *md,
     return GPG_ERR_OUT_OF_MEMORY;
 
   grub_crypto_hmac_write (hnd, data, datalen);
-  return grub_crypto_hmac_fini (hnd, out);
+  grub_crypto_hmac_fini (hnd, out);
+  return GPG_ERR_NO_ERROR;
 }
 
 
