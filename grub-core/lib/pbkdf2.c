@@ -39,6 +39,7 @@ grub_crypto_pbkdf2 (const struct gcry_md_spec *md,
 		    unsigned int c,
 		    grub_uint8_t *DK, grub_size_t dkLen)
 {
+  struct grub_crypto_hmac_handle *hnd = NULL;
   unsigned int hLen = md->mdlen;
   grub_uint8_t U[GRUB_CRYPTO_MAX_MDLEN];
   grub_uint8_t T[GRUB_CRYPTO_MAX_MDLEN];
@@ -47,7 +48,6 @@ grub_crypto_pbkdf2 (const struct gcry_md_spec *md,
   unsigned int r;
   unsigned int i;
   unsigned int k;
-  gcry_err_code_t rc;
   grub_uint8_t *tmp;
   grub_size_t tmplen = Slen + 4;
 
@@ -72,6 +72,13 @@ grub_crypto_pbkdf2 (const struct gcry_md_spec *md,
 
   grub_memcpy (tmp, S, Slen);
 
+  hnd = grub_crypto_hmac_init (md, P, Plen);
+  if (hnd == NULL)
+    {
+      grub_free (tmp);
+      return GPG_ERR_OUT_OF_MEMORY;
+    }
+
   for (i = 1; i - 1 < l; i++)
     {
       grub_memset (T, 0, hLen);
@@ -85,16 +92,13 @@ grub_crypto_pbkdf2 (const struct gcry_md_spec *md,
 	      tmp[Slen + 2] = (i & 0x0000ff00) >> 8;
 	      tmp[Slen + 3] = (i & 0x000000ff) >> 0;
 
-	      rc = grub_crypto_hmac_buffer (md, P, Plen, tmp, tmplen, U);
+	      grub_crypto_hmac_write (hnd, tmp, tmplen);
 	    }
 	  else
-	    rc = grub_crypto_hmac_buffer (md, P, Plen, U, hLen, U);
+	    grub_crypto_hmac_write (hnd, U, hLen);
 
-	  if (rc != GPG_ERR_NO_ERROR)
-	    {
-	      grub_free (tmp);
-	      return rc;
-	    }
+	  grub_crypto_hmac_final (hnd, U);
+	  grub_crypto_hmac_reset (hnd);
 
 	  for (k = 0; k < hLen; k++)
 	    T[k] ^= U[k];
@@ -103,6 +107,7 @@ grub_crypto_pbkdf2 (const struct gcry_md_spec *md,
       grub_memcpy (DK + (i - 1) * hLen, T, i == l ? r : hLen);
     }
 
+  grub_crypto_hmac_free (hnd);
   grub_free (tmp);
 
   return GPG_ERR_NO_ERROR;
