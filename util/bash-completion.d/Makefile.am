@@ -50,7 +50,7 @@ CLEANFILES = $(bash_completion_script) \
 	$(grub_mkfont_script) \
 	$(grub_mkimage_script) \
 	$(grub_mkpasswd_pbkdf2_script) \
-	$(grub_mkrescure_script) \
+	$(grub_mkrescue_script) \
 	$(grub_probe_script) \
 	$(grub_reboot_script) \
 	$(grub_script_check_script) \
@@ -67,7 +67,7 @@ bashcompletion_DATA = $(bash_completion_script) \
 	$(grub_mkfont_script) \
 	$(grub_mkimage_script) \
 	$(grub_mkpasswd_pbkdf2_script) \
-	$(grub_mkrescure_script) \
+	$(grub_mkrescue_script) \
 	$(grub_probe_script) \
 	$(grub_reboot_script) \
 	$(grub_script_check_script) \
