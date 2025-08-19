@@ -219,6 +219,9 @@ grub_efi_translate_key (grub_efi_input_key_t key)
       else
 	return key.unicode_char;
     }
+  /* Some devices use power key (key.scan_code 0x0102, suspend) as Enter. */
+  else if (key.scan_code == 0x0102)
+    return '\r';
   /* Some devices send enter with scan_code 0x0d (F3) and unicode_char 0x0d. */
   else if (key.scan_code == '\r' && key.unicode_char == '\r')
     return key.unicode_char;
