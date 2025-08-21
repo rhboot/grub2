@@ -502,6 +502,8 @@ grub_cmd_translate (grub_command_t cmd __attribute__ ((unused)),
   return 0;
 }
 
+static grub_command_t cmd;
+
 GRUB_MOD_INIT (gettext)
 {
   const char *lang;
@@ -521,13 +523,14 @@ GRUB_MOD_INIT (gettext)
   grub_register_variable_hook ("locale_dir", NULL, read_main);
   grub_register_variable_hook ("secondary_locale_dir", NULL, read_secondary);
 
-  grub_register_command_p1 ("gettext", grub_cmd_translate,
-			    N_("STRING"),
-			    /* TRANSLATORS: It refers to passing the string through gettext.
-			       So it's "translate" in the same meaning as in what you're
-			       doing now.
-			     */
-			    N_("Translates the string with the current settings."));
+  cmd = grub_register_command_p1 ("gettext", grub_cmd_translate,
+				  N_("STRING"),
+				  /*
+				   * TRANSLATORS: It refers to passing the string through gettext.
+				   * So it's "translate" in the same meaning as in what you're
+				   * doing now.
+				   */
+				  N_("Translates the string with the current settings."));
 
   /* Reload .mo file information if lang changes.  */
   grub_register_variable_hook ("lang", NULL, grub_gettext_env_write_lang);
@@ -543,6 +546,8 @@ GRUB_MOD_FINI (gettext)
   grub_register_variable_hook ("locale_dir", NULL, NULL);
   grub_register_variable_hook ("secondary_locale_dir", NULL, NULL);
   grub_register_variable_hook ("lang", NULL, NULL);
+
+  grub_unregister_command (cmd);
 
   grub_gettext_delete_list (&main_context);
   grub_gettext_delete_list (&secondary_context);
