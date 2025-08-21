@@ -92,17 +92,18 @@ grub_functional_all_tests (grub_extcmd_context_t ctxt __attribute__ ((unused)),
   return GRUB_ERR_NONE;
 }
 
-static grub_extcmd_t cmd;
+static grub_extcmd_t cmd, cmd_all;
 
 GRUB_MOD_INIT (functional_test)
 {
   cmd = grub_register_extcmd ("functional_test", grub_functional_test, 0, 0,
 			      "Run all loaded functional tests.", 0);
-  cmd = grub_register_extcmd ("all_functional_test", grub_functional_all_tests, 0, 0,
-			      "Run all functional tests.", 0);
+  cmd_all = grub_register_extcmd ("all_functional_test", grub_functional_all_tests, 0, 0,
+				  "Run all functional tests.", 0);
 }
 
 GRUB_MOD_FINI (functional_test)
 {
   grub_unregister_extcmd (cmd);
+  grub_unregister_extcmd (cmd_all);
 }
