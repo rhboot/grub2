@@ -612,7 +612,7 @@ grub_mini_cmd_clear (struct grub_command *cmd __attribute__ ((unused)),
   return 0;
 }
 
-static grub_command_t cmd_clear;
+static grub_command_t cmd_clear, cmd_normal, cmd_normal_exit;
 
 static void (*grub_xputs_saved) (const char *str);
 static const char *features[] = {
@@ -655,10 +655,10 @@ GRUB_MOD_INIT(normal)
   grub_env_export ("pager");
 
   /* Register a command "normal" for the rescue mode.  */
-  grub_register_command ("normal", grub_cmd_normal,
-			 0, N_("Enter normal mode."));
-  grub_register_command ("normal_exit", grub_cmd_normal_exit,
-			 0, N_("Exit from normal mode."));
+  cmd_normal = grub_register_command ("normal", grub_cmd_normal,
+				      0, N_("Enter normal mode."));
+  cmd_normal_exit = grub_register_command ("normal_exit", grub_cmd_normal_exit,
+					   0, N_("Exit from normal mode."));
 
   /* Reload terminal colors when these variables are written to.  */
   grub_register_variable_hook ("color_normal", NULL, grub_env_write_color_normal);
@@ -700,4 +700,6 @@ GRUB_MOD_FINI(normal)
   grub_register_variable_hook ("color_highlight", NULL, NULL);
   grub_fs_autoload_hook = 0;
   grub_unregister_command (cmd_clear);
+  grub_unregister_command (cmd_normal);
+  grub_unregister_command (cmd_normal_exit);
 }
