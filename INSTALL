@@ -45,6 +45,10 @@ To build GRUB's graphical terminal (gfxterm), you need:
 To build grub-mkfont the unicode fonts are required (xfonts-unifont package
 on Debian).
 
+To build the optional grub-protect utility the following is needed:
+
+* libtasn1 (libtasn1-6-dev on Debian)
+
 If you use a development snapshot or want to hack on GRUB you may
 need the following.
 
