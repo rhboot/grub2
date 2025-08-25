@@ -4009,6 +4009,7 @@ you forget a command, you can run the command @command{help}
 * cmostest::                    Test bit in CMOS
 * cmp::                         Compare two files
 * configfile::                  Load a configuration file
+* connectefi::                  Connect EFI devices (on EFI platforms only)
 * cpuid::                       Check for CPU features
 * crc::                         Compute or check CRC32 checksums
 * cryptomount::                 Mount a crypto device
@@ -4233,6 +4234,11 @@ syntax}) to grab the first sector of the current partition with @samp{+1}.
 If you specify the option @option{--force}, then load @var{file} forcibly,
 whether it has a correct signature or not. This is required when you want to
 load a defective boot loader, such as SCO UnixWare 7.1.
+
+On EFI platforms, when initially network booting, or booting from another disk,
+it may be required to connect the EFI devices using @command{connectefi}
+command (@pxref{connectefi}) prior to chainloading to the disk, otherwise no
+disk may show up or the EFI partition on the disk may not be readable.
 @end deffn
 
 
@@ -4302,6 +4308,26 @@ Load @var{file} as a configuration file.  If @var{file} defines any menu
 entries, then show a menu containing them immediately.  Any environment
 variable changes made by the commands in @var{file} will not be preserved
 after @command{configfile} returns.
+@end deffn
+
+
+@node connectefi
+@subsection connectefi
+
+@deffn Command connectefi pciroot|disk|scsi|all
+When used with @samp{pciroot} parameter, all PCI devices are recursively
+connected, which may be a slow operation, depending on the hardware.
+
+When used with @samp{disk} or @samp{scsi} parameter (deprecated), only SCSI I/O
+and DISK I/O devices are connected; this is the recommended usage when
+chainloading to internal disk, unless some disks are not detected anyway, in
+such case @samp{all} may be used and a bug be reported to enhance the
+implementation.
+
+When used with @samp{all} parameter, all EFI devices are recursively connected,
+which may be an extremely slow operation, depending on the hardware.
+
+Note: This command is only available on EFI platforms.
 @end deffn
 
 
