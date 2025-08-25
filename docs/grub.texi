@@ -10688,16 +10688,16 @@ Print each line of input after reading it.
 @strong{Caution:} GRUB requires binutils-2.9.1.0.23 or later because the
 GNU assembler has been changed so that it can produce real 16bits
 machine code between 2.9.1 and 2.9.1.0.x. See
-@uref{http://sources.redhat.com/binutils/}, to obtain information on
+@uref{https://www.gnu.org/software/binutils/}, to obtain information on
 how to get the latest version.
 @end quotation
 
 GRUB is available from the GNU alpha archive site
-@uref{ftp://ftp.gnu.org/gnu/grub} or any of its mirrors. The file
+@uref{https://ftp.gnu.org/gnu/grub/} or any of its mirrors. The file
 will be named grub-version.tar.gz. The current version is
 @value{VERSION}, so the file you should grab is:
 
-@uref{ftp://ftp.gnu.org/gnu/grub/grub-@value{VERSION}.tar.gz}
+@uref{https://ftp.gnu.org/gnu/grub/grub-@value{VERSION}.tar.gz}
 
 To unbundle GRUB use the instruction:
 
@@ -10719,7 +10719,7 @@ just do:
 @end example
 
 Also, the latest version is available using Git. See
-@uref{http://www.gnu.org/software/grub/grub-download.html} for more
+@uref{https://www.gnu.org/software/grub/grub-download.html} for more
 information.
 
 @node Reporting bugs
@@ -10731,7 +10731,7 @@ list below before you submit bugs:
 @enumerate
 @item
 Before getting unsettled, read this manual through and through. Also,
-see the @uref{http://www.gnu.org/software/grub/grub-faq.html, GNU GRUB FAQ}.
+see the @uref{https://www.gnu.org/software/grub/grub-faq.html, GNU GRUB FAQ}.
 
 @item
 Always mention the information on your GRUB. The version number and the
@@ -10781,7 +10781,7 @@ important.
 @end enumerate
 
 If you follow the guideline above, submit a report to the
-@uref{http://savannah.gnu.org/bugs/?group=grub, Bug Tracking System}.
+@uref{https://savannah.gnu.org/bugs/?group=grub, Bug Tracking System}.
 Alternatively, you can submit a report via electronic mail to
 @email{bug-grub@@gnu.org}, but we strongly recommend that you use the
 Bug Tracking System, because e-mail can be passed over easily.
@@ -10796,7 +10796,7 @@ GRUB 2 is now quite stable and used in many production systems.  We are
 currently working on the 2.x series.
 
 If you are interested in the development of GRUB 2, take a look at
-@uref{http://www.gnu.org/software/grub/grub.html, the homepage}.
+@uref{https://www.gnu.org/software/grub/grub.html, the homepage}.
 
 
 
