@@ -9680,10 +9680,10 @@ to install to is specified, UUID is used instead as well.
 @end multitable
 
 @node Platform-specific operations
-@chapter Outline
+@chapter Platform-specific operations
 
-Some platforms have features which allows to implement
-some commands useless or not implementable on others.
+Some platforms have features which allow implementation of
+certain commands that cannot be implemented on others.
 
 Quick summary:
 
