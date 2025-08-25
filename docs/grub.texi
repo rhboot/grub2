@@ -3996,6 +3996,7 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * div_test_module::
 * dm_nv_module::
 * drivemap_module::
+* dsa_sexp_test_module::
 * echo_module::
 * efi_gop_module::
 * efi_uga_module::
@@ -4024,24 +4025,33 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * fshelp_module::
 * functional_test_module::
 * gcry_arcfour_module::
+* gcry_aria_module::
+* gcry_blake2_module::
 * gcry_blowfish_module::
 * gcry_camellia_module::
 * gcry_cast5_module::
 * gcry_crc_module::
 * gcry_des_module::
 * gcry_dsa_module::
+* gcry_gost28147_module::
+* gcry_gostr3411_94_module::
 * gcry_idea_module::
+* gcry_keccak_module::
 * gcry_md4_module::
 * gcry_md5_module::
 * gcry_rfc2268_module::
 * gcry_rijndael_module::
 * gcry_rmd160_module::
 * gcry_rsa_module::
+* gcry_salsa20_module::
 * gcry_seed_module::
 * gcry_serpent_module::
 * gcry_sha1_module::
 * gcry_sha256_module::
 * gcry_sha512_module::
+* gcry_sm3_module::
+* gcry_sm4_module::
+* gcry_stribog_module::
 * gcry_tiger_module::
 * gcry_twofish_module::
 * gcry_whirlpool_module::
@@ -4160,6 +4170,7 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * probe_module::
 * procfs_module::
 * progress_module::
+* pubkey_module::
 * pxe_module::
 * pxechain_module::
 * raid5rec_module::
@@ -4172,6 +4183,7 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * reiserfs_module::
 * relocator_module::
 * romfs_module::
+* rsa_sexp_test_module::
 * scsi_module::
 * sdl_module::
 * search_module::
@@ -4557,6 +4569,10 @@ This module provides support for handling some Nvidia "fakeraid" disk devices.
 This module provides support for the @command{drivemap} to manage BIOS drive
 mappings. @xref{drivemap} for more information.
 
+@node dsa_sexp_test_module
+@section dsa_sexp_test
+This module provides a test of the libgcrypt DSA functionality in GRUB.
+
 @node echo_module
 @section echo
 This module provides support for the @command{echo} to display a line of text.
@@ -4694,11 +4710,21 @@ This module provides support functions (helper functions) for file systems.
 This module provides support for running the GRUB functional tests using
 commands @command{functional_test} and @command{all_functional_test}.
 
+@node gcry_aria_module
+@section gcry_aria
+This module provides support for the ARIA cipher.
+This GRUB module is based on libgcrypt.
+
 @node gcry_arcfour_module
 @section gcry_arcfour
 This module provides support for the arcfour stream cipher also known as RC4.
 If security is a concern, RC4 / arcfour cipher is consider broken (multiple
 known vulnerabilities make this insecure).
+This GRUB module is based on libgcrypt.
+
+@node gcry_blake2_module
+@section gcry_blake2
+This module provides support for the BLAKE2b and BLAKE2s message digests.
 This GRUB module is based on libgcrypt.
 
 @node gcry_blowfish_module
@@ -4735,10 +4761,26 @@ This GRUB module is based on libgcrypt.
 This module provides support for the Digital Signature Algorithm (DSA) cipher.
 This GRUB module is based on libgcrypt.
 
+@node gcry_gost28147_module
+@section gcry_gost28147
+This module provides support for the GOST 28147-89 cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_gostr3411_94_module
+@section gcry_gostr3411_94
+This module provides support for the GOST R 34.11-94 message digest.
+This GRUB module is based on libgcrypt.
+
 @node gcry_idea_module
 @section gcry_idea
 This module provides support for the International Data Encryption Algorithm
 (IDEA) cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_keccak_module
+@section gcry_keccak
+This module provides support for the SHA3 hash message digests (including
+SHAKE128 and SHAKE256).
 This GRUB module is based on libgcrypt.
 
 @node gcry_md4_module
@@ -4775,6 +4817,11 @@ This GRUB module is based on libgcrypt.
 This module provides support for the Rivest–Shamir–Adleman (RSA) cipher.
 This GRUB module is based on libgcrypt.
 
+@node gcry_salsa20_module
+@section gcry_salsa20
+This module provides support for the Salsa20 cipher.
+This GRUB module is based on libgcrypt.
+
 @node gcry_seed_module
 @section gcry_seed
 This module provides support for the SEED cipher.
@@ -4803,6 +4850,21 @@ This GRUB module is based on libgcrypt.
 @section gcry_sha512
 This module provides support for the Secure Hash Algorithm 2 (384 and 512 bit)
 (SHA-384 / SHA-512) message digests.
+This GRUB module is based on libgcrypt.
+
+@node gcry_sm3_module
+@section gcry_sm3
+This module provides support for the SM3 message digest.
+This GRUB module is based on libgcrypt.
+
+@node gcry_sm4_module
+@section gcry_sm4
+This module provides support for the SM4 cipher.
+This GRUB module is based on libgcrypt.
+
+@node gcry_stribog_module
+@section gcry_stribog
+This module provides support for the GOST R 34.11-2012 (Stribog) message digest.
 This GRUB module is based on libgcrypt.
 
 @node gcry_tiger_module
@@ -5570,6 +5632,11 @@ like interface to some GRUB internal data.
 @section progress
 This module provides support for showing file loading progress to the terminal.
 
+@node pubkey_module
+@section pubkey
+This module provides supporting functions for using RSA and DSA public keys.
+This GRUB module is based on libgcrypt.
+
 @node pxe_module
 @section pxe
 This module provides support for Preboot Execution Environment (PXE) network
@@ -5631,6 +5698,10 @@ to the expected memory location(s) and jumping to (invoking) the executable.
 This module provides support for the Read-Only Memory File System (ROMFS).
 Note: This module is not allowed in lockdown mode, @pxref{Lockdown} for more
 information.
+
+@node rsa_sexp_test_module
+@section rsa_sexp_test
+This module provides a test of the libgcrypt RSA functionality in GRUB.
 
 @node scsi_module
 @section scsi
