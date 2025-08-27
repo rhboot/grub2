@@ -64,7 +64,10 @@ grub_get_weekday_name (struct grub_datetime *datetime)
 #define SECPERDAY (24*SECPERHOUR)
 #define DAYSPERYEAR 365
 #define DAYSPER4YEARS (4*DAYSPERYEAR+1)
-
+/* 24 leap years in 100 years */
+#define DAYSPER100YEARS (100 * DAYSPERYEAR + 24)
+/* 97 leap years in 400 years */
+#define DAYSPER400YEARS (400 * DAYSPERYEAR + 97)
 
 void
 grub_unixtime2datetime (grub_int64_t nix, struct grub_datetime *datetime)
@@ -76,10 +79,12 @@ grub_unixtime2datetime (grub_int64_t nix, struct grub_datetime *datetime)
   /* Convenience: let's have 3 consecutive non-bissextile years
      at the beginning of the counting date. So count from 1901. */
   int days_epoch;
-  /* Number of days since 1st Januar, 1901.  */
+  /* Number of days since 1st January, 1 (proleptic). */
   unsigned days;
   /* Seconds into current day.  */
   unsigned secs_in_day;
+  /* Tracks whether this is a leap year. */
+  bool bisextile;
 
   /* Transform C divisions and modulos to mathematical ones */
   if (nix < 0)
@@ -92,27 +97,63 @@ grub_unixtime2datetime (grub_int64_t nix, struct grub_datetime *datetime)
     days_epoch = grub_divmod64 (nix, SECPERDAY, NULL);
 
   secs_in_day = nix - days_epoch * SECPERDAY;
-  days = days_epoch + 69 * DAYSPERYEAR + 17;
+  /*
+   * 1970 is Unix Epoch. Adjust to a year 1 epoch:
+   *  Leap year logic:
+   *   - Years evenly divisible by 400 are leap years
+   *   - Otherwise, if divisible by 100 are not leap years
+   *   - Otherwise, if divisible by 4 are leap years
+   *  There are four 400-year periods (1600 years worth of days with leap days)
+   *  There are 369 years in addition to the four 400 year periods
+   *  There are three 100-year periods worth of leap days (3*24)
+   *  There are 17 leap days in 69 years (beyond the three 100 year periods)
+   */
+  days = 4 * DAYSPER400YEARS + 369 * DAYSPERYEAR + 3 * 24 + 17 + days_epoch;
 
-  datetime->year = 1901 + 4 * (days / DAYSPER4YEARS);
+  datetime->year = 1 + 400 * (days / DAYSPER400YEARS);
+  days %= DAYSPER400YEARS;
+
+  /*
+   * On 31st December of bissextile (leap) years 365 days from the beginning
+   * of the year elapsed but year isn't finished yet - every 400 years
+   * 396 is 4 years less than 400 year leap cycle
+   * 96 is 1 day less than number of leap days in 400 years
+   */
+  if (days / DAYSPER100YEARS == 4)
+    {
+      datetime->year += 396;
+      days -= 396 * DAYSPERYEAR + 96;
+    }
+  else
+    {
+      datetime->year += 100 * (days / DAYSPER100YEARS);
+      days %= DAYSPER100YEARS;
+    }
+
+  datetime->year += 4 * (days / DAYSPER4YEARS);
   days %= DAYSPER4YEARS;
-  /* On 31st December of bissextile years 365 days from the beginning
-     of the year elapsed but year isn't finished yet */
+  /*
+   * On 31st December of bissextile (leap) years 365 days from the beginning
+   * of the year elapsed but year isn't finished yet - every 4 years
+   */
   if (days / DAYSPERYEAR == 4)
     {
       datetime->year += 3;
-      days -= 3*DAYSPERYEAR;
+      days -= 3 * DAYSPERYEAR;
     }
   else
     {
       datetime->year += days / DAYSPERYEAR;
       days %= DAYSPERYEAR;
     }
-  for (i = 0; i < 12
-	 && days >= (i==1 && datetime->year % 4 == 0
-		      ? 29 : months[i]); i++)
-    days -= (i==1 && datetime->year % 4 == 0
-			    ? 29 : months[i]);
+
+  bisextile = (datetime->year % 4 == 0
+               && (datetime->year % 100 != 0
+                   || datetime->year % 400 == 0)) ? true : false;
+  for (i = 0;
+       i < 12 && days >= ((i == 1 && bisextile == true) ? 29 : months[i]);
+       i++)
+    days -= ((i == 1 && bisextile == true) ? 29 : months[i]);
   datetime->month = i + 1;
   datetime->day = 1 + days;
   datetime->hour = (secs_in_day / SECPERHOUR);

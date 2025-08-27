@@ -54,8 +54,9 @@ void grub_unixtime2datetime (grub_int64_t nix,
 static inline int
 grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int64_t *nix)
 {
-  grub_int32_t ret;
+  grub_int64_t ret;
   int y4, ay;
+  bool bisextile;
   const grub_uint16_t monthssum[12]
     = { 0,
 	31,
@@ -75,15 +76,11 @@ grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int64_t *nix)
   const int SECPERHOUR = 60 * SECPERMIN;
   const int SECPERDAY = 24 * SECPERHOUR;
   const int SECPERYEAR = 365 * SECPERDAY;
-  const int SECPER4YEARS = 4 * SECPERYEAR + SECPERDAY;
+  const grub_int64_t SECPER4YEARS = 4 * SECPERYEAR + SECPERDAY;
 
-  if (datetime->year > 2038 || datetime->year < 1901)
-    return 0;
   if (datetime->month > 12 || datetime->month < 1)
     return 0;
 
-  /* In the period of validity of unixtime all years divisible by 4
-     are bissextile*/
   /* Convenience: let's have 3 consecutive non-bissextile years
      at the beginning of the epoch. So count from 1973 instead of 1970 */
   ret = 3 * SECPERYEAR + SECPERDAY;
@@ -91,16 +88,31 @@ grub_datetime2unixtime (const struct grub_datetime *datetime, grub_int64_t *nix)
   /* Transform C divisions and modulos to mathematical ones */
   y4 = ((datetime->year - 1) >> 2) - (1973 / 4);
   ay = datetime->year - 1973 - 4 * y4;
-  ret += y4 * SECPER4YEARS;
-  ret += ay * SECPERYEAR;
+  ret += (grub_int64_t) y4 * SECPER4YEARS;
+  ret += (grub_int64_t) ay * SECPERYEAR;
 
-  ret += monthssum[datetime->month - 1] * SECPERDAY;
-  if (ay == 3 && datetime->month >= 3)
+  /*
+   * Correct above calculation (which assumes every 4 years is a leap year)
+   * to remove those "false leap years" that are divisible by 100 but not 400.
+   * Since this logic starts with seconds since 1973, 15 is used because:
+   *  - (1973 - 1) / 100 = 19 (floor due to integer math)
+   *  - (1973 - 1) / 400 = 4 (floor due to integer math)
+   *  - 19 - 4 - 15 = 0 (we want to start with no "false leap years" at time
+   *     zero of 1973)
+   */
+  ret -= ((datetime->year - 1) / 100 - (datetime->year - 1) / 400 - 15)
+         * SECPERDAY;
+
+  ret += (grub_int64_t) monthssum[datetime->month - 1] * SECPERDAY;
+  bisextile = (ay == 3
+               && (datetime->year % 100 != 0
+                   || datetime->year % 400 == 0)) ? true : false;
+  if (bisextile == true && datetime->month >= 3)
     ret += SECPERDAY;
 
   ret += (datetime->day - 1) * SECPERDAY;
   if ((datetime->day > months[datetime->month - 1]
-       && (!ay || datetime->month != 2 || datetime->day != 29))
+       && !(bisextile == true && datetime->month == 2 && datetime->day == 29))
       || datetime->day < 1)
     return 0;
 
