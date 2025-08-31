@@ -608,7 +608,11 @@ with codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8") as 
                 continue
             with codecs.open (infile, "r", "utf-8") as f:
                 if src == "types.h":
-                    fw.write (f.read ().replace ("float f;", "").replace ("double g;", ""))
+                    fw.write (f.read ().replace ("float f;", "").replace ("double g;", "") \
+                     .replace("#ifndef HAVE_BYTE",
+                              "#ifdef __clang__\n" \
+                              "#pragma GCC diagnostic ignored \"-Wtypedef-redefinition\"\n#endif\n" \
+                              "#ifndef HAVE_BYTE"))
                     continue
 
                 if src == "cipher-proto.h":

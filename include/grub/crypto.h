@@ -245,6 +245,14 @@ typedef struct gcry_md_spec
   struct gcry_md_spec *next;
 } gcry_md_spec_t;
 
+/*
+ * Clang defaults to flagging type redefinitions as warnings.
+ * A few "forward declarations" in this file are needed due
+ * to inter-relationship complexities between GRUB and libgcrypt.
+ */
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wtypedef-redefinition"
+#endif
 typedef struct gcry_md_handle*gcry_md_hd_t;
 
 struct gcry_mpi;
