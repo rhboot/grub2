@@ -158,6 +158,9 @@ EXTRA_DIST += po/hebrew.sed
 
 EXTRA_DIST += tests/dfly-mbr-mbexample.mbr.img.gz
 EXTRA_DIST += tests/dfly-mbr-mbexample.dfly.img.gz
+EXTRA_DIST += tests/iso9660_ce_loop2.iso.gz
+EXTRA_DIST += tests/iso9660_ce_loop.iso.gz
+EXTRA_DIST += tests/iso9660_early_ce.iso.gz
 
 EXTRA_DIST += coreboot.cfg
 
