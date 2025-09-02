@@ -1354,7 +1354,7 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		  */
 
 		 sym_addr += addend;
-		 off = sym_addr - target_section_addr - offset - image_target->vaddr_offset;
+		 off = (grub_int64_t) sym_addr - target_section_addr - offset - image_target->vaddr_offset;
 
 		 switch (ELF_R_TYPE (info))
 		   {
