@@ -100,8 +100,8 @@ _gpgrt_b64dec_start (const char *title)
 /* Do in-place decoding of base-64 data of LENGTH in BUFFER.  Stores the
    new length of the buffer at R_NBYTES. */
 gpg_err_code_t
-_gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
-                    size_t *r_nbytes)
+_gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, grub_size_t length,
+                    grub_size_t *r_nbytes)
 {
   enum decoder_states ds = state->idx;
   unsigned char val = state->radbuf[0];
