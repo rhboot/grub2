@@ -22,6 +22,7 @@
 #include <grub/net/netbuff.h>
 #include <grub/time.h>
 #include <grub/priority_queue.h>
+#include <grub/datetime.h>
 
 #define TCP_SYN_RETRANSMISSION_TIMEOUT GRUB_NET_INTERVAL
 #define TCP_SYN_RETRANSMISSION_COUNT GRUB_NET_TRIES
@@ -552,6 +553,36 @@ grub_net_tcp_accept (grub_net_tcp_socket_t sock,
   return GRUB_ERR_NONE;
 }
 
+/*
+ * Derive a time-based source port to avoid reusing the same port across
+ * reboots. This helps prevent failures caused by server side TCP state
+ * (e.g. TIME_WAIT) from interfering with new connections using the same socket.
+ *
+ * The base port starts at 21550 and increments every second by 8 across
+ * a 5 minute window (300 seconds), giving 2400 possible distinct base ports
+ * per window. In typical GRUB usage, the number of connections per boot is
+ * small, so reuse is effectively avoided.
+ */
+static grub_uint16_t
+get_initial_base_port (void)
+{
+  grub_err_t err;
+  struct grub_datetime date;
+  grub_int64_t t = 0;
+  grub_uint64_t r = 0;
+
+  err = grub_get_datetime (&date);
+  if (err != GRUB_ERR_NONE || !grub_datetime2unixtime (&date, &t))
+    {
+      grub_errno = GRUB_ERR_NONE;
+      return 21550;
+    }
+
+  grub_divmod64 (t, 300, &r);
+
+  return 21550 + (r << 3);
+}
+
 grub_net_tcp_socket_t
 grub_net_tcp_open (char *server,
 		   grub_uint16_t out_port,
@@ -569,12 +600,18 @@ grub_net_tcp_open (char *server,
   struct grub_net_network_level_interface *inf;
   grub_net_network_level_address_t gateway;
   grub_net_tcp_socket_t socket;
-  static grub_uint16_t in_port = 21550;
+  static grub_uint16_t in_port;
   struct grub_net_buff *nb;
   struct tcphdr *tcph;
   int i;
   grub_uint8_t *nbd;
   grub_net_link_level_address_t ll_target_addr;
+
+  if (!in_port)
+    {
+      in_port = get_initial_base_port ();
+      grub_dprintf ("net", "base port: %d\n", in_port);
+    }
 
   err = grub_net_resolve_address (server, &addr);
   if (err)
