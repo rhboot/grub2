@@ -417,12 +417,14 @@ static int bls_cmp(const void *p0, const void *p1, void *state)
   id1 = grub_strdup(e1->filename);
 
   l = grub_strlen(id0);
-  if (l > 5 && grub_strcmp(id0 + l - 5, ".conf"))
-    id0[l-5] = '\0';
+  if (l > 5)
+    if (!grub_strcmp(id0 + l - 5, ".conf"))
+      id0[l-5] = '\0';
 
   l = grub_strlen(id1);
-  if (l > 5 && grub_strcmp(id1 + l - 5, ".conf"))
-    id1[l-5] = '\0';
+  if (l > 5)
+    if(!grub_strcmp(id1 + l - 5, ".conf"))
+      id1[l-5] = '\0';
 
   r = split_cmp(id0, id1, 1);
 
