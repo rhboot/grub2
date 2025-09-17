@@ -4736,16 +4736,16 @@ This module provides support functions (helper functions) for file systems.
 This module provides support for running the GRUB functional tests using
 commands @command{functional_test} and @command{all_functional_test}.
 
-@node gcry_aria_module
-@section gcry_aria
-This module provides support for the ARIA cipher.
-This GRUB module is based on libgcrypt.
-
 @node gcry_arcfour_module
 @section gcry_arcfour
 This module provides support for the arcfour stream cipher also known as RC4.
 If security is a concern, RC4 / arcfour cipher is consider broken (multiple
 known vulnerabilities make this insecure).
+This GRUB module is based on libgcrypt.
+
+@node gcry_aria_module
+@section gcry_aria
+This module provides support for the ARIA cipher.
 This GRUB module is based on libgcrypt.
 
 @node gcry_blake2_module
@@ -8546,14 +8546,6 @@ information.
 @end deffn
 
 
-@node unset
-@subsection unset
-
-@deffn Command unset envvar
-Unset the environment variable @var{envvar}.
-@end deffn
-
-
 @node uki
 @subsection uki
 
@@ -8585,6 +8577,14 @@ will be added to the GRUB menu.
 
 For more information on UKI, see: @uref{https://uapi-group.org/specifications/specs/unified_kernel_image/, The Unified Kernel Image Specification}
 @end deffn
+
+@node unset
+@subsection unset
+
+@deffn Command unset envvar
+Unset the environment variable @var{envvar}.
+@end deffn
+
 
 @ignore
 @node vbeinfo
