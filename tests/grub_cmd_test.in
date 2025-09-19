@@ -1,5 +1,5 @@
 #! @BUILD_SHEBANG@
-set -e
+set -ex
 
 # create a randome file
 empty="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99

@@ -1,6 +1,6 @@
 #!@BUILD_SHEBANG@
 
-set -e
+set -ex
 
 if ! which cpio >/dev/null 2>&1; then
    echo "cpio not installed; cannot test cpio."

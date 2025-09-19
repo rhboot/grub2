@@ -1,5 +1,5 @@
 #! @BUILD_SHEBANG@
-set -e
+set -ex
 
 # Run GRUB script in a Qemu instance
 # Copyright (C) 2010  Free Software Foundation, Inc.

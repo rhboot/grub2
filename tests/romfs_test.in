@@ -1,6 +1,6 @@
 #!@BUILD_SHEBANG@
 
-set -e
+set -ex
 
 if ! which genromfs >/dev/null 2>&1; then
    echo "genromfs not installed; cannot test romfs."

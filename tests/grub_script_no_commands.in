@@ -1,5 +1,5 @@
 #! @BUILD_SHEBANG@
-set -e
+set -ex
 
 # grub-script-check refuses to pass a file with no commands; this usually
 # indicates a bug in the code generating that file.

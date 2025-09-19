@@ -1,5 +1,5 @@
 #! @BUILD_SHEBANG@
-set -e
+set -ex
 
 @builddir@/grub-script-check <<EOF
 echo one;

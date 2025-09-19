@@ -1,6 +1,6 @@
 #!@BUILD_SHEBANG@
 
-set -e
+set -ex
 
 if ! which mksquashfs >/dev/null 2>&1; then
    echo "mksquashfs not installed; cannot test squashfs."

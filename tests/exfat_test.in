@@ -1,6 +1,6 @@
 #!@BUILD_SHEBANG@
 
-set -e
+set -ex
 
 if [ "x$EUID" = "x" ] ; then
   EUID=`id -u`

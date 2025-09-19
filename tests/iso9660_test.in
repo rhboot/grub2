@@ -1,6 +1,6 @@
 #!@BUILD_SHEBANG@
 
-set -e
+set -ex
 
 if ! which xorriso >/dev/null 2>&1; then
    echo "xorriso not installed; cannot test iso9660."
