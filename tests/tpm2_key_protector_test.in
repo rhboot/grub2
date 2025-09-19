@@ -41,7 +41,7 @@ fi
 
 if ! command -v cryptsetup >/dev/null 2>&1; then
    echo "cryptsetup not installed; cannot test tpm2."
-   exit 99
+   exit 77
 fi
 
 if ! grep -q tpm_vtpm_proxy /proc/modules && ! modprobe tpm_vtpm_proxy; then
@@ -51,7 +51,7 @@ fi
 
 if ! command -v swtpm >/dev/null 2>&1; then
    echo "swtpm not installed; cannot test tpm2."
-   exit 99
+   exit 77
 fi
 
 if ! command -v tpm2_startup >/dev/null 2>&1; then

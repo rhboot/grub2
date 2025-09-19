@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.f2fs >/dev/null 2>&1; then
  echo "mkfs.f2fs not installed; cannot test f2fs."
- exit 99
+ exit 77
 fi
 
 

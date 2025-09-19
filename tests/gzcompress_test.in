@@ -21,7 +21,7 @@ grubshell=@builddir@/grub-shell
 
 if ! which gzip >/dev/null 2>&1; then
    echo "gzip not installed; cannot test gzip compression."
-   exit 99
+   exit 77
 fi
 
 v=$(echo hello | "${grubshell}" --mkrescue-arg=--compress=gz)

@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.vfat >/dev/null 2>&1; then
    echo "mkfs.vfat not installed; cannot test FAT."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" vfat16a

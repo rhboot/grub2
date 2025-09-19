@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.hfs >/dev/null 2>&1; then
    echo "mkfs.hfs not installed; cannot test HFS."
-   exit 99
+   exit 77
 fi
 
 if ! grep -q mac_roman /proc/modules && ! modprobe mac_roman; then

@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.jfs >/dev/null 2>&1; then
    echo "mkfs.jfs not installed; cannot test JFS."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" jfs

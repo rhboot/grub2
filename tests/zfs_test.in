@@ -12,7 +12,7 @@ fi
 
 if ! which zpool >/dev/null 2>&1; then
    echo "zpool not installed; cannot test zfs."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" zfs

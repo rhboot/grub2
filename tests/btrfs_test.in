@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.btrfs >/dev/null 2>&1; then
    echo "mkfs.btrfs not installed; cannot test btrfs."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" btrfs

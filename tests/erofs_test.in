@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.erofs >/dev/null 2>&1; then
    echo "mkfs.erofs not installed; cannot test erofs."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" erofs_compact

@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.exfat >/dev/null 2>&1; then
    echo "mkfs.exfat not installed; cannot test exFAT."
-   exit 99
+   exit 77
 fi
 
 "@builddir@/grub-fs-tester" exfat
