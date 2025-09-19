@@ -727,7 +727,7 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    "mkfs.hfsplus" -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
 		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8 ;;
 		x"hfsplus_wrap")
-		    "mkfs.hfsplus" -w -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
+		    "mkfs.hfsplus" -b $BLKSIZE -v "$FSLABEL" "${MOUNTDEVICE}"
 		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8
 		    MOUNTFS="hfsplus";;
 		x"hfsplus_casesens")
