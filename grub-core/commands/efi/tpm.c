@@ -39,6 +39,7 @@ static grub_uint8_t grub_tpm_version;
 
 static grub_int8_t tpm1_present = -1;
 static grub_int8_t tpm2_present = -1;
+static grub_int8_t tpm2_pcr_banks_reporting_present = -1;
 
 static grub_efi_boolean_t
 grub_tpm1_present (grub_efi_tpm_protocol_t *tpm)
@@ -87,6 +88,34 @@ grub_tpm2_present (grub_efi_tpm2_protocol_t *tpm)
   grub_dprintf ("tpm", "tpm2%s present\n", tpm2_present ? "" : " NOT");
 
   return (grub_efi_boolean_t) tpm2_present;
+}
+
+static grub_efi_boolean_t
+grub_tpm2_pcr_banks_reporting_present (grub_efi_tpm2_protocol_t *tpm)
+{
+  grub_efi_status_t status;
+  EFI_TCG2_BOOT_SERVICE_CAPABILITY caps;
+
+  caps.Size = (grub_uint8_t) sizeof (caps);
+
+  if (tpm2_pcr_banks_reporting_present != -1)
+    return (grub_efi_boolean_t) tpm2_pcr_banks_reporting_present;
+
+  if (!grub_tpm2_present (tpm))
+    return (grub_efi_boolean_t) (tpm2_pcr_banks_reporting_present = 0);
+
+  status = tpm->get_capability (tpm, &caps);
+
+  if (status != GRUB_EFI_SUCCESS || caps.StructureVersion.Major < 1
+      || (caps.StructureVersion.Major == 1 && caps.StructureVersion.Minor < 1))
+    tpm2_pcr_banks_reporting_present = 0;
+  else
+    tpm2_pcr_banks_reporting_present = 1;
+
+  grub_dprintf ("tpm", "tpm2 PCR banks reporting%s present\n",
+		tpm2_pcr_banks_reporting_present ? "" : " NOT");
+
+  return (grub_efi_boolean_t) tpm2_pcr_banks_reporting_present;
 }
 
 static grub_efi_boolean_t
@@ -355,7 +384,7 @@ grub_tpm2_active_pcr_banks (void)
       return 0;
     }
 
-  if (grub_tpm2_present (tpm))
+  if (grub_tpm2_pcr_banks_reporting_present (tpm))
     {
       grub_efi_status_t status = tpm->get_active_pcr_banks (tpm, &active_pcr_banks);
 
