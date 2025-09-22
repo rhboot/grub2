@@ -139,6 +139,9 @@ grub_register_extcmd_lockdown (const char *name, grub_extcmd_func_t func,
 void
 grub_unregister_extcmd (grub_extcmd_t ext)
 {
+  if (ext == NULL)
+    return;
+
   grub_unregister_command (ext->cmd);
   grub_free (ext);
 }
