@@ -89,10 +89,10 @@ struct grub_error_saved
 extern grub_err_t EXPORT_VAR(grub_errno);
 extern char EXPORT_VAR(grub_errmsg)[GRUB_MAX_ERRMSG];
 
-grub_err_t EXPORT_FUNC(grub_error) (grub_err_t n, const char *file, const int line, const char *fmt, ...)
-	__attribute__ ((format (GNU_PRINTF, 4, 5)));
+grub_err_t EXPORT_FUNC(grub_error) (grub_err_t n, const char *file, const char *function, const int line, const char *fmt, ...)
+	__attribute__ ((format (GNU_PRINTF, 5, 6)));
 
-#define grub_error(n, fmt, ...) grub_error (n, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define grub_error(n, fmt, ...) grub_error (n, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
 void EXPORT_FUNC(grub_fatal) (const char *fmt, ...) __attribute__ ((noreturn));
 void EXPORT_FUNC(grub_error_push) (void);
