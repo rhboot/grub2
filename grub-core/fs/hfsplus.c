@@ -736,7 +736,9 @@ list_nodes (void *record, void *hook_arg)
 	int mode = (grub_be_to_cpu16 (fileinfo->mode)
 		    & GRUB_HFSPLUS_FILEMODE_MASK);
 
-	if (mode == GRUB_HFSPLUS_FILEMODE_REG)
+	if (mode == 0) /* Created by pre-Mac OS X. */
+          type = GRUB_FSHELP_REG;
+        else if (mode == GRUB_HFSPLUS_FILEMODE_REG)
 	  type = GRUB_FSHELP_REG;
 	else if (mode == GRUB_HFSPLUS_FILEMODE_SYMLINK)
 	  type = GRUB_FSHELP_SYMLINK;
