@@ -234,6 +234,7 @@ grub_e820_add_region (struct grub_boot_e820_entry *e820_entry, int *e820_num,
 static grub_err_t
 grub_linux_setup_video (struct linux_kernel_params *params)
 {
+  struct grub_video_edid_info edid_info;
   struct grub_video_mode_info mode_info;
   void *framebuffer;
   grub_err_t err;
@@ -244,6 +245,19 @@ grub_linux_setup_video (struct linux_kernel_params *params)
 
   if (driver_id == GRUB_VIDEO_DRIVER_NONE)
     return 1;
+
+  err = grub_video_get_edid (&edid_info);
+  if (err != GRUB_ERR_NONE)
+    grub_memset (&edid_info, 0, sizeof (edid_info));
+
+  /*
+   * We cannot transfer any extensions. Therefore clear
+   * the extension flag from the checksum and set the
+   * field to zero. Adding the extension flag to the
+   * checksum does the trick.
+   */
+  edid_info.checksum += edid_info.extension_flag;
+  edid_info.extension_flag = 0;
 
   err = grub_video_get_info_and_fini (&mode_info, &framebuffer);
 
@@ -337,6 +351,8 @@ grub_linux_setup_video (struct linux_kernel_params *params)
       params->screen_info.rsvd_size = 0;
     }
 #endif
+
+  grub_memcpy (params->edid_info, &edid_info, sizeof (params->edid_info));
 
   return GRUB_ERR_NONE;
 }

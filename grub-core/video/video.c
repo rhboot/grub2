@@ -89,6 +89,27 @@ grub_video_get_info_and_fini (struct grub_video_mode_info *mode_info,
   return GRUB_ERR_NONE;
 }
 
+/* Get information about connected display. */
+grub_err_t
+grub_video_get_edid (struct grub_video_edid_info *edid_info)
+{
+  grub_err_t err;
+
+  if (grub_video_adapter_active == NULL)
+    return grub_error (GRUB_ERR_BAD_DEVICE, "no video mode activated");
+
+  if (grub_video_adapter_active->get_edid != NULL)
+    {
+      err = grub_video_adapter_active->get_edid (edid_info);
+      if (err != GRUB_ERR_NONE)
+	return err;
+    }
+  else
+    grub_memset (edid_info, 0, sizeof (*edid_info));
+
+  return GRUB_ERR_NONE;
+}
+
 /* Determine optimized blitting formation for specified video mode info.  */
 enum grub_video_blit_format
 grub_video_get_blit_format (struct grub_video_mode_info *mode_info)
