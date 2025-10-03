@@ -304,6 +304,58 @@ EOF
     fi
 }
 
+tpm2_seal_unseal_cap() {
+    pcr_bank="sha256"
+
+    original_pcr1="$(tpm2_pcrread ${pcr_bank}:1) | tail -1 | cut -d' ' -f7"
+
+    grub_cfg=${tpm2testdir}/testcase.cfg
+
+    # Seal the password with grub-protect
+    grub-protect \
+	--tpm2-device="${tpm2dev}" \
+	--action=add \
+	--protector=tpm2 \
+	--tpm2key \
+	--tpm2-bank="${pcr_bank}" \
+	--tpm2-pcrs=0,1 \
+	--tpm2-keyfile="${lukskeyfile}" \
+	--tpm2-outfile="${sealedkey}" || ret=$?
+    if [ "${ret}" -ne 0 ]; then
+	echo "Failed to seal the secret key: ${ret}" >&2
+	return 99
+    fi
+
+    # Write the TPM unsealing script and cap PCR 1
+    cat > "${grub_cfg}" <<EOF
+loopback luks (host)${luksfile}
+tpm2_key_protector_init -T (host)${sealedkey} -c 1
+if cryptomount -a --protector tpm2; then
+    cat (crypto0)+1
+fi
+EOF
+
+    # Test TPM unsealing with the same PCR
+    ${grubshell} --timeout=${timeout} --emu-opts="-t ${tpm2dev}" < "${grub_cfg}" > "${testoutput}" || ret=$?
+
+    if [ "${ret}" -eq 0 ]; then
+	if ! grep -q "^${vtext}$" "${testoutput}"; then
+	    echo "error: test not verified [`cat ${testoutput}`]" >&2
+	    return 1
+	fi
+    else
+	echo "grub-emu exited with error: ${ret}" >&2
+	return 99
+    fi
+
+    capped_pcr1="$(tpm2_pcrread ${pcr_bank}:1) | tail -1 | cut -d' ' -f7"
+
+    if [ "${original_pcr1}" = "${capped_pcr1}" ]; then
+	echo "error: PCR 1 not capped" >&2
+	return 1
+    fi
+}
+
 # Testcases for SRK mode
 declare -a srktests=()
 srktests+=("default transient no_fallback_srk sha256")
@@ -356,5 +408,18 @@ for i in "${!nvtests[@]}"; do
 	exit ${ret}
     fi
 done
+
+# Testcase for PCR Capping
+tpm2_seal_unseal_cap || ret=$?
+if [ "${ret}" -eq 0 ]; then
+    echo "TPM2 [PCR Capping]: PASS"
+elif [ "${ret}" -eq 1 ]; then
+    echo "TPM2 [PCR Capping]: FAIL"
+    ret=0
+    exit_status=1
+else
+    echo "Unexpected failure [PCR Capping]" >&2
+    exit ${ret}
+fi
 
 exit ${exit_status}
