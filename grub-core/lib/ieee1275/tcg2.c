@@ -57,6 +57,52 @@ grub_ieee1275_tpm_init (void)
 }
 
 grub_err_t
+grub_ieee1275_ibmvtpm_2hash_ext_log (grub_uint8_t pcrindex,
+				     grub_uint32_t eventtype,
+				     const char *description,
+				     grub_size_t description_size,
+				     void *buf, grub_size_t size)
+{
+  struct tpm_2hash_ext_log
+  {
+    struct grub_ieee1275_common_hdr common;
+    grub_ieee1275_cell_t method;
+    grub_ieee1275_cell_t ihandle;
+    grub_ieee1275_cell_t size;
+    grub_ieee1275_cell_t buf;
+    grub_ieee1275_cell_t description_size;
+    grub_ieee1275_cell_t description;
+    grub_ieee1275_cell_t eventtype;
+    grub_ieee1275_cell_t pcrindex;
+    grub_ieee1275_cell_t catch_result;
+    grub_ieee1275_cell_t rc;
+  };
+  struct tpm_2hash_ext_log args;
+
+  INIT_IEEE1275_COMMON (&args.common, "call-method", 8, 2);
+  args.method = (grub_ieee1275_cell_t) "2hash-ext-log";
+  args.ihandle = grub_ieee1275_tpm_ihandle;
+  args.pcrindex = pcrindex;
+  args.eventtype = eventtype;
+  args.description = (grub_ieee1275_cell_t) description;
+  args.description_size = description_size;
+  args.buf = (grub_ieee1275_cell_t) buf;
+  args.size = (grub_ieee1275_cell_t) size;
+
+  if (IEEE1275_CALL_ENTRY_FN (&args) == -1)
+    return grub_error (GRUB_ERR_BAD_DEVICE, "2HASH-EXT-LOG failed: Firmware is likely too old.\n");
+
+  /*
+   * catch_result is set if firmware does not support 2hash-ext-log
+   * rc is GRUB_IEEE1275_CELL_FALSE (0) on failure
+   */
+  if ((args.catch_result) || args.rc == GRUB_IEEE1275_CELL_FALSE)
+    return grub_error (GRUB_ERR_BAD_DEVICE, "2HASH-EXT-LOG failed: Firmware is likely too old.\n");
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
 grub_tcg2_get_max_output_size (grub_size_t *size)
 {
   struct tpm_get_maximum_cmd_size
@@ -152,6 +198,25 @@ grub_tcg2_submit_command (grub_size_t input_size,
     }
 
   grub_memcpy (output, input, args.resp_size);
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_tcg2_cap_pcr (grub_uint8_t pcr)
+{
+  char separator[4] = {0};
+  static int error_displayed = 0;
+  grub_err_t err;
+
+  err = grub_ieee1275_ibmvtpm_2hash_ext_log (pcr, GRUB_EV_SEPARATOR,
+					     separator, sizeof (separator),
+					     separator, sizeof (separator));
+  if (err != GRUB_ERR_NONE && !error_displayed)
+    {
+      error_displayed++;
+      return err;
+    }
 
   return GRUB_ERR_NONE;
 }

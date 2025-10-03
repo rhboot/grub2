@@ -27,4 +27,9 @@ extern grub_ieee1275_ihandle_t grub_ieee1275_tpm_ihandle;
 
 extern grub_err_t grub_ieee1275_tpm_init (void);
 
+extern grub_err_t grub_ieee1275_ibmvtpm_2hash_ext_log (grub_uint8_t pcrindex,
+						       grub_uint32_t eventtype,
+						       const char *description,
+						       grub_size_t description_size,
+						       void *buf, grub_size_t size);
 #endif

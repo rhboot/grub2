@@ -27,67 +27,20 @@
 #include <grub/mm.h>
 #include <grub/misc.h>
 
-static int
-ibmvtpm_2hash_ext_log (grub_uint8_t pcrindex,
-		       grub_uint32_t eventtype,
-		       const char *description,
-		       grub_size_t description_size,
-		       void *buf, grub_size_t size)
-{
-  struct tpm_2hash_ext_log
-  {
-    struct grub_ieee1275_common_hdr common;
-    grub_ieee1275_cell_t method;
-    grub_ieee1275_cell_t ihandle;
-    grub_ieee1275_cell_t size;
-    grub_ieee1275_cell_t buf;
-    grub_ieee1275_cell_t description_size;
-    grub_ieee1275_cell_t description;
-    grub_ieee1275_cell_t eventtype;
-    grub_ieee1275_cell_t pcrindex;
-    grub_ieee1275_cell_t catch_result;
-    grub_ieee1275_cell_t rc;
-  };
-  struct tpm_2hash_ext_log args;
-
-  INIT_IEEE1275_COMMON (&args.common, "call-method", 8, 2);
-  args.method = (grub_ieee1275_cell_t) "2hash-ext-log";
-  args.ihandle = grub_ieee1275_tpm_ihandle;
-  args.pcrindex = pcrindex;
-  args.eventtype = eventtype;
-  args.description = (grub_ieee1275_cell_t) description;
-  args.description_size = description_size;
-  args.buf = (grub_ieee1275_cell_t) buf;
-  args.size = (grub_ieee1275_cell_t) size;
-
-  if (IEEE1275_CALL_ENTRY_FN (&args) == -1)
-    return -1;
-
-  /*
-   * catch_result is set if firmware does not support 2hash-ext-log
-   * rc is GRUB_IEEE1275_CELL_FALSE (0) on failure
-   */
-  if ((args.catch_result) || args.rc == GRUB_IEEE1275_CELL_FALSE)
-    return -1;
-
-  return 0;
-}
-
 static grub_err_t
 tpm2_log_event (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
 		const char *description)
 {
   static int error_displayed = 0;
-  int rc;
+  grub_err_t err;
 
-  rc = ibmvtpm_2hash_ext_log (pcr, EV_IPL,
-			      description, grub_strlen(description) + 1,
-			      buf, size);
-  if (rc && !error_displayed)
+  err = grub_ieee1275_ibmvtpm_2hash_ext_log (pcr, EV_IPL,
+					     description, grub_strlen(description) + 1,
+					     buf, size);
+  if (err != GRUB_ERR_NONE && !error_displayed)
     {
       error_displayed++;
-      return grub_error (GRUB_ERR_BAD_DEVICE,
-			 "2HASH-EXT-LOG failed: Firmware is likely too old.\n");
+      return err;
     }
 
   return GRUB_ERR_NONE;
