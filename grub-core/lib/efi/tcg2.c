@@ -22,6 +22,7 @@
 #include <grub/efi/tpm.h>
 #include <grub/mm.h>
 
+#include <tss2_types.h>
 #include <tcg2.h>
 
 static grub_err_t
@@ -138,6 +139,45 @@ grub_tcg2_submit_command (grub_size_t input_size,
 				     output_size, output);
   if (status != GRUB_EFI_SUCCESS)
     return GRUB_ERR_INVALID_COMMAND;
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_tcg2_cap_pcr (grub_uint8_t pcr)
+{
+  grub_err_t err;
+  grub_efi_status_t status;
+  grub_efi_tpm2_protocol_t *protocol;
+  EFI_TCG2_EVENT *event;
+  grub_uint8_t separator[4] = {0};
+
+  if (pcr >= TPM_MAX_PCRS)
+    return GRUB_ERR_BAD_ARGUMENT;
+
+  err = tcg2_get_protocol (&protocol);
+  if (err != GRUB_ERR_NONE)
+    return err;
+
+  event = grub_zalloc (sizeof (EFI_TCG2_EVENT) + sizeof (separator));
+  if (event == NULL)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
+		       N_("cannot allocate TPM event buffer"));
+
+  event->Header.HeaderSize = sizeof (EFI_TCG2_EVENT_HEADER);
+  event->Header.HeaderVersion = 1;
+  event->Header.PCRIndex = pcr;
+  event->Header.EventType = GRUB_EV_SEPARATOR;
+  event->Size = sizeof (*event) - sizeof (event->Event) + sizeof (separator);
+  grub_memcpy (event->Event, separator, sizeof (separator));
+
+  status = protocol->hash_log_extend_event (protocol, 0,
+					    (grub_addr_t) separator,
+					    sizeof (separator), event);
+  grub_free (event);
+
+  if (status != GRUB_EFI_SUCCESS)
+    return grub_error (GRUB_ERR_BAD_DEVICE, N_("cannot cap PCR %u"), pcr);
 
   return GRUB_ERR_NONE;
 }
