@@ -8458,7 +8458,7 @@ either @var{expression1} or @var{expression2} is true
 @node tpm2_key_protector_init
 @subsection tpm2_key_protector_init
 
-@deffn Command tpm2_key_protector_init [@option{--mode} | @option{-m} mode] | [@option{--pcrs} | @option{-p} pcrlist] | [@option{--bank} | @option{-b} pcrbank] | [ [@option{--tpm2key} | @option{-T} tpm2key_file] | [@option{--keyfile} | @option{-k} keyfile] ] | [@option{--srk} | @option{-s} handle] | [@option{--asymmetric} | @option{-a} srk_type] | [@option{--nvindex} | @option{-n} nv_index]
+@deffn Command tpm2_key_protector_init [@option{--mode} | @option{-m} mode] | [@option{--pcrs} | @option{-p} pcrlist] | [@option{--bank} | @option{-b} pcrbank] | [@option{--cap-pcrs} | @option{-c} pcrlist] | [ [@option{--tpm2key} | @option{-T} tpm2key_file] | [@option{--keyfile} | @option{-k} keyfile] ] | [@option{--srk} | @option{-s} handle] | [@option{--asymmetric} | @option{-a} srk_type] | [@option{--nvindex} | @option{-n} nv_index]
 Initialize the TPM2 key protector to unseal the key for the @command{cryptomount}
 (@pxref{cryptomount}) command. There are two supported modes,
 SRK(@kbd{srk}) and NV index(@kbd{nv}), to be specified by the option
@@ -8472,6 +8472,24 @@ bank that the key is sealed with. The PCR list is a comma-separated list, e.g.,
 '0,2,4,7,9', to represent the involved PCRs, and the default is '7'. The PCR
 bank is chosen by selecting a hash algorithm. The current supported PCR banks
 are SHA1, SHA256, SHA384, and SHA512, and the default is SHA256.
+
+The @option{-c} option is introduced to enable the "capping" of a specified list of
+PCRs. This feature addresses scenarios where a user wants to ensure a sealed key
+cannot be unsealed again after its initial use. When the @option{-c} option is
+employed, and the key is successfully unsealed, the TPM2 key protector automatically
+extends the selected PCRs with an EV_SEPARATOR event. This action cryptographically
+alters the PCR values, thereby preventing the associated key from being unsealed in
+any subsequent attempts until those specific PCRs are reset to their original state,
+which typically occurs during a system reboot. In general, it is sufficient to
+extend one associated PCR to cap the key.
+
+It's noteworthy that a key sealed against PCR 8 naturally incorporates a "capping"
+behavior, even without explicitly using a @option{-c} option. This is because GRUB
+measures all commands into PCR 8, including those from configuration files. As a
+result, the value of PCR 8 changes with virtually every command execution during
+the boot process. Consequently, a key sealed against PCR 8 can only be unsealed
+once in a given boot session, as any subsequent GRUB command will alter PCR 8,
+invalidating the unsealing policy and effectively "capping" the key.
 
 Some options are only available for the specific mode. The SRK-specific
 options are @option{-T}, @option{-k}, @option{-a}, and @option{-s}. On the

@@ -28,6 +28,7 @@
 #include <tss2_buffer.h>
 #include <tss2_types.h>
 #include <tss2_mu.h>
+#include <tcg2.h>
 
 #include "tpm2_args.h"
 #include "tpm2.h"
@@ -47,6 +48,7 @@ typedef enum tpm2_protector_options
   OPTION_MODE,
   OPTION_PCRS,
   OPTION_BANK,
+  OPTION_CAPPCRS,
   OPTION_TPM2KEY,
   OPTION_KEYFILE,
   OPTION_SRK,
@@ -61,6 +63,8 @@ typedef struct tpm2_protector_context
   grub_uint8_t pcr_count;
   grub_srk_type_t srk_type;
   TPM_ALG_ID_t bank;
+  grub_uint8_t cap_pcrs[TPM_MAX_PCRS];
+  grub_uint8_t cap_pcr_count;
   const char *tpm2key;
   const char *keyfile;
   TPM_HANDLE_t srk;
@@ -99,6 +103,16 @@ static const struct grub_arg_option tpm2_protector_init_cmd_options[] =
       .doc      =
 	N_("Bank of PCRs used to authorize key release: "
 	   "SHA1, SHA256, SHA384 or SHA512. (default: SHA256)"),
+    },
+    {
+      .longarg  = "cap-pcrs",
+      .shortarg = 'c',
+      .flags    = 0,
+      .arg      = NULL,
+      .type     = ARG_TYPE_STRING,
+      .doc      =
+	N_("Comma-separated list of PCRs to be capped after key release "
+	   "e.g., '7,11'."),
     },
     /* SRK-mode options */
     {
@@ -1213,18 +1227,44 @@ tpm2_protector_nv_recover (const tpm2_protector_context_t *ctx,
 }
 
 static grub_err_t
+tpm2_protector_cap_pcrs (const tpm2_protector_context_t *ctx)
+{
+  grub_uint8_t i;
+  grub_err_t err;
+
+  for (i = 0; i < ctx->cap_pcr_count; i++)
+    {
+	err = grub_tcg2_cap_pcr (ctx->cap_pcrs[i]);
+	if (err != GRUB_ERR_NONE)
+	  return err;
+    }
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
 tpm2_protector_recover (const tpm2_protector_context_t *ctx,
 			grub_uint8_t **key, grub_size_t *key_size)
 {
+  grub_err_t err;
+
   switch (ctx->mode)
     {
     case TPM2_PROTECTOR_MODE_SRK:
-      return tpm2_protector_srk_recover (ctx, key, key_size);
+      err = tpm2_protector_srk_recover (ctx, key, key_size);
+      break;
     case TPM2_PROTECTOR_MODE_NV:
-      return tpm2_protector_nv_recover (ctx, key, key_size);
+      err = tpm2_protector_nv_recover (ctx, key, key_size);
+      break;
     default:
-      return GRUB_ERR_BAD_ARGUMENT;
+      err = grub_error (GRUB_ERR_BAD_ARGUMENT, N_("Unknown Mode"));
     }
+
+  /* Cap the selected PCRs when the key is unsealed successfully */
+  if (ctx->cap_pcr_count > 0 && err == GRUB_ERR_NONE)
+    err = tpm2_protector_cap_pcrs (ctx);
+
+  return err;
 }
 
 static grub_err_t
@@ -1364,6 +1404,15 @@ tpm2_protector_init_cmd_handler (grub_extcmd_context_t ctxt, int argc,
 	return err;
     }
 
+  if (state[OPTION_CAPPCRS].set)  /* cap-pcrs */
+    {
+      err = grub_tpm2_protector_parse_pcrs (state[OPTION_CAPPCRS].arg,
+					    tpm2_protector_ctx.cap_pcrs,
+					    &tpm2_protector_ctx.cap_pcr_count);
+      if (err != GRUB_ERR_NONE)
+	return err;
+    }
+
   if (state[OPTION_TPM2KEY].set)  /* tpm2key */
     {
       err = tpm2_protector_parse_file (state[OPTION_TPM2KEY].arg,
@@ -1465,6 +1514,7 @@ GRUB_MOD_INIT (tpm2_key_protector)
 			  N_("[-m mode] "
 			     "[-p pcr_list] "
 			     "[-b pcr_bank] "
+			     "[-c pcr_list] "
 			     "[-T tpm2_key_file_path] "
 			     "[-k sealed_key_file_path] "
 			     "[-s srk_handle] "
