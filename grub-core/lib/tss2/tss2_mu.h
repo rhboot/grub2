@@ -381,6 +381,10 @@ grub_Tss2_MU_TPML_DIGEST_Unmarshal (grub_tpm2_buffer_t buffer,
 				    TPML_DIGEST_t *digest);
 
 extern void
+grub_Tss2_MU_TPML_DIGEST_VALUE_Unmarshal (grub_tpm2_buffer_t buffer,
+					  TPML_DIGEST_VALUES_t *digests);
+
+extern void
 grub_Tss2_MU_TPMS_SIGNATURE_RSA_Unmarshal (grub_tpm2_buffer_t buffer,
                                            TPMS_SIGNATURE_RSA_t *p);
 

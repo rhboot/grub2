@@ -343,6 +343,7 @@ typedef grub_uint32_t TPM_CC_t;
 #define TPM_CC_NV_Write         ((TPM_CC_t) 0x00000137)
 #define TPM_CC_NV_UndefineSpace ((TPM_CC_t) 0x00000122)
 #define TPM_CC_GetCapability    ((TPM_CC_t) 0x0000017a)
+#define TPM_CC_PCR_Event        ((TPM_CC_t) 0x0000013c)
 #define TPM_CC_PCR_Read         ((TPM_CC_t) 0x0000017e)
 #define TPM_CC_Load             ((TPM_CC_t) 0x00000157)
 #define TPM_CC_LoadExternal     ((TPM_CC_t) 0x00000167)

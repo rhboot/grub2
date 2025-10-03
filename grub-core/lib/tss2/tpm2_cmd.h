@@ -90,6 +90,13 @@ extern TPM_RC_t
 grub_tpm2_flushcontext (const TPMI_DH_CONTEXT_t handle);
 
 extern TPM_RC_t
+grub_tpm2_pcr_event (const TPMI_DH_PCR_t pcrHandle,
+		     const TPMS_AUTH_COMMAND_t *authCommand,
+		     const TPM2B_EVENT_t *eventData,
+		     TPML_DIGEST_VALUES_t *digests,
+		     TPMS_AUTH_RESPONSE_t *authResponse);
+
+extern TPM_RC_t
 grub_tpm2_pcr_read (const TPMS_AUTH_COMMAND_t *authCommand,
 		    const TPML_PCR_SELECTION_t *pcrSelectionIn,
 		    grub_uint32_t *pcrUpdateCounter,

@@ -1119,6 +1119,24 @@ grub_Tss2_MU_TPML_DIGEST_Unmarshal (grub_tpm2_buffer_t buffer,
 }
 
 void
+grub_Tss2_MU_TPML_DIGEST_VALUE_Unmarshal (grub_tpm2_buffer_t buffer,
+					  TPML_DIGEST_VALUES_t *digests)
+{
+  grub_uint32_t i;
+
+  grub_tpm2_buffer_unpack_u32 (buffer, &digests->count);
+
+  if (digests->count > TPM_NUM_PCR_BANKS)
+    {
+      buffer->error = true;
+      return;
+    }
+
+  for (i = 0; i < digests->count; i++)
+    grub_Tss2_MU_TPMT_HA_Unmarshal (buffer, &digests->digests[i]);
+}
+
+void
 grub_Tss2_MU_TPMS_SIGNATURE_RSA_Unmarshal (grub_tpm2_buffer_t buffer,
                                            TPMS_SIGNATURE_RSA_t *rsa)
 {

@@ -576,6 +576,57 @@ grub_tpm2_flushcontext (const TPMI_DH_CONTEXT_t handle)
 }
 
 TPM_RC_t
+grub_tpm2_pcr_event (const TPMI_DH_PCR_t pcrHandle,
+		     const TPMS_AUTH_COMMAND_t *authCommand,
+		     const TPM2B_EVENT_t *eventData,
+		     TPML_DIGEST_VALUES_t *digests,
+		     TPMS_AUTH_RESPONSE_t *authResponse)
+{
+  TPM_RC_t rc;
+  struct grub_tpm2_buffer in;
+  struct grub_tpm2_buffer out;
+  TPML_DIGEST_VALUES_t digestsTmp;
+  TPMS_AUTH_RESPONSE_t authResponseTmp;
+  TPM_RC_t responseCode;
+  grub_uint32_t parameterSize;
+
+  if (eventData == NULL)
+    return TPM_RC_VALUE;
+  if (authCommand == NULL)
+    return TPM_RC_VALUE;
+
+  if (digests == NULL)
+    digests = &digestsTmp;
+  if (authResponse == NULL)
+    authResponse = &authResponseTmp;
+
+  /* Marshal */
+  grub_tpm2_buffer_init (&in);
+  grub_tpm2_buffer_pack_u32 (&in, pcrHandle);
+  grub_Tss2_MU_TPMS_AUTH_COMMAND_Marshal (&in, authCommand);
+  grub_Tss2_MU_TPM2B_Marshal (&in, eventData->size, eventData->buffer);
+  if (in.error == true)
+    return TPM_RC_FAILURE;
+
+  /* Submit */
+  grub_tpm2_buffer_init (&out);
+  rc = tpm2_submit_command (TPM_ST_SESSIONS, TPM_CC_PCR_Event, &responseCode, &in, &out);
+  if (rc != TPM_RC_SUCCESS)
+    return rc;
+  if (responseCode != TPM_RC_SUCCESS)
+    return responseCode;
+
+  /* Unmarshal */
+  grub_tpm2_buffer_unpack_u32 (&out, &parameterSize);
+  grub_Tss2_MU_TPML_DIGEST_VALUE_Unmarshal (&out, digests);
+  grub_Tss2_MU_TPMS_AUTH_RESPONSE_Unmarshal (&out, authResponse);
+  if (out.error == true)
+    return TPM_RC_FAILURE;
+
+  return TPM_RC_SUCCESS;
+}
+
+TPM_RC_t
 grub_tpm2_pcr_read (const TPMS_AUTH_COMMAND_t *authCommand,
 		    const TPML_PCR_SELECTION_t *pcrSelectionIn,
 		    grub_uint32_t *pcrUpdateCounter,

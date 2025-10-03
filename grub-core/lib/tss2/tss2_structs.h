@@ -144,6 +144,13 @@ typedef struct TPML_DIGEST TPML_DIGEST_t;
 /* TPM2B_NONCE Type */
 typedef TPM2B_DIGEST_t TPM2B_NONCE_t;
 
+/* TPM2B_EVENT Structure */
+struct TPM2B_EVENT {
+    grub_uint16_t size;
+    grub_uint8_t buffer[1024];
+};
+typedef struct TPM2B_EVENT TPM2B_EVENT_t;
+
 /* TPMA_SESSION Structure */
 struct TPMA_SESSION
 {
