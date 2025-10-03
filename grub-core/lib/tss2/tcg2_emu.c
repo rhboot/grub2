@@ -22,6 +22,7 @@
 
 #include <tss2_buffer.h>
 #include <tss2_structs.h>
+#include <tpm2_cmd.h>
 #include <tcg2.h>
 
 grub_err_t
@@ -44,6 +45,25 @@ grub_tcg2_submit_command (grub_size_t input_size, grub_uint8_t *input,
 
   if (grub_util_tpm_read (output, output_size) < sizeof (TPM_RESPONSE_HEADER_t))
     return GRUB_ERR_BAD_DEVICE;
+
+  return GRUB_ERR_NONE;
+}
+
+grub_err_t
+grub_tcg2_cap_pcr (grub_uint8_t pcr)
+{
+  TPMS_AUTH_COMMAND_t authCmd = {
+    .sessionHandle = TPM_RS_PW,
+  };
+  TPM2B_EVENT_t data = {
+    .size = 4,
+  };
+  TPM_RC_t rc;
+
+  /* Submit an EV_SEPARATOR event, i.e. an event with 4 zero-bytes */
+  rc = grub_tpm2_pcr_event (pcr, &authCmd, &data, NULL, NULL);
+  if (rc != TPM_RC_SUCCESS)
+    return grub_error (GRUB_ERR_BAD_DEVICE, N_("cannot cap PCR %u"), pcr);
 
   return GRUB_ERR_NONE;
 }
