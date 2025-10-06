@@ -33,6 +33,7 @@
 #include <libtasn1.h>
 #include <grub/env.h>
 #include <grub/lockdown.h>
+#include <grub/powerpc/ieee1275/platform_keystore.h>
 
 #include "appendedsig.h"
 
@@ -93,6 +94,16 @@ static sb_database_t db = {.certs = NULL, .cert_entries = 0};
  *    the errors and stop the boot.
  */
 static bool check_sigs = false;
+
+/*
+ * append_key_mgmt: Key Management Modes
+ * False: Static key management (use built-in Keys). This is default.
+ * True: Dynamic key management (use Platform KeySotre).
+ */
+static bool append_key_mgmt = false;
+
+/* Platform KeyStore db and dbx. */
+static grub_pks_t *pks_keystore;
 
 static grub_ssize_t
 pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
@@ -469,6 +480,46 @@ grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)), const cha
   return ret;
 }
 
+static const char *
+grub_env_read_key_mgmt (struct grub_env_var *var __attribute__ ((unused)),
+                        const char *val __attribute__ ((unused)))
+{
+  if (append_key_mgmt == true)
+    return "dynamic";
+
+  return "static";
+}
+
+static char *
+grub_env_write_key_mgmt (struct grub_env_var *var __attribute__ ((unused)), const char *val)
+{
+  char *ret;
+
+  /*
+   * Do not allow the value to be changed if signature verification is enabled
+   * (check_sigs is set to true) and GRUB is locked down.
+   */
+  if (check_sigs == true && grub_is_lockdown () == GRUB_LOCKDOWN_ENABLED)
+    {
+      ret = grub_strdup (grub_env_read_key_mgmt (NULL, NULL));
+      if (ret == NULL)
+        grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of memory");
+
+      return ret;
+    }
+
+  if (grub_strcmp (val, "dynamic") == 0)
+    append_key_mgmt = true;
+  else if (grub_strcmp (val, "static") == 0)
+    append_key_mgmt = false;
+
+  ret = grub_strdup (grub_env_read_key_mgmt (NULL, NULL));
+  if (ret == NULL)
+    grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of memory");
+
+  return ret;
+}
+
 static grub_err_t
 appendedsig_init (grub_file_t io __attribute__ ((unused)), enum grub_file_type type,
                   void **context __attribute__ ((unused)), enum grub_verify_flags *flags)
@@ -540,6 +591,11 @@ GRUB_MOD_INIT (appendedsig)
   if (grub_is_lockdown () == GRUB_LOCKDOWN_ENABLED)
     check_sigs = true;
 
+  /* If PKS keystore is available, use dynamic key management. */
+  pks_keystore = grub_pks_get_keystore ();
+  if (pks_keystore != NULL)
+    append_key_mgmt = true;
+
   /*
    * This is appended signature verification environment variable. It is
    * automatically set to either "no" or "yes" based on the ’ibm,secure-boot’
@@ -553,6 +609,23 @@ GRUB_MOD_INIT (appendedsig)
    */
   grub_register_variable_hook ("check_appended_signatures", grub_env_read_sec, grub_env_write_sec);
   grub_env_export ("check_appended_signatures");
+
+  /*
+   * This is appended signature key management environment variable. It is
+   * automatically set to either "static" or "dynamic" based on the
+   * Platform KeyStore.
+   *
+   * "static": Enforce static key management signature verification. This is
+   *           the default. When the GRUB is locked down, user cannot change
+   *           the value by setting the appendedsig_key_mgmt variable back to
+   *           "dynamic".
+   *
+   * "dynamic": Enforce dynamic key management signature verification. When the
+   *            GRUB is locked down, user cannot change the value by setting the
+   *            appendedsig_key_mgmt variable back to "static".
+   */
+  grub_register_variable_hook ("appendedsig_key_mgmt", grub_env_read_key_mgmt, grub_env_write_key_mgmt);
+  grub_env_export ("appendedsig_key_mgmt");
 
   rc = grub_asn1_init ();
   if (rc != ASN1_SUCCESS)
@@ -577,5 +650,7 @@ GRUB_MOD_FINI (appendedsig)
   free_db_list ();
   grub_register_variable_hook ("check_appended_signatures", NULL, NULL);
   grub_env_unset ("check_appended_signatures");
+  grub_register_variable_hook ("appendedsig_key_mgmt", NULL, NULL);
+  grub_env_unset ("appendedsig_key_mgmt");
   grub_verifier_unregister (&grub_appendedsig_verifier);
 }
