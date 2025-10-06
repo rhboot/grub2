@@ -1056,7 +1056,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	curs = grub_util_get_image_size (pubkey_paths[i]);
 
 	header = (struct grub_module_header *) (kernel_img + offset);
-	header->type = grub_host_to_target32 (OBJ_TYPE_PUBKEY);
+	header->type = grub_host_to_target32 (OBJ_TYPE_GPG_PUBKEY);
 	header->size = grub_host_to_target32 (curs + sizeof (*header));
 	offset += sizeof (*header);
 
