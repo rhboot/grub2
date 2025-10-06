@@ -76,7 +76,7 @@ static struct argp_option options[] = {
   {"config",   'c', N_("FILE"), 0, N_("embed FILE as an early config"), 0},
    /* TRANSLATORS: "embed" is a verb (command description).  "*/
   {"pubkey",   'k', N_("FILE"), 0, N_("embed FILE as public key for PGP signature checking"), 0},
-  {"x509",     'x', N_("FILE"), 0, N_("embed FILE as an x509 certificate for appended signature checking"), 0},
+  {"x509key",     'x', N_("FILE"), 0, N_("embed FILE as an x509 certificate for appended signature checking"), 0},
   /* TRANSLATORS: NOTE is a name of segment.  */
   {"note",   'n', 0, 0, N_("add NOTE segment for CHRP IEEE1275"), 0},
   {"output",  'o', N_("FILE"), 0, N_("output a generated image to FILE [default=stdout]"), 0},
@@ -213,10 +213,10 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
     case 'x':
       arguments->x509keys = xrealloc (arguments->x509keys,
-				      sizeof (arguments->x509keys[0])
-				      * (arguments->nx509keys + 1));
+                                      sizeof (arguments->x509keys[0]) * (arguments->nx509keys + 1));
       arguments->x509keys[arguments->nx509keys++] = xstrdup (arg);
       break;
+
 
     case 'c':
       if (arguments->config)

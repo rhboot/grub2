@@ -463,10 +463,10 @@ handle_install_list (struct install_list *il, const char *val,
 
 static char **pubkeys;
 static size_t npubkeys;
-static char *sbat;
-static int disable_shim_lock;
 static char **x509keys;
 static size_t nx509keys;
+static char *sbat;
+static int disable_shim_lock;
 static grub_compression_t compression;
 static size_t appsig_size;
 static int disable_cli;
@@ -509,14 +509,12 @@ grub_install_parse (int key, char *arg)
     case GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK:
       disable_shim_lock = 1;
       return 1;
-    case 'x':
-      x509keys = xrealloc (x509keys,
-			  sizeof (x509keys[0])
-			  * (nx509keys + 1));
-      x509keys[nx509keys++] = xstrdup (arg);
-      return 1;
     case GRUB_INSTALL_OPTIONS_DISABLE_CLI:
       disable_cli = 1;
+      return 1;
+    case 'x':
+      x509keys = xrealloc (x509keys, sizeof (x509keys[0]) * (nx509keys + 1));
+      x509keys[nx509keys++] = xstrdup (arg);
       return 1;
 
     case GRUB_INSTALL_OPTIONS_VERBOSITY:
@@ -649,7 +647,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
     slen += sizeof (" --pubkey ''") + grub_strlen (*pk);
 
   for (pk = x509keys; pk < x509keys + nx509keys; pk++)
-    slen += 10 + grub_strlen (*pk);
+    slen += sizeof (" --x509key ''") + grub_strlen (*pk);
 
   for (md = modules.entries; *md; md++)
     slen += sizeof (" ''") + grub_strlen (*md);
@@ -693,7 +691,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 
   for (pk = x509keys; pk < x509keys + nx509keys; pk++)
     {
-      p = grub_stpcpy (p, "--x509 '");
+      p = grub_stpcpy (p, "--x509key '");
       p = grub_stpcpy (p, *pk);
       *p++ = '\'';
       *p++ = ' ';
