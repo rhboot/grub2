@@ -998,6 +998,21 @@ module = {
 };
 
 module = {
+  name = appendedsig;
+  common = commands/appendedsig/appendedsig.c;
+  common = commands/appendedsig/x509.c;
+  common = commands/appendedsig/pkcs7.c;
+  common = commands/appendedsig/asn1util.c;
+  common = commands/appendedsig/gnutls_asn1_tab.c;
+  common = commands/appendedsig/pkix_asn1_tab.c;
+  enable = emu;
+  enable = powerpc_ieee1275;
+  cflags = '$(CFLAGS_GCRY) -Wno-redundant-decls';
+  cppflags = '$(CPPFLAGS_GCRY) -I$(srcdir)/lib/libtasn1-grub';
+  depends = crypto, gcry_rsa, gcry_sha256, gcry_sha512, mpi, asn1;
+};
+
+module = {
   name = hdparm;
   common = commands/hdparm.c;
   enable = pci;
