@@ -136,10 +136,6 @@ struct signature_v4_header
   grub_uint16_t hashed_sub;
 } GRUB_PACKED;
 
-struct gcry_pk_spec *grub_crypto_pk_dsa;
-struct gcry_pk_spec *grub_crypto_pk_ecdsa;
-struct gcry_pk_spec *grub_crypto_pk_rsa;
-
 struct
 {
   const char *name;
