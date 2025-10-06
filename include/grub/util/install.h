@@ -70,7 +70,7 @@
   { "disable-cli", GRUB_INSTALL_OPTIONS_DISABLE_CLI, 0, 0,		\
     N_("disabled command line interface access"), 0 },			\
   { "x509key",   'x', N_("FILE"), 0,					\
-      N_("embed FILE as an x509 certificate for appended signature checking"), 0}, \
+    N_("embed FILE as an x509 certificate for appended signature checking"), 0}, \
   { "appended-signature-size", GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE,  \
     "SIZE", 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), 1}, \
   { "verbose", 'v', 0, 0,						\
