@@ -115,6 +115,14 @@ struct grub_sbat_note {
   char name[ALIGN_UP(sizeof(GRUB_SBAT_NOTE_NAME), 4)];
 };
 
+#define GRUB_APPENDED_SIGNATURE_NOTE_NAME "Appended-Signature"
+#define GRUB_APPENDED_SIGNATURE_NOTE_TYPE 0x41536967 /* "ASig" */
+struct grub_appended_signature_note
+{
+  Elf32_Nhdr header;
+  char name[ALIGN_UP (sizeof (GRUB_APPENDED_SIGNATURE_NOTE_NAME), 4)];
+};
+
 static int
 is_relocatable (const struct grub_install_image_target_desc *image_target)
 {
@@ -216,7 +224,7 @@ grub_arm_reloc_jump24 (grub_uint32_t *target, Elf32_Addr sym_addr)
 
 void
 SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc *image_target,
-				    int note, char *sbat, char **core_img, size_t *core_size,
+				    int note, char *sbat, size_t appsig_size, char **core_img, size_t *core_size,
 				    Elf_Addr target_addr,
 				    struct grub_mkimage_layout *layout)
 {
@@ -235,6 +243,12 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
     {
       phnum++;
       footer_size += ALIGN_UP (sizeof (struct grub_sbat_note) + layout->sbat_size, 4);
+    }
+
+  if (appsig_size)
+    {
+      phnum++;
+      footer_size += ALIGN_UP (sizeof (struct grub_appended_signature_note), 4);
     }
 
   if (image_target->id != IMAGE_LOONGSON_ELF)
@@ -517,6 +531,30 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
       note_ptr->header.n_type = grub_host_to_target32 (GRUB_SBAT_NOTE_TYPE);
       memcpy (note_ptr->name, GRUB_SBAT_NOTE_NAME, sizeof (GRUB_SBAT_NOTE_NAME));
       memcpy ((char *)(note_ptr + 1), sbat, layout->sbat_size);
+
+      phdr++;
+      phdr->p_type = grub_host_to_target32 (PT_NOTE);
+      phdr->p_flags = grub_host_to_target32 (PF_R);
+      phdr->p_align = grub_host_to_target32 (image_target->voidp_sizeof);
+      phdr->p_vaddr = 0;
+      phdr->p_paddr = 0;
+      phdr->p_filesz = grub_host_to_target32 (note_size);
+      phdr->p_memsz = 0;
+      phdr->p_offset = grub_host_to_target32 (header_size + program_size + footer_offset);
+      footer += note_size;
+      footer_offset += note_size;
+    }
+
+  if (appsig_size)
+    {
+      int note_size = ALIGN_UP (sizeof (struct grub_appended_signature_note) + appsig_size, 4);
+      struct grub_appended_signature_note *note_ptr = (struct grub_appended_signature_note *) footer;
+
+      note_ptr->header.n_namesz = grub_host_to_target32 (sizeof (GRUB_APPENDED_SIGNATURE_NOTE_NAME));
+      /* Needs to sit at the end, so we round this up and sign some zero padding. */
+      note_ptr->header.n_descsz = grub_host_to_target32 (ALIGN_UP (appsig_size, 4));
+      note_ptr->header.n_type = grub_host_to_target32 (GRUB_APPENDED_SIGNATURE_NOTE_TYPE);
+      strcpy (note_ptr->name, GRUB_APPENDED_SIGNATURE_NOTE_NAME);
 
       phdr++;
       phdr->p_type = grub_host_to_target32 (PT_NOTE);
