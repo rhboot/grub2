@@ -6912,6 +6912,21 @@ which increases the risk of password leakage during the process. Moreover, the
 superuser list must be well maintained, and the password used cannot be
 synchronized with LUKS key rotation.
 
+@node Signing GRUB itself
+@section Signing GRUB itself
+To ensure a complete secure-boot chain, there must be a way for the code that
+loads GRUB to verify the integrity of the core image.
+This is ultimately platform-specific and individual platforms can define their
+own mechanisms. However, there are general-purpose mechanisms that can be used
+with GRUB.
+@section Signing GRUB for UEFI secure boot
+On UEFI platforms, @file{core.img} is a PE binary. Therefore, it can be signed
+with a tool such as @command{pesign} or @command{sbsign}. Refer to the
+suggestions in @pxref{UEFI secure boot and shim} to ensure that the final
+image works under UEFI secure boot and can maintain the secure-boot chain. It
+will also be necessary to enroll the public key used into a relevant firmware
+key database.
+
 @node Platform limitations
 @chapter Platform limitations
 
