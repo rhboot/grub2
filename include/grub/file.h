@@ -115,6 +115,8 @@ enum grub_file_type
     GRUB_FILE_TYPE_HASHLIST,
     /* File hashed by hashsum.  */
     GRUB_FILE_TYPE_TO_HASH,
+    /* File holding certificiate/binary hash to add to db/dbx. */
+    GRUB_FILE_TYPE_HASH_TRUST,
     /* Keyboard layout.  */
     GRUB_FILE_TYPE_KEYBOARD_LAYOUT,
     /* Picture file.  */
