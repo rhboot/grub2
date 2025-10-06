@@ -85,8 +85,8 @@ static struct argp_option options[] = {
   {"sbat", 's', N_("FILE"), 0, N_("SBAT metadata"), 0},
   {"disable-shim-lock", GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK, 0, 0, N_("disable shim_lock verifier"), 0},
   {"disable-cli", GRUB_INSTALL_OPTIONS_DISABLE_CLI, 0, 0, N_("disable command line interface access"), 0},
-  {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   {"appended-signature-size", 'S', N_("SIZE"), 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), 0},
+  {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -133,8 +133,8 @@ struct arguments
   char *sbat;
   int note;
   int disable_shim_lock;
-  size_t appsig_size;
   int disable_cli;
+  size_t appsig_size;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
 };
@@ -183,6 +183,14 @@ argp_parser (int key, char *arg, struct argp_state *state)
       arguments->appsig_size = grub_strtol(arg, &end, 10);
       if (grub_errno)
         return 0;
+      break;
+
+    case 'S':
+      arguments->appsig_size = grub_strtoul (arg, &end, 10);
+      if (*arg == '\0' || *end != '\0')
+        grub_util_error (_("non-numeric or invalid appended signature size `%s'"), arg);
+      else if (arguments->appsig_size == 0)
+        grub_util_error (_("appended signature size `%s', and it should not be zero"), arg);
       break;
 
     case 'm':

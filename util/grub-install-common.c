@@ -463,13 +463,14 @@ static int disable_shim_lock;
 static char **x509keys;
 static size_t nx509keys;
 static grub_compression_t compression;
-static size_t appsig_size;
 static int disable_cli;
+static size_t appsig_size;
 
 int
 grub_install_parse (int key, char *arg)
 {
   const char *end;
+
   switch (key)
     {
     case 'C':
@@ -577,10 +578,11 @@ grub_install_parse (int key, char *arg)
     case GRUB_INSTALL_OPTIONS_GRUB_MKIMAGE:
       return 1;
     case GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE:
-      grub_errno = 0;
-      appsig_size = grub_strtol(arg, &end, 10);
-      if (grub_errno)
-        return 0;
+      appsig_size = grub_strtoul (arg, &end, 10);
+      if (*arg == '\0' || *end != '\0')
+        grub_util_error (_("non-numeric or invalid appended signature size `%s'"), arg);
+      else if (appsig_size == 0)
+        grub_util_error (_("appended signature size `%s', and it should not be zero"), arg);
       return 1;
     default:
       return 0;

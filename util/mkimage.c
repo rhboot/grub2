@@ -944,6 +944,9 @@ grub_install_generate_image (const char *dir, const char *prefix,
   if (sbat_path != NULL && (image_target->id != IMAGE_EFI && image_target->id != IMAGE_PPC))
     grub_util_error (_("SBAT data can be added only to EFI or powerpc-ieee1275 images"));
 
+  if (appsig_size != 0 && image_target->id != IMAGE_PPC)
+    grub_util_error (_("appended signature can be support only to powerpc-ieee1275 images"));
+
   if (disable_shim_lock)
     total_module_size += sizeof (struct grub_module_header);
 
@@ -1830,10 +1833,10 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	else
 	  target_addr = image_target->link_addr;
 	if (image_target->voidp_sizeof == 4)
-	  grub_mkimage_generate_elf32 (image_target, note, appsig_size, sbat, &core_img,
+	  grub_mkimage_generate_elf32 (image_target, note, sbat, appsig_size, &core_img,
 				       &core_size, target_addr, &layout);
 	else
-	  grub_mkimage_generate_elf64 (image_target, note, appsig_size, sbat, &core_img,
+	  grub_mkimage_generate_elf64 (image_target, note, sbat, appsig_size, &core_img,
 				       &core_size, target_addr, &layout);
       }
       break;
