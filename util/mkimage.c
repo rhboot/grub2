@@ -914,16 +914,21 @@ grub_install_generate_image (const char *dir, const char *prefix,
       }
   }
 
+  if (nx509keys != 0 && image_target->id != IMAGE_PPC)
+    grub_util_error (_("x509 public key can be support only to appended signature"
+                       " with powerpc-ieee1275 images"));
+
   {
     size_t i;
+
     for (i = 0; i < nx509keys; i++)
       {
-	size_t curs;
-	curs = ALIGN_ADDR (grub_util_get_image_size (x509key_paths[i]));
-	grub_util_info ("the size of x509 public key %u is 0x%"
-			GRUB_HOST_PRIxLONG_LONG,
-			(unsigned) i, (unsigned long long) curs);
-	total_module_size += curs + sizeof (struct grub_module_header);
+        size_t curs;
+
+        curs = ALIGN_ADDR (grub_util_get_image_size (x509key_paths[i]));
+        grub_util_info ("the size of x509 public key %u is 0x%" GRUB_HOST_PRIxLONG_LONG,
+                        (unsigned) i, (unsigned long long) curs);
+        total_module_size += curs + sizeof (struct grub_module_header);
       }
   }
 
