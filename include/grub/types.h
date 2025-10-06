@@ -379,6 +379,8 @@ struct grub_guid
 } __attribute__ ((aligned(4)));
 typedef struct grub_guid grub_guid_t;
 
+#define GRUB_GUID_SIZE    (sizeof (grub_guid_t))
+
 struct grub_packed_guid
 {
   grub_uint32_t data1;
@@ -387,5 +389,7 @@ struct grub_packed_guid
   grub_uint8_t data4[8];
 } GRUB_PACKED;
 typedef struct grub_packed_guid grub_packed_guid_t;
+
+#define GRUB_PACKED_GUID_SIZE    (sizeof (grub_packed_guid_t))
 
 #endif /* ! GRUB_TYPES_HEADER */
