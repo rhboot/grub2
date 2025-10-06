@@ -52,6 +52,9 @@ GRUB_MOD_LICENSE ("GPLv3+");
 #define SHA384_HASH_SIZE   48
 #define SHA512_HASH_SIZE   64
 
+#define OPTION_BINARY_HASH 0
+#define OPTION_CERT_HASH   1
+
 /*
  * This structure is extracted from scripts/sign-file.c in the linux kernel
  * source. It was licensed as LGPLv2.1+, which is GPLv3+ compatible.
@@ -125,6 +128,13 @@ static grub_pks_t *pks_keystore;
 
 /* Appended signature size. */
 static grub_size_t append_sig_len = 0;
+
+static const struct grub_arg_option options[] =
+{
+  {"binary-hash", 'b', 0, N_("hash file of the binary."), 0, ARG_TYPE_PATHNAME},
+  {"cert-hash", 'c', 1, N_("hash file of the certificate."), 0, ARG_TYPE_PATHNAME},
+  {0, 0, 0, 0, 0, 0}
+};
 
 static grub_ssize_t
 pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
@@ -544,6 +554,69 @@ remove_cert_from_db (const grub_uint8_t *data, const grub_size_t data_size)
   _remove_cert_from_db (cert);
 
   return rc;
+}
+
+static bool
+cert_fingerprint_match (const grub_uint8_t *hash_data, const grub_size_t hash_data_size,
+                        const grub_x509_cert_t *cert)
+{
+  grub_int32_t type;
+
+  if (hash_data_size == SHA256_HASH_SIZE)
+    type = GRUB_FINGERPRINT_SHA256;
+  else if (hash_data_size == SHA384_HASH_SIZE)
+    type = GRUB_FINGERPRINT_SHA384;
+  else if (hash_data_size == SHA512_HASH_SIZE)
+    type = GRUB_FINGERPRINT_SHA512;
+  else
+    {
+      grub_dprintf ("appendedsig", "unsupported fingerprint hash type "
+                    "(%" PRIuGRUB_SIZE ") \n", hash_data_size);
+      return false;
+    }
+
+  if (grub_memcmp (cert->fingerprint[type], hash_data, hash_data_size) == 0)
+    return true;
+
+  return false;
+}
+
+static void
+remove_hash_from_db (const grub_uint8_t *hash_data, const grub_size_t hash_data_size,
+                     const bool bin_hash)
+{
+  grub_uint32_t i;
+  grub_x509_cert_t *cert;
+
+  if (bin_hash == true)
+    {
+      for (i = 0; i < db.hash_entries; i++)
+        {
+          if (db.hashes[i] == NULL)
+            continue;
+
+          if (grub_memcmp (db.hashes[i], hash_data, hash_data_size) == 0)
+            {
+              grub_dprintf ("appendedsig", "removed distrusted hash %02x%02x%02x%02x.. from the db list\n",
+                            db.hashes[i][0], db.hashes[i][1], db.hashes[i][2], db.hashes[i][3]);
+              grub_free (db.hashes[i]);
+              db.hashes[i] = NULL;
+              db.hash_sizes[i] = 0;
+              break;
+            }
+        }
+    }
+  else
+    {
+      for (cert = db.certs; cert != NULL; cert = cert->next)
+        {
+          if (cert_fingerprint_match (hash_data, hash_data_size, cert) == true)
+            {
+              _remove_cert_from_db (cert);
+              break;
+            }
+        }
+    }
 }
 
 static grub_err_t
@@ -1010,6 +1083,192 @@ grub_cmd_list_db (grub_command_t cmd __attribute__ ((unused)), int argc __attrib
   return GRUB_ERR_NONE;
 }
 
+static grub_err_t
+grub_cmd_list_dbx (grub_command_t cmd __attribute__((unused)),
+                   int argc __attribute__((unused)), char **args __attribute__((unused)))
+{
+  struct x509_certificate *cert;
+  grub_uint32_t i, cert_num = 1;
+
+  if (append_key_mgmt == false)
+    return grub_error (GRUB_ERR_ACCESS_DENIED,
+                       "append_list_dbx command is unsupported in static key mode");
+
+  for (cert = dbx.certs; cert != NULL; cert = cert->next, cert_num++)
+    print_certificate (cert, cert_num);
+
+  for (i = 0; i < dbx.hash_entries; i++)
+    {
+      if (dbx.hashes[i] != NULL)
+        {
+          grub_printf ("\nCertificate/Binary hash: %u\n", i + 1);
+          grub_printf ("    Hash: sha%" PRIuGRUB_SIZE "\n         ", dbx.hash_sizes[i] * 8);
+          hexdump_colon (dbx.hashes[i], dbx.hash_sizes[i]);
+        }
+    }
+
+  return GRUB_ERR_NONE;
+}
+
+/*
+ * Remove the trusted binary hash from the dbx list if present. And add them to
+ * the db list if it is not already present.
+ *
+ * Note: When signature verification is enabled, this command only accepts the
+ * binary hash file that is signed with an appended signature. The signature is
+ * verified by the appendedsig module. If verification succeeds, the binary hash
+ * is added to the db list. Otherwise, an error is posted and the binary hash is
+ * not added.
+ * When signature verification is disabled, it accepts the binary hash file
+ * without an appended signature and adds it to the db list.
+ *
+ * Also, note that the adding of the trusted binary hash using this command does
+ * not persist across reboots.
+ */
+static grub_err_t
+grub_cmd_add_db_hash (grub_command_t cmd __attribute__((unused)), int argc, char**args)
+{
+  grub_err_t rc;
+  grub_file_t hash_file;
+  grub_uint8_t *hash_data = NULL;
+  grub_size_t hash_data_size = 0;
+
+  if (append_key_mgmt == false)
+    return grub_error (GRUB_ERR_ACCESS_DENIED,
+                       "append_add_db_hash command is unsupported in static key mode");
+
+  if (argc != 1)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT,
+                       "a trusted binary hash file is expected in binary format\n"
+                       "Example:\n\tappend_add_db_hash <BINARY HASH FILE>\n");
+
+  if (!grub_strlen (args[0]))
+    return grub_error (GRUB_ERR_BAD_FILENAME, "missing trusted binary hash file");
+
+  hash_file = grub_file_open (args[0], GRUB_FILE_TYPE_HASH_TRUST | GRUB_FILE_TYPE_NO_DECOMPRESS);
+  if (hash_file == NULL)
+    return grub_error (GRUB_ERR_FILE_NOT_FOUND, "unable to open %s file", args[0]);
+
+  rc = file_read_whole (hash_file, &hash_data, &hash_data_size);
+  grub_file_close (hash_file);
+  if (rc != GRUB_ERR_NONE)
+    return rc;
+
+  /*
+   * If signature verification is enabled (check_sigs is set to true), obtain
+   * the actual hash data size by subtracting the appended signature size from
+   * the hash data size because the hash has an appended signature, and this
+   * actual hash data size is used to get the hash data.
+   */
+  if (check_sigs == true)
+    hash_data_size -= append_sig_len;
+
+  grub_dprintf ("appendedsig",
+                "adding a trusted binary hash %02x%02x%02x%02x... with size of %" PRIuGRUB_SIZE "\n",
+                hash_data[0], hash_data[1], hash_data[2], hash_data[3], hash_data_size);
+
+  /* Only accept SHA256, SHA384 and SHA512 binary hash */
+  if (hash_data_size != SHA256_HASH_SIZE && hash_data_size != SHA384_HASH_SIZE &&
+      hash_data_size != SHA512_HASH_SIZE)
+    {
+      grub_free (hash_data);
+      return grub_error (GRUB_ERR_BAD_SIGNATURE, "unacceptable trusted binary hash type");
+    }
+
+  rc = add_hash (hash_data, hash_data_size, &db);
+  grub_free (hash_data);
+
+  return rc;
+}
+
+/*
+ * Remove the distrusted binary/certificate hash from the db list if present.
+ * And add them to the dbx list if it is not already present.
+ *
+ * Note: When signature verification is enabled, this command only accepts the
+ * binary/certificate hash file that is signed with an appended signature. The
+ * signature is verified by the appendedsig module. If verification succeeds,
+ * the binary/certificate hash is added to the dbx list. Otherwise, an error is
+ * posted and the binary/certificate hash is not added.
+ * When signature verification is disabled, it accepts the binary/certificate
+ * hash file without an appended signature and adds it to the dbx list.
+ *
+ * Also, note that the adding of the distrusted binary/certificate hash using
+ * this command does not persist across reboots.
+ */
+static grub_err_t
+grub_cmd_add_dbx_hash (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
+                       char **args __attribute__ ((unused)))
+{
+  grub_err_t rc;
+  grub_file_t hash_file;
+  grub_uint8_t *hash_data = NULL;
+  grub_size_t hash_data_size = 0;
+  char *file_path;
+
+  if (append_key_mgmt == false)
+    return grub_error (GRUB_ERR_ACCESS_DENIED,
+                       "append_add_dbx_hash command is unsupported in static key mode");
+
+  if (!ctxt->state[OPTION_BINARY_HASH].set && !ctxt->state[OPTION_CERT_HASH].set)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT,
+                       "a distrusted certificate/binary hash file is expected in binary format\n"
+                       "Example:\n\tappend_add_dbx_hash [option] <FILE>\n"
+                       "option:\n[-b|--binary-hash] FILE [BINARY HASH FILE]\n"
+                       "[-c|--cert-hash] FILE [CERTFICATE HASH FILE]\n");
+
+  if (ctxt->state[OPTION_BINARY_HASH].arg == NULL && ctxt->state[OPTION_CERT_HASH].arg == NULL)
+    return grub_error (GRUB_ERR_BAD_FILENAME, "missing distrusted certificate/binary hash file");
+
+  if (ctxt->state[OPTION_BINARY_HASH].arg != NULL)
+    file_path = ctxt->state[OPTION_BINARY_HASH].arg;
+  else
+    file_path = ctxt->state[OPTION_CERT_HASH].arg;
+
+  hash_file = grub_file_open (file_path, GRUB_FILE_TYPE_HASH_TRUST | GRUB_FILE_TYPE_NO_DECOMPRESS);
+  if (hash_file == NULL)
+    return grub_error (GRUB_ERR_FILE_NOT_FOUND, "unable to open %s file", file_path);
+
+  rc = file_read_whole (hash_file, &hash_data, &hash_data_size);
+  grub_file_close (hash_file);
+  if (rc != GRUB_ERR_NONE)
+    return rc;
+
+  /*
+   * If signature verification is enabled (check_sigs is set to true), obtain
+   * the actual hash data size by subtracting the appended signature size from
+   * the hash data size because the hash has an appended signature, and this
+   * actual hash data size is used to get the hash data.
+   */
+  if (check_sigs == true)
+    hash_data_size -= append_sig_len;
+
+  grub_dprintf ("appendedsig",
+                "adding a distrusted certificate/binary hash %02x%02x%02x%02x..."
+                " with size of %" PRIuGRUB_SIZE "\n", hash_data[0], hash_data[1],
+                hash_data[2], hash_data[3], hash_data_size);
+
+  if (ctxt->state[OPTION_BINARY_HASH].set || ctxt->state[OPTION_CERT_HASH].set)
+    {
+      /* Only accept SHA256, SHA384 and SHA512 certificate/binary hash */
+      if (hash_data_size != SHA256_HASH_SIZE && hash_data_size != SHA384_HASH_SIZE &&
+          hash_data_size != SHA512_HASH_SIZE)
+        {
+          grub_free (hash_data);
+          return grub_error (GRUB_ERR_BAD_SIGNATURE,
+                             "unacceptable distrusted certificate/binary hash type");
+        }
+    }
+
+  /* Remove distrusted binary hash/certificate from the db list if present. */
+  remove_hash_from_db (hash_data, hash_data_size,
+                       (ctxt->state[OPTION_BINARY_HASH].set) ? true : false);
+  rc = add_hash (hash_data, hash_data_size, &dbx);
+  grub_free (hash_data);
+
+  return rc;
+}
+
 /* Add the X.509 certificates/binary hash to the db list from PKS. */
 static grub_err_t
 load_pks2db (void)
@@ -1292,6 +1551,11 @@ appendedsig_init (grub_file_t io __attribute__ ((unused)), enum grub_file_type t
          * verifier, but we lack the hubris required to take this on. Instead,
          * require that it have an appended signature.
          */
+      case GRUB_FILE_TYPE_HASH_TRUST:
+        /*
+         * This is a certificate/binary hash to add to db/dbx. This needs to be
+         * verified or blocked.
+         */
       case GRUB_FILE_TYPE_LINUX_KERNEL:
       case GRUB_FILE_TYPE_GRUB_MODULE:
         /*
@@ -1333,6 +1597,8 @@ struct grub_file_verifier grub_appendedsig_verifier = {
 };
 
 static grub_command_t cmd_verify, cmd_list_db, cmd_dbx_cert, cmd_db_cert;
+static grub_command_t cmd_list_dbx, cmd_db_hash;
+static grub_extcmd_t cmd_dbx_hash;
 
 GRUB_MOD_INIT (appendedsig)
 {
@@ -1412,6 +1678,16 @@ GRUB_MOD_INIT (appendedsig)
   cmd_dbx_cert = grub_register_command ("append_add_dbx_cert", grub_cmd_dbx_cert, N_("<X509_CERTIFICATE>"),
                                         N_("Add distrusted X509_CERTIFICATE to the dbx list"));
 
+  cmd_list_dbx = grub_register_command ("append_list_dbx", grub_cmd_list_dbx, 0,
+                                        N_("Show the list of distrusted certificates and"
+                                        " certificate/binary hashes from the dbx list"));
+  cmd_db_hash = grub_register_command ("append_add_db_hash", grub_cmd_add_db_hash, N_("BINARY HASH FILE"),
+                                       N_("Add trusted BINARY HASH to the db list."));
+  cmd_dbx_hash = grub_register_extcmd ("append_add_dbx_hash", grub_cmd_add_dbx_hash, 0,
+                                       N_("[-b|--binary-hash] FILE [BINARY HASH FILE]\n"
+                                       "[-c|--cert-hash] FILE [CERTFICATE HASH FILE]"),
+                                       N_("Add distrusted CERTFICATE/BINARY HASH to the dbx list."), options);
+
   grub_verifier_register (&grub_appendedsig_verifier);
   grub_dl_set_persistent (mod);
 }
@@ -1434,4 +1710,7 @@ GRUB_MOD_FINI (appendedsig)
   grub_unregister_command (cmd_list_db);
   grub_unregister_command (cmd_db_cert);
   grub_unregister_command (cmd_dbx_cert);
+  grub_unregister_command (cmd_list_dbx);
+  grub_unregister_command (cmd_db_hash);
+  grub_unregister_extcmd (cmd_dbx_hash);
 }
