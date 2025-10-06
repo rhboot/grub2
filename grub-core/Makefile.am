@@ -246,6 +246,8 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/ieee1275/alloc.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/terminfo.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/extcmd.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/lib/arg.h
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/powerpc/ieee1275/ieee1275.h
+KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/powerpc/ieee1275/platform_keystore.h
 endif
 
 if COND_sparc64_ieee1275

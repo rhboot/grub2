@@ -24,6 +24,9 @@
 #include <grub/types.h>
 #include <grub/machine/ieee1275.h>
 
+#define IEEE1275_CELL_INVALID          ((grub_ieee1275_cell_t) -1)
+#define IEEE1275_CELL_NOT_FOUND        ((grub_int32_t) -7)
+
 #define GRUB_IEEE1275_CELL_FALSE       ((grub_ieee1275_cell_t) 0)
 #define GRUB_IEEE1275_CELL_TRUE        ((grub_ieee1275_cell_t) -1)
 

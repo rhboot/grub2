@@ -51,6 +51,8 @@
 #endif
 #if defined(__powerpc__)
 #include <grub/lockdown.h>
+#include <grub/powerpc/ieee1275/ieee1275.h>
+#include <grub/powerpc/ieee1275/platform_keystore.h>
 #endif
 
 #ifdef __powerpc__
@@ -1043,6 +1045,8 @@ grub_ieee1275_get_secure_boot (void)
     }
   else
     grub_dprintf ("ieee1275", "Secure Boot Disabled\n");
+
+  grub_pks_keystore_init ();
 }
 #endif /* __powerpc__ */
 grub_addr_t grub_modbase;
