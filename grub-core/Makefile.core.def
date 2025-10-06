@@ -333,6 +333,7 @@ kernel = {
   powerpc_ieee1275 = kern/powerpc/cache.S;
   powerpc_ieee1275 = kern/powerpc/dl.c;
   powerpc_ieee1275 = kern/powerpc/compiler-rt.S;
+  powerpc_ieee1275 = kern/lockdown.c;
 
   sparc64_ieee1275 = kern/sparc64/cache.S;
   sparc64_ieee1275 = kern/sparc64/dl.c;

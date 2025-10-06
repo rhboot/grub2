@@ -9144,7 +9144,7 @@ platforms.
 @section Lockdown when booting on a secure setup
 
 The GRUB can be locked down when booted on a secure boot environment, for example
-if the UEFI secure boot is enabled. On a locked down configuration, the GRUB will
+if UEFI or Power secure boot is enabled. On a locked down configuration, the GRUB will
 be restricted and some operations/commands cannot be executed. This also includes
 limiting which filesystems are supported to those thought to be more robust and
 widely used within GRUB.

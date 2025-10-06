@@ -49,6 +49,14 @@
 #if defined(__powerpc__) || defined(__i386__)
 #include <grub/ieee1275/alloc.h>
 #endif
+#if defined(__powerpc__)
+#include <grub/lockdown.h>
+#endif
+
+#ifdef __powerpc__
+#define GRUB_SB_DISABLED        ((grub_uint32_t) 0)
+#define GRUB_SB_ENFORCE         ((grub_uint32_t) 2)
+#endif
 
 /* The maximum heap size we're going to claim at boot. Not used by sparc. */
 #ifdef __i386__
@@ -994,7 +1002,49 @@ grub_parse_cmdline (void)
 	}
     }
 }
+#ifdef __powerpc__
+static void
+grub_ieee1275_get_secure_boot (void)
+{
+  grub_ieee1275_phandle_t root;
+  grub_uint32_t sb_mode = GRUB_SB_DISABLED;
+  grub_int32_t rc;
 
+  rc = grub_ieee1275_finddevice ("/", &root);
+  if (rc != 0)
+    {
+      grub_error (GRUB_ERR_UNKNOWN_DEVICE, "couldn't find / node");
+      return;
+    }
+
+  rc = grub_ieee1275_get_integer_property (root, "ibm,secure-boot", &sb_mode, sizeof (sb_mode), 0);
+  if (rc != 0)
+    {
+      grub_error (GRUB_ERR_UNKNOWN_DEVICE, "couldn't examine /ibm,secure-boot property");
+      return;
+    }
+  /*
+   * Secure Boot Mode:
+   * 0 - disabled
+   *      No signature verification is performed. This is the default.
+   * 1 - audit
+   *      Signature verification is performed and if signature verification
+   *      fails, display the errors and allow the boot to continue.
+   * 2 - enforce
+   *      Lockdown the GRUB. Signature verification is performed and If
+   *      signature verification fails, display the errors and stop the boot.
+   *
+   * Now, only support disabled and enforce.
+   */
+  if (sb_mode == GRUB_SB_ENFORCE)
+    {
+      grub_dprintf ("ieee1275", "Secure Boot Enabled\n");
+      grub_lockdown ();
+    }
+  else
+    grub_dprintf ("ieee1275", "Secure Boot Disabled\n");
+}
+#endif /* __powerpc__ */
 grub_addr_t grub_modbase;
 
 void
@@ -1019,6 +1069,10 @@ grub_machine_init (void)
   grub_tsc_init ();
 #else
   grub_install_get_time_ms (grub_rtc_get_time_ms);
+#endif
+
+#ifdef __powerpc__
+  grub_ieee1275_get_secure_boot ();
 #endif
 }
 
