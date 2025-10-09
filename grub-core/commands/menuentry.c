@@ -266,6 +266,9 @@ grub_cmd_menuentry (grub_extcmd_context_t ctxt, int argc, char **args)
   if (! argc)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "missing arguments");
 
+  if (! grub_strlen (args[argc - 1]))
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, "menuentry title is missing");
+
   if (ctxt->state[3].set && ctxt->script)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "multiple menuentry definitions");
 
