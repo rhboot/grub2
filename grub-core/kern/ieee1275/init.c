@@ -162,6 +162,8 @@ grub_machine_get_bootlocation (char **device, char **path)
   char *bootpath;
   char *filename;
   char *type;
+  char *ret_device = NULL;
+  char *ret_path = NULL;
 
   bootpath = grub_ieee1275_get_boot_dev ();
   if (! bootpath)
@@ -177,7 +179,7 @@ grub_machine_get_bootlocation (char **device, char **path)
       dev = grub_ieee1275_get_aliasdevname (bootpath);
       canon = grub_ieee1275_canonicalise_devname (dev);
       if (! canon)
-        return;
+	goto done;
       ptr = canon + grub_strlen (canon) - 1;
       while (ptr > canon && (*ptr == ',' || *ptr == ':'))
 	ptr--;
@@ -185,13 +187,17 @@ grub_machine_get_bootlocation (char **device, char **path)
       *ptr = 0;
 
       if (grub_ieee1275_net_config)
-	grub_ieee1275_net_config (canon, device, path, bootpath);
+	grub_ieee1275_net_config (canon, &ret_device, &ret_path, bootpath);
       grub_free (dev);
       grub_free (canon);
+
+      /* Use path from net config if it is provided by cached DHCP info */
+      if (ret_path != NULL)
+	goto done;
+      /* Fall through to use firmware bootpath */
     }
   else
-    *device = grub_ieee1275_encode_devname (bootpath);
-  grub_free (type);
+    ret_device = grub_ieee1275_encode_devname (bootpath);
 
   filename = grub_ieee1275_get_filename (bootpath);
   if (filename)
@@ -204,10 +210,18 @@ grub_machine_get_bootlocation (char **device, char **path)
 	  *lastslash = '\0';
 	  grub_translate_ieee1275_path (filename);
 
-	  *path = filename;
+	  ret_path = filename;
 	}
     }
+
+ done:
+  grub_free (type);
   grub_free (bootpath);
+
+  if (device != NULL)
+    *device = ret_device;
+  if (path != NULL)
+    *path = ret_path;
 }
 
 /* Claim some available memory in the first /memory node. */
