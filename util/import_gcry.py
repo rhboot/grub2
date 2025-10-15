@@ -145,8 +145,8 @@ with codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8") as 
         if re.match (r"(Makefile\.am|primegen\.c|cipher\.c|cipher-.*\.c|mac-.*\.c|mac\.c|pubkey\.c)$", cipher_file):
             chlog = "%s%s: Removed\n" % (chlog, chlognew)
             continue
-        # TODO: Support KDF
-        if re.match (r"(kdf\.c|scrypt\.c)$", cipher_file):
+        # TODO: Support scrypt KDF
+        if re.match (r"(scrypt\.c)$", cipher_file):
             chlog = "%s%s: Removed\n" % (chlog, chlognew)
             continue
         # TODO: Support chacha20 and poly1305
@@ -313,6 +313,17 @@ with codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8") as 
                                 chlognew = "%s %s" % (chlognew, chmsg)
                                 nch = True
                             continue
+                        elif re.match ("_gcry_kdf_selftest|check_one|_gcry_kdf_pkdf2|_gcry_kdf_derive|openpgp_s2k|ballon_context_size|balloon_*|prng_aes_*|onestep_kdf_*|hkdf_*|x963_kdf_*", line) is not None and cipher_file == "kdf.c":
+                            # TODO Support other KDFs
+                            skip = 1
+                            fname = re.match ("[a-zA-Z0-9_]*", line).group ()
+                            chmsg = "(%s): Removed." % fname
+                            if nch:
+                                chlognew = "%s\n	%s" % (chlognew, chmsg)
+                            else:
+                                chlognew = "%s %s" % (chlognew, chmsg)
+                                nch = True
+                            continue
                         else:
                             fw.write (holdline)
                     m = re.match ("# *include <(.*)>", line)
@@ -439,7 +450,7 @@ with codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8") as 
                             nch = True
                         continue
 
-                    m = re.match (r"((static )?const char( |)\*|static const gcry_md_spec_t \*|(static )?gpg_err_code_t|gpg_error_t|void|(static )?int|(static )?unsigned int|(static )?gcry_err_code_t|static gcry_mpi_t|static void|void|static elliptic_curve_t) *$", line)
+                    m = re.match (r"((static )?const char( |)\*|static const gcry_md_spec_t \*|(static )?gpg_err_code_t|gpg_error_t|void|(static )?int|(static )?unsigned int|(static )?gcry_err_code_t|static gcry_mpi_t|static void|void|static elliptic_curve_t|static u64|static size_t) *$", line)
                     if not m is None:
                         hold = True
                         holdline = line
@@ -571,6 +582,20 @@ with codecs.open (os.path.join (cipher_dir_out, "crypto.lst"), "w", "utf-8") as 
                         conf.write ("  cflags = '$(CFLAGS_GCRY) -Wno-cast-align';\n")
                     else:
                         conf.write ("  cflags = '$(CFLAGS_GCRY)';\n")
+                    conf.write ("  cppflags = '$(CPPFLAGS_GCRY)';\n")
+                    conf.write ("};\n\n")
+                    if nch:
+                        chlog = "%s%s\n" % (chlog, chlognew)
+                elif cipher_file == "kdf.c":
+                    modfiles = ["kdf.c"]
+                    if modname in extra_files:
+                        modfiles += extra_files[modname]
+                    conf.write ("module = {\n")
+                    conf.write ("  name = %s;\n" % modname)
+                    for src in modfiles:
+                        conf.write ("  common = lib/libgcrypt-grub/cipher/%s;\n" % src)
+                        confutil.write ("  common = grub-core/lib/libgcrypt-grub/cipher/%s;\n" % src)
+                    conf.write ("  cflags = '$(CFLAGS_GCRY)';\n")
                     conf.write ("  cppflags = '$(CPPFLAGS_GCRY)';\n")
                     conf.write ("};\n\n")
                     if nch:
