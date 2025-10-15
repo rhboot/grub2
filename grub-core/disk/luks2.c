@@ -39,6 +39,7 @@ GRUB_MOD_LICENSE ("GPLv3+");
 enum grub_luks2_kdf_type
 {
   LUKS2_KDF_TYPE_ARGON2I,
+  LUKS2_KDF_TYPE_ARGON2ID,
   LUKS2_KDF_TYPE_PBKDF2
 };
 typedef enum grub_luks2_kdf_type grub_luks2_kdf_type_t;
@@ -159,13 +160,21 @@ luks2_parse_keyslot (grub_luks2_keyslot_t *out, const grub_json_t *keyslot)
       grub_json_getstring (&type, &kdf, "type") ||
       grub_json_getstring (&out->kdf.salt, &kdf, "salt"))
     return grub_error (GRUB_ERR_BAD_ARGUMENT, "Missing or invalid KDF");
-  else if (!grub_strcmp (type, "argon2i") || !grub_strcmp (type, "argon2id"))
+  else if (!grub_strcmp (type, "argon2i"))
     {
       out->kdf.type = LUKS2_KDF_TYPE_ARGON2I;
       if (grub_json_getint64 (&out->kdf.u.argon2i.time, &kdf, "time") ||
 	  grub_json_getint64 (&out->kdf.u.argon2i.memory, &kdf, "memory") ||
 	  grub_json_getint64 (&out->kdf.u.argon2i.cpus, &kdf, "cpus"))
-	return grub_error (GRUB_ERR_BAD_ARGUMENT, "Missing Argon2i parameters");
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "missing Argon2i parameters");
+    }
+  else if (!grub_strcmp (type, "argon2id"))
+    {
+      out->kdf.type = LUKS2_KDF_TYPE_ARGON2ID;
+      if (grub_json_getint64 (&out->kdf.u.argon2i.time, &kdf, "time") ||
+	  grub_json_getint64 (&out->kdf.u.argon2i.memory, &kdf, "memory") ||
+	  grub_json_getint64 (&out->kdf.u.argon2i.cpus, &kdf, "cpus"))
+	return grub_error (GRUB_ERR_BAD_ARGUMENT, "missing Argon2id parameters");
     }
   else if (!grub_strcmp (type, "pbkdf2"))
     {
@@ -444,6 +453,8 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   grub_uint8_t salt[GRUB_CRYPTODISK_MAX_KEYLEN];
   grub_uint8_t *split_key = NULL;
   idx_t saltlen = sizeof (salt);
+  int subalgo;
+  unsigned long param[4];
   char cipher[32], *p;
   const gcry_md_spec_t *hash;
   gcry_err_code_t gcry_ret;
@@ -460,8 +471,29 @@ luks2_decrypt_key (grub_uint8_t *out_key,
   switch (k->kdf.type)
     {
       case LUKS2_KDF_TYPE_ARGON2I:
-	ret = grub_error (GRUB_ERR_BAD_ARGUMENT, "Argon2 not supported");
-	goto err;
+      case LUKS2_KDF_TYPE_ARGON2ID:
+	if (k->kdf.type == LUKS2_KDF_TYPE_ARGON2I)
+	  subalgo = GRUB_GCRY_KDF_ARGON2I;
+	else
+	  subalgo = GRUB_GCRY_KDF_ARGON2ID;
+
+	param[0] = k->area.key_size;
+	param[1] = k->kdf.u.argon2i.time;
+	param[2] = k->kdf.u.argon2i.memory;
+	param[3] = k->kdf.u.argon2i.cpus;
+
+	gcry_ret = grub_crypto_argon2 (subalgo, param, 4,
+				       passphrase, passphraselen,
+				       salt, saltlen,
+				       NULL, 0, NULL, 0,
+				       k->area.key_size, area_key);
+	if (gcry_ret)
+	  {
+	    ret = grub_crypto_gcry_error (gcry_ret);
+	    goto err;
+	  }
+
+	break;
       case LUKS2_KDF_TYPE_PBKDF2:
 	hash = grub_crypto_lookup_md_by_name (k->kdf.u.pbkdf2.hash);
 	if (!hash)
