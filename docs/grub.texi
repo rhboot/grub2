@@ -3976,6 +3976,8 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * aout_module::
 * appleldr_module::
 * archelp_module::
+* argon2_module::
+* argon2_test_module::
 * at_keyboard_module::
 * ata_module::
 * backtrace_module::
@@ -4342,6 +4344,15 @@ computer (Intel based Macs).
 @section archelp
 This module provides Archive Helper functions for archive based file systems
 such as TAR and CPIO archives.
+
+@node argon2_module
+@section argon2
+This module provides support for the Argon2 key derivation function.
+
+@node argon2_test_module
+@section argon2_test
+This module is intended for performing a functional test of the Argon2
+operation in GRUB.
 
 @node at_keyboard_module
 @section at_keyboard
