@@ -1,0 +1,48 @@
+From 89f793515d927d8f7099b61d0b7b200611e56acd Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Mon, 25 Aug 2025 15:56:03 +0800
+Subject: [PATCH 2/4] libgcrypt/kdf: Get rid of gpg_err_code_from_errno()
+
+gpg_err_code_from_errno() requires libgcrypt_wrap/mem.c which is not in
+Makefile.utilgcry.def. This commit replaces gpg_err_code_from_errno()
+with GPG_ERR_* to avoid the build errors.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/lib/libgcrypt-grub/cipher/kdf.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/grub-core/lib/libgcrypt-grub/cipher/kdf.c b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+index 08e3ef658..6e0351d8a 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/kdf.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+@@ -265,7 +265,7 @@ argon2_init (argon2_ctx_t a, unsigned int parallelism,
+   block = xtrymalloc (1024 * memory_blocks);
+   if (!block)
+     {
+-      ec = gpg_err_code_from_errno (errno);
++      ec = GPG_ERR_OUT_OF_MEMORY;
+       return ec;
+     }
+   memset (block, 0, 1024 * memory_blocks);
+@@ -273,7 +273,7 @@ argon2_init (argon2_ctx_t a, unsigned int parallelism,
+   thread_data = xtrymalloc (a->lanes * sizeof (struct argon2_thread_data));
+   if (!thread_data)
+     {
+-      ec = gpg_err_code_from_errno (errno);
++      ec = GPG_ERR_OUT_OF_MEMORY;
+       xfree (block);
+       return ec;
+     }
+@@ -624,7 +624,7 @@ argon2_open (gcry_kdf_hd_t *hd, int subalgo,
+   n = offsetof (struct argon2_context, out) + taglen;
+   a = xtrymalloc (n);
+   if (!a)
+-    return gpg_err_code_from_errno (errno);
++    return GPG_ERR_OUT_OF_MEMORY;
+ 
+   a->algo = GCRY_KDF_ARGON2;
+   a->hash_type = hash_type;
+-- 
+2.51.0
+
