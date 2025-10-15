@@ -1730,6 +1730,11 @@ module = {
 };
 
 module = {
+  name = argon2;
+  common = lib/argon2.c;
+};
+
+module = {
   name = relocator;
   common = lib/relocator.c;
   x86 = lib/i386/relocator16.S;
