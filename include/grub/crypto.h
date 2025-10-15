@@ -34,6 +34,7 @@ typedef enum
     GPG_ERR_BAD_MPI,
     GPG_ERR_BAD_SECKEY,
     GPG_ERR_BAD_SIGNATURE,
+    GPG_ERR_CANCELED,
     GPG_ERR_CIPHER_ALGO,
     GPG_ERR_CONFLICT,
     GPG_ERR_DECRYPT_FAILED,
@@ -48,6 +49,7 @@ typedef enum
     GPG_ERR_INV_OP,
     GPG_ERR_INV_SEXP,
     GPG_ERR_INV_VALUE,
+    GPG_ERR_MAC_ALGO,
     GPG_ERR_MISSING_VALUE,
     GPG_ERR_NO_ENCRYPTION_SCHEME,
     GPG_ERR_NO_OBJ,
@@ -59,7 +61,9 @@ typedef enum
     GPG_ERR_PUBKEY_ALGO,
     GPG_ERR_SELFTEST_FAILED,
     GPG_ERR_TOO_SHORT,
+    GPG_ERR_UNKNOWN_ALGORITHM,
     GPG_ERR_UNSUPPORTED,
+    GPG_ERR_UNSUPPORTED_ALGORITHM,
     GPG_ERR_WEAK_KEY,
     GPG_ERR_WRONG_KEY_USAGE,
     GPG_ERR_WRONG_PUBKEY_ALGO,
@@ -521,6 +525,7 @@ extern gcry_md_spec_t _gcry_digest_spec_sha256;
 extern gcry_md_spec_t _gcry_digest_spec_sha384;
 extern gcry_md_spec_t _gcry_digest_spec_sha512;
 extern gcry_md_spec_t _gcry_digest_spec_crc32;
+extern gcry_md_spec_t _gcry_digest_spec_blake2b_512;
 extern gcry_cipher_spec_t _gcry_cipher_spec_aes;
 #define GRUB_MD_MD5 ((const gcry_md_spec_t *) &_gcry_digest_spec_md5)
 #define GRUB_MD_SHA1 ((const gcry_md_spec_t *) &_gcry_digest_spec_sha1)
@@ -528,6 +533,41 @@ extern gcry_cipher_spec_t _gcry_cipher_spec_aes;
 #define GRUB_MD_SHA512 ((const gcry_md_spec_t *) &_gcry_digest_spec_sha512)
 #define GRUB_MD_CRC32 ((const gcry_md_spec_t *) &_gcry_digest_spec_crc32)
 #define GRUB_CIPHER_AES ((const gcry_cipher_spec_t *) &_gcry_cipher_spec_aes)
+
+/* Algorithm IDs for the KDFs.  */
+enum grub_gcry_kdf_algos
+  {
+    GRUB_GCRY_KDF_NONE = 0,
+    GRUB_GCRY_KDF_ARGON2 = 64,
+  };
+
+enum grub_gcry_kdf_subalgo_argon2
+  {
+    GRUB_GCRY_KDF_ARGON2D  = 0,
+    GRUB_GCRY_KDF_ARGON2I  = 1,
+    GRUB_GCRY_KDF_ARGON2ID = 2
+  };
+
+typedef struct gcry_kdf_handle *gcry_kdf_hd_t;
+struct gcry_kdf_handle;
+struct gcry_kdf_thread_ops;
+
+gpg_err_code_t
+_gcry_kdf_open (gcry_kdf_hd_t *hd, int algo, int subalgo,
+                const unsigned long *param, unsigned int paramlen,
+                const void *input, grub_size_t inputlen,
+                const void *salt, grub_size_t saltlen,
+                const void *key, grub_size_t keylen,
+                const void *ad, grub_size_t adlen);
+
+gpg_err_code_t
+_gcry_kdf_compute (gcry_kdf_hd_t h, const struct gcry_kdf_thread_ops *ops);
+
+gpg_err_code_t
+_gcry_kdf_final (gcry_kdf_hd_t h, grub_size_t resultlen, void *result);
+
+void
+_gcry_kdf_close (gcry_kdf_hd_t h);
 
 /* Implement PKCS#5 PBKDF2 as per RFC 2898.  The PRF to use is HMAC variant
    of digest supplied by MD.  Inputs are the password P of length PLEN,
