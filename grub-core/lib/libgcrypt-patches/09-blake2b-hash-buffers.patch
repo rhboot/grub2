@@ -1,0 +1,63 @@
+From 42e9975171439e2e9713e122cb0e74174f057e98 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Mon, 25 Aug 2025 15:54:24 +0800
+Subject: [PATCH 1/4] libgcrypt/kdf: Implement blake2b_512.hash_buffers()
+
+Add argon2_blake2b_512_hash_buffers() as the replacement of
+_gcry_digest_spec_blake2b_512.hash_buffers().
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/lib/libgcrypt-grub/cipher/kdf.c | 25 ++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/grub-core/lib/libgcrypt-grub/cipher/kdf.c b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+index 0689f88b1..08e3ef658 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/kdf.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+@@ -129,10 +129,31 @@ beswap64_block (u64 *dst)
+ #endif
+ }
+ 
++/* Implementation of _gcry_blake2b_512_hash_buffers */
++static gcry_err_code_t
++argon2_blake2b_512_hash_buffers (void *outbuf, const gcry_buffer_t *iov, int iovcnt)
++{
++  void *hd;
++
++  hd = xtrymalloc (_gcry_digest_spec_blake2b_512.contextsize);
++  if (!hd)
++    return GPG_ERR_OUT_OF_MEMORY;
++
++  _gcry_digest_spec_blake2b_512.init (hd, 0);
++  for (;iovcnt > 0; iov++, iovcnt--)
++    _gcry_digest_spec_blake2b_512.write (hd, (const char*)iov[0].data + iov[0].off, iov[0].len);
++  _gcry_digest_spec_blake2b_512.final (hd);
++  grub_memcpy (outbuf, _gcry_digest_spec_blake2b_512.read (hd), 512 / 8);
++
++  xfree (hd);
++
++  return GPG_ERR_NO_ERROR;
++}
+ 
+ static gpg_err_code_t
+ argon2_fill_first_blocks (argon2_ctx_t a)
+ {
++  gpg_err_code_t err;
+   unsigned char h0_01_i[72];
+   unsigned char buf[10][4];
+   gcry_buffer_t iov[8];
+@@ -195,7 +216,9 @@ argon2_fill_first_blocks (argon2_ctx_t a)
+       iov_count++;
+     }
+ 
+-  _gcry_digest_spec_blake2b_512.hash_buffers (h0_01_i, 64, iov, iov_count);
++  err = argon2_blake2b_512_hash_buffers (h0_01_i, iov, iov_count);
++  if (err != GPG_ERR_NO_ERROR)
++    return err;
+ 
+   for (i = 0; i < a->lanes; i++)
+     {
+-- 
+2.51.0
+
