@@ -50,6 +50,12 @@ grub_memmove (void *dest, const void *src, grub_size_t n)
   return dest;
 }
 
+void *
+grub_memcpy (void *dest, const void *src, grub_size_t n)
+{
+  return grub_memmove (dest, src, n);
+}
+
 int
 grub_memcmp (const void *s1, const void *s2, grub_size_t n)
 {

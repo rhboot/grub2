@@ -99,6 +99,37 @@ grub_memmove (void *dest, const void *src, grub_size_t n)
   return dest;
 }
 
+static void *
+__memcpy_aligned (void *dest, const void *src, grub_size_t n)
+{
+  grub_addr_t *dw = (grub_addr_t *) dest;
+  const grub_addr_t *sw = (const grub_addr_t *) src;
+  grub_uint8_t *d;
+  const grub_uint8_t *s;
+
+  for (; n >= sizeof (grub_addr_t); n -= sizeof (grub_addr_t))
+    *dw++ = *sw++;
+
+  d = (grub_uint8_t *) dw;
+  s = (const grub_uint8_t *) sw;
+  for (; n > 0; n--)
+    *d++ = *s++;
+
+  return dest;
+}
+
+void *
+grub_memcpy (void *dest, const void *src, grub_size_t n)
+{
+  /* Check if dest and src are aligned and n >= sizeof(grub_addr_t). */
+  if (((grub_addr_t) dest & (sizeof (grub_addr_t) - 1)) == 0 &&
+      ((grub_addr_t) src & (sizeof (grub_addr_t) - 1)) == 0 &&
+      n >= sizeof (grub_addr_t))
+    return __memcpy_aligned (dest, src, n);
+
+  return grub_memmove (dest, src, n);
+}
+
 char *
 grub_strcpy (char *dest, const char *src)
 {

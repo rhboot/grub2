@@ -24,7 +24,7 @@
 void * GRUB_BUILTIN_ATTR
 memcpy (void *dest, const void *src, grub_size_t n)
 {
-	return grub_memmove (dest, src, n);
+	return grub_memcpy (dest, src, n);
 }
 void * GRUB_BUILTIN_ATTR
 memmove (void *dest, const void *src, grub_size_t n)
@@ -372,11 +372,11 @@ grub_int32_t
 __aeabi_idiv (grub_int32_t a, grub_int32_t b)
   __attribute__ ((alias ("__divsi3")));
 void *__aeabi_memcpy (void *dest, const void *src, grub_size_t n)
-  __attribute__ ((alias ("grub_memcpy")));
+  __attribute__ ((alias ("memcpy")));
 void *__aeabi_memcpy4 (void *dest, const void *src, grub_size_t n)
-  __attribute__ ((alias ("grub_memcpy")));
+  __attribute__ ((alias ("memcpy")));
 void *__aeabi_memcpy8 (void *dest, const void *src, grub_size_t n)
-  __attribute__ ((alias ("grub_memcpy")));
+  __attribute__ ((alias ("memcpy")));
 void *__aeabi_memset (void *s, int c, grub_size_t n)
   __attribute__ ((alias ("memset")));
 
