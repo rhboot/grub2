@@ -2266,6 +2266,11 @@ module = {
 };
 
 module = {
+  name = argon2_test;
+  common = tests/argon2_test.c;
+};
+
+module = {
   name = legacy_password_test;
   common = tests/legacy_password_test.c;
   enable = i386_pc;
