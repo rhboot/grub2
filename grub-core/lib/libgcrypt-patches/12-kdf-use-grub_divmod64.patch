@@ -1,0 +1,79 @@
+From 990a5f7df076200aa031b1bcde6bc4b13d4f198e Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Mon, 25 Aug 2025 16:01:45 +0800
+Subject: [PATCH 4/4] libgcrypt/kdf: Fix 64-bit modulus on 32-bit platforms
+
+Use grub_divmod64() for the 64-bit modulus to prevent creation of
+special division calls such as __umoddi3() and __aeabi_uldivmod() on
+32-bit platforms.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/lib/libgcrypt-grub/cipher/kdf.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/grub-core/lib/libgcrypt-grub/cipher/kdf.c b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+index c51a70eff..f4bb51809 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/kdf.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+@@ -375,6 +375,7 @@ index_alpha (argon2_ctx_t a, const struct argon2_thread_data *t,
+   u32 reference_area_size;
+   u64 relative_position;
+   u32 start_position;
++  u64 remainder;
+ 
+   if (t->pass == 0)
+     {
+@@ -411,7 +412,8 @@ index_alpha (argon2_ctx_t a, const struct argon2_thread_data *t,
+       ? 0
+       : (t->slice + 1) * a->segment_length;
+ 
+-  return (start_position + relative_position) % a->lane_length;
++  grub_divmod64 (start_position + relative_position, a->lane_length, &remainder);
++  return remainder;
+ }
+ 
+ static void
+@@ -425,6 +427,7 @@ argon2_compute_segment (void *priv)
+   u64 input_block[1024/sizeof (u64)];
+   u64 address_block[1024/sizeof (u64)];
+   u64 *random_block = NULL;
++  u64 remainder;
+ 
+   if (a->hash_type == GCRY_KDF_ARGON2I
+       || (a->hash_type == GCRY_KDF_ARGON2ID && t->pass == 0 && t->slice < 2))
+@@ -449,7 +452,8 @@ argon2_compute_segment (void *priv)
+     i = 0;
+ 
+   curr_offset = t->lane * a->lane_length + t->slice * a->segment_length + i;
+-  if ((curr_offset % a->lane_length))
++  grub_divmod64 (curr_offset, a->lane_length, &remainder);
++  if (remainder)
+     prev_offset = curr_offset - 1;
+   else
+     prev_offset = curr_offset + a->lane_length - 1;
+@@ -459,7 +463,8 @@ argon2_compute_segment (void *priv)
+       u64 *ref_block, *curr_block;
+       u64 rand64;
+ 
+-      if ((curr_offset % a->lane_length) == 1)
++      grub_divmod64 (curr_offset, a->lane_length, &remainder);
++      if (remainder == 1)
+         prev_offset = curr_offset - 1;
+ 
+       if (random_block)
+@@ -475,7 +480,10 @@ argon2_compute_segment (void *priv)
+       if (t->pass == 0 && t->slice == 0)
+         ref_lane = t->lane;
+       else
+-        ref_lane = (rand64 >> 32) % a->lanes;
++	{
++	  grub_divmod64 (rand64 >> 32, a->lanes, &remainder);
++	  ref_lane = remainder;
++	}
+ 
+       ref_index = index_alpha (a, t, i, (rand64 & 0xffffffff),
+                                ref_lane == t->lane);
+-- 
+2.51.0
+
