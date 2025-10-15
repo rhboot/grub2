@@ -860,8 +860,14 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    MOUNTDEVICE="/dev/mapper/grub_test-testvol"
 		    MOUNTFS=ext2
 		    "mkfs.ext2" -L "$FSLABEL" -q "${MOUNTDEVICE}"  ;;
-		x"luks"*)
-		    echo -n "$PASS" | cryptsetup luksFormat --type "$fs" --sector-size $SECSIZE --pbkdf pbkdf2 --force-password --disable-locks $LODEVICE
+		xluks1)
+		    echo -n "$PASS" | cryptsetup luksFormat --type luks1 --sector-size $SECSIZE --pbkdf pbkdf2 --force-password --disable-locks $LODEVICE
+		    echo -n "$PASS" | cryptsetup open --disable-locks $LODEVICE "$DMNAME"
+		    MOUNTDEVICE="/dev/mapper/${DMNAME}"
+		    MOUNTFS=ext2
+		    "mkfs.ext2" -L "$FSLABEL" -q "${MOUNTDEVICE}"  ;;
+		xluks2)
+		    echo -n "$PASS" | cryptsetup luksFormat --type luks2 --sector-size $SECSIZE --pbkdf argon2id --force-password --disable-locks $LODEVICE
 		    echo -n "$PASS" | cryptsetup open --disable-locks $LODEVICE "$DMNAME"
 		    MOUNTDEVICE="/dev/mapper/${DMNAME}"
 		    MOUNTFS=ext2
