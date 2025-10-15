@@ -45,6 +45,7 @@ EXTRA_DIST += grub-core/lib/libgcrypt-patches/07_disable_64div.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/08_sexp_leak.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/09-blake2b-hash-buffers.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/10-kdf-use-GPG-errs.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/11-kdf-remove-unsupported-kdfs.patch
 
 EXTRA_DIST += grub-core/lib/libtasn1-patches/0001-libtasn1-disable-code-not-needed-in-grub.patch
 EXTRA_DIST += grub-core/lib/libtasn1-patches/0002-libtasn1-replace-strcat-with-strcpy-in-_asn1_str_cat.patch

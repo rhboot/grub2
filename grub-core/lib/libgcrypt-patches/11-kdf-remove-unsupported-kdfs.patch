@@ -1,0 +1,166 @@
+From fc9c57f54fd28685f7df79e53078e1dc9e44f964 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Mon, 25 Aug 2025 16:00:17 +0800
+Subject: [PATCH 3/4] libgcrypt/kdf: Remove unsupported KDFs
+
+Clean up _gcry_kdf_*() to remove unsupported KDFs.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/lib/libgcrypt-grub/cipher/kdf.c | 119 ----------------------
+ 1 file changed, 119 deletions(-)
+
+diff --git a/grub-core/lib/libgcrypt-grub/cipher/kdf.c b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+index 6e0351d8a..c51a70eff 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/kdf.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/kdf.c
+@@ -821,64 +821,6 @@ _gcry_kdf_open (gcry_kdf_hd_t *hd, int algo, int subalgo,
+                           key, keylen, ad, adlen);
+       break;
+ 
+-    case GCRY_KDF_BALLOON:
+-      if (!inputlen || !saltlen || keylen || adlen)
+-        ec = GPG_ERR_INV_VALUE;
+-      else
+-        {
+-          (void)key;
+-          (void)ad;
+-          ec = balloon_open (hd, subalgo, param, paramlen,
+-                             input, inputlen, salt, saltlen);
+-        }
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF:
+-      if (!inputlen || !paramlen || !adlen)
+-        ec = GPG_ERR_INV_VALUE;
+-      else
+-        {
+-          (void)salt;
+-          (void)key;
+-          ec = onestep_kdf_open (hd, subalgo, param, paramlen,
+-                                 input, inputlen, ad, adlen);
+-        }
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF_MAC:
+-      if (!inputlen || !paramlen || !keylen || !adlen)
+-        ec = GPG_ERR_INV_VALUE;
+-      else
+-        {
+-          (void)salt;
+-          ec = onestep_kdf_mac_open (hd, subalgo, param, paramlen,
+-                                     input, inputlen, key, keylen, ad, adlen);
+-        }
+-      break;
+-
+-    case GCRY_KDF_HKDF:
+-      if (!inputlen || !paramlen)
+-        ec = GPG_ERR_INV_VALUE;
+-      else
+-        {
+-          (void)salt;
+-          ec = hkdf_open (hd, subalgo, param, paramlen,
+-                          input, inputlen, key, keylen, ad, adlen);
+-        }
+-      break;
+-
+-    case GCRY_KDF_X963_KDF:
+-      if (!inputlen || !paramlen)
+-        ec = GPG_ERR_INV_VALUE;
+-      else
+-        {
+-          (void)salt;
+-          (void)key;
+-          ec = x963_kdf_open (hd, subalgo, param, paramlen,
+-                              input, inputlen, ad, adlen);
+-        }
+-      break;
+-
+     default:
+       ec = GPG_ERR_UNKNOWN_ALGORITHM;
+       break;
+@@ -898,26 +840,6 @@ _gcry_kdf_compute (gcry_kdf_hd_t h, const struct gcry_kdf_thread_ops *ops)
+       ec = argon2_compute ((argon2_ctx_t)(void *)h, ops);
+       break;
+ 
+-    case GCRY_KDF_BALLOON:
+-      ec = balloon_compute_all ((balloon_ctx_t)(void *)h, ops);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF:
+-      ec = onestep_kdf_compute ((onestep_kdf_ctx_t)(void *)h, ops);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF_MAC:
+-      ec = onestep_kdf_mac_compute ((onestep_kdf_mac_ctx_t)(void *)h, ops);
+-      break;
+-
+-    case GCRY_KDF_HKDF:
+-      ec = hkdf_compute ((hkdf_ctx_t)(void *)h, ops);
+-      break;
+-
+-    case GCRY_KDF_X963_KDF:
+-      ec = x963_kdf_compute ((x963_kdf_ctx_t)(void *)h, ops);
+-      break;
+-
+     default:
+       ec = GPG_ERR_UNKNOWN_ALGORITHM;
+       break;
+@@ -938,27 +860,6 @@ _gcry_kdf_final (gcry_kdf_hd_t h, size_t resultlen, void *result)
+       ec = argon2_final ((argon2_ctx_t)(void *)h, resultlen, result);
+       break;
+ 
+-    case GCRY_KDF_BALLOON:
+-      ec = balloon_final ((balloon_ctx_t)(void *)h, resultlen, result);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF:
+-      ec = onestep_kdf_final ((onestep_kdf_ctx_t)(void *)h, resultlen, result);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF_MAC:
+-      ec = onestep_kdf_mac_final ((onestep_kdf_mac_ctx_t)(void *)h,
+-                                  resultlen, result);
+-      break;
+-
+-    case GCRY_KDF_HKDF:
+-      ec = hkdf_final ((hkdf_ctx_t)(void *)h, resultlen, result);
+-      break;
+-
+-    case GCRY_KDF_X963_KDF:
+-      ec = x963_kdf_final ((x963_kdf_ctx_t)(void *)h, resultlen, result);
+-      break;
+-
+     default:
+       ec = GPG_ERR_UNKNOWN_ALGORITHM;
+       break;
+@@ -976,26 +877,6 @@ _gcry_kdf_close (gcry_kdf_hd_t h)
+       argon2_close ((argon2_ctx_t)(void *)h);
+       break;
+ 
+-    case GCRY_KDF_BALLOON:
+-      balloon_close ((balloon_ctx_t)(void *)h);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF:
+-      onestep_kdf_close ((onestep_kdf_ctx_t)(void *)h);
+-      break;
+-
+-    case GCRY_KDF_ONESTEP_KDF_MAC:
+-      onestep_kdf_mac_close ((onestep_kdf_mac_ctx_t)(void *)h);
+-      break;
+-
+-    case GCRY_KDF_HKDF:
+-      hkdf_close ((hkdf_ctx_t)(void *)h);
+-      break;
+-
+-    case GCRY_KDF_X963_KDF:
+-      x963_kdf_close ((x963_kdf_ctx_t)(void *)h);
+-      break;
+-
+     default:
+       break;
+     }
+-- 
+2.51.0
+
