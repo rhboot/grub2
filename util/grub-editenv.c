@@ -414,12 +414,35 @@ fs_envblk_write (grub_envblk_t envblk)
   fclose (fp);
 }
 
+struct var_lookup_ctx {
+  const char *varname;
+  bool found;
+};
+typedef struct var_lookup_ctx var_lookup_ctx_t;
+
+static int
+var_lookup_iter (const char *varname, const char *value __attribute__ ((unused)), void *hook_data)
+{
+  var_lookup_ctx_t *ctx = (var_lookup_ctx_t *) hook_data;
+
+  if (grub_strcmp (ctx->varname, varname) == 0)
+    {
+      ctx->found = true;
+      return 1;
+    }
+  return 0;
+}
+
 static void
 set_variables (const char *name, int argc, char *argv[])
 {
   grub_envblk_t envblk;
+  grub_envblk_t envblk_on_block = NULL;
 
   envblk = open_envblk_file (name);
+  if (fs_envblk != NULL)
+    envblk_on_block = fs_envblk->ops->open (envblk);
+
   while (argc)
     {
       char *p;
@@ -430,15 +453,46 @@ set_variables (const char *name, int argc, char *argv[])
 
       *(p++) = 0;
 
-      if (! grub_envblk_set (envblk, argv[0], p))
-        grub_util_error ("%s", _("environment block too small"));
+      if ((strcmp (argv[0], "next_entry") == 0) && envblk_on_block != NULL)
+	{
+	  if (grub_envblk_set (envblk_on_block, argv[0], p) == 0)
+	    grub_util_error ("%s", _("environment block too small"));
+	  goto next;
+	}
 
+      if (strcmp (argv[0], "env_block") == 0)
+	{
+	  grub_util_warn (_("can't set env_block as it's read-only"));
+	  goto next;
+	}
+
+      if (grub_envblk_set (envblk, argv[0], p) == 0)
+	grub_util_error ("%s", _("environment block too small"));
+
+      if (envblk_on_block != NULL)
+	{
+	  var_lookup_ctx_t ctx = {
+	    .varname = argv[0],
+	    .found = false
+	  };
+
+	  grub_envblk_iterate (envblk_on_block, &ctx, var_lookup_iter);
+	  if (ctx.found == true)
+	    grub_envblk_delete (envblk_on_block, argv[0]);
+	}
+ next:
       argc--;
       argv++;
     }
 
   write_envblk (name, envblk);
   grub_envblk_close (envblk);
+
+  if (envblk_on_block != NULL)
+    {
+      fs_envblk->ops->write (envblk_on_block);
+      grub_envblk_close (envblk_on_block);
+    }
 }
 
 static void
