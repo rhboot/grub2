@@ -358,10 +358,17 @@ static void
 list_variables (const char *name)
 {
   grub_envblk_t envblk;
+  grub_envblk_t envblk_on_block = NULL;
 
   envblk = open_envblk_file (name);
+  grub_envblk_iterate (envblk, &envblk_on_block, read_env_block_var);
   grub_envblk_iterate (envblk, NULL, print_var);
   grub_envblk_close (envblk);
+  if (envblk_on_block != NULL)
+    {
+      grub_envblk_iterate (envblk_on_block, NULL, print_var);
+      grub_envblk_close (envblk_on_block);
+    }
 }
 
 static void
