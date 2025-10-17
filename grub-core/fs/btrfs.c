@@ -2337,11 +2337,16 @@ struct embed_region {
  * https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs(5)#BOOTLOADER_SUPPORT
  * The first 1 MiB on each device is unused with the exception of primary
  * superblock that is on the offset 64 KiB and spans 4 KiB.
+ *
+ * Note: If this table is modified, also update
+ * util/grub-editenv.c::fs_envblk_spec, which describes the file-system
+ * specific layout of reserved raw blocks used as environment blocks so that
+ * both stay consistent.
  */
 
 static const struct {
   struct embed_region available;
-  struct embed_region used[6];
+  struct embed_region used[9];
 } btrfs_head = {
   .available = {0, GRUB_DISK_KiB_TO_SECTORS (1024)}, /* The first 1 MiB. */
   .used = {
@@ -2349,6 +2354,9 @@ static const struct {
     {GRUB_DISK_KiB_TO_SECTORS (64) - 1, 1},                        /* Overflow guard. */
     {GRUB_DISK_KiB_TO_SECTORS (64), GRUB_DISK_KiB_TO_SECTORS (4)}, /* 4 KiB superblock. */
     {GRUB_DISK_KiB_TO_SECTORS (68), 1},                            /* Overflow guard. */
+    {(GRUB_ENV_BTRFS_OFFSET >> GRUB_DISK_SECTOR_BITS) - 1, 1},     /* Overflow guard. */
+    {(GRUB_ENV_BTRFS_OFFSET >> GRUB_DISK_SECTOR_BITS), 1},         /* Environment Block. */
+    {(GRUB_ENV_BTRFS_OFFSET >> GRUB_DISK_SECTOR_BITS) + 1, 1},     /* Overflow guard. */
     {GRUB_DISK_KiB_TO_SECTORS (1024) - 1, 1},                      /* Overflow guard. */
     {0, 0}                                                         /* Array terminator. */
   }
