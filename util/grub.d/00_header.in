@@ -58,6 +58,13 @@ if [ -f \${config_directory}/grubenv ]; then
 elif [ -s \$prefix/grubenv ]; then
   load_env
 fi
+
+if [ "\${env_block}" ] ; then
+  set env_block="(\${root})\${env_block}"
+  export env_block
+  load_env -f "\${env_block}"
+fi
+
 EOF
 if [ "x$GRUB_BUTTON_CMOS_ADDRESS" != "x" ]; then
     cat <<EOF
@@ -66,7 +73,11 @@ if cmostest $GRUB_BUTTON_CMOS_ADDRESS ; then
 elif [ "\${next_entry}" ] ; then
    set default="\${next_entry}"
    set next_entry=
-   save_env next_entry
+   if [ "\${env_block}" ] ; then
+     save_env -f "\${env_block}" next_entry
+   else
+     save_env next_entry
+   fi
    set boot_once=true
 else
    set default="${GRUB_DEFAULT}"
@@ -77,7 +88,11 @@ else
 if [ "\${next_entry}" ] ; then
    set default="\${next_entry}"
    set next_entry=
-   save_env next_entry
+   if [ "\${env_block}" ] ; then
+     save_env -f "\${env_block}" next_entry
+   else
+     save_env next_entry
+   fi
    set boot_once=true
 else
    set default="${GRUB_DEFAULT}"
@@ -105,7 +120,12 @@ fi
 function savedefault {
   if [ -z "\${boot_once}" ]; then
     saved_entry="\${chosen}"
-    save_env saved_entry
+    if [ "\${env_block}" ] ; then
+      save_env -f "\${env_block}" saved_entry
+    else
+      save_env saved_entry
+    fi
+
   fi
 }
 
