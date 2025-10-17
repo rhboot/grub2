@@ -120,6 +120,176 @@ block, use `rm %s'."),
   NULL, help_filter, NULL
 };
 
+struct fs_envblk_spec {
+  const char *fs_name;
+  off_t offset;
+  size_t size;
+};
+typedef struct fs_envblk_spec fs_envblk_spec_t;
+
+static grub_envblk_t fs_envblk_open (grub_envblk_t envblk);
+
+struct fs_envblk_ops {
+  grub_envblk_t (*open) (grub_envblk_t);
+};
+typedef struct fs_envblk_ops fs_envblk_ops_t;
+
+struct fs_envblk {
+  fs_envblk_spec_t *spec;
+  fs_envblk_ops_t *ops;
+  const char *dev;
+};
+typedef struct fs_envblk *fs_envblk_t;
+
+static fs_envblk_ops_t fs_envblk_ops = {
+  .open = fs_envblk_open
+};
+
+/*
+ * fs_envblk_spec describes the file-system specific layout of reserved raw
+ * blocks used as environment blocks.
+ */
+static fs_envblk_spec_t fs_envblk_spec[] = {
+  { NULL, 0, 0 }
+};
+
+static fs_envblk_t fs_envblk = NULL;
+
+static void __attribute__ ((unused))
+fs_envblk_init (const char *fs_name, const char *dev)
+{
+  fs_envblk_spec_t *p;
+
+  if (fs_name == NULL || dev == NULL)
+    return;
+
+  for (p = fs_envblk_spec; p->fs_name != NULL; p++)
+    {
+      if (strcmp (fs_name, p->fs_name) == 0)
+	{
+	  if (fs_envblk == NULL)
+	    fs_envblk = xmalloc (sizeof (*fs_envblk));
+	  fs_envblk->spec = p;
+	  fs_envblk->dev = xstrdup (dev);
+	  fs_envblk->ops = &fs_envblk_ops;
+	  break;
+	}
+    }
+}
+
+static int
+read_env_block_var (const char *varname, const char *value, void *hook_data)
+{
+  grub_envblk_t *p_envblk = (grub_envblk_t *) hook_data;
+  off_t off;
+  size_t sz;
+  char *p, *buf;
+  FILE *fp;
+
+  if (p_envblk == NULL || fs_envblk == NULL)
+    return 1;
+
+  if (strcmp (varname, "env_block") != 0)
+    return 0;
+
+  off = strtol (value, &p, 10);
+  if (*p == '+')
+    sz = strtol (p + 1, &p, 10);
+  else
+    return 0;
+
+  if (*p != '\0' || sz == 0)
+    return 0;
+
+  off <<= GRUB_DISK_SECTOR_BITS;
+  sz <<= GRUB_DISK_SECTOR_BITS;
+
+  fp = grub_util_fopen (fs_envblk->dev, "rb");
+  if (fp == NULL)
+    grub_util_error (_("cannot open `%s': %s"), fs_envblk->dev, strerror (errno));
+
+  if (fseek (fp, off, SEEK_SET) < 0)
+    grub_util_error (_("cannot seek `%s': %s"), fs_envblk->dev, strerror (errno));
+
+  buf = xmalloc (sz);
+  if ((fread (buf, 1, sz, fp)) != sz)
+    grub_util_error (_("cannot read `%s': %s"), fs_envblk->dev, strerror (errno));
+
+  fclose (fp);
+
+  *p_envblk = grub_envblk_open (buf, sz);
+
+  return 1;
+}
+
+static void
+create_env_on_block (void)
+{
+  FILE *fp;
+  char *buf;
+  const char *device;
+  off_t offset;
+  size_t size;
+
+  if (fs_envblk == NULL)
+    return;
+
+  device = fs_envblk->dev;
+  offset = fs_envblk->spec->offset;
+  size = fs_envblk->spec->size;
+
+  fp = grub_util_fopen (device, "r+b");
+  if (fp == NULL)
+    grub_util_error (_("cannot open `%s': %s"), device, strerror (errno));
+
+  buf = xmalloc (size);
+  memcpy (buf, GRUB_ENVBLK_SIGNATURE, sizeof (GRUB_ENVBLK_SIGNATURE) - 1);
+  memset (buf + sizeof (GRUB_ENVBLK_SIGNATURE) - 1, '#', size - sizeof (GRUB_ENVBLK_SIGNATURE) + 1);
+
+  if (fseek (fp, offset, SEEK_SET) < 0)
+    grub_util_error (_("cannot seek `%s': %s"), device, strerror (errno));
+
+  if (fwrite (buf, 1, size, fp) != size)
+    grub_util_error (_("cannot write to `%s': %s"), device, strerror (errno));
+
+  grub_util_file_sync (fp);
+  free (buf);
+  fclose (fp);
+}
+
+static grub_envblk_t
+fs_envblk_open (grub_envblk_t envblk)
+{
+  grub_envblk_t envblk_on_block = NULL;
+  char *val;
+  off_t offset;
+  size_t size;
+
+  if (envblk == NULL)
+    return NULL;
+
+  offset = fs_envblk->spec->offset;
+  size = fs_envblk->spec->size;
+
+  grub_envblk_iterate (envblk, &envblk_on_block, read_env_block_var);
+
+  if (envblk_on_block != NULL && grub_envblk_size (envblk_on_block) == size)
+    return envblk_on_block;
+
+  create_env_on_block ();
+
+  offset = offset >> GRUB_DISK_SECTOR_BITS;
+  size =  (size + GRUB_DISK_SECTOR_SIZE - 1) >> GRUB_DISK_SECTOR_BITS;
+
+  val = xasprintf ("%lld+%zu", (long long) offset, size);
+  if (grub_envblk_set (envblk, "env_block", val) == 0)
+    grub_util_error ("%s", _("environment block too small"));
+  grub_envblk_iterate (envblk, &envblk_on_block, read_env_block_var);
+  free (val);
+
+  return envblk_on_block;
+}
+
 static grub_envblk_t
 open_envblk_file (const char *name)
 {
