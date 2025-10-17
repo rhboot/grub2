@@ -499,11 +499,19 @@ static void
 unset_variables (const char *name, int argc, char *argv[])
 {
   grub_envblk_t envblk;
+  grub_envblk_t envblk_on_block = NULL;
 
   envblk = open_envblk_file (name);
+
+  if (fs_envblk != NULL)
+    envblk_on_block = fs_envblk->ops->open (envblk);
+
   while (argc)
     {
       grub_envblk_delete (envblk, argv[0]);
+
+      if (envblk_on_block != NULL)
+	grub_envblk_delete (envblk_on_block, argv[0]);
 
       argc--;
       argv++;
@@ -511,6 +519,12 @@ unset_variables (const char *name, int argc, char *argv[])
 
   write_envblk (name, envblk);
   grub_envblk_close (envblk);
+
+  if (envblk_on_block != NULL)
+    {
+      fs_envblk->ops->write (envblk_on_block);
+      grub_envblk_close (envblk_on_block);
+    }
 }
 
 int
