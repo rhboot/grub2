@@ -20,6 +20,7 @@
 #include <string.h>
 #include <grub/test.h>
 #include <grub/misc.h>
+#include <stdint.h>
 
 #define MSG "printf test failed: %s, %s", real, expected
 
@@ -72,6 +73,15 @@ printf_test (void)
   grub_test_assert (strcmp (real, expected) == 0, MSG);
   grub_snprintf (real, sizeof (real), "%%0%dd ", 1);
   snprintf (expected, sizeof (expected), "%%0%dd ", 1);
+  grub_test_assert (strcmp (real, expected) == 0, MSG);
+  grub_snprintf (real, sizeof (real), "%zd %zd %zd", (ssize_t) -1, (ssize_t) (SIZE_MAX >> 1), (ssize_t) 42);
+  snprintf (expected, sizeof (expected), "%zd %zd %zd", (ssize_t) -1, (ssize_t) (SIZE_MAX >> 1), (ssize_t) 42);
+  grub_test_assert (strcmp (real, expected) == 0, MSG);
+  grub_snprintf (real, sizeof (real), "%zu %zu %zu", (size_t) 0, (size_t) SIZE_MAX, (size_t) 42);
+  snprintf (expected, sizeof (expected), "%zu %zu %zu", (size_t) 0, (size_t) SIZE_MAX, (size_t) 42);
+  grub_test_assert (strcmp (real, expected) == 0, MSG);
+  grub_snprintf (real, sizeof (real), "%zx %zx %zx", (ssize_t) (SIZE_MAX >> 1), (size_t) SIZE_MAX, (size_t) 0xdeadbeefU);
+  snprintf (expected, sizeof (expected), "%zx %zx %zx", (ssize_t) (SIZE_MAX >> 1), (size_t) SIZE_MAX, (size_t) 0xdeadbeefU);
   grub_test_assert (strcmp (real, expected) == 0, MSG);
 }
 
