@@ -23,8 +23,11 @@
 #include <grub/util/misc.h>
 #include <grub/lib/envblk.h>
 #include <grub/i18n.h>
-#include <grub/emu/hostfile.h>
+#include <grub/emu/hostdisk.h>
 #include <grub/util/install.h>
+#include <grub/emu/getroot.h>
+#include <grub/fs.h>
+#include <grub/crypto.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -161,7 +164,7 @@ static fs_envblk_spec_t fs_envblk_spec[] = {
 
 static fs_envblk_t fs_envblk = NULL;
 
-static void __attribute__ ((unused))
+static void
 fs_envblk_init (const char *fs_name, const char *dev)
 {
   fs_envblk_spec_t *p;
@@ -582,6 +585,111 @@ incr_variables (const char *name, int argc, char *argv[])
   grub_envblk_close (envblk);
 }
 
+static bool
+is_abstraction (grub_device_t dev)
+{
+  if (dev == NULL || dev->disk == NULL)
+    return false;
+
+  if (dev->disk->dev->id == GRUB_DISK_DEVICE_DISKFILTER_ID ||
+      dev->disk->dev->id == GRUB_DISK_DEVICE_CRYPTODISK_ID)
+    return true;
+
+  return false;
+}
+
+static void
+probe_fs_envblk (fs_envblk_spec_t *spec)
+{
+  char **grub_devices = NULL;
+  char **curdev, **curdrive;
+  size_t ndev = 0;
+  char **grub_drives = NULL;
+  grub_device_t grub_dev = NULL;
+  grub_fs_t grub_fs = NULL;
+  bool have_abstraction = false;
+
+  grub_util_biosdisk_init (DEFAULT_DEVICE_MAP);
+  grub_init_all ();
+  grub_gcry_init_all ();
+
+  grub_lvm_fini ();
+  grub_mdraid09_fini ();
+  grub_mdraid1x_fini ();
+  grub_diskfilter_fini ();
+  grub_diskfilter_init ();
+  grub_mdraid09_init ();
+  grub_mdraid1x_init ();
+  grub_lvm_init ();
+
+  grub_devices = grub_guess_root_devices (DEFAULT_DIRECTORY);
+
+  if (grub_devices == NULL || grub_devices[0] == NULL)
+    {
+      grub_util_warn (_("cannot find a device for %s (is /dev mounted?)"), DEFAULT_DIRECTORY);
+      goto cleanup;
+    }
+
+  for (curdev = grub_devices; *curdev != NULL; curdev++, ndev++)
+    grub_util_pull_device (*curdev);
+
+  grub_drives = xcalloc ((ndev + 1), sizeof (grub_drives[0]));
+
+  for (curdev = grub_devices, curdrive = grub_drives; *curdev != NULL; curdev++,
+       curdrive++)
+    {
+      *curdrive = grub_util_get_grub_dev (*curdev);
+      if (*curdrive == NULL)
+	{
+	  grub_util_warn (_("cannot find a GRUB drive for %s.  Check your device.map"),
+			  *curdev);
+	  goto cleanup;
+	}
+    }
+  *curdrive = NULL;
+
+  grub_dev = grub_device_open (grub_drives[0]);
+  if (grub_dev == NULL)
+    {
+      grub_util_warn (_("cannot open device %s: %s"), grub_drives[0], grub_errmsg);
+      grub_errno = GRUB_ERR_NONE;
+      goto cleanup;
+    }
+
+  grub_fs = grub_fs_probe (grub_dev);
+  if (grub_fs == NULL)
+    {
+      grub_util_warn (_("cannot probe fs for %s: %s"), grub_drives[0], grub_errmsg);
+      grub_errno = GRUB_ERR_NONE;
+      goto cleanup;
+    }
+
+  have_abstraction = is_abstraction (grub_dev);
+  for (curdrive = grub_drives + 1; *curdrive != NULL && have_abstraction == false; curdrive++)
+    {
+      grub_device_t dev = grub_device_open (*curdrive);
+
+      if (dev == NULL)
+	continue;
+      have_abstraction = is_abstraction (dev);
+      grub_device_close (dev);
+    }
+
+  if (have_abstraction == false)
+    fs_envblk_init (grub_fs->name, grub_devices[0]);
+
+ cleanup:
+  if (grub_devices != NULL)
+    for (curdev = grub_devices; *curdev != NULL; curdev++)
+      free (*curdev);
+  free (grub_devices);
+  free (grub_drives);
+  grub_device_close (grub_dev);
+  grub_gcry_fini_all ();
+  grub_fini_all ();
+  grub_util_biosdisk_fini ();
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -612,6 +720,9 @@ main (int argc, char *argv[])
         filename = DEFAULT_ENVBLK_PATH;
       command  = argv[curindex++];
     }
+
+  if (strcmp (filename, DEFAULT_ENVBLK_PATH) == 0)
+    probe_fs_envblk (fs_envblk_spec);
 
   if (strcmp (command, "create") == 0)
     grub_util_create_envblk_file (filename);
