@@ -131,9 +131,11 @@ struct fs_envblk_spec {
 typedef struct fs_envblk_spec fs_envblk_spec_t;
 
 static grub_envblk_t fs_envblk_open (grub_envblk_t envblk);
+static void fs_envblk_write (grub_envblk_t envblk);
 
 struct fs_envblk_ops {
   grub_envblk_t (*open) (grub_envblk_t);
+  void (*write) (grub_envblk_t);
 };
 typedef struct fs_envblk_ops fs_envblk_ops_t;
 
@@ -145,7 +147,8 @@ struct fs_envblk {
 typedef struct fs_envblk *fs_envblk_t;
 
 static fs_envblk_ops_t fs_envblk_ops = {
-  .open = fs_envblk_open
+  .open = fs_envblk_open,
+  .write = fs_envblk_write
 };
 
 /*
@@ -378,6 +381,39 @@ write_envblk (const char *name, grub_envblk_t envblk)
 
   if (grub_util_file_sync (fp) < 0)
     grub_util_error (_("cannot sync `%s': %s"), name, strerror (errno));
+  fclose (fp);
+}
+
+static void
+fs_envblk_write (grub_envblk_t envblk)
+{
+  FILE *fp;
+  const char *device;
+  off_t offset;
+  size_t size;
+
+  if (envblk == NULL)
+    return;
+
+  device = fs_envblk->dev;
+  offset = fs_envblk->spec->offset;
+  size = fs_envblk->spec->size;
+
+  if (grub_envblk_size (envblk) > size)
+    grub_util_error ("%s", _("environment block too small"));
+
+  fp = grub_util_fopen (device, "r+b");
+
+  if (fp == NULL)
+    grub_util_error (_("cannot open `%s': %s"), device, strerror (errno));
+
+  if (fseek (fp, offset, SEEK_SET) < 0)
+    grub_util_error (_("cannot seek `%s': %s"), device, strerror (errno));
+
+  if (fwrite (grub_envblk_buffer (envblk), 1, grub_envblk_size (envblk), fp) != grub_envblk_size (envblk))
+    grub_util_error (_("cannot write to `%s': %s"), device, strerror (errno));
+
+  grub_util_file_sync (fp);
   fclose (fp);
 }
 
