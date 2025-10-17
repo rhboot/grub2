@@ -412,7 +412,11 @@ tftp_open (struct grub_file *file, const char *filename)
     grub_error_load (&data->save_err);
   if (grub_errno)
     {
-      grub_net_udp_close (data->sock);
+      if (data->sock != NULL)
+	{
+	  grub_net_udp_close (data->sock);
+	  data->sock = NULL;
+	}
       grub_free (data);
       file->data = NULL;
       return grub_errno;
