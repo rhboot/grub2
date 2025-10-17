@@ -2647,7 +2647,8 @@ struct embed_region {
 };
 
 /*
- * https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs(5)#BOOTLOADER_SUPPORT
+ * https://btrfs.readthedocs.io/en/latest/btrfs-man5.html#man-btrfs5-bootloader-support
+ * or invoke "man 5 btrfs" and visit the "bootloader support" subsection.
  * The first 1 MiB on each device is unused with the exception of primary
  * superblock that is on the offset 64 KiB and spans 4 KiB.
  *
