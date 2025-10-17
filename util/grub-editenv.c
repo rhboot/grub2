@@ -156,9 +156,16 @@ static fs_envblk_ops_t fs_envblk_ops = {
 
 /*
  * fs_envblk_spec describes the file-system specific layout of reserved raw
- * blocks used as environment blocks.
+ * blocks used as environment blocks. At present only Btrfs is supported. Other
+ * file-systems may be added if they provide a similar facility and avoid the
+ * limitation of writing to COW.
+ *
+ * Note: If this table is modified, also update
+ * grub-core/fs/btrfs.c::btrfs_head, which defines the layout in the Btrfs
+ * header and exports GRUB_ENV_BTRFS_OFFSET, so that both stay consistent.
  */
 static fs_envblk_spec_t fs_envblk_spec[] = {
+  { "btrfs", GRUB_ENV_BTRFS_OFFSET, GRUB_DISK_SECTOR_SIZE },
   { NULL, 0, 0 }
 };
 
