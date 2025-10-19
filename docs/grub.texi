@@ -5352,7 +5352,8 @@ enforced (@pxref{Lockdown}).
 @node memtools_module
 @section memtools
 This module provides support for GRUB development / debugging commands
-@command{lsmem}, @command{lsfreemem}, and @command{stress_big_allocs}.
+@command{lsmem}, @command{lsfreemem}, @command{lsmemregions}, and
+@command{stress_big_allocs}.
 
 @node minicmd_module
 @section minicmd
@@ -6697,7 +6698,10 @@ you forget a command, you can run the command @command{help}
 * loopback::                    Make a device from a filesystem image
 * ls::                          List devices or files
 * lsfonts::                     List loaded fonts
+* lsfreemem::                   List free memory blocks
 * lsmod::                       Show loaded modules
+* lsmem::                       List free and allocated memory blocks
+* lsmemregions::                List memory regions
 * md5sum::                      Compute or check MD5 hash
 * module::                      Load module for multiboot kernel
 * multiboot::                   Load multiboot compliant kernel
@@ -6725,6 +6729,7 @@ you forget a command, you can run the command @command{help}
 * sleep::                       Wait for a specified number of seconds
 * smbios::                      Retrieve SMBIOS information
 * source::                      Read a configuration file in same context
+* stress_big_allocs::           Stress test large memory allocations
 * test::                        Check file types and compare values
 * tpm2_key_protector_init::     Initialize the TPM2 key protector
 * tpm2_key_protector_clear::    Clear the TPM2 key protector
@@ -7810,12 +7815,38 @@ List loaded fonts.
 @end deffn
 
 
+@node lsfreemem
+@subsection lsfreemem
+
+@deffn Command lsfreemem
+List free memory blocks.
+@end deffn
+
+
 @node lsmod
 @subsection lsmod
 
 @deffn Command lsmod
 Show list of loaded modules.
 @end deffn
+
+
+@node lsmem
+@subsection lsmem
+
+@deffn Command lsmem
+List free and allocated memory blocks.
+@end deffn
+
+
+@node lsmemregions
+@subsection lsmemregions
+
+@deffn Command lsmemregions
+Prints memory region general information including size, number of
+blocks, and total free / total allocated memory per region.
+@end deffn
+
 
 @node md5sum
 @subsection md5sum
@@ -8455,6 +8486,14 @@ incorporated directly into the sourcing file.  Unlike @command{configfile}
 changing context: any environment variable changes made by the commands in
 @var{file} will be preserved after @command{source} returns, and the menu
 will not be shown immediately.
+@end deffn
+
+
+@node stress_big_allocs
+@subsection stress_big_allocs
+
+@deffn Command stress_big_allocs
+Stress test large memory allocations.
 @end deffn
 
 
