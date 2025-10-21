@@ -53,6 +53,18 @@ grub_cmd_lsfreemem (grub_command_t cmd __attribute__ ((unused)),
   return 0;
 }
 
+static grub_err_t
+grub_cmd_lsmemregions (grub_command_t cmd __attribute__ ((unused)),
+                       int argc __attribute__ ((unused)),
+                       char **args __attribute__ ((unused)))
+
+{
+#ifndef GRUB_MACHINE_EMU
+  grub_mm_dump_regions ();
+#endif
+
+  return 0;
+}
 
 static grub_err_t
 grub_cmd_stress_big_allocs (grub_command_t cmd __attribute__ ((unused)),
@@ -132,7 +144,7 @@ grub_cmd_stress_big_allocs (grub_command_t cmd __attribute__ ((unused)),
   return GRUB_ERR_NONE;
 }
 
-static grub_command_t cmd_lsmem, cmd_lsfreemem, cmd_sba;
+static grub_command_t cmd_lsmem, cmd_lsfreemem, cmd_lsmemregions, cmd_sba;
 
 GRUB_MOD_INIT (memtools)
 {
@@ -140,6 +152,8 @@ GRUB_MOD_INIT (memtools)
 				     0, N_("List free and allocated memory blocks."));
   cmd_lsfreemem = grub_register_command ("lsfreemem", grub_cmd_lsfreemem,
 					 0, N_("List free memory blocks."));
+  cmd_lsmemregions = grub_register_command ("lsmemregions", grub_cmd_lsmemregions,
+                                            0, N_("List memory regions."));
   cmd_sba = grub_register_command ("stress_big_allocs", grub_cmd_stress_big_allocs,
 				   0, N_("Stress test large allocations."));
 }
@@ -148,5 +162,6 @@ GRUB_MOD_FINI (memtools)
 {
   grub_unregister_command (cmd_lsmem);
   grub_unregister_command (cmd_lsfreemem);
+  grub_unregister_command (cmd_lsmemregions);
   grub_unregister_command (cmd_sba);
 }

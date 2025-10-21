@@ -786,6 +786,39 @@ grub_mm_dump (unsigned lineno)
   grub_printf ("\n");
 }
 
+void
+grub_mm_dump_regions (void)
+{
+  grub_mm_region_t r;
+  grub_mm_header_t p;
+  grub_size_t num_blocks, sum_free, sum_alloc;
+
+  for (r = grub_mm_base; r; r = r->next)
+    {
+      num_blocks = 0;
+      sum_free = 0;
+      sum_alloc = 0;
+
+      p  = (grub_mm_header_t) ALIGN_UP ((grub_addr_t) (r + 1), GRUB_MM_ALIGN);
+      for (; (grub_addr_t) p < (grub_addr_t) (r+1) + r->size; p++, num_blocks++)
+        {
+          switch (p->magic)
+            {
+            case GRUB_MM_FREE_MAGIC:
+              sum_free += p->size;
+              break;
+            case GRUB_MM_ALLOC_MAGIC:
+              sum_alloc += p->size;
+              break;
+            }
+        }
+      grub_printf ("Region %p (size %" PRIuGRUB_SIZE " blocks %" PRIuGRUB_SIZE " free %" PRIuGRUB_SIZE " alloc %" PRIuGRUB_SIZE ")\n\n",
+                   r, r->size, num_blocks, sum_free << GRUB_MM_ALIGN_LOG2, sum_alloc << GRUB_MM_ALIGN_LOG2);
+    }
+
+  grub_printf ("\n");
+}
+
 void *
 grub_debug_calloc (const char *file, int line, grub_size_t nmemb, grub_size_t size)
 {
