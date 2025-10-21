@@ -2525,6 +2525,13 @@ module = {
 };
 
 module = {
+  name = zstdio;
+  common = io/zstdio.c;
+  cppflags = '-I$(srcdir)/lib/posix_wrap -I$(srcdir)/lib/zstd';
+  cflags='-Wno-unreachable-code';
+};
+
+module = {
   name = testload;
   common = commands/testload.c;
 };

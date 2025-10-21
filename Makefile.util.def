@@ -164,6 +164,7 @@ library = {
   common = grub-core/io/gzio.c;
   common = grub-core/io/xzio.c;
   common = grub-core/io/lzopio.c;
+  common = grub-core/io/zstdio.c;
   common = grub-core/kern/ia64/dl_helper.c;
   common = grub-core/kern/arm/dl_helper.c;
   common = grub-core/kern/arm64/dl_helper.c;
