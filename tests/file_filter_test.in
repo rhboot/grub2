@@ -19,19 +19,22 @@ grubshell=@builddir@/grub-shell
 
 . "@builddir@/grub-core/modinfo.sh"
 
-filters="gzio xzio lzopio pgp"
+filters="gzio xzio lzopio zstdio pgp"
 modules="cat mpi"
 
 for mod in $(cut -d ' ' -f 2 "@builddir@/grub-core/crypto.lst"  | sort -u); do
     modules="$modules $mod"
 done
 
-for file in file.gz file.xz file.lzop file.gz.sig file.xz.sig file.lzop.sig keys.pub; do
+for file in file.gz file.xz file.lzop file.zstd file.gz.sig file.xz.sig \
+            file.lzop.sig file.zstd.sig keys.pub; do
     files="$files /$file=@srcdir@/tests/file_filter/$file"
 done
 
 # GRUB cat command adds extra newline after file
 result="Hello, user!
+
+Hello, user!
 
 Hello, user!
 
