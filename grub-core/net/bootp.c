@@ -901,14 +901,17 @@ grub_cmd_bootp (struct grub_command *cmd __attribute__ ((unused)),
   err = GRUB_ERR_NONE;
   for (j = 0; j < ncards; j++)
     {
-      grub_free (ifaces[j].name);
       if (!ifaces[j].prev)
-	continue;
+	{
+	  grub_free (ifaces[j].name);
+	  continue;
+	}
       grub_error_push ();
       grub_net_network_level_interface_unregister (&ifaces[j]);
       err = grub_error (GRUB_ERR_FILE_NOT_FOUND,
 			N_("couldn't autoconfigure %s"),
 			ifaces[j].card->name);
+      grub_free (ifaces[j].name);
     }
 
   grub_free (ifaces);
