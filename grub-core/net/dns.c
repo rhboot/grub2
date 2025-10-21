@@ -424,7 +424,10 @@ recv_hook (grub_net_udp_socket_t sock __attribute__ ((unused)),
   grub_netbuff_free (nb);
   grub_free (redirect_save);
   if (!*data->naddresses)
-    grub_free (*data->addresses);
+    {
+      grub_free (*data->addresses);
+      *data->addresses = NULL;
+    }
   return GRUB_ERR_NONE;
 }
 
