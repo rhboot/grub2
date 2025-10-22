@@ -1,0 +1,35 @@
+From f62c2c7565237bbf059220e90d3f1f8c8d6eebd5 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Wed, 3 Sep 2025 16:26:55 +0800
+Subject: [PATCH 4/4] libgcrypt: Add hardware acceleration for gcry_sha512
+
+Enable hardware acceleration for the gcry_sha512 module when building
+for the x86_64 EFI target.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/Makefile.gcry.def | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/grub-core/Makefile.gcry.def b/grub-core/Makefile.gcry.def
+index ac1d9a088..64ea5ee24 100644
+--- a/grub-core/Makefile.gcry.def
++++ b/grub-core/Makefile.gcry.def
+@@ -186,8 +186,13 @@ module = {
+   name = gcry_sha512;
+   common = lib/libgcrypt-grub/cipher/sha512.c;
+   common = lib/libgcrypt-grub/cipher/hash-common.c;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha512-ssse3-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha512-avx-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha512-avx2-bmi2-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha512-avx512-amd64.S;
++
+   cflags = '$(CFLAGS_GCRY) -Wno-cast-align';
+-  cppflags = '$(CPPFLAGS_GCRY)';
++  cppflags = '$(CPPFLAGS_GCRY) -DUSE_SHA512 $(CPPFLAGS_GCRY_ASM)';
+ };
+ 
+ module = {
+-- 
+2.51.0
+
