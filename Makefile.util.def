@@ -36,6 +36,7 @@ library = {
   common = grub-core/kern/misc.c;
   common = grub-core/kern/partition.c;
   common = grub-core/lib/crypto.c;
+  common = grub-core/lib/hwfeatures-gcry.c;
   common = grub-core/lib/json/json.c;
   common = grub-core/disk/luks.c;
   common = grub-core/disk/luks2.c;
