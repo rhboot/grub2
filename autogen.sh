@@ -52,7 +52,7 @@ for x in mpi-asm-defs.h mpih-add1.c mpih-sub1.c mpih-mul1.c mpih-mul2.c mpih-mul
     cp grub-core/lib/libgcrypt-grub/mpi/generic/"$x" grub-core/lib/libgcrypt-grub/mpi/"$x"
 done
 
-for x in sha256-ssse3-amd64.S sha256-avx-amd64.S sha256-avx2-bmi2-amd64.S sha256-intel-shaext.c; do
+for x in sha256-ssse3-amd64.S sha256-avx-amd64.S sha256-avx2-bmi2-amd64.S sha256-intel-shaext.c sha512-ssse3-amd64.S sha512-avx-amd64.S sha512-avx2-bmi2-amd64.S sha512-avx512-amd64.S; do
     if [ -h grub-core/lib/libgcrypt-grub/cipher/"$x" ] || [ -f grub-core/lib/libgcrypt-grub/cipher/"$x" ]; then
 	rm grub-core/lib/libgcrypt-grub/cipher/"$x"
     fi
