@@ -7134,7 +7134,7 @@ The option @option{--quiet} can be given to suppress the output.
 @node cryptomount
 @subsection cryptomount
 
-@deffn Command cryptomount [ [@option{-p} password] | [@option{-k} keyfile [@option{-O} keyoffset] [@option{-S} keysize] ] | [@option{-P} protector] ] [@option{-H} file] device|@option{-u} uuid|@option{-a}|@option{-b}
+@deffn Command cryptomount [ [@option{-p} password] | [@option{-k} keyfile [@option{-O} keyoffset] [@option{-S} keysize] ] | [@option{-P} protector] | [@option{-A}] ] [@option{-H} file] device|@option{-u} uuid|@option{-a}|@option{-b}
 Setup access to encrypted device. A passphrase will be requested interactively,
 if neither the @option{-p} nor @option{-k} options are given. The option
 @option{-p} can be used to supply a passphrase (useful for scripts).
@@ -7142,7 +7142,8 @@ Alternatively the @option{-k} option can be used to supply a keyfile with
 options @option{-O} and @option{-S} optionally supplying the offset and size,
 respectively, of the key data in the given key file. Besides the keyfile,
 the key can be stored in a key protector, and option @option{-P} configures
-specific key protector, e.g. tpm2, to retrieve the key from.
+specific key protector, e.g. tpm2, to retrieve the key from. The option @option{-A}
+enables hardware acceleration in libgcrypt to speed up decryption.
 The @option{-H} options can be used to supply cryptomount backends with an
 alternative header file (aka detached header). Not all backends have headers
 nor support alternative header files (currently only LUKS1 and LUKS2 support them).

@@ -29,6 +29,7 @@
 #include <grub/partition.h>
 #include <grub/key_protector.h>
 #include <grub/safemath.h>
+#include <grub/hwfeatures-gcry.h>
 
 #ifdef GRUB_UTIL
 #include <grub/emu/hostdisk.h>
@@ -48,7 +49,8 @@ enum
     OPTION_KEYFILE_OFFSET,
     OPTION_KEYFILE_SIZE,
     OPTION_HEADER,
-    OPTION_PROTECTOR
+    OPTION_PROTECTOR,
+    OPTION_HWACCEL
   };
 
 static const struct grub_arg_option options[] =
@@ -64,6 +66,7 @@ static const struct grub_arg_option options[] =
     {"header", 'H', 0, N_("Read header from file"), 0, ARG_TYPE_STRING},
     {"protector", 'P', GRUB_ARG_OPTION_REPEATABLE,
      N_("Unlock volume(s) using key protector(s)."), 0, ARG_TYPE_STRING},
+    {"hw-accel", 'A', 0, N_("Enable hardware acceleration."), 0, 0},
     {0, 0, 0, 0, 0, 0}
   };
 
@@ -1420,7 +1423,7 @@ grub_cryptodisk_clear_key_cache (struct grub_cryptomount_args *cargs)
 }
 
 static grub_err_t
-grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
+__grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 {
   struct grub_arg_list *state = ctxt->state;
   struct grub_cryptomount_args cargs = {0};
@@ -1627,6 +1630,23 @@ grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
 
       return (dev == NULL) ? grub_errno : GRUB_ERR_NONE;
     }
+}
+
+static grub_err_t
+grub_cmd_cryptomount (grub_extcmd_context_t ctxt, int argc, char **args)
+{
+  struct grub_arg_list *state = ctxt->state;
+  grub_err_t err;
+
+  if (state[OPTION_HWACCEL].set)
+    grub_enable_gcry_hwf ();
+
+  err = __grub_cmd_cryptomount (ctxt, argc, args);
+
+  if (state[OPTION_HWACCEL].set)
+    grub_reset_gcry_hwf ();
+
+  return err;
 }
 
 static struct grub_disk_dev grub_cryptodisk_dev = {
@@ -1898,7 +1918,7 @@ GRUB_MOD_INIT (cryptodisk)
   cmd = grub_register_extcmd ("cryptomount", grub_cmd_cryptomount, 0,
 			      N_("[ [-p password] | [-k keyfile"
 				 " [-O keyoffset] [-S keysize] ] ] [-H file]"
-				 " [-P protector [-P protector ...]]"
+				 " [-P protector [-P protector ...]] | [-A]"
 				 " <SOURCE|-u UUID|-a|-b>"),
 			      N_("Mount a crypto device."), options);
   grub_procfs_register ("luks_script", &luks_script);

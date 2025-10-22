@@ -518,7 +518,8 @@ static const char *features[] = {
   "feature_default_font_path", "feature_all_video_module",
   "feature_menuentry_id", "feature_menuentry_options", "feature_200_final",
   "feature_nativedisk_cmd", "feature_timeout_style",
-  "feature_search_cryptodisk_only", "feature_tpm2_cap_pcrs"
+  "feature_search_cryptodisk_only", "feature_tpm2_cap_pcrs",
+  "feature_gcry_hw_accel"
 };
 
 GRUB_MOD_INIT(normal)
