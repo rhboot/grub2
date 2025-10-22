@@ -24,6 +24,8 @@ if COND_HAVE_PCI
   CFLAGS_PLATFORM += -DGRUB_HAS_PCI
 endif
 
+CPPFLAGS_GCRY_ASM = @CPPFLAGS_GCRY_ASM@
+
 # Other options
 
 CPPFLAGS_DEFAULT = -DGRUB_FILE=\"$(subst $(srcdir)/,,$<)\"
