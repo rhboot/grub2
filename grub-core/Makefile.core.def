@@ -1721,6 +1721,7 @@ module = {
   name = crypto;
   common = lib/crypto.c;
   common = lib/hwfeatures-gcry.c;
+  x86_64_efi = lib/x86_64/efi/hwfeatures-gcry.c;
 
   extra_dist = lib/libgcrypt-grub/cipher/crypto.lst;
 };
