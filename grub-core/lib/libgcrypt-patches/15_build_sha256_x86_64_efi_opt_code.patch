@@ -1,0 +1,43 @@
+From 3443b213bb87112144d753678d0f1bbbc72b2b7a Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 18 Jul 2025 15:23:25 +0800
+Subject: [PATCH 3/4] libgcrypt: Add hardware acceleration for gcry_sha256
+
+Enable hardware acceleration for the gcry_sha256 module when building
+for the x86_64 EFI target.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/Makefile.gcry.def | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/grub-core/Makefile.gcry.def b/grub-core/Makefile.gcry.def
+index c8caf17dc..ac1d9a088 100644
+--- a/grub-core/Makefile.gcry.def
++++ b/grub-core/Makefile.gcry.def
+@@ -17,6 +17,7 @@ module = {
+ module = {
+   name = gcry_blake2;
+   common = lib/libgcrypt-grub/cipher/blake2.c;
++
+   cflags = '$(CFLAGS_GCRY)';
+   cppflags = '$(CPPFLAGS_GCRY)';
+ };
+@@ -172,8 +173,13 @@ module = {
+ module = {
+   name = gcry_sha256;
+   common = lib/libgcrypt-grub/cipher/sha256.c;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha256-ssse3-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha256-avx-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha256-avx2-bmi2-amd64.S;
++  x86_64_efi = lib/libgcrypt-grub/cipher/sha256-intel-shaext.c;
++
+   cflags = '$(CFLAGS_GCRY) -Wno-cast-align';
+-  cppflags = '$(CPPFLAGS_GCRY)';
++  cppflags = '$(CPPFLAGS_GCRY) -DUSE_SHA256 $(CPPFLAGS_GCRY_ASM)';
+ };
+ 
+ module = {
+-- 
+2.51.0
+
