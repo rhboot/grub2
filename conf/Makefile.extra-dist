@@ -48,6 +48,7 @@ EXTRA_DIST += grub-core/lib/libgcrypt-patches/10-kdf-use-GPG-errs.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/11-kdf-remove-unsupported-kdfs.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/12-kdf-use-grub_divmod64.patch
 EXTRA_DIST += grub-core/lib/libgcrypt-patches/13_add_hwfeatures.patch
+EXTRA_DIST += grub-core/lib/libgcrypt-patches/14_fix_build_shaext.patch
 
 EXTRA_DIST += grub-core/lib/libtasn1-patches/0001-libtasn1-disable-code-not-needed-in-grub.patch
 EXTRA_DIST += grub-core/lib/libtasn1-patches/0002-libtasn1-replace-strcat-with-strcpy-in-_asn1_str_cat.patch

@@ -1,0 +1,35 @@
+From 5698f7c5055ea481d0040ea4495829e5d02781cc Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 18 Jul 2025 15:34:21 +0800
+Subject: [PATCH 2/4] libgcrypt: Declare the sha256 shaext function
+
+There is no prototype of _gcry_sha256_transform_intel_shaext() defined
+in the header or libgcrypt-grub/cipher/sha256.c, and gcc may complain
+the missing-prototypes error when compiling sha256-intel-shaext.c.
+
+Declare the prototype in sha256-intel-shaext.c to avoid the error.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/lib/libgcrypt-grub/cipher/sha256-intel-shaext.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/grub-core/lib/libgcrypt-grub/cipher/sha256-intel-shaext.c b/grub-core/lib/libgcrypt-grub/cipher/sha256-intel-shaext.c
+index 48c09eefe..7ec49f05e 100644
+--- a/grub-core/lib/libgcrypt-grub/cipher/sha256-intel-shaext.c
++++ b/grub-core/lib/libgcrypt-grub/cipher/sha256-intel-shaext.c
+@@ -95,6 +95,11 @@ typedef struct u128_s
+   u32 a, b, c, d;
+ } u128_t;
+ 
++
++unsigned int ASM_FUNC_ATTR
++_gcry_sha256_transform_intel_shaext(u32 state[8], const unsigned char *data,
++                                    size_t nblks);
++
+ /*
+  * Transform nblks*64 bytes (nblks*16 32-bit words) at DATA.
+  */
+-- 
+2.51.0
+
