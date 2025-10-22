@@ -59,6 +59,10 @@ for x in sha256-ssse3-amd64.S sha256-avx-amd64.S sha256-avx2-bmi2-amd64.S sha256
     cp grub-core/lib/libgcrypt/cipher/"$x" grub-core/lib/libgcrypt-grub/cipher/"$x"
 done
 
+if [ -f grub-core/lib/libgcrypt-grub/src/hwfeatures.c ]; then
+  rm grub-core/lib/libgcrypt-grub/src/hwfeatures.c
+fi
+
 for x in grub-core/lib/libgcrypt-patches/*.patch; do
     patch -i $x -p1
 done

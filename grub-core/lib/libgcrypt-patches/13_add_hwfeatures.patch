@@ -1,0 +1,87 @@
+From 4403c452240417aaac7d3120c80b1325b7218768 Mon Sep 17 00:00:00 2001
+From: Gary Lin <glin@suse.com>
+Date: Fri, 18 Jul 2025 15:21:51 +0800
+Subject: [PATCH 1/4] libgcrypt: Implement _gcry_get_hw_features()
+
+Implement _gcry_get_hw_features() and enable hardware feature detection
+for x86_64.
+
+Signed-off-by: Gary Lin <glin@suse.com>
+---
+ grub-core/Makefile.gcry.def                   |  8 ++++
+ grub-core/lib/libgcrypt-grub/src/hwfeatures.c | 47 +++++++++++++++++++
+ 2 files changed, 55 insertions(+)
+ create mode 100644 grub-core/lib/libgcrypt-grub/src/hwfeatures.c
+
+diff --git a/grub-core/Makefile.gcry.def b/grub-core/Makefile.gcry.def
+index a0593fa09..c8caf17dc 100644
+--- a/grub-core/Makefile.gcry.def
++++ b/grub-core/Makefile.gcry.def
+@@ -226,3 +226,11 @@ module = {
+   cppflags = '$(CPPFLAGS_GCRY)';
+ };
+ 
++module = {
++  name = gcry_hwfeatures;
++  common = lib/libgcrypt-grub/src/hwfeatures.c;
++  x86_64_efi = lib/libgcrypt-grub/src/hwf-x86.c;
++
++  cflags = '$(CFLAGS_GCRY)';
++  cppflags = '$(CPPFLAGS_GCRY) $(CPPFLAGS_GCRY_ASM)';
++};
+diff --git a/grub-core/lib/libgcrypt-grub/src/hwfeatures.c b/grub-core/lib/libgcrypt-grub/src/hwfeatures.c
+new file mode 100644
+index 000000000..4d744f8ec
+--- /dev/null
++++ b/grub-core/lib/libgcrypt-grub/src/hwfeatures.c
+@@ -0,0 +1,47 @@
++/*
++ *  GRUB  --  GRand Unified Bootloader
++ *  Copyright (C) 2025  Free Software Foundation, Inc.
++ *
++ *  GRUB is free software: you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation, either version 3 of the License, or
++ *  (at your option) any later version.
++ *
++ *  GRUB is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <grub/dl.h>
++GRUB_MOD_LICENSE ("GPLv3+");
++
++#include <grub/crypto.h>
++#include <grub/hwfeatures-gcry.h>
++#include "hwf-common.h"
++
++unsigned int
++_gcry_get_hw_features (void)
++{
++  static bool detected = false;
++  static unsigned int hw_features = 0;
++
++  if (grub_gcry_hwf_enabled () == false)
++    return 0;
++
++  if (detected == true)
++    return hw_features;
++
++#if defined (__x86_64__) && defined (GRUB_MACHINE_EFI)
++  hw_features = _gcry_hwf_detect_x86 ();
++#endif
++
++  grub_dprintf ("hwfeatures", "Detected features: 0x%x\n", hw_features);
++
++  detected = true;
++
++  return hw_features;
++}
+-- 
+2.51.0
+
