@@ -50,7 +50,7 @@
 -  return REG_NOERROR;
 +  return err;
  }
- 
+ 
  /* If it is possible to do searching in single byte encoding instead of UTF-8
 @@ -1677,12 +1677,11 @@ calc_eclosure_iter (re_node_set *new_set, re_dfa_t *dfa, Idx node, bool root)
      {
@@ -106,5 +106,5 @@
 +
 +  return err;
  }
- 
+ 
  /* Functions for token which are used in the parser.  */
