@@ -387,8 +387,7 @@ static enum xz_ret hash_validate(struct xz_dec *s, struct xz_buf *b,
 		&& sizeof (s->hash_value) >= hash->mdlen)
 	{
 		hash->final(hash_context);
-		grub_memcpy (s->hash_value, hash->read(hash_context),
-			     hash->mdlen);
+		memcpy (s->hash_value, hash->read (hash_context), hash->mdlen);
 		s->have_hash_value = 1;
 		if (s->hash_id == 1 || crc32)
 		{
