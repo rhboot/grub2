@@ -89,6 +89,7 @@ tpm2_submit_command (const TPMI_ST_COMMAND_TAG_t tag,
 
   /* Catch TPM_RC_RETRY and send the command again */
   do {
+    grub_tpm2_buffer_init (out);
     err = tpm2_submit_command_real (tag, commandCode, responseCode, in, out);
     if (*responseCode != TPM_RC_RETRY)
       break;
@@ -167,7 +168,6 @@ grub_tpm2_createprimary (const TPMI_RH_HIERARCHY_t primaryHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_CreatePrimary, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -250,7 +250,6 @@ grub_tpm2_startauthsession (const TPMI_DH_OBJECT_t tpmKey,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_StartAuthSession, &responseCode,
 				 &in, &out);
   if (rc != TPM_RC_SUCCESS)
@@ -308,7 +307,6 @@ grub_tpm2_policypcr (const TPMI_SH_POLICY_t policySessions,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_PolicyPCR, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -347,7 +345,6 @@ grub_tpm2_readpublic (const TPMI_DH_OBJECT_t objectHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_ReadPublic, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -408,7 +405,6 @@ grub_tpm2_load (const TPMI_DH_OBJECT_t parent_handle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_Load, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -475,7 +471,6 @@ grub_tpm2_loadexternal (const TPMS_AUTH_COMMAND_t *authCommand,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_LoadExternal, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -527,7 +522,6 @@ grub_tpm2_unseal (const TPMI_DH_OBJECT_t itemHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_Unseal, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -561,7 +555,6 @@ grub_tpm2_flushcontext (const TPMI_DH_CONTEXT_t handle)
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (TPM_ST_NO_SESSIONS, TPM_CC_FlushContext, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -609,7 +602,6 @@ grub_tpm2_pcr_event (const TPMI_DH_PCR_t pcrHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (TPM_ST_SESSIONS, TPM_CC_PCR_Event, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -666,7 +658,6 @@ grub_tpm2_pcr_read (const TPMS_AUTH_COMMAND_t *authCommand,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_PCR_Read, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -719,7 +710,6 @@ grub_tpm2_policygetdigest (const TPMI_SH_POLICY_t policySession,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_PolicyGetDigest, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -802,7 +792,6 @@ grub_tpm2_create (const TPMI_DH_OBJECT_t parentHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_Create, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -856,7 +845,6 @@ grub_tpm2_evictcontrol (const TPMI_RH_PROVISION_t auth,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_EvictControl, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -922,7 +910,6 @@ grub_tpm2_hash (const TPMS_AUTH_COMMAND_t *authCommand,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_Hash, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -981,7 +968,6 @@ grub_tpm2_verifysignature (const TPMI_DH_OBJECT_t keyHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_VerifySignature, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1041,7 +1027,6 @@ grub_tpm2_policyauthorize (const TPMI_SH_POLICY_t policySession,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_PolicyAuthorize, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1082,7 +1067,6 @@ grub_tpm2_testparms (const TPMT_PUBLIC_PARMS_t *parms,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_TestParms, &responseCode, &in,
 				 &out);
   if (rc != TPM_RC_SUCCESS)
@@ -1126,7 +1110,6 @@ grub_tpm2_nv_definespace (const TPMI_RH_PROVISION_t authHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_NV_DefineSpace, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1161,7 +1144,6 @@ grub_tpm2_nv_undefinespace (const TPMI_RH_PROVISION_t authHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_NV_UndefineSpace, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1197,7 +1179,6 @@ grub_tpm2_nv_readpublic (const TPMI_RH_NV_INDEX_t nvIndex,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_NV_ReadPublic, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1242,7 +1223,6 @@ grub_tpm2_nv_read (const TPMI_RH_NV_AUTH_t authHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_NV_Read, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
@@ -1284,7 +1264,6 @@ grub_tpm2_nv_write (const TPMI_RH_NV_AUTH_t authHandle,
     return TPM_RC_FAILURE;
 
   /* Submit */
-  grub_tpm2_buffer_init (&out);
   rc = tpm2_submit_command (tag, TPM_CC_NV_Write, &responseCode, &in, &out);
   if (rc != TPM_RC_SUCCESS)
     return rc;
