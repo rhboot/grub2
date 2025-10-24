@@ -76,6 +76,8 @@ EXTRA_DIST += grub-core/tests/asn1/asn1_test.h
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/tests/asn1/tests -name '*.h')
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/commands/tpm2_key_protector -name '*.h')
 
+EXTRA_DIST += grub-core/commands/appendedsig/appendedsig.h
+
 EXTRA_DIST += grub-core/lib/LzmaDec.c
 
 EXTRA_DIST += grub-core/fs/cpio_common.c
