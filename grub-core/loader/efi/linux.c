@@ -55,6 +55,14 @@ static bool initrd_use_loadfile2 = false;
 static grub_guid_t load_file2_guid = GRUB_EFI_LOAD_FILE2_PROTOCOL_GUID;
 static grub_guid_t device_path_guid = GRUB_EFI_DEVICE_PATH_GUID;
 
+/*
+ * Clang will produce a warning for missing initializer for the
+ * zero-length array "vendor_defined_data" inside this structure.
+ * Suppress this warning which is treated as an error.
+ */
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 static initrd_media_device_path_t initrd_lf2_device_path = {
   {
     {
