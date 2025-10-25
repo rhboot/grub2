@@ -75,6 +75,7 @@ EXTRA_DIST += grub-core/efiemu/runtime/config.h
 EXTRA_DIST += grub-core/tests/asn1/asn1_test.h
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/tests/asn1/tests -name '*.h')
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/commands/tpm2_key_protector -name '*.h')
+EXTRA_DIST += grub-core/commands/tpm2_key_protector/tpm2key.asn
 
 EXTRA_DIST += grub-core/commands/appendedsig/appendedsig.h
 
