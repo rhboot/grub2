@@ -360,7 +360,7 @@ write_symbol_table (FILE* fp, const char *name, char *image,
   struct grub_pe32_symbol *pe_symtab;
   char *pe_strtab;
   Elf_Sym *symtab;
-  int *symtab_map, num_syms;
+  int *symtab_map, num_syms, last_stb_local = 0;
   int i;
 
   pe_symtab = (struct grub_pe32_symbol *) (image + pe_chdr->symtab_offset);
@@ -391,7 +391,10 @@ write_symbol_table (FILE* fp, const char *name, char *image,
       if (pe_symtab->storage_class == GRUB_PE32_SYM_CLASS_EXTERNAL)
         bind = STB_GLOBAL;
       else
-        bind = STB_LOCAL;
+	{
+	  bind = STB_LOCAL;
+	  last_stb_local = num_syms;
+	}
 
       if ((pe_symtab->type != GRUB_PE32_DT_FUNCTION) && (pe_symtab->num_aux))
         {
@@ -441,6 +444,7 @@ write_symbol_table (FILE* fp, const char *name, char *image,
   shdr[symtab_section].sh_size = num_syms * sizeof (Elf_Sym);
   shdr[symtab_section].sh_entsize = sizeof (Elf_Sym);
   shdr[symtab_section].sh_link = strtab_section;
+  shdr[symtab_section].sh_info = ++last_stb_local;
   shdr[symtab_section].sh_addralign = 4;
 
   grub_util_write_image_at (symtab, shdr[symtab_section].sh_size,
