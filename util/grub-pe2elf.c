@@ -189,6 +189,7 @@ write_section_data (FILE* fp, const char *name, char *image,
 
           shdr[idx_reloc].sh_name = insert_string (relname);
           shdr[idx_reloc].sh_link = i;
+          shdr[idx_reloc].sh_flags = SHF_INFO_LINK;
           shdr[idx_reloc].sh_info = idx;
 
           shdr[idx].sh_name = shdr[idx_reloc].sh_name + 4;
