@@ -508,6 +508,9 @@ grub_legacy_parse (const char *buf, char **entryname, char **suffix)
       char *ret;
       int len = grub_strlen (buf);
       ret = grub_malloc (len + 2);
+      if (ret == NULL)
+        return NULL;
+
       grub_memcpy (ret, buf, len);
       if (len && ret[len - 1] == '\n')
 	ret[len] = 0;
