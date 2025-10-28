@@ -490,6 +490,9 @@ grub_normal_do_completion (char *buf, int *restore,
 	  spaces++;
 
       ret = grub_malloc (match_len - current_len + grub_strlen (suffix) + spaces + 1);
+      if (ret == NULL)
+        goto fail;
+
       newstr = ret;
       for (escstr = match + current_len; *escstr; escstr++)
 	{
