@@ -348,6 +348,9 @@ pc_partition_map_embed (struct grub_disk *disk, unsigned int *nsectors,
        * area.
        */
       embed_signature_check = grub_malloc (GRUB_DISK_SECTOR_SIZE);
+      if (embed_signature_check == NULL)
+        return grub_errno;
+
       for (i = 0; i < *nsectors; i++)
 	{
 	  if (grub_disk_read (disk, (*sectors)[i], 0, GRUB_DISK_SECTOR_SIZE,
