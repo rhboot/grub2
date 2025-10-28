@@ -236,7 +236,11 @@ add_port (struct ofserial_hash_ent *ent)
 			    + grub_strlen (ent->shortest));
   port->elem = ent;
   if (!port->name)
-    return NULL;
+    {
+      grub_free (port);
+      return NULL;
+    }
+
   ptr = grub_stpcpy (port->name, "ieee1275/");
   grub_strcpy (ptr, ent->shortest);
 
