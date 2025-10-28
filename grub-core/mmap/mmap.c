@@ -242,6 +242,9 @@ grub_mmap_iterate (grub_memory_hook_t hook, void *hook_data)
 	  else
 	    {
 	      struct mm_list *n = grub_malloc (sizeof (*n));
+              if (n == NULL)
+                return grub_errno;
+
 	      n->val = ctx.scanline_events[i].memtype;
 	      n->present = 1;
 	      n->next = present[ctx.scanline_events[i].priority].next;
