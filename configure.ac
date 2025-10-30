@@ -1150,7 +1150,7 @@ fi
 
 # Implementation of the --disable-amd64-as-feature-detection switch.
 AC_MSG_CHECKING([whether to enable AMD64 as(1) feature detection])
-if test x$target_cpu == xx86_64 -a x$platform == xefi; then
+if test x$target_cpu = xx86_64 -a x$platform = xefi; then
   CPPFLAGS_GCRY_ASM="-D__x86_64 -DHAVE_CPU_ARCH_X86"
   AC_ARG_ENABLE(amd64-as-feature-detection,
     AS_HELP_STRING([--disable-amd64-as-feature-detection],
