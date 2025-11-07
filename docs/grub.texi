@@ -9213,6 +9213,7 @@ environment variables and commands are listed in the same order.
 * TPM2 key protector::                 Managing disk key with TPM2 key protector
 * Signing certificate and hash files:: Certificate and hash file signing
 * Signing GRUB itself::                Ensuring the integrity of the GRUB core image
+* Hardening::                          Configuration and customization to maximize security
 @end menu
 
 @node Authentication and authorisation
@@ -10057,7 +10058,8 @@ loads GRUB to verify the integrity of the core image.
 This is ultimately platform-specific and individual platforms can define their
 own mechanisms. However, there are general-purpose mechanisms that can be used
 with GRUB.
-@section Signing GRUB for UEFI secure boot
+
+@subsection Signing GRUB for UEFI secure boot
 On UEFI platforms, @file{core.img} is a PE binary. Therefore, it can be signed
 with a tool such as @command{pesign} or @command{sbsign}. Refer to the
 suggestions in @pxref{UEFI secure boot and shim} to ensure that the final
@@ -10065,7 +10067,7 @@ image works under UEFI secure boot and can maintain the secure-boot chain. It
 will also be necessary to enroll the public key used into a relevant firmware
 key database.
 
-@section Signing GRUB with an appended signature
+@subsection Signing GRUB with an appended signature
 The @file{core.elf} itself can be signed with a Linux kernel module-style
 appended signature (@pxref{Using appended signatures}).
 To support IEEE1275 platforms where the boot image is often loaded directly
@@ -10159,6 +10161,50 @@ dd if=core.elf.signed of=/dev/sda1
 
 As with UEFI secure boot, it is necessary to build-in the required modules,
 or sign them if they are not part of the GRUB image.
+
+@node Hardening
+@section Hardening
+
+Security hardening involves additional / optional configuration and
+customization steps to GRUB to maximize security. The extent to which
+hardening can be accomplished depends on the threats attempting to be
+mitigated for a given system / device, the device architecture, and number
+of GRUB features required. The following is a listing of hardening steps which
+may be considered:
+
+@itemize
+@item (EFI Only) Enable secure boot to enable lockdown mode. This will limit
+the attack surface of GRUB by limiting the commands and file systems
+supported. (@pxref{Lockdown})
+@item (EFI Only) No-Execute capability of memory segments will be configured
+by GRUB as indicated by the UEFI. This makes some classes of vulnerabilities
+more difficult to exploit by providing support for marking memory as either
+writable or executable.
+@item (EFI Only) While building GRUB, the stack protector feature may be
+enabled during the configuration step. This feature can make certain
+vulnerabilities caused by stack buffer overflows more difficult to exploit.
+This can be enabled by including the "--enable-stack-protector" flag to the
+configure script:
+@example
+# @kbd{./configure --enable-stack-protector}
+@end example
+Please reference the file @file{INSTALL} for detailed instructions on how to
+build GRUB.
+@item Minimize the installed modules included with the GRUB installation.
+For instance, if a specific file system is used for a given system, modules
+for other file systems may be excluded. @pxref{Modules} for a list of
+modules.
+@item Minimize boot sources. In the GRUB configuration, reduce the possible
+boot sources to the minimum needed for system operation. For instance, if
+booting only from an internal drive, remove support for network booting
+and booting from removable media.
+@item Disable network support in GRUB if not required. Ensure network
+interfaces are not configured in the GRUB configuration and consider
+setting environment variable @samp{feature_net_search_cfg} to @samp{n} in an
+embedded GRUB config file in order to disable attempting to use the
+network for obtaining a GRUB config file.
+@end itemize
+
 
 @node Platform limitations
 @chapter Platform limitations
