@@ -1642,6 +1642,13 @@ This option is unset by default, and is deprecated in favour of the less
 confusing @samp{GRUB_TIMEOUT_STYLE=countdown} or
 @samp{GRUB_TIMEOUT_STYLE=hidden}.
 
+@item GRUB_FORCE_EFI_ALL_VIDEO
+When set to true, this will allow grub-mkconfig to generate a GRUB config
+that supports loading the all_video module on the EFI platform instead of
+just the efi_gop and efi_uga modules.
+
+This option is unset by default.
+
 @end table
 
 For more detailed customisation of @command{grub-mkconfig}'s output, you may

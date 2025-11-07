@@ -124,10 +124,24 @@ if [ -n "${GRUB_VIDEO_BACKEND}" ]; then
   insmod ${GRUB_VIDEO_BACKEND}
 EOF
 else
+# For EFI, use EFI video drivers only by default to avoid conflict between
+# GRUB Bochs/Cirrus and native EFI drivers. If GRUB_FORCE_EFI_ALL_VIDEO is
+# set/true then defer back to all_video even for EFI.
+if [ "${GRUB_FORCE_EFI_ALL_VIDEO}" = "1" ]; then
+    cat <<EOF
+  if [ x\$feature_all_video_module = xy ]; then
+EOF
+else # GRUB_FORCE_EFI_ALL_VIDEO is not set true
+    cat <<EOF
+  if [ x\$grub_platform = xefi ]; then
+    insmod efi_gop
+    insmod efi_uga
+  elif [ x\$feature_all_video_module = xy ]; then
+EOF
+fi # end GRUB_FORCE_EFI_ALL_VIDEO
 # If all_video.mod isn't available load all modules available
 # with versions prior to introduction of all_video.mod
 cat <<EOF
-  if [ x\$feature_all_video_module = xy ]; then
     insmod all_video
   else
     insmod efi_gop
