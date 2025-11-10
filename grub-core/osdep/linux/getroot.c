@@ -991,6 +991,8 @@ grub_util_get_raid_grub_dev (const char *os_dev)
       char *p, *q;
 
       p = strdup (os_dev + sizeof ("/dev/md_d") - 1);
+      if (p == NULL)
+        return NULL;
 
       q = strchr (p, 'p');
       if (q)
@@ -1006,6 +1008,8 @@ grub_util_get_raid_grub_dev (const char *os_dev)
       char *p, *q;
 
       p = strdup (os_dev + sizeof ("/dev/md/d") - 1);
+      if (p == NULL)
+        return NULL;
 
       q = strchr (p, 'p');
       if (q)
@@ -1019,6 +1023,8 @@ grub_util_get_raid_grub_dev (const char *os_dev)
       char *p , *q;
 
       p = strdup (os_dev + sizeof ("/dev/md") - 1);
+      if (p == NULL)
+        return NULL;
 
       q = strchr (p, 'p');
       if (q)
@@ -1032,6 +1038,8 @@ grub_util_get_raid_grub_dev (const char *os_dev)
       char *p , *q;
 
       p = strdup (os_dev + sizeof ("/dev/md/") - 1);
+      if (p == NULL)
+        return NULL;
 
       q = strchr (p, 'p');
       if (q)
@@ -1046,6 +1054,8 @@ grub_util_get_raid_grub_dev (const char *os_dev)
       char *p , *q;
 
       p = strdup (os_dev + sizeof ("/dev/md/") - 1);
+      if (p == NULL)
+        return NULL;
 
       q = strchr (p, 'p');
       if (q)
