@@ -1015,6 +1015,9 @@ grub_script_execute_cmdline (struct grub_script_cmd *cmd)
 	{
 	  /* As a last resort, try if it is an assignment.  */
 	  char *assign = grub_strdup (cmdname);
+          if (assign == NULL)
+            return grub_errno;
+
 	  char *eq = grub_strchr (assign, '=');
 
 	  if (eq)
