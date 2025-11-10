@@ -403,6 +403,9 @@ grub_machine_get_bootlocation (char **device, char **path)
       if (!syspart)
 	return;
       loaddev = grub_strdup (syspart);
+      if (loaddev == NULL)
+        return;
+
     }
 
   partptr = get_part (loaddev);
