@@ -201,6 +201,11 @@ grub_ieee1275_devalias_next (struct grub_ieee1275_devalias *alias)
 	  alias->path = 0;
 	}
       tmp = grub_strdup (alias->name);
+      if (tmp == NULL)
+        {
+          grub_ieee1275_devalias_free (alias);
+          return 0;
+        }
       if (grub_ieee1275_next_property (alias->parent_dev, tmp,
 				       alias->name) <= 0)
 	{
@@ -432,9 +437,15 @@ grub_ieee1275_parse_args (const char *path, enum grub_ieee1275_parse_type ptype)
 	  ret = grub_strdup (args);
 	else
 	  ret = grub_strndup (args, (grub_size_t)(comma - args));
-	/* Consistently provide numbered partitions to GRUB.
-	   OpenBOOT traditionally uses alphabetical partition
-	   specifiers.  */
+
+        if (ret == NULL)
+          return 0;
+
+        /*
+         * Consistently provide numbered partitions to GRUB.
+         * OpenBOOT traditionally uses alphabetical partition
+         * specifiers.
+         */
 	if (ret[0] >= 'a' && ret[0] <= 'z')
 	    ret[0] = '1' + (ret[0] - 'a');
 	grub_free (args);
