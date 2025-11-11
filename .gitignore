@@ -249,8 +249,6 @@ widthspec.bin
 /pata_test
 /po/*.gmo
 /po/*.mo
-/po/*.po
-/po/LINGUAS
 /po/Makefile.in.in
 /po/Makevars
 /po/Makevars.template
