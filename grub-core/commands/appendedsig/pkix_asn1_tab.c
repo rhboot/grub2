@@ -1,7 +1,11 @@
 #include <grub/mm.h>
-#include <grub/libtasn1.h>
+#include <libtasn1.h>
 
-const asn1_static_node pkix_asn1_tab[] = {
+/*
+ * Imported from pkix.asn.
+ * https://github.com/gnutls/gnutls/blob/master/lib/pkix.asn
+ */
+const asn1_static_node grub_pkix_asn1_tab[] = {
   { "PKIX1", 536875024, NULL },
   { NULL, 1073741836, NULL },
   { "PrivateKeyUsagePeriod", 1610612741, NULL },
@@ -27,9 +31,7 @@ const asn1_static_node pkix_asn1_tab[] = {
   { "MAX", 524298, "1"},
   { "utf8String", 1612709922, NULL },
   { "MAX", 524298, "1"},
-  { "bmpString", 1612709921, NULL },
-  { "MAX", 524298, "1"},
-  { "ia5String", 538968093, NULL },
+  { "bmpString", 538968097, NULL },
   { "MAX", 524298, "1"},
   { "SubjectAltName", 1073741826, "GeneralNames"},
   { "GeneralNames", 1612709899, NULL },
@@ -64,8 +66,7 @@ const asn1_static_node pkix_asn1_tab[] = {
   { "BasicConstraints", 1610612741, NULL },
   { "cA", 1610645508, NULL },
   { NULL, 131081, NULL },
-  { "pathLenConstraint", 537411587, NULL },
-  { "0", 10, "MAX"},
+  { "pathLenConstraint", 16387, NULL },
   { "CRLDistributionPoints", 1612709899, NULL },
   { "MAX", 1074266122, "1"},
   { NULL, 2, "DistributionPoint"},
@@ -277,14 +278,15 @@ const asn1_static_node pkix_asn1_tab[] = {
   { "pkcs-5-PBES2-params", 1610612741, NULL },
   { "keyDerivationFunc", 1073741826, "AlgorithmIdentifier"},
   { "encryptionScheme", 2, "AlgorithmIdentifier"},
+  { "pkcs-5-PBMAC1-params", 1610612741, NULL },
+  { "keyDerivationFunc", 1073741826, "AlgorithmIdentifier"},
+  { "messageAuthScheme", 2, "AlgorithmIdentifier"},
   { "pkcs-5-PBKDF2-params", 1610612741, NULL },
   { "salt", 1610612754, NULL },
   { "specified", 1073741831, NULL },
   { "otherSource", 2, "AlgorithmIdentifier"},
-  { "iterationCount", 1611137027, NULL },
-  { "1", 10, "MAX"},
-  { "keyLength", 1611153411, NULL },
-  { "1", 10, "MAX"},
+  { "iterationCount", 1073741827, NULL },
+  { "keyLength", 1073758211, NULL },
   { "prf", 16386, "AlgorithmIdentifier"},
   { "pkcs-12-PFX", 1610612741, NULL },
   { "version", 1610874883, NULL },
@@ -341,8 +343,7 @@ const asn1_static_node pkix_asn1_tab[] = {
   { "MAX", 1074266122, "1"},
   { NULL, 2, "Attribute"},
   { "ProxyCertInfo", 1610612741, NULL },
-  { "pCPathLenConstraint", 1611153411, NULL },
-  { "0", 10, "MAX"},
+  { "pCPathLenConstraint", 1073758211, NULL },
   { "proxyPolicy", 2, "ProxyPolicy"},
   { "ProxyPolicy", 1610612741, NULL },
   { "policyLanguage", 1073741836, NULL },
