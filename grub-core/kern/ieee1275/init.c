@@ -1000,6 +1000,8 @@ grub_ieee1275_get_secure_boot (void)
     }
   else
     grub_dprintf ("ieee1275", "Secure Boot Disabled\n");
+
+  grub_pks_keystore_init ();
 }
 #endif /* __powerpc__ */
 grub_addr_t grub_modbase;
