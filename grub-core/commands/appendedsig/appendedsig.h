@@ -1,7 +1,7 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
  *  Copyright (C) 2020, 2022 Free Software Foundation, Inc.
- *  Copyright (C) 2020, 2022 IBM Corporation
+ *  Copyright (C) 2020, 2022, 2025 IBM Corporation
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,94 +17,28 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <grub/crypto.h>
-#include <grub/libtasn1.h>
+#include <libtasn1.h>
 
-extern asn1_node _gnutls_gnutls_asn;
-extern asn1_node _gnutls_pkix_asn;
+extern asn1_node grub_gnutls_gnutls_asn;
+extern asn1_node grub_gnutls_pkix_asn;
 
-#define MAX_OID_LEN 32
-
-/*
- * One or more x509 certificates.
- * We do limited parsing: extracting only the serial, CN and RSA public key.
- */
-struct x509_certificate
-{
-  struct x509_certificate *next;
-  grub_uint8_t *serial;
-  grub_size_t serial_len;
-  char *subject;
-  grub_size_t subject_len;
-  /* We only support RSA public keys. This encodes [modulus, publicExponent] */
-  gcry_mpi_t mpis[2];
-};
+/* Do libtasn1 init. */
+extern int
+grub_asn1_init (void);
 
 /*
- * A PKCS#7 signedData signerInfo.
- */
-struct pkcs7_signerInfo
-{
-  const gcry_md_spec_t *hash;
-  gcry_mpi_t sig_mpi;
-};
-
-/*
- * A PKCS#7 signedData message.
- * We make no attempt to match intelligently, so we don't save any info about
- * the signer.
- */
-struct pkcs7_signedData
-{
-  int signerInfo_count;
-  struct pkcs7_signerInfo *signerInfos;
-};
-
-/* Do libtasn1 init */
-int
-asn1_init (void);
-
-/*
- * Import a DER-encoded certificate at 'data', of size 'size'.
- * Place the results into 'results', which must be already allocated.
- */
-grub_err_t
-parse_x509_certificate (const void *data, grub_size_t size, struct x509_certificate *results);
-
-/*
- * Release all the storage associated with the x509 certificate.
- * If the caller dynamically allocated the certificate, it must free it.
- * The caller is also responsible for maintenance of the linked list.
- */
-void
-certificate_release (struct x509_certificate *cert);
-
-/*
- * Parse a PKCS#7 message, which must be a signedData message.
- * The message must be in 'sigbuf' and of size 'data_size'. The result is
- * placed in 'msg', which must already be allocated.
- */
-grub_err_t
-parse_pkcs7_signedData (const void *sigbuf, grub_size_t data_size, struct pkcs7_signedData *msg);
-
-/*
- * Release all the storage associated with the PKCS#7 message.
- * If the caller dynamically allocated the message, it must free it.
- */
-void
-pkcs7_signedData_release (struct pkcs7_signedData *msg);
-
-/*
- * Read a value from an ASN1 node, allocating memory to store it.
- * It will work for anything where the size libtasn1 returns is right:
+ * Read a value from an ASN1 node, allocating memory to store it. It will work
+ * for anything where the size libtasn1 returns is right:
  *  - Integers
  *  - Octet strings
  *  - DER encoding of other structures
+ *
  * It will _not_ work for things where libtasn1 size requires adjustment:
  *  - Strings that require an extra null byte at the end
  *  - Bit strings because libtasn1 returns the length in bits, not bytes.
  *
  * If the function returns a non-NULL value, the caller must free it.
  */
-void *
-grub_asn1_allocate_and_read (asn1_node node, const char *name, const char *friendly_name, int *content_size);
+extern void *
+grub_asn1_allocate_and_read (asn1_node node, const char *name, const char *friendly_name,
+                             grub_int32_t *content_size);
