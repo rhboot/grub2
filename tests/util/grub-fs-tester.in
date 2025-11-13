@@ -599,11 +599,12 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    | x"minix3" | xreiserfs_old)
 		    NOFSLABEL=y;;
 		x"erofs_"*)
-		    MKFS_EROFS_VERSION=$(mkfs.erofs -V 2>/dev/null | tr ' ' '\n' | grep '^[0-9]')
+		    MKFS_EROFS_VERSION=$(mkfs.erofs 2>/dev/null | head -n 1 | (read _ V; echo $V))
 		    # check if the version is at least 1.6
-		    if [ $(sort -V <(echo "$MKFS_EROFS_VERSION") <(echo "1.6") | head -n 1) != "1.6" ]; then
+		    if [ "$(echo -e "${MKFS_EROFS_VERSION}\n1.6" | sort -V | head -n 1)" != "1.6" ]; then
 			NOFSLABEL=y
-		    fi
+			unset FSLABEL
+		    fi;;
 	    esac
 
 	    PDIRCOMPNUM=210
