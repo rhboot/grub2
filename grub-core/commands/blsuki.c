@@ -1475,10 +1475,6 @@ static grub_extcmd_t uki_cmd;
 
 GRUB_MOD_INIT(blsuki)
 {
-  bls_cmd = grub_register_extcmd ("blscfg", grub_cmd_blscfg, 0,
-				  N_("[-p|--path] [-f|--enable-fallback] DIR [-d|--show-default] [-n|--show-non-default] [-e|--entry] FILE"),
-				  N_("Import Boot Loader Specification snippets."),
-				  bls_opt);
 #ifdef GRUB_MACHINE_EFI
   uki_cmd = grub_register_extcmd ("uki", grub_cmd_uki, 0,
 				  N_("[-p|--path] DIR [-f|--enable-fallback] [-d|--show-default] [-n|--show-non-default] [-e|--entry] FILE"),
