@@ -590,6 +590,10 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		# FS LIMITATION: romfs has no timestamps.
 		x"romfs")
 		    NOFILETIME=y; NOFSTIME=y;;
+		# FS LIMITATION: Compact inodes do not allow for modification
+		#   times that are different from FS creation times.
+		x"erofs_compact")
+		    NOFILETIME=y;;
 	    esac
 
 	    NOFSLABEL=n
