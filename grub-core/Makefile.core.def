@@ -893,8 +893,6 @@ module = {
   common = lib/gnulib/filevercmp.c;
   enable = powerpc_ieee1275;
   enable = efi;
-  enable = i386_pc;
-  enable = emu;
   cflags = '$(CFLAGS_POSIX) $(CFLAGS_GNULIB)';
   cppflags = '$(CPPFLAGS_POSIX) $(CPPFLAGS_GNULIB)';
 };
