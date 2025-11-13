@@ -30,7 +30,7 @@
 #include <grub/kernel.h>
 #include <grub/extcmd.h>
 #include <grub/verify.h>
-#include <libtasn1.h>
+#include <grub/libtasn1.h>
 #include <grub/env.h>
 #include <grub/lockdown.h>
 #include <grub/powerpc/ieee1275/platform_keystore.h>

@@ -505,12 +505,6 @@ grub_install_parse (int key, char *arg)
     case GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK:
       disable_shim_lock = 1;
       return 1;
-    case 'x':
-      x509keys = xrealloc (x509keys,
-			  sizeof (x509keys[0])
-			  * (nx509keys + 1));
-      x509keys[nx509keys++] = xstrdup (arg);
-      return 1;
     case GRUB_INSTALL_OPTIONS_DISABLE_CLI:
       disable_cli = 1;
       return 1;

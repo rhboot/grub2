@@ -179,13 +179,6 @@ argp_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case 'S':
-      grub_errno = 0;
-      arguments->appsig_size = grub_strtol(arg, &end, 10);
-      if (grub_errno)
-        return 0;
-      break;
-
-    case 'S':
       arguments->appsig_size = grub_strtoul (arg, &end, 10);
       if (*arg == '\0' || *end != '\0')
         grub_util_error (_("non-numeric or invalid appended signature size `%s'"), arg);

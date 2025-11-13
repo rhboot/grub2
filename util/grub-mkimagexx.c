@@ -84,15 +84,6 @@ struct grub_ieee1275_note
   struct grub_ieee1275_note_desc descriptor;
 };
 
-#define GRUB_APPENDED_SIGNATURE_NOTE_NAME "Appended-Signature"
-#define GRUB_APPENDED_SIGNATURE_NOTE_TYPE 0x41536967 /* "ASig" */
-
-struct grub_appended_signature_note
-{
-  Elf32_Nhdr header;
-  char name[ALIGN_UP(sizeof (GRUB_APPENDED_SIGNATURE_NOTE_NAME), 4)];
-};
-
 #define GRUB_XEN_NOTE_NAME "Xen"
 
 struct fixup_block_list
