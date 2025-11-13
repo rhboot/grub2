@@ -1502,6 +1502,12 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 			# With some abstractions like mdraid flushing to disk
 			# may be delayed for a long time.
 			FSTIME="$UMOUNT_TIME";;
+		    x"erofs_"*)
+			# Creating the erofs image may take more than a few
+			# seconds. Use the more accurate timestamp from the
+			# superblock.
+			FSTIME="$(dump.erofs -s "${FSIMAGEP}0.img" | grep ^"Filesystem created:" | (read _ _ REST; echo $REST) )"
+			FSTIME="$(date -d "$FSTIME" -u '+%Y-%m-%d %H:%M:%S')";;
 		    xsquash*)
 			# Creating the squash image may take more than a few
 			# seconds. Use the more accurate timestamp from the
