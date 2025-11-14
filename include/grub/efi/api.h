@@ -1,7 +1,7 @@
 /* efi.h - declare EFI types and functions */
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2006,2007,2008,2009  Free Software Foundation, Inc.
+ *  Copyright (C) 2025  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@
     { 0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b } \
   }
 
-#define GRUB_EFI_DISK_IO_GUID	\
+#define GRUB_EFI_DISK_IO_PROTOCOL_GUID	\
   { 0xce345171, 0xba0b, 0x11d2, \
     { 0x8e, 0x4f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b } \
   }

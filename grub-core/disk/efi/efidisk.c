@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2006,2007,2008  Free Software Foundation, Inc.
+ *  Copyright (C) 2025  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -402,9 +402,9 @@ grub_efidisk_reenumerate_disks (void)
   free_devices (fd_devices);
   free_devices (hd_devices);
   free_devices (cd_devices);
-  fd_devices = 0;
-  hd_devices = 0;
-  cd_devices = 0;
+  fd_devices = NULL;
+  hd_devices = NULL;
+  cd_devices = NULL;
 
   enumerate_disks ();
 }
