@@ -283,3 +283,4 @@ widthspec.bin
 /xfs_test
 /xzcompress_test
 /zfs_test
+/zfs_zstd_test

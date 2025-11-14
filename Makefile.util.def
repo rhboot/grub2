@@ -916,6 +916,12 @@ script = {
 
 script = {
   testcase = native;
+  name = zfs_zstd_test;
+  common = tests/zfs_zstd_test.in;
+};
+
+script = {
+  testcase = native;
   name = cpio_test;
   common = tests/cpio_test.in;
 };

@@ -19,7 +19,6 @@ fi
 "@builddir@/grub-fs-tester" zfs_lzjb
 "@builddir@/grub-fs-tester" zfs_gzip
 "@builddir@/grub-fs-tester" zfs_zle
-"@builddir@/grub-fs-tester" zfs_zstd
 "@builddir@/grub-fs-tester" zfs_raidz3
 "@builddir@/grub-fs-tester" zfs_raidz2
 "@builddir@/grub-fs-tester" zfs_raidz
