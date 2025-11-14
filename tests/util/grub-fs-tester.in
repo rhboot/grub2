@@ -880,7 +880,11 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		xnilfs2)
 		    "mkfs.nilfs2" -L "$FSLABEL" -b $BLKSIZE  -q "${MOUNTDEVICE}" ;;
 		xext2_old)
-		    MKE2FS_DEVICE_SECTSIZE=$SECSIZE "mkfs.ext2" -r 0 -b $BLKSIZE -L "$FSLABEL" -q "${MOUNTDEVICE}"
+                    if "mkfs.ext2" -r 0 2>&1 | grep -q -F "the -r option has been removed"; then
+                        MKE2FS_DEVICE_SECTSIZE=$SECSIZE "mkfs.ext2" -E revision=0 -b $BLKSIZE -L "$FSLABEL" -q "${MOUNTDEVICE}"
+                    else
+                        MKE2FS_DEVICE_SECTSIZE=$SECSIZE "mkfs.ext2" -r 0 -b $BLKSIZE -L "$FSLABEL" -q "${MOUNTDEVICE}"
+                    fi
 		    MOUNTFS=ext2
 		    ;;
 		xext4_metabg)
