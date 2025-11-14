@@ -386,9 +386,12 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    FSLABEL="g;/_é䏌䐓䏕䎛䎾䏴кит u"
 		    #FSLABEL="g;/_é莭莽😁кит u"
 		    ;;
-		# FS LIMITATION: reiserfs, extN, jfs and erofs label is at most 16 UTF-8 characters
-		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"luks"* | x"mdraid"* | x"jfs" | x"jfs_caseins" | x"erofs_"*)
+		# FS LIMITATION: reiserfs, extN, and jfs label is at most 16 UTF-8 characters
+		x"reiserfs_old" | x"reiserfs" | x"ext"* | x"lvm"* | x"luks"* | x"mdraid"* | x"jfs" | x"jfs_caseins")
 		    FSLABEL="g;/éт 莭😁";;
+		# FS LIMITATION: erofs label is at most 15 UTF-8 characters
+		x"erofs_"*)
+		    FSLABEL="g;/é 莭😁";;
 		# FS LIMITATION: No underscore, space, semicolon, slash or international characters in UFS* in label. Limited to 32 UTF-8 characters
 		x"ufs1" | x"ufs1_sun" | x"ufs2")
 		    FSLABEL="grubtest""ieurrucnenreeiurueurewf";;
