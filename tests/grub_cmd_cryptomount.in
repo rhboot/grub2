@@ -38,6 +38,7 @@ fi
 COMMON_OPTS='${V:+--debug=$V} --cs-opts="--pbkdf-force-iterations 1000"'
 
 debug=${GRUB_SHELL_DEFAULT_DEBUG:-$GRUB_TEST_DEFAULT_DEBUG}
+builddir="@builddir@"
 
 _testcase() {
     local EXPECTEDRES=$1
@@ -92,94 +93,94 @@ testcase_fail() { _testcase 1 "$@"; }
 
 ### LUKS1 tests
 eval testcase "'LUKS1 test cryptsetup defaults:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS
 
 eval testcase "'LUKS1 test with twofish cipher:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         "--cs-opts='--cipher twofish-xts-plain64'"
 
 eval testcase "'LUKS1 test key file support:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         --keyfile
 
 eval testcase "'LUKS1 test key file with offset:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         --keyfile --cs-opts="--keyfile-offset=237"
 
 eval testcase "'LUKS1 test key file with offset and size:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         --keyfile "--cs-opts='--keyfile-offset=237 --keyfile-size=1023'"
 
 eval testcase "'LUKS1 test detached header support:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         --detached-header
 
 eval testcase "'LUKS1 test both detached header and key file:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         --keyfile --detached-header
 
 ### LUKS2 tests (mirroring the LUKS1 tests above)
 LUKS2_COMMON_OPTS="--luks=2 --cs-opts=--pbkdf=pbkdf2"
 eval testcase "'LUKS2 test cryptsetup defaults:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS
 
 eval testcase "'LUKS2 test with twofish cipher:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--cipher twofish-xts-plain64'"
 
 eval testcase "'LUKS2 test key file support:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         --keyfile
 
 eval testcase "'LUKS2 test key file with offset:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         --keyfile --cs-opts="--keyfile-offset=237"
 
 eval testcase "'LUKS2 test key file with offset and size:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         --keyfile "--cs-opts='--keyfile-offset=237 --keyfile-size=1023'"
 
 eval testcase "'LUKS2 test detached header support:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         --detached-header
 
 eval testcase "'LUKS2 test both detached header and key file:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         --keyfile --detached-header
 
 ### LUKS1 specific tests
 # Tests for xts-plain and xts-plain64 modes
 eval testcase "'LUKS1 test cryptsetup xts-plain:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         "--cs-opts='--cipher aes-xts-plain'"
 
 eval testcase "'LUKS1 test cryptsetup xts-plain64:'" \
-    @builddir@/grub-shell-luks-tester --luks=1 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=1 $COMMON_OPTS \
         "--cs-opts='--cipher aes-xts-plain64'"
 
 ### LUKS2 specific tests
 eval testcase "'LUKS2 test with 1k sector size:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--sector-size 1024'"
 
 eval testcase "'LUKS2 test with 2k sector size:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--sector-size 2048'"
 
 eval testcase "'LUKS2 test with 4k sector size:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--sector-size 4096'"
 
 eval testcase "'LUKS2 test with non-default key slot:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--key-slot 5'"
 
 eval testcase "'LUKS2 test with different metadata size:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--luks2-metadata-size 512k'"
 
 eval testcase "'LUKS2 test with argon2 pbkdf:'" \
-    @builddir@/grub-shell-luks-tester --luks=2 $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" --luks=2 $COMMON_OPTS \
         "--cs-opts='--pbkdf-memory 32'" "--cs-opts='--pbkdf-parallel 1'"
 
 # Add good password to second slot and change first slot to unchecked password
@@ -191,7 +192,7 @@ cat >$csscript <<'EOF'
 EOF
 
 eval testcase "'LUKS2 test with second key slot and first slot using different password:'" \
-    @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
+    "$builddir/grub-shell-luks-tester" $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-script='$csscript'"
 
 test -n "$debug" || rm "$csscript"
