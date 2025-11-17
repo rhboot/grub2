@@ -2743,7 +2743,7 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
   grub_uint64_t blkid, blksz;	/* the block id this object dnode is in */
   int epbs;			/* shift of number of dnodes in a block */
   int idx;			/* index within a block */
-  void *dnbuf;
+  dnode_phys_t *dnbuf;
   grub_err_t err;
   grub_zfs_endian_t endian;
 
@@ -2773,7 +2773,7 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
 
   grub_dprintf ("zfs", "endian = %d, blkid=%llx\n", mdn->endian,
 		(unsigned long long) blkid);
-  err = dmu_read (mdn, blkid, &dnbuf, &endian, data);
+  err = dmu_read (mdn, blkid, (void **) &dnbuf, &endian, data);
   if (err)
     return err;
   grub_dprintf ("zfs", "alive\n");
@@ -2795,7 +2795,7 @@ dnode_get (dnode_end_t * mdn, grub_uint64_t objnum, grub_uint8_t type,
       data->dnode_endian = endian;
     }
 
-  grub_memmove (&(buf->dn), (dnode_phys_t *) dnbuf + idx, DNODE_SIZE);
+  grub_memmove (&(buf->dn), dnbuf + idx, DNODE_SIZE);
   if (data->dnode_buf == 0)
 	  /* dnbuf not used anymore if data->dnode_mdn malloc failed */
 	  grub_free (dnbuf);
