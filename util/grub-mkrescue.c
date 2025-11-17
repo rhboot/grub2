@@ -339,7 +339,7 @@ check_xorriso (const char *val)
   const char *argv[5];
   int fd;
   pid_t pid;
-  FILE *mdadm;
+  FILE *fout;
   char *buf = NULL;
   size_t len = 0;
   int ret = 0;
@@ -356,12 +356,12 @@ check_xorriso (const char *val)
   if (!pid)
     return 0;
 
-  /* Parent.  Read mdadm's output.  */
-  mdadm = fdopen (fd, "r");
-  if (! mdadm)
+  /* Parent.  Read xorriso's output.  */
+  fout = fdopen (fd, "r");
+  if (! fout)
     return 0;
 
-  while (getline (&buf, &len, mdadm) > 0)
+  while (getline (&buf, &len, fout) > 0)
     {
       if (grub_strstr (buf, val))
 	ret = 1;
