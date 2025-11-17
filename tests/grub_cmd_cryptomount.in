@@ -178,8 +178,7 @@ eval testcase "'LUKS2 test with different metadata size:'" \
     @builddir@/grub-shell-luks-tester $LUKS2_COMMON_OPTS $COMMON_OPTS \
         "--cs-opts='--luks2-metadata-size 512k'"
 
-# TODO: Expect a failure with LUKS2 volumes with argon2 key derivation
-eval testcase_fail "'LUKS2 test with argon2 pbkdf:'" \
+eval testcase "'LUKS2 test with argon2 pbkdf:'" \
     @builddir@/grub-shell-luks-tester --luks=2 $COMMON_OPTS \
         "--cs-opts='--pbkdf-memory 32'" "--cs-opts='--pbkdf-parallel 1'"
 
