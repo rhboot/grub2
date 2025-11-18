@@ -66,7 +66,7 @@ More cross compiling toolchains can be found at the following trusted sites:
 * https://mirrors.kernel.org/pub/tools/crosstool/
 * https://toolchains.bootlin.com/
 
-Prerequisites for make-check:
+Prerequisites for running make-check successfully:
 
 * qemu, specifically the binary "qemu-system-ARCH" where ARCH is the
   architecture GRUB has been built for; the "qemu-system" package on Debian
@@ -86,6 +86,8 @@ Prerequisites for make-check:
     reiserfs, udf, xfs
   - On newer kernels, the exfat kernel modules may be used instead of the
     exfat FUSE filesystem
+  - Kernel version 6.12.x was the last series to include reiserfs support,
+    so later kernels will fail the reiser filesystem test.
 * The following are Debian named packages required mostly for the full
   suite of filesystem testing (but some are needed by other tests as well):
   - btrfs-progs, dosfstools, e2fsprogs, erofs-utils, exfatprogs, exfat-fuse,
@@ -96,8 +98,8 @@ Prerequisites for make-check:
   - attr, cpio, g++, gawk, parted, recode, tar, util-linux
 
 Note that `make check' will run and many tests may complete successfully
-with only a subset of these prerequisites. However, some tests may be
-skipped or fail due to missing prerequisites.
+with only a subset of these prerequisites. However, some tests may fail
+due to missing prerequisites.
 
 To build the documentation you'll need:
 * texinfo, for the info and html documentation
