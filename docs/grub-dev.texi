@@ -495,6 +495,9 @@ These dependencies are currently documented in the
 @uref{https://git.savannah.gnu.org/cgit/grub.git/tree/INSTALL, INSTALL}
 file in the source repository. Once installed, the test suite can be started
 by running the @command{make check} command from the GRUB build directory.
+To properly run all the tests, the test suite must be run as the privileged
+user. For instance, the filesystem tests require creating and mounting the
+tested filessytems.
 
 @node Updating External Code
 @chapter Updating external code
