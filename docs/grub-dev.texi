@@ -77,7 +77,7 @@ This edition documents version @value{VERSION}.
 * Coding style::
 * Finding your way around::
 * Contributing Changes::
-* Setting up and running test suite::
+* Tests::
 * Updating External Code::
 * Debugging::
 * Porting::
@@ -485,8 +485,17 @@ If your intention is to just get started, please do not submit a inclusion
 request. Instead, please subscribe to the mailing list, and communicate first
 (e.g. sending a patch, asking a question, commenting on another message...).
 
+@node Tests
+@chapter Tests
+
+@menu
+* Setting up and running test suite::
+* Writing new tests::
+@end menu
+
+
 @node Setting up and running test suite
-@chapter Setting up and running test suite
+@section Setting up and running test suite
 
 GRUB is basically a tiny operating system with read support for many file
 systems and which has been ported to a variety of architectures. As such, its
@@ -496,8 +505,46 @@ These dependencies are currently documented in the
 file in the source repository. Once installed, the test suite can be started
 by running the @command{make check} command from the GRUB build directory.
 To properly run all the tests, the test suite must be run as the privileged
-user. For instance, the filesystem tests require creating and mounting the
-tested filessytems.
+user, for instance to run the filesystem tests, which require mounting
+filesystem images. Of course, virtualization or containers may be used, but
+this requires extra configuration outside the scope of this document.
+
+@node Writing new tests
+@section Writing new tests
+
+There are two kinds of tests in the GRUB test suite: native and non-native.
+Native tests are those which run on the build architecture and non-native
+run on the target architecture. The non-native tests are run in a QEMU
+virtual machine using the grub-shell script in tests/util. When writing a
+new test, first determine if it should run on the host or the target and
+then look at the existing tests as examples of how to they should be written.
+
+The GRUB test suite uses automake (@uref{https://www.gnu.org/software/automake/manual/automake.html#Tests, see documention here}). One thing of importance
+to note is that tests have 4 classes of return codes: SKIP (77), HARD ERROR
+(99), PASS (0), and FAIL (all other codes). A
+@uref{https://www.gnu.org/software/automake/manual/automake.html#index-test-skip, SKIP return code}
+should be returned when this test cannot be performed and thus should be
+skipped. Typically this is because the target does not support the test,
+such as the ohci USB test for the powerpc-ieee1275 target because there
+are no native drivers for that target. A
+@uref{https://www.gnu.org/software/automake/manual/automake.html#index-Distinction-between-errors-and-failures-in-testsuites, HARD ERROR return code}
+should be returned when a failure in something other than what is intended
+to be tested happens. This is commonly returned when the test cannot be
+properly run because of deficiencies in the test environment, eg. when
+testing the xfs filesystem, but the kernel has no support for mounting xfs
+volumes. A SKIP should never be returned for a HARD ERROR condition
+because at best the person running the test does not know if the test was
+skipped because it doesn't apply to the target or because the tester failed
+to setup the environment properly. At worst, the tester will believe that
+everything is okay without realizing that the tests are not covering all
+the code that it should.
+
+Keep portability in mind while creating a new tests so that the tests can be
+run on a variety of systems and shells. Do not use bashisms. Also try to avoid
+using utilities that would unecessarily add software dependencies. Sometimes
+this is unavoidable. Copy or adapt existing test implementations where feasible.
+If the test is native and requires root, make sure to check that the test is
+run with the root user and return HARD ERROR if it is not.
 
 @node Updating External Code
 @chapter Updating external code
