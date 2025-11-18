@@ -1,7 +1,11 @@
 #include <grub/mm.h>
-#include <grub/libtasn1.h>
+#include <libtasn1.h>
 
-const asn1_static_node gnutls_asn1_tab[] = {
+/*
+ * Imported from gnutls.asn.
+ * https://github.com/gnutls/gnutls/blob/master/lib/gnutls.asn
+ */
+const asn1_static_node grub_gnutls_asn1_tab[] = {
   { "GNUTLS", 536872976, NULL },
   { NULL, 1073741836, NULL },
   { "RSAPublicKey", 1610612741, NULL },
@@ -55,6 +59,9 @@ const asn1_static_node gnutls_asn1_tab[] = {
   { "prime", 1073741827, NULL },
   { "base", 1073741827, NULL },
   { "privateValueLength", 16387, NULL },
+  { "pkcs-11-ec-Parameters", 1610612754, NULL },
+  { "oId", 1073741836, NULL },
+  { "curveName", 31, NULL },
   { "ECParameters", 1610612754, NULL },
   { "namedCurve", 12, NULL },
   { "ECPrivateKey", 1610612741, NULL },
@@ -86,6 +93,13 @@ const asn1_static_node gnutls_asn1_tab[] = {
   { "trailerField", 536911875, NULL },
   { NULL, 1073741833, "1"},
   { NULL, 2056, "3"},
+  { "RSAOAEPParameters", 1610612741, NULL },
+  { "hashAlgorithm", 1610637314, "AlgorithmIdentifier"},
+  { NULL, 2056, "0"},
+  { "maskGenAlgorithm", 1610637314, "AlgorithmIdentifier"},
+  { NULL, 2056, "1"},
+  { "pSourceFunc", 536895490, "AlgorithmIdentifier"},
+  { NULL, 2056, "2"},
   { "GOSTParameters", 1610612741, NULL },
   { "publicKeyParamSet", 1073741836, NULL },
   { "digestParamSet", 16396, NULL },
@@ -113,9 +127,22 @@ const asn1_static_node gnutls_asn1_tab[] = {
   { "ephemeralPublicKey", 1610637314, "SubjectPublicKeyInfo"},
   { NULL, 4104, "0"},
   { "ukm", 7, NULL },
-  { "GostR3410-KeyTransport", 536870917, NULL },
+  { "GostR3410-KeyTransport", 1610612741, NULL },
   { "sessionEncryptedKey", 1073741826, "Gost28147-89-EncryptedKey"},
   { "transportParameters", 536895490, "GostR3410-TransportParameters"},
   { NULL, 4104, "0"},
+  { "TPMKey", 1610612741, NULL },
+  { "type", 1073741836, NULL },
+  { "emptyAuth", 1610637316, NULL },
+  { NULL, 2056, "0"},
+  { "parent", 1073741827, NULL },
+  { "pubkey", 1073741831, NULL },
+  { "privkey", 7, NULL },
+  { "MLDSAPrivateKey", 536870917, NULL },
+  { "version", 1073741827, NULL },
+  { "privateKeyAlgorithm", 1073741826, "AlgorithmIdentifier"},
+  { "privateKey", 1073741831, NULL },
+  { "publicKey", 536895495, NULL },
+  { NULL, 2056, "1"},
   { NULL, 0, NULL }
 };
