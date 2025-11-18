@@ -25,6 +25,43 @@ extern asn1_node grub_gnutls_pkix_asn;
 
 #define GRUB_MAX_OID_LEN         32
 
+/* RSA public key. */
+#define GRUB_MAX_MPI             2
+#define GRUB_RSA_PK_MODULUS      0
+#define GRUB_RSA_PK_EXPONENT     1
+
+/* Certificate fingerprint. */
+#define GRUB_MAX_FINGERPRINT     3
+#define GRUB_FINGERPRINT_SHA256  0
+#define GRUB_FINGERPRINT_SHA384  1
+#define GRUB_FINGERPRINT_SHA512  2
+
+/* Max size of hash data. */
+#define GRUB_MAX_HASH_LEN        64
+
+/*
+ * One or more x509 certificates. We do limited parsing:
+ * extracting only the version, serial, issuer, subject, RSA public key
+ * and key size.
+ * Also, hold the sha256, sha384, and sha512 fingerprint of the certificate.
+ */
+struct x509_certificate
+{
+  struct x509_certificate *next;
+  grub_uint8_t version;
+  grub_uint8_t *serial;
+  grub_size_t serial_len;
+  char *issuer;
+  grub_size_t issuer_len;
+  char *subject;
+  grub_size_t subject_len;
+  /* We only support RSA public keys. This encodes [modulus, publicExponent]. */
+  gcry_mpi_t mpis[GRUB_MAX_MPI];
+  grub_int32_t modulus_size;
+  grub_uint8_t fingerprint[GRUB_MAX_FINGERPRINT][GRUB_MAX_HASH_LEN];
+};
+typedef struct x509_certificate grub_x509_cert_t;
+
 /* A PKCS#7 signed data signer info. */
 struct pkcs7_signer
 {
@@ -43,6 +80,21 @@ struct pkcs7_data
   grub_pkcs7_signer_t *signers;
 };
 typedef struct pkcs7_data grub_pkcs7_data_t;
+
+/*
+ * Import a DER-encoded certificate at 'data', of size 'size'. Place the results
+ * into 'results', which must be already allocated.
+ */
+extern grub_err_t
+grub_x509_cert_parse (const void *data, grub_size_t size, grub_x509_cert_t *results);
+
+/*
+ * Release all the storage associated with the x509 certificate. If the caller
+ * dynamically allocated the certificate, it must free it. The caller is also
+ * responsible for maintenance of the linked list.
+ */
+extern void
+grub_x509_cert_release (grub_x509_cert_t *cert);
 
 /*
  * Parse a PKCS#7 message, which must be a signed data message. The message must
