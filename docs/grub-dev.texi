@@ -900,26 +900,26 @@ is to be run in a GDB session running with the @file{gdb_grub} GDB script.
 @node Porting
 @chapter Porting
 
-GRUB2 is designed to be easily portable accross platforms. But because of the
+GRUB2 is designed to be easily portable across platforms. But because of the
 nature of bootloader every new port must be done separately. Here is how I did
-MIPS (loongson and ARC) and Xen ports. Note than this is more of suggestions,
-not absolute truth.
+MIPS (loongson and ARC) and Xen ports. Note that this is more of a suggestion,
+and not absolute truth.
 
-First of all grab any architecture specifications you can find in public
-(please avoid NDA).
+First of all, grab any architecture specifications you can find in the public
+domain (please avoid NDA).
 
 First stage is ``Hello world''. I've done it outside of GRUB for simplicity.
 Your task is to have a small program which is loadable as bootloader and
-clearly shows its presence to you. If you have easily accessible console
-you can just print a message. If you have a mapped framebuffer you know address
+clearly shows its presence to you. If you have an easily accessible console
+you can just print a message. If you have a mapped framebuffer you know the address
 of, you can draw a square. If you have a debug facility, just hanging without
-crashing might be enough. For the first stage you can choose to load the
-bootloader across the network since format for network image is often easier
+crashing might be enough. For the first stage, you can choose to load the
+bootloader across the network since the format for a network image is often easier
 than for local boot and it skips the need of small intermediary stages and
-nvram handling. Additionally you can often have a good idea of the needed
-format by running ``file'' on any netbootable executable for given platform.
+nvram handling. Additionally, you can often have a good idea of the needed
+format by running ``file'' on any netbootable executable for the given platform.
 
-This program should probably have 2 parts: an assembler and C one. Assembler one
+This program should probably have 2 parts: an assembler and C one. The assembler one
 handles BSS cleaning and other needed setup (on some platforms you may need
 to switch modes or copy the executable to its definitive position). So your code
 may look like (x86 assembly for illustration purposes)
@@ -961,12 +961,12 @@ Sometimes you need a third file: assembly stubs for ABI-compatibility.
 
 Once this file is functional it's time to move it into GRUB2. The startup
 assembly file goes to grub-core/kern/$cpu/$platform/startup.S. You should also
-include grub/symbol.h and replace call to entry point with call to
+include grub/symbol.h and replace the call to entry point with call to
 EXT_C(grub_main). The C file goes to grub-core/kern/$cpu/$platform/init.c
 and its entry point is renamed to void grub_machine_init (void). Keep final
-infinite loop for now. Stubs file if any goes to
+infinite loop for now. Stub files if any goes to
 grub-core/kern/$cpu/$platform/callwrap.S. Sometimes either $cpu or $platform
-is dropped if file is used on several cpus respectivelyplatforms.
+is dropped if file is used on several cpus respectively or platforms.
 Check those locations if they already have what you're looking for.
 
 Then modify in configure.ac the following parts:
@@ -984,10 +984,10 @@ esac
 @end example
 
 Sometimes CPU have additional architecture names which don't influence booting.
-You might want to have some canonical name to avoid having bunch of identical
+You might want to have some canonical name to avoid having a bunch of identical
 platforms with different names.
 
-NOTE: it doesn't influence compile optimisations which depend solely on
+NOTE: It doesn't influence compile optimisations which depend solely on
 chosen compiler and compile options.
 
 @example
@@ -1049,7 +1049,7 @@ AM_CONDITIONAL([COND_powerpc_ieee1275], [test x$target_cpu = xpowerpc -a x$platf
 @end example
 
 Next stop is gentpl.py. You need to add your platform to the list of supported
-ones (sorry that this list is duplicated):
+ones (unfortunately, this list is duplicated):
 
 @example
 GRUB_PLATFORMS = [ "emu", "i386_pc", "i386_efi", "i386_qemu", "i386_coreboot",
@@ -1059,21 +1059,21 @@ GRUB_PLATFORMS = [ "emu", "i386_pc", "i386_efi", "i386_qemu", "i386_coreboot",
                    "mips_qemu_mips", "s390_mainframe" ]
 @end example
 
-You may also want already to add new platform to one or several of available
+Now you may also want to add a new platform to one or several of available
 groups. In particular we always have a group for each CPU even when only
 one platform for given CPU is available.
 
 Then comes grub-core/Makefile.core.def. In the block ``kernel'' you'll need
 to define ldflags for your platform ($cpu_$platform_ldflags). You also need to
-declare startup asm file ($cpu_$platform_startup) as well as any other files
-(e.g. init.c and callwrap.S) (e.g. $cpu_$platform = kern/$cpu/$platform/init.c).
-At this stage you will also need to add dummy dl.c and cache.S with functions
+declare a startup asm file ($cpu_$platform_startup) as well as any other files,
+like init.c or callwrap.S (e.g. $cpu_$platform = kern/$cpu/$platform/init.c).
+At this stage, you will also need to add a dummy dl.c and cache.S with functions
 grub_err_t grub_arch_dl_check_header (void *ehdr), grub_err_t
 grub_arch_dl_relocate_symbols (grub_dl_t mod, void *ehdr) (dl.c) and
 void grub_arch_sync_caches (void *address, grub_size_t len) (cache.S). They
 won't be used for now.
 
-You will need to create directory include/$cpu/$platform and a file
+You will need to create a directory include/$cpu/$platform and a file
 include/$cpu/types.h. The latter following this template:
 
 @example
@@ -1097,7 +1097,7 @@ include/$cpu/types.h. The latter following this template:
 You will also need to add a dummy file to datetime and setjmp modules to
 avoid any of it having no files. It can be just completely empty at this stage.
 
-You'll need to make grub-mkimage.c (util/grub_mkimage.c) aware of the needed
+You'll need to make grub-mkimage (in util/grub_mkimage.c) aware of the needed
 format. For most commonly used formats like ELF, PE, aout or raw the support
 is already present and you'll need to make it follow the existant code paths
 for your platform adding adjustments if necessary. When done compile:
@@ -1108,47 +1108,47 @@ for your platform adding adjustments if necessary. When done compile:
 make > /dev/null
 @end example
 
-And create image
+And create an image:
 
 @example
 ./grub-mkimage -d grub-core -O $format_id -o test.img
 @end example
 
-And it's time to test your test.img.
+And now it's time to test your test.img.
 
-If it works next stage is to have heap, console and timer.
+If it works, the next stage is to have a heap, console and timer.
 
 To have the heap working you need to determine which regions are suitable for
-heap usage, allocate them from firmware and map (if applicable). Then call
-grub_mm_init_region (void *start, grub_size_t s) for every of this region.
-As a shortcut for early port you can allocate right after _end or have
-a big static array for heap. If you do you'll probably need to come back to
+heap usage, allocate them from the firmware and map them, if applicable.
+Then call grub_mm_init_region (void *start, grub_size_t s) for each region.
+As a shortcut for an early port, you can allocate right after _end or have
+a big static array for heap. If you do, you'll probably need to come back to
 this later. As for output console you should distinguish between an array of
-text, terminfo or graphics-based console. Many of real-world examples don't
+text, terminfo or graphics-based console. Many real-world examples don't
 fit perfectly into any of these categories but one of the models is easier
-to be used as base. In second and third case you should add your platform to
+to be used as base. In the second and third case, you should add your platform to
 terminfokernel respectively videoinkernel group. A good example of array of
-text is i386-pc (kern/i386/pc/init.c and term/i386/pc/console.c).
-Of terminfo is ieee1275 (kern/ieee1275/init.c and term/ieee1275/console.c).
-Of video is loongson (kern/mips/loongson/init.c). Note that terminfo has
+text is i386-pc (kern/i386/pc/init.c and term/i386/pc/console.c),
+of terminfo is ieee1275 (kern/ieee1275/init.c and term/ieee1275/console.c),
+and of video is loongson (kern/mips/loongson/init.c). Note that terminfo has
 to be inited in 2 stages: one before (to get at least rudimentary console
 as early as possible) and another after the heap (to get full-featured console).
-For the input there are string of keys, terminfo and direct hardware. For string
-of keys look at i386-pc (same files), for terminfo ieee1275 (same files) and for
-hardware loongson (kern/mips/loongson/init.c and term/at_keyboard.c).
+For the input, there is a string of keys (eg. i386-pc, same files), terminfo
+(ieee1275, same files), and hardware (loongson, see kern/mips/loongson/init.c
+and term/at_keyboard.c).
 
-For the timer you'll need to call grub_install_get_time_ms (...) with as sole
-argument a function returning a grub_uint64_t of a number of milliseconds
+For the timer, you'll need to call grub_install_get_time_ms (...) with the
+sole argument a function returning a grub_uint64_t number of milliseconds
 elapsed since arbitrary point in the past.
 
-Once these steps accomplished you can remove the inifinite loop and you should
+Once these steps are accomplished, you can remove the inifinite loop and you should
 be able to get to the minimal console. Next step is to have module loading
-working. For this you'll need to fill kern/$cpu/dl.c and kern/$cpu/cache.S
+working. For this, you'll need to fill kern/$cpu/dl.c and kern/$cpu/cache.S
 with real handling of relocations and respectively the real sync of I and D
 caches. Also you'll need to decide where in the image to store the modules.
 Usual way is to have it concatenated at the end. In this case you'll need to
 modify startup.S to copy modules out of bss to let's say ALIGN_UP (_end, 8)
-before cleaning out bss. You'll probably find useful to add total_module_size
+before cleaning out bss. You'll probably find it useful to add total_module_size
 field to startup.S. In init.c you need to set grub_modbase to the address
 where modules can be found. You may need grub_modules_get_end () to avoid
 declaring the space occupied by modules as usable for heap. You can test modules
@@ -1164,9 +1164,9 @@ Once this works, you should think of implementing disk access. Look around
 disk/ for examples.
 
 Then, very importantly, you probably need to implement the actual loader
-(examples available in loader/)
+(examples available in loader/).
 
-Last step to have minimally usable port is to add support to grub-install to
+The last step to have a minimally usable port is to add support to grub-install to
 put GRUB in a place where firmware or platform will pick it up.
 
 Next steps are: filling datetime.c, setjmp.S, network (net/drivers),
@@ -1175,15 +1175,15 @@ video (video/), halt (lib/), reboot (lib/).
 Please add your platform to Platform limitations and Supported kernels chapter
 in user documentation and mention any steps you skipped which result in reduced
 features or performance. Here is the quick checklist of features. Some of them
-are less important than others and skipping them is completely ok, just needs
+are less important than others and skipping them is completely ok, it just needs
 to be mentioned in user documentation.
 
 Checklist:
 @itemize
-@item Is heap big enough?
-@item Which charset is supported by console?
-@item Does platform have disk driver?
-@item Do you have network card support?
+@item Is the heap big enough?
+@item Which charset is supported by the console?
+@item Does the platform have disk driver?
+@item Is there network card support?
 @item Are you able to retrieve datetime (with date)?
 @item Are you able to set datetime (with date)?
 @item Is serial supported?
@@ -1209,16 +1209,16 @@ GRUB?
 @node Error Handling
 @chapter Error Handling
 
-Error handling in GRUB 2 is based on exception handling model. As C language
+Error handling in GRUB 2 is based on exception handling model. As the C language
 doesn't directly support exceptions, exception handling behavior is emulated
-in software. 
+in software.
 
-When exception is raised, function must return to calling function. If calling
+When an exception is raised, the function must return to the calling function. If the calling
 function does not provide handling of the exception it must return back to its
-calling function and so on, until exception is handled. If exception is not
-handled before prompt is displayed, error message will be shown to user.
+calling function and so on, until the exception is handled. If the exception is not
+handled before a prompt is displayed, error message will be shown to user.
 
-Exception information is stored on @code{grub_errno} global variable. If
+Exception information is stored in the @code{grub_errno} global variable. If
 @code{grub_errno} variable contains value @code{GRUB_ERR_NONE}, there is no active
 exception and application can continue normal processing. When @code{grub_errno} has
 other value, it is required that application code either handles this error or

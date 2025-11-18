@@ -2950,7 +2950,7 @@ Heavily limited platforms:
 Lightly limited platforms:
 
 @itemize
-@item *-xen: limited only by adress space and RAM size.
+@item *-xen: limited only by address space and RAM size.
 @item i386-qemu: kernel.img (.text + .data + .bss) is limited by 392704 bytes.
                  (core.img would be limited by ROM size but it's unlimited on qemu
 @item All EFI platforms: limited by contiguous RAM size and possibly firmware bugs
