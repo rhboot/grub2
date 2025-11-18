@@ -1,6 +1,7 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2020-2021  IBM Corporation.
+ *  Copyright (C) 2020, 2021, 2022 Free Software Foundation, Inc.
+ *  Copyright (C) 2020, 2021, 2022, 2025 IBM Corporation
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,13 +25,12 @@
 #include <grub/file.h>
 #include <grub/command.h>
 #include <grub/crypto.h>
-#include <grub/pkcs1_v15.h>
 #include <grub/i18n.h>
 #include <grub/gcrypt/gcrypt.h>
 #include <grub/kernel.h>
 #include <grub/extcmd.h>
 #include <grub/verify.h>
-#include <grub/libtasn1.h>
+#include <libtasn1.h>
 #include <grub/env.h>
 #include <grub/lockdown.h>
 
@@ -38,7 +38,12 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
-const char magic[] = "~Module signature appended~\n";
+/* Public key type. */
+#define PKEY_ID_PKCS7      2
+
+/* Appended signature magic string and size. */
+#define SIG_MAGIC          "~Module signature appended~\n"
+#define SIG_MAGIC_SIZE     ((sizeof(SIG_MAGIC) - 1))
 
 /*
  * This structure is extracted from scripts/sign-file.c in the linux kernel
@@ -46,200 +51,276 @@ const char magic[] = "~Module signature appended~\n";
  */
 struct module_signature
 {
-  grub_uint8_t algo;		/* Public-key crypto algorithm [0] */
-  grub_uint8_t hash;		/* Digest algorithm [0] */
-  grub_uint8_t id_type;		/* Key identifier type [PKEY_ID_PKCS7] */
-  grub_uint8_t signer_len;	/* Length of signer's name [0] */
-  grub_uint8_t key_id_len;	/* Length of key identifier [0] */
+  grub_uint8_t algo;       /* Public-key crypto algorithm [0]. */
+  grub_uint8_t hash;       /* Digest algorithm [0]. */
+  grub_uint8_t id_type;    /* Key identifier type [PKEY_ID_PKCS7]. */
+  grub_uint8_t signer_len; /* Length of signer's name [0]. */
+  grub_uint8_t key_id_len; /* Length of key identifier [0]. */
   grub_uint8_t __pad[3];
-  grub_uint32_t sig_len;	/* Length of signature data */
+  grub_uint32_t sig_len;   /* Length of signature data. */
 } GRUB_PACKED;
 
+#define SIG_METADATA_SIZE  (sizeof (struct module_signature))
+#define APPENDED_SIG_SIZE(pkcs7_data_size) \
+                           (pkcs7_data_size + SIG_MAGIC_SIZE + SIG_METADATA_SIZE)
 
-/* This represents an entire, parsed, appended signature */
-struct grub_appended_signature
+/* This represents an entire, parsed, appended signature. */
+struct appended_signature
 {
-  grub_size_t signature_len;		/* Length of PKCS#7 data +
-                                         * metadata + magic */
-
-  struct module_signature sig_metadata;	/* Module signature metadata */
-  struct pkcs7_signedData pkcs7;	/* Parsed PKCS#7 data */
+  struct module_signature sig_metadata; /* Module signature metadata. */
+  grub_pkcs7_data_t pkcs7;              /* Parsed PKCS#7 data. */
+  grub_size_t signature_len;            /* Length of PKCS#7 data + metadata + magic. */
 };
+typedef struct appended_signature sb_appendedsig_t;
 
-/* Trusted certificates for verifying appended signatures */
-struct x509_certificate *grub_trusted_key;
+/* This represents a trusted certificates. */
+struct sb_database
+{
+  grub_x509_cert_t *certs;    /* Certificates. */
+  grub_uint32_t cert_entries; /* Number of certificates. */
+};
+typedef struct sb_database sb_database_t;
+
+/* The db list is used to validate appended signatures. */
+static sb_database_t db = {.certs = NULL, .cert_entries = 0};
 
 /*
- * Force gcry_rsa to be a module dependency.
- *
- * If we use grub_crypto_pk_rsa, then then the gcry_rsa module won't be built
- * in if you add 'appendedsig' to grub-install --modules. You would need to
- * add 'gcry_rsa' too. That's confusing and seems suboptimal, especially when
- * we only support RSA.
- *
- * Dynamic loading also causes some concerns. We can't load gcry_rsa from the
- * the filesystem after we install the verifier - we won't be able to verify
- * it without having it already present. We also shouldn't load it before we
- * install the verifier, because that would mean it wouldn't be verified - an
- * attacker could insert any code they wanted into the module.
- *
- * So instead, reference the internal symbol from gcry_rsa. That creates a
- * direct dependency on gcry_rsa, so it will be built in when this module
- * is built in. Being built in (assuming the core image is itself signed!)
- * also resolves our concerns about loading from the filesystem.
+ * Signature verification flag (check_sigs).
+ * check_sigs: false
+ *  - No signature verification. This is the default.
+ * check_sigs: true
+ *  - Enforce signature verification, and if signature verification fails, post
+ *    the errors and stop the boot.
  */
-extern gcry_pk_spec_t _gcry_pubkey_spec_rsa;
+static bool check_sigs = false;
 
-static int check_sigs = 0;
-
-static const char *
-grub_env_read_sec (struct grub_env_var *var __attribute__ ((unused)),
-                   const char *val __attribute__ ((unused)))
+static grub_ssize_t
+pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
 {
-  if (check_sigs == 2)
-    return "forced";
-  else if (check_sigs == 1)
-    return "enforce";
-  else
-    return "no";
+  grub_memcpy (buf, (grub_uint8_t *) file->data + file->offset, len);
+  return len;
 }
 
-static char *
-grub_env_write_sec (struct grub_env_var *var __attribute__((unused)),
-		    const char *val)
+/* Filesystem descriptor. */
+static struct grub_fs pseudo_fs = {
+  .name = "pseudo",
+  .fs_read = pseudo_read
+};
+
+static bool
+is_cert_match (const grub_x509_cert_t *cert1, const grub_x509_cert_t *cert2)
 {
-  /* Do not allow the value to be changed if set to forced */
-  if (check_sigs == 2)
-    return grub_strdup ("forced");
+  if (grub_memcmp (cert1->subject, cert2->subject, cert2->subject_len) == 0
+      && grub_memcmp (cert1->issuer, cert2->issuer, cert2->issuer_len) == 0
+      && grub_memcmp (cert1->serial, cert2->serial, cert2->serial_len) == 0
+      && grub_memcmp (cert1->mpis[GRUB_RSA_PK_MODULUS], cert2->mpis[GRUB_RSA_PK_MODULUS],
+                      sizeof (cert2->mpis[GRUB_RSA_PK_MODULUS])) == 0
+      && grub_memcmp (cert1->mpis[GRUB_RSA_PK_EXPONENT], cert2->mpis[GRUB_RSA_PK_EXPONENT],
+                      sizeof (cert2->mpis[GRUB_RSA_PK_EXPONENT])) == 0
+      && grub_memcmp (cert1->fingerprint[GRUB_FINGERPRINT_SHA256],
+                      cert2->fingerprint[GRUB_FINGERPRINT_SHA256],
+                      grub_strlen ((char *) cert2->fingerprint[GRUB_FINGERPRINT_SHA256])) == 0)
+    return true;
 
-  if ((*val == '2') || (*val == 'f'))
-    check_sigs = 2;
-  else if ((*val == '1') || (*val == 'e'))
-    check_sigs = 1;
-  else if ((*val == '0') || (*val == 'n'))
-    check_sigs = 0;
+  return false;
+}
 
-  return grub_strdup (grub_env_read_sec (NULL, NULL));
+/* Check the certificate presence in the db list. */
+static bool
+check_cert_presence (const grub_x509_cert_t *cert_in, const sb_database_t *sb_database)
+{
+  grub_x509_cert_t *cert;
+
+  for (cert = sb_database->certs; cert != NULL; cert = cert->next)
+    if (is_cert_match (cert, cert_in) == true)
+      return true;
+
+  return false;
+}
+
+/* Add the certificate into the db list */
+static grub_err_t
+add_certificate (const grub_uint8_t *data, const grub_size_t data_size,
+                 sb_database_t *sb_database)
+{
+  grub_err_t rc;
+  grub_x509_cert_t *cert;
+
+  if (data == NULL || data_size == 0)
+    return grub_error (GRUB_ERR_OUT_OF_RANGE, "certificate data or size is not available");
+
+  cert = grub_zalloc (sizeof (grub_x509_cert_t));
+  if (cert == NULL)
+    return grub_error (GRUB_ERR_OUT_OF_MEMORY, "out of memory");
+
+  rc = grub_x509_cert_parse (data, data_size, cert);
+  if (rc != GRUB_ERR_NONE)
+    {
+      grub_dprintf ("appendedsig", "cannot add a certificate CN='%s' to the db list\n",
+                    cert->subject);
+      grub_free (cert);
+      return rc;
+    }
+
+  if (check_cert_presence (cert, sb_database) == true)
+    {
+      grub_dprintf ("appendedsig",
+                    "cannot add a certificate CN='%s', as it is present in the db list",
+                    cert->subject);
+      grub_x509_cert_release (cert);
+      grub_free (cert);
+
+      return GRUB_ERR_EXISTS;
+    }
+
+  grub_dprintf ("appendedsig", "added a certificate CN='%s' to the db list\n",
+                cert->subject);
+
+  cert->next = sb_database->certs;
+  sb_database->certs = cert;
+  sb_database->cert_entries++;
+
+  return rc;
 }
 
 static grub_err_t
-read_cert_from_file (grub_file_t f, struct x509_certificate *certificate)
+file_read_whole (grub_file_t file, grub_uint8_t **buf, grub_size_t *len)
 {
-  grub_err_t err;
-  grub_uint8_t *buf = NULL;
+  grub_off_t full_file_size;
+  grub_size_t file_size, total_read_size = 0;
   grub_ssize_t read_size;
-  grub_off_t total_read_size = 0;
-  grub_off_t file_size = grub_file_size (f);
 
-
-  if (file_size == GRUB_FILE_SIZE_UNKNOWN)
+  full_file_size = grub_file_size (file);
+  if (full_file_size == GRUB_FILE_SIZE_UNKNOWN)
     return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		       N_("Cannot parse a certificate file of unknown size"));
+                       "cannot read a file of unknown size into a buffer");
 
-  buf = grub_zalloc (file_size);
-  if (!buf)
+  if (full_file_size > GRUB_SIZE_MAX)
+    return grub_error (GRUB_ERR_OUT_OF_RANGE,
+                       "file is too large to read: %" PRIuGRUB_OFFSET " bytes",
+                       full_file_size);
+
+  file_size = (grub_size_t) full_file_size;
+  *buf = grub_malloc (file_size);
+  if (*buf == NULL)
     return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		       N_("Could not allocate buffer for certificate file contents"));
+                       "could not allocate file data buffer size %" PRIuGRUB_SIZE,
+                       file_size);
 
   while (total_read_size < file_size)
     {
-      read_size =
-	grub_file_read (f, &buf[total_read_size],
-			file_size - total_read_size);
+      read_size = grub_file_read (file, *buf + total_read_size, file_size - total_read_size);
       if (read_size < 0)
-	{
-	  err = grub_error (GRUB_ERR_READ_ERROR,
-			    N_("Error reading certificate file"));
-	  goto cleanup_buf;
-	}
+        {
+          grub_free (*buf);
+          return grub_errno;
+        }
+      else if (read_size == 0)
+        {
+          grub_free (*buf);
+          return grub_error (GRUB_ERR_IO,
+                             "could not read full file size "
+                             "(%" PRIuGRUB_SIZE "), only %" PRIuGRUB_SIZE " bytes read",
+                             file_size, total_read_size);
+        }
+
       total_read_size += read_size;
     }
 
-  err = certificate_import (buf, total_read_size, certificate);
-  if (err != GRUB_ERR_NONE)
-    goto cleanup_buf;
+  *len = file_size;
 
   return GRUB_ERR_NONE;
-
-cleanup_buf:
-  grub_free (buf);
-  return err;
 }
 
 static grub_err_t
-extract_appended_signature (grub_uint8_t * buf, grub_size_t bufsize,
-			    struct grub_appended_signature *sig)
+extract_appended_signature (const grub_uint8_t *buf, grub_size_t bufsize,
+                            sb_appendedsig_t *sig)
+{
+  grub_size_t appendedsig_pkcs7_size;
+  grub_size_t signed_data_size = bufsize;
+  const grub_uint8_t *signed_data = buf;
+
+  if (signed_data_size < SIG_MAGIC_SIZE)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "file too short for signature magic");
+
+  /* Fast-forwarding pointer and get signature magic string. */
+  signed_data += signed_data_size - SIG_MAGIC_SIZE;
+  if (grub_strncmp ((const char *) signed_data, SIG_MAGIC, SIG_MAGIC_SIZE))
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "missing or invalid signature magic");
+
+  signed_data_size -= SIG_MAGIC_SIZE;
+  if (signed_data_size < SIG_METADATA_SIZE)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "file too short for signature metadata");
+
+  /* Rewind pointer and extract signature metadata. */
+  signed_data -= SIG_METADATA_SIZE;
+  grub_memcpy (&(sig->sig_metadata), signed_data, SIG_METADATA_SIZE);
+
+  if (sig->sig_metadata.id_type != PKEY_ID_PKCS7)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "wrong signature type");
+
+  appendedsig_pkcs7_size = grub_be_to_cpu32 (sig->sig_metadata.sig_len);
+
+  signed_data_size -= SIG_METADATA_SIZE;
+  if (appendedsig_pkcs7_size > signed_data_size)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "file too short for PKCS#7 message");
+
+  grub_dprintf ("appendedsig", "sig len %" PRIuGRUB_SIZE "\n", appendedsig_pkcs7_size);
+
+  /* Appended signature size. */
+  sig->signature_len = APPENDED_SIG_SIZE (appendedsig_pkcs7_size);
+  /* Rewind pointer and parse appended pkcs7 data. */
+  signed_data -= appendedsig_pkcs7_size;
+
+  return grub_pkcs7_data_parse (signed_data, appendedsig_pkcs7_size, &sig->pkcs7);
+}
+
+/*
+ * Given a hash value 'hval', of hash specification 'hash', prepare the
+ * S-expressions (sexp) and perform the signature verification.
+ */
+static grub_err_t
+verify_signature (const gcry_mpi_t *pkmpi, const gcry_mpi_t hmpi,
+                  const gcry_md_spec_t *hash, const grub_uint8_t *hval)
+{
+  gcry_sexp_t hsexp, pubkey, sig;
+  grub_size_t errof;
+
+  if (_gcry_sexp_build (&hsexp, &errof, "(data (flags %s) (hash %s %b))", "pkcs1",
+                        hash->name, hash->mdlen, hval) != GPG_ERR_NO_ERROR)
+    return GRUB_ERR_BAD_SIGNATURE;
+
+  if (_gcry_sexp_build (&pubkey, &errof, "(public-key (dsa (n %M) (e %M)))",
+                        pkmpi[0], pkmpi[1]) != GPG_ERR_NO_ERROR)
+    return GRUB_ERR_BAD_SIGNATURE;
+
+  if (_gcry_sexp_build (&sig, &errof, "(sig-val (rsa (s %M)))", hmpi) != GPG_ERR_NO_ERROR)
+    return GRUB_ERR_BAD_SIGNATURE;
+
+  _gcry_sexp_dump (sig);
+  _gcry_sexp_dump (hsexp);
+  _gcry_sexp_dump (pubkey);
+
+  if (grub_crypto_pk_rsa->verify (sig, hsexp, pubkey) != GPG_ERR_NO_ERROR)
+    return GRUB_ERR_BAD_SIGNATURE;
+
+  return GRUB_ERR_NONE;
+}
+
+static grub_err_t
+grub_verify_appended_signature (const grub_uint8_t *buf, grub_size_t bufsize)
 {
   grub_err_t err;
-  grub_size_t pkcs7_size;
-  grub_size_t remaining_len;
-  grub_uint8_t *appsigdata = buf + bufsize - grub_strlen (magic);
-
-  if (bufsize < grub_strlen (magic))
-    return grub_error (GRUB_ERR_BAD_SIGNATURE,
-		       N_("File too short for signature magic"));
-
-  if (grub_memcmp (appsigdata, (grub_uint8_t *) magic, grub_strlen (magic)))
-    return grub_error (GRUB_ERR_BAD_SIGNATURE,
-		       N_("Missing or invalid signature magic"));
-
-  remaining_len = bufsize - grub_strlen (magic);
-
-  if (remaining_len < sizeof (struct module_signature))
-    return grub_error (GRUB_ERR_BAD_SIGNATURE,
-		       N_("File too short for signature metadata"));
-
-  appsigdata -= sizeof (struct module_signature);
-
-  /* extract the metadata */
-  grub_memcpy (&(sig->sig_metadata), appsigdata,
-	       sizeof (struct module_signature));
-
-  remaining_len -= sizeof (struct module_signature);
-
-  if (sig->sig_metadata.id_type != 2)
-    return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("Wrong signature type"));
-
-#ifdef GRUB_TARGET_WORDS_BIGENDIAN
-  pkcs7_size = sig->sig_metadata.sig_len;
-#else
-  pkcs7_size = __builtin_bswap32 (sig->sig_metadata.sig_len);
-#endif
-
-  if (pkcs7_size > remaining_len)
-    return grub_error (GRUB_ERR_BAD_SIGNATURE,
-		       N_("File too short for PKCS#7 message"));
-
-  grub_dprintf ("appendedsig", "sig len %" PRIuGRUB_SIZE "\n", pkcs7_size);
-
-  sig->signature_len =
-    grub_strlen (magic) + sizeof (struct module_signature) + pkcs7_size;
-
-  /* rewind pointer and parse pkcs7 data */
-  appsigdata -= pkcs7_size;
-
-  err = parse_pkcs7_signedData (appsigdata, pkcs7_size, &sig->pkcs7);
-  if (err != GRUB_ERR_NONE)
-    return err;
-
-  return GRUB_ERR_NONE;
-}
-
-static grub_err_t
-grub_verify_appended_signature (grub_uint8_t * buf, grub_size_t bufsize)
-{
-  grub_err_t err = GRUB_ERR_NONE;
   grub_size_t datasize;
   void *context;
-  unsigned char *hash;
-  gcry_mpi_t hashmpi;
-  gcry_err_code_t rc;
-  struct x509_certificate *pk;
-  struct grub_appended_signature sig;
+  grub_uint8_t *hash;
+  grub_x509_cert_t *pk;
+  sb_appendedsig_t sig;
+  grub_pkcs7_signer_t *si;
+  grub_int32_t i;
 
-  if (!grub_trusted_key)
-    return grub_error (GRUB_ERR_BAD_SIGNATURE,
-		       N_("No trusted keys to verify against"));
+  if (!db.cert_entries)
+    return grub_error (GRUB_ERR_BAD_SIGNATURE, "no trusted keys to verify against");
 
   err = extract_appended_signature (buf, bufsize, &sig);
   if (err != GRUB_ERR_NONE)
@@ -247,239 +328,152 @@ grub_verify_appended_signature (grub_uint8_t * buf, grub_size_t bufsize)
 
   datasize = bufsize - sig.signature_len;
 
-  context = grub_zalloc (sig.pkcs7.hash->contextsize);
-  if (!context)
-    return grub_errno;
-
-  sig.pkcs7.hash->init (context);
-  sig.pkcs7.hash->write (context, buf, datasize);
-  sig.pkcs7.hash->final (context);
-  hash = sig.pkcs7.hash->read (context);
-  grub_dprintf ("appendedsig",
-		"data size %" PRIxGRUB_SIZE ", hash %02x%02x%02x%02x...\n",
-		datasize, hash[0], hash[1], hash[2], hash[3]);
-
-  err = GRUB_ERR_BAD_SIGNATURE;
-  for (pk = grub_trusted_key; pk; pk = pk->next)
+  /* Verify signature using trusted keys from db list. */
+  for (i = 0; i < sig.pkcs7.signer_count; i++)
     {
-      rc = grub_crypto_rsa_pad (&hashmpi, hash, sig.pkcs7.hash, pk->mpis[0]);
-      if (rc)
-	{
-	  err = grub_error (GRUB_ERR_BAD_SIGNATURE,
-			    N_("Error padding hash for RSA verification: %d"),
-			    rc);
-	  goto cleanup;
-	}
+      si = &sig.pkcs7.signers[i];
+      context = grub_zalloc (si->hash->contextsize);
+      if (context == NULL)
+        return grub_errno;
 
-      rc = _gcry_pubkey_spec_rsa.verify (0, hashmpi, &sig.pkcs7.sig_mpi,
-					 pk->mpis, NULL, NULL);
-      gcry_mpi_release (hashmpi);
+      si->hash->init (context, 0);
+      si->hash->write (context, buf, datasize);
+      si->hash->final (context);
+      hash = si->hash->read (context);
 
-      if (rc == 0)
-	{
-	  grub_dprintf ("appendedsig", "verify with key '%s' succeeded\n",
-			pk->subject);
-	  err = GRUB_ERR_NONE;
-	  break;
-	}
+      grub_dprintf ("appendedsig", "data size %" PRIuGRUB_SIZE ", signer %d hash %02x%02x%02x%02x...\n",
+                    datasize, i, hash[0], hash[1], hash[2], hash[3]);
 
-      grub_dprintf ("appendedsig", "verify with key '%s' failed with %d\n",
-		    pk->subject, rc);
+      for (pk = db.certs; pk != NULL; pk = pk->next)
+        {
+          err = verify_signature (pk->mpis, si->sig_mpi, si->hash, hash);
+          if (err == GRUB_ERR_NONE)
+            {
+              grub_dprintf ("appendedsig", "verify signer %d with key '%s' succeeded\n",
+                            i, pk->subject);
+              break;
+            }
+
+          grub_dprintf ("appendedsig", "verify signer %d with key '%s' failed\n",
+                        i, pk->subject);
+        }
+
+      grub_free (context);
+      if (err == GRUB_ERR_NONE)
+        break;
     }
 
-  /* If we didn't verify, provide a neat message */
+  grub_pkcs7_data_release (&sig.pkcs7);
+
   if (err != GRUB_ERR_NONE)
-      err = grub_error (GRUB_ERR_BAD_SIGNATURE,
-			N_("Failed to verify signature against a trusted key"));
-
-cleanup:
-  grub_free (context);
-  pkcs7_signedData_release (&sig.pkcs7);
+    return grub_error (err, "failed to verify signature against a trusted key");
 
   return err;
 }
 
-static grub_err_t
-grub_cmd_verify_signature (grub_command_t cmd __attribute__((unused)),
-			   int argc, char **args)
+/*
+ * Extract the X.509 certificates from the ELF Note header, parse it, and add
+ * it to the db list.
+ */
+static void
+load_elf2db (void)
 {
-  grub_file_t f;
-  grub_err_t err = GRUB_ERR_NONE;
-  grub_uint8_t *data;
-  grub_ssize_t read_size;
-  grub_off_t file_size, total_read_size = 0;
-
-  if (argc < 1)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));
-
-  grub_dprintf ("appendedsig", "verifying %s\n", args[0]);
-
-  f = grub_file_open (args[0], GRUB_FILE_TYPE_VERIFY_SIGNATURE);
-  if (!f)
-    {
-      err = grub_errno;
-      goto cleanup;
-    }
-
-  file_size = grub_file_size (f);
-  if (file_size == GRUB_FILE_SIZE_UNKNOWN)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		       N_("Cannot verify the signature of a file of unknown size"));
-
-  data = grub_malloc (file_size);
-  if (!data)
-    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		       N_("Could not allocate data buffer size %"
-		       PRIuGRUB_UINT64_T " for verification"), file_size);
-
-  while (total_read_size < file_size)
-    {
-      read_size =
-	grub_file_read (f, &data[total_read_size],
-			file_size - total_read_size);
-      if (read_size < 0)
-	{
-	  err = grub_error (GRUB_ERR_READ_ERROR,
-			    N_("Error reading file to verify"));
-	  goto cleanup_data;
-	}
-      total_read_size += read_size;
-    }
-
-  err = grub_verify_appended_signature (data, file_size);
-
-cleanup_data:
-  grub_free (data);
-cleanup:
-  if (f)
-    grub_file_close (f);
-  return err;
-}
-
-static grub_err_t
-grub_cmd_distrust (grub_command_t cmd __attribute__((unused)),
-		   int argc, char **args)
-{
-  unsigned long cert_num, i;
-  struct x509_certificate *cert, *prev;
-
-  if (argc != 1)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("One argument expected"));
-
-  grub_errno = GRUB_ERR_NONE;
-  cert_num = grub_strtoul (args[0], NULL, 10);
-  if (grub_errno != GRUB_ERR_NONE)
-    return grub_errno;
-
-  if (cert_num < 1)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		       N_("Certificate number too small - numbers start at 1"));
-
-  if (cert_num == 1)
-    {
-      cert = grub_trusted_key;
-      grub_trusted_key = cert->next;
-
-      certificate_release (cert);
-      grub_free (cert);
-      return GRUB_ERR_NONE;
-    }
-  i = 2;
-  prev = grub_trusted_key;
-  cert = grub_trusted_key->next;
-  while (cert)
-    {
-      if (i == cert_num)
-	{
-	  prev->next = cert->next;
-	  certificate_release (cert);
-	  grub_free (cert);
-	  return GRUB_ERR_NONE;
-	}
-      i++;
-      prev = cert;
-      cert = cert->next;
-    }
-
-  return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		     N_("No certificate number %lu found - only %lu certificates in the store"),
-		     cert_num, i - 1);
-}
-
-static grub_err_t
-grub_cmd_trust (grub_command_t cmd __attribute__((unused)),
-		int argc, char **args)
-{
-  grub_file_t certf;
-  struct x509_certificate *cert = NULL;
   grub_err_t err;
+  struct grub_module_header *header;
+  struct grub_file pseudo_file;
+  grub_uint8_t *cert_data = NULL;
+  grub_size_t cert_data_size = 0;
 
-  if (argc != 1)
-    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("one argument expected"));
-
-  certf = grub_file_open (args[0],
-			  GRUB_FILE_TYPE_CERTIFICATE_TRUST
-			  | GRUB_FILE_TYPE_NO_DECOMPRESS);
-  if (!certf)
-    return grub_errno;
-
-
-  cert = grub_zalloc (sizeof (struct x509_certificate));
-  if (!cert)
-    return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		       N_("Could not allocate memory for certificate"));
-
-  err = read_cert_from_file (certf, cert);
-  grub_file_close (certf);
-  if (err != GRUB_ERR_NONE)
+  FOR_MODULES (header)
     {
+      /* Not an X.509 certificate, skip. */
+      if (header->type != OBJ_TYPE_X509_PUBKEY)
+        continue;
+
+      grub_memset (&pseudo_file, 0, sizeof (pseudo_file));
+      pseudo_file.fs = &pseudo_fs;
+      pseudo_file.size = header->size - sizeof (struct grub_module_header);
+      pseudo_file.data = (char *) header + sizeof (struct grub_module_header);
+
+      grub_dprintf ("appendedsig", "found an X.509 certificate, size=%" PRIuGRUB_UINT64_T "\n",
+                    pseudo_file.size);
+
+      err = file_read_whole (&pseudo_file, &cert_data, &cert_data_size);
+      if (err == GRUB_ERR_OUT_OF_MEMORY)
+        return;
+      else if (err != GRUB_ERR_NONE)
+        continue;
+
+      err = add_certificate (cert_data, cert_data_size, &db);
+      grub_free (cert_data);
+      if (err == GRUB_ERR_OUT_OF_MEMORY)
+        return;
+    }
+}
+
+/* Free db list memory */
+static void
+free_db_list (void)
+{
+  grub_x509_cert_t *cert;
+
+  while (db.certs != NULL)
+    {
+      cert = db.certs;
+      db.certs = db.certs->next;
+      grub_x509_cert_release (cert);
       grub_free (cert);
-      return err;
     }
-  grub_dprintf ("appendedsig", "Loaded certificate with CN: %s\n",
-		cert->subject);
 
-  cert->next = grub_trusted_key;
-  grub_trusted_key = cert;
-
-  return GRUB_ERR_NONE;
+  grub_memset (&db, 0, sizeof (sb_database_t));
 }
 
-static grub_err_t
-grub_cmd_list (grub_command_t cmd __attribute__((unused)),
-	       int argc __attribute__((unused)),
-	       char **args __attribute__((unused)))
+static const char *
+grub_env_read_sec (struct grub_env_var *var __attribute__ ((unused)),
+                   const char *val __attribute__ ((unused)))
 {
-  struct x509_certificate *cert;
-  int cert_num = 1;
-  grub_size_t i;
+  if (check_sigs == true)
+    return "yes";
 
-  for (cert = grub_trusted_key; cert; cert = cert->next)
+  return "no";
+}
+
+static char *
+grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)), const char *val)
+{
+  char *ret;
+
+  /*
+   * Do not allow the value to be changed if signature verification is enabled
+   * (check_sigs is set to true) and GRUB is locked down.
+   */
+  if (check_sigs == true && grub_is_lockdown () == GRUB_LOCKDOWN_ENABLED)
     {
-      grub_printf (N_("Certificate %d:\n"), cert_num);
+      ret = grub_strdup ("yes");
+      if (ret == NULL)
+        grub_error (GRUB_ERR_OUT_OF_MEMORY, "could not duplicate a string enforce");
 
-      grub_printf (N_("\tSerial: "));
-      for (i = 0; i < cert->serial_len - 1; i++)
-	{
-	  grub_printf ("%02x:", cert->serial[i]);
-	}
-      grub_printf ("%02x\n", cert->serial[cert->serial_len - 1]);
-
-      grub_printf ("\tCN: %s\n\n", cert->subject);
-      cert_num++;
-
+      return ret;
     }
 
-  return GRUB_ERR_NONE;
+  if (grub_strcmp (val, "yes") == 0)
+    check_sigs = true;
+  else if (grub_strcmp (val, "no") == 0)
+    check_sigs = false;
+
+  ret = grub_strdup (grub_env_read_sec (NULL, NULL));
+  if (ret == NULL)
+    grub_error (GRUB_ERR_OUT_OF_MEMORY, "could not duplicate a string %s",
+                grub_env_read_sec (NULL, NULL));
+
+  return ret;
 }
 
 static grub_err_t
-appendedsig_init (grub_file_t io __attribute__((unused)),
-		  enum grub_file_type type,
-		  void **context __attribute__((unused)),
-		  enum grub_verify_flags *flags)
+appendedsig_init (grub_file_t io __attribute__ ((unused)), enum grub_file_type type,
+                  void **context __attribute__ ((unused)), enum grub_verify_flags *flags)
 {
-  if (!check_sigs)
+  if (check_sigs == false)
     {
       *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
       return GRUB_ERR_NONE;
@@ -487,48 +481,44 @@ appendedsig_init (grub_file_t io __attribute__((unused)),
 
   switch (type & GRUB_FILE_TYPE_MASK)
     {
-    case GRUB_FILE_TYPE_CERTIFICATE_TRUST:
-      /*
-       * This is a certificate to add to trusted keychain.
-       *
-       * This needs to be verified or blocked. Ideally we'd write an x509
-       * verifier, but we lack the hubris required to take this on. Instead,
-       * require that it have an appended signature.
-       */
+      case GRUB_FILE_TYPE_CERTIFICATE_TRUST:
+        /*
+         * This is a certificate to add to trusted keychain.
+         *
+         * This needs to be verified or blocked. Ideally we'd write an x509
+         * verifier, but we lack the hubris required to take this on. Instead,
+         * require that it have an appended signature.
+         */
+      case GRUB_FILE_TYPE_LINUX_KERNEL:
+      case GRUB_FILE_TYPE_GRUB_MODULE:
+        /*
+         * Appended signatures are only defined for ELF binaries. Out of an
+         * abundance of caution, we only verify Linux kernels and GRUB modules
+         * at this point.
+         */
+        *flags = GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
+        return GRUB_ERR_NONE;
 
-      /* Fall through */
+      case GRUB_FILE_TYPE_ACPI_TABLE:
+      case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
+        /*
+         * It is possible to use appended signature verification without
+         * lockdown - like the PGP verifier. When combined with an embedded
+         * config file in a signed GRUB binary, this could still be a meaningful
+         * secure-boot chain - so long as it isn't subverted by something like a
+         * rouge ACPI table or DT image. Defer them explicitly.
+         */
+        *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
+        return GRUB_ERR_NONE;
 
-    case GRUB_FILE_TYPE_LINUX_KERNEL:
-    case GRUB_FILE_TYPE_GRUB_MODULE:
-      /*
-       * Appended signatures are only defined for ELF binaries.
-       * Out of an abundance of caution, we only verify Linux kernels and
-       * GRUB modules at this point.
-       */
-      *flags = GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
-      return GRUB_ERR_NONE;
-
-    case GRUB_FILE_TYPE_ACPI_TABLE:
-    case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
-      /*
-       * It is possible to use appended signature verification without
-       * lockdown - like the PGP verifier. When combined with an embedded
-       * config file in a signed grub binary, this could still be a meaningful
-       * secure-boot chain - so long as it isn't subverted by something like a
-       * rouge ACPI table or DT image. Defer them explicitly.
-       */
-      *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
-      return GRUB_ERR_NONE;
-
-    default:
-      *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
-      return GRUB_ERR_NONE;
+      default:
+        *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
+        return GRUB_ERR_NONE;
     }
 }
 
 static grub_err_t
-appendedsig_write (void *ctxt __attribute__((unused)),
-		   void *buf, grub_size_t size)
+appendedsig_write (void *ctxt __attribute__ ((unused)), void *buf, grub_size_t size)
 {
   return grub_verify_appended_signature (buf, size);
 }
@@ -539,92 +529,39 @@ struct grub_file_verifier grub_appendedsig_verifier = {
   .write = appendedsig_write,
 };
 
-static grub_ssize_t
-pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
-{
-  grub_memcpy (buf, (grub_uint8_t *) file->data + file->offset, len);
-  return len;
-}
-
-/* Filesystem descriptor.  */
-static struct grub_fs pseudo_fs = {
-  .name = "pseudo",
-  .fs_read = pseudo_read
-};
-
-static grub_command_t cmd_verify, cmd_list, cmd_distrust, cmd_trust;
-
 GRUB_MOD_INIT (appendedsig)
 {
-  int rc;
-  struct grub_module_header *header;
+  grub_int32_t rc;
 
-  /* If in lockdown, immediately enter forced mode */
+  /*
+   * If secure boot is enabled with enforce mode and GRUB is locked down, enable
+   * signature verification.
+   */
   if (grub_is_lockdown () == GRUB_LOCKDOWN_ENABLED)
-    check_sigs = 2;
+    check_sigs = true;
 
-  grub_trusted_key = NULL;
-
-  grub_register_variable_hook ("check_appended_signatures",
-  			       grub_env_read_sec,
-			       grub_env_write_sec);
+  /*
+   * This is appended signature verification environment variable. It is
+   * automatically set to either "no" or "yes" based on the ’ibm,secure-boot’
+   * device tree property.
+   *
+   * "no": No signature verification. This is the default.
+   *
+   * "yes": Enforce signature verification. When GRUB is locked down, user cannot
+   *        change the value by setting the check_appended_signatures variable
+   *        back to ‘no’
+   */
+  grub_register_variable_hook ("check_appended_signatures", grub_env_read_sec, grub_env_write_sec);
   grub_env_export ("check_appended_signatures");
 
-  rc = asn1_init ();
-  if (rc)
-    grub_fatal ("Error initing ASN.1 data structures: %d: %s\n", rc,
-		asn1_strerror (rc));
+  rc = grub_asn1_init ();
+  if (rc != ASN1_SUCCESS)
+    grub_fatal ("error initing ASN.1 data structures: %d: %s\n", rc, asn1_strerror (rc));
 
-  FOR_MODULES (header)
-  {
-    struct grub_file pseudo_file;
-    struct x509_certificate *pk = NULL;
-    grub_err_t err;
-
-    /* Not an ELF module, skip.  */
-    if (header->type != OBJ_TYPE_X509_PUBKEY)
-      continue;
-
-    grub_memset (&pseudo_file, 0, sizeof (pseudo_file));
-    pseudo_file.fs = &pseudo_fs;
-    pseudo_file.size = header->size - sizeof (struct grub_module_header);
-    pseudo_file.data = (char *) header + sizeof (struct grub_module_header);
-
-    grub_dprintf ("appendedsig",
-		  "Found an x509 key, size=%" PRIuGRUB_UINT64_T "\n",
-		  pseudo_file.size);
-
-    pk = grub_zalloc (sizeof (struct x509_certificate));
-    if (!pk)
-      {
-	grub_fatal ("Out of memory loading initial certificates");
-      }
-
-    err = read_cert_from_file (&pseudo_file, pk);
-    if (err != GRUB_ERR_NONE)
-      grub_fatal ("Error loading initial key: %s", grub_errmsg);
-
-    grub_dprintf ("appendedsig", "loaded certificate CN='%s'\n", pk->subject);
-
-    pk->next = grub_trusted_key;
-    grub_trusted_key = pk;
-  }
-
-  cmd_trust =
-    grub_register_command ("trust_certificate", grub_cmd_trust,
-			   N_("X509_CERTIFICATE"),
-			   N_("Add X509_CERTIFICATE to trusted certificates."));
-  cmd_list =
-    grub_register_command ("list_certificates", grub_cmd_list, 0,
-			   N_("Show the list of trusted x509 certificates."));
-  cmd_verify =
-    grub_register_command ("verify_appended", grub_cmd_verify_signature,
-			   N_("FILE"),
-			   N_("Verify FILE against the trusted x509 certificates."));
-  cmd_distrust =
-    grub_register_command ("distrust_certificate", grub_cmd_distrust,
-			   N_("CERT_NUMBER"),
-			   N_("Remove CERT_NUMBER (as listed by list_certificates) from trusted certificates."));
+  /* Extract trusted keys from ELF Note and store them in the db. */
+  load_elf2db ();
+  grub_dprintf ("appendedsig", "the db list now has %u static keys\n",
+                db.cert_entries);
 
   grub_verifier_register (&grub_appendedsig_verifier);
   grub_dl_set_persistent (mod);
@@ -633,13 +570,12 @@ GRUB_MOD_INIT (appendedsig)
 GRUB_MOD_FINI (appendedsig)
 {
   /*
-   * grub_dl_set_persistent should prevent this from actually running, but
-   * it does still run under emu.
+   * grub_dl_set_persistent should prevent this from actually running, but it
+   * does still run under emu.
    */
 
+  free_db_list ();
+  grub_register_variable_hook ("check_appended_signatures", NULL, NULL);
+  grub_env_unset ("check_appended_signatures");
   grub_verifier_unregister (&grub_appendedsig_verifier);
-  grub_unregister_command (cmd_verify);
-  grub_unregister_command (cmd_list);
-  grub_unregister_command (cmd_trust);
-  grub_unregister_command (cmd_distrust);
 }
