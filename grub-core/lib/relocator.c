@@ -398,9 +398,9 @@ free_subchunk (const struct grub_relocator_subchunk *subchu)
 	if (subchu->post)
 	  {
 	    int off = subchu->start + subchu->size - fend;
-	    grub_memset (subchu->pre->freebytes,
-			 0xff, sizeof (subchu->pre->freebytes) - off / 8);
-	    subchu->pre->freebytes[off / 8] |= ((1 << (8 - (off % 8))) - 1);
+	    grub_memset (subchu->post->freebytes,
+			 0xff, sizeof (subchu->post->freebytes) - off / 8 - 1);
+	    subchu->post->freebytes[sizeof (subchu->post->freebytes) - off / 8 - 1] |= ((1 << (8 - (off % 8))) - 1);
 	    check_leftover (subchu->post);
 	  }
 #endif
