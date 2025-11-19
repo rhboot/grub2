@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.minix >/dev/null 2>&1; then
    echo "mkfs.minix not installed; cannot test minixfs."
-   exit 77
+   exit 99
 fi
 
 if ! mkfs.minix -h | grep -- -v > /dev/null; then

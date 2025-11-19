@@ -100,7 +100,7 @@ esac
 
 if ! which ${parted} >/dev/null 2>&1; then
    echo "${parted} not installed; cannot test partmap"
-   exit 77
+   exit 99
 fi
 
 imgfile="`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"`" || exit 99

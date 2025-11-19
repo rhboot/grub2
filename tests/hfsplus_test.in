@@ -12,7 +12,7 @@ fi
 
 if ! which mkfs.hfsplus >/dev/null 2>&1; then
    echo "mkfs.hfsplus not installed; cannot test hfsplus."
-   exit 77
+   exit 99
 fi
 
 "@builddir@/grub-fs-tester" hfsplus

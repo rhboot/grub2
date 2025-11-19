@@ -27,12 +27,12 @@ fi
 
 if ! which cryptsetup >/dev/null 2>&1; then
    echo "cryptsetup not installed; cannot test cryptomount."
-   exit 77
+   exit 99
 fi
 
 if ! which mkfs.vfat >/dev/null 2>&1; then
    echo "mkfs.vfat not installed; cannot test cryptomount."
-   exit 77
+   exit 99
 fi
 
 COMMON_OPTS='${V:+--debug=$V} --cs-opts="--pbkdf-force-iterations 1000"'
