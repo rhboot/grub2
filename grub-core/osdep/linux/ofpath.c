@@ -695,6 +695,9 @@ strip_trailing_digits (const char *p)
   char *new, *end;
 
   new = strdup (p);
+  if (new == NULL)
+    return NULL;
+
   end = new + strlen(new) - 1;
   while (end >= new)
     {
@@ -709,13 +712,18 @@ strip_trailing_digits (const char *p)
 char *
 grub_util_devname_to_ofpath (const char *sys_devname)
 {
-  char *name_buf, *device, *devnode, *devicenode, *ofpath;
+  char *name_buf, *device, *devnode, *devicenode, *ofpath = NULL;
 
   name_buf = xrealpath (sys_devname);
 
   device = get_basename (name_buf);
   devnode = strip_trailing_digits (name_buf);
+  if (devnode == NULL)
+    goto devnode_fail;
+
   devicenode = strip_trailing_digits (device);
+  if (devicenode == NULL)
+    goto devicenode_fail;
 
   if (device[0] == 'h' && device[1] == 'd')
     ofpath = of_path_of_ide(name_buf, device, devnode, devicenode);
@@ -741,8 +749,12 @@ grub_util_devname_to_ofpath (const char *sys_devname)
       ofpath = NULL;
     }
 
-  free (devnode);
   free (devicenode);
+
+ devicenode_fail:
+  free (devnode);
+
+ devnode_fail:
   free (name_buf);
 
   return ofpath;
