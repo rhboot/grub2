@@ -79,6 +79,11 @@ AC_DEFUN([grub_PROG_OBJCOPY_ABSOLUTE],
 [AC_MSG_CHECKING([whether ${TARGET_OBJCOPY} works for absolute addresses])
 AC_CACHE_VAL(grub_cv_prog_objcopy_absolute,
 [cat > conftest.c <<\EOF
+asm (
+    ".globl start, _start, __start\n"
+    ".ifdef cmain; .set start = _start = __start = cmain\n.endif\n"
+    ".ifdef _cmain; .set start = _start = __start = _cmain\n.endif\n"
+);
 void cmain (void);
 void
 cmain (void)
