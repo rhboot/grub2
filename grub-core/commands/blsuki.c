@@ -1360,6 +1360,10 @@ blsuki_is_default_entry (const char *def_entry, grub_blsuki_entry_t *entry, int 
     return true;
 
   def_idx = grub_strtol (def_entry, &def_entry_end, 0);
+
+  /* Clear grub_errno so we can plug the leak. */
+  grub_errno = GRUB_ERR_NONE;
+
   if (*def_entry_end != '\0' || def_idx < 0 || def_idx > GRUB_INT_MAX)
     return false;
 
