@@ -42,7 +42,14 @@ grub_err_t
 grub_set_history (int newsize)
 {
   grub_uint32_t **old_hist_lines = hist_lines;
+
   hist_lines = grub_calloc (newsize, sizeof (grub_uint32_t *));
+  if (hist_lines == NULL)
+    {
+      /* We need to restore hist_lines to avoid memory leak and state loss. */
+      hist_lines = old_hist_lines;
+      return grub_errno;
+    }
 
   /* Copy the old lines into the new buffer.  */
   if (old_hist_lines)
