@@ -25,6 +25,7 @@ configuring the GRUB.
 * Flex 2.5.35 or later
 * pkg-config
 * GNU patch
+* wget (for downloading updated translations)
 * Other standard GNU/Unix tools
 * a libc with large file support (e.g. glibc 2.1 or later)
 
