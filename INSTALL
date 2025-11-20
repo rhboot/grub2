@@ -145,8 +145,8 @@ The simplest way to compile this package is:
 
   2. Type `./bootstrap'.
 
-     The autogen.sh (called by bootstrap) uses python. By default autodetect
-     it, but it can be overridden by setting the PYTHON variable.
+     The autogen.sh (called by bootstrap) uses python. By default it is
+     autodetected, but it can be overridden by setting the PYTHON variable.
 
   3. Type `./configure' to configure the package for your system.
      If you're using `csh' on an old version of System V, you might
@@ -159,8 +159,8 @@ The simplest way to compile this package is:
   4. Type `make' to compile the package.
 
   5. Optionally, type `make check' to run any self-tests that come with
-     the package. Note that many of the tests require root privileges in
-     order to run.
+     the package. Note that many of the tests require root privileges and
+     a specially crafted environment in order to run.
 
   6. Type `make install' to install the programs and any data files and
      documentation.
