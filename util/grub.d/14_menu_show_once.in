@@ -7,7 +7,11 @@ if [ x\$feature_timeout_style = xy ]; then
     set timeout_style=menu
     set timeout="\${menu_show_once_timeout}"
     unset menu_show_once_timeout
-    save_env menu_show_once_timeout
+    if [ "\${env_block}" ]; then
+      save_env -f "\${env_block}" menu_show_once_timeout
+    else
+      save_env menu_show_once_timeout
+    fi
   fi
 fi
 EOF
