@@ -16,7 +16,11 @@ cat << EOF
 if [ x\$feature_timeout_style = xy ] ; then
   if [ "\${menu_show_once}" ]; then
     unset menu_show_once
-    save_env menu_show_once
+    if [ "\${env_block}" ]; then
+      save_env -f "\${env_block}" menu_show_once
+    else
+      save_env menu_show_once
+    fi
     set timeout_style=menu
     set timeout=60
   elif [ "\${menu_auto_hide}" -a "\${menu_hide_ok}" = "1" ]; then
