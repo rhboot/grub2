@@ -36,7 +36,7 @@ GRUB_MOD_LICENSE "GPLv3+"
  */
 FUNCTION(grub_setjmp)
 	pop	%rsi		/* Return address, and adjust the stack */
-	xorq	%rax, %rax
+	xorl	%eax, %eax
 	movq	%rbx, 0(%rdi)	/* RBX */
 	movq	%rsp, 8(%rdi)   /* RSP */
 	push	%rsi
