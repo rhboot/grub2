@@ -473,7 +473,13 @@ set_variables (const char *name, int argc, char *argv[])
 
       *(p++) = 0;
 
-      if ((strcmp (argv[0], "next_entry") == 0) && envblk_on_block != NULL)
+      if (((strcmp (argv[0], "next_entry") == 0) ||
+           (strcmp (argv[0], "boot_counter") == 0) ||
+           (strcmp (argv[0], "boot_indeterminate") == 0) ||
+           (strcmp (argv[0], "boot_success") == 0) ||
+           (strcmp (argv[0], "menu_show_once") == 0) ||
+           (strcmp (argv[0], "menu_show_once_timeout") == 0))
+          && envblk_on_block != NULL)
 	{
 	  if (grub_envblk_set (envblk_on_block, argv[0], p) == 0)
 	    grub_util_error ("%s", _("environment block too small"));
