@@ -60,7 +60,11 @@ elif [ -s \$prefix/grubenv ]; then
 fi
 
 if [ "\${env_block}" ] ; then
-  set env_block="(\${root})\${env_block}"
+  if [ "\${dev}" ]; then
+    set env_block="(\${dev})\${env_block}"
+  else
+    set env_block="(\${root})\${env_block}"
+  fi
   export env_block
   load_env -f "\${env_block}"
 fi
