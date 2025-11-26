@@ -19,6 +19,10 @@ if [ -n "\${boot_counter}" -a "\${boot_success}" = "0" ]; then
   else
     decrement boot_counter
   fi
-  save_env boot_counter
+  if [ "\${env_block}" ]; then
+    save_env -f "\${env_block}" boot_counter
+  else
+    save_env boot_counter
+  fi
 fi
 EOF

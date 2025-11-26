@@ -21,5 +21,9 @@ elif [ "\${boot_indeterminate}" = "1" ]; then
 fi
 # Reset boot_success for current boot 
 set boot_success=0
-save_env boot_success boot_indeterminate
+if [ "\${env_block}" ]; then
+  save_env -f "\${env_block}" boot_success boot_indeterminate
+else
+  save_env boot_success boot_indeterminate
+fi
 EOF
