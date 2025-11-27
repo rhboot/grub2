@@ -203,6 +203,9 @@ grub_efiemu_count_symbols (const Elf_Ehdr *e)
   grub_efiemu_elfsyms = (struct grub_efiemu_elf_sym *)
     grub_calloc (grub_efiemu_nelfsyms, sizeof (struct grub_efiemu_elf_sym));
 
+  if (grub_efiemu_elfsyms == NULL)
+    return grub_errno;
+
   /* Relocators */
   for (i = 0, s = (Elf_Shdr *) ((char *) e + e->e_shoff);
        i < e->e_shnum;
