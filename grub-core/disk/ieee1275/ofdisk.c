@@ -93,6 +93,7 @@ ofdisk_hash_add_real (char *devpath)
       grub_add (sz, sizeof ("ieee1275/"), &sz))
     {
       grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of device path"));
+      grub_free (p);
       return NULL;
     }
 
@@ -109,6 +110,8 @@ ofdisk_hash_add_real (char *devpath)
       if (grub_add (grub_strlen (p->devpath), 3, &sz))
 	{
 	  grub_error (GRUB_ERR_OUT_OF_RANGE, N_("overflow detected while obtaining size of an open path"));
+	  grub_free (p->grub_devpath);
+	  grub_free (p);
 	  return NULL;
 	}
 
