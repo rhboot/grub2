@@ -562,6 +562,8 @@ gettext_append (struct grub_script_argv *result, const char *orig_str)
     if (*iptr == '$')
       dollar_cnt++;
   ctx.allowed_strings = grub_calloc (dollar_cnt, sizeof (ctx.allowed_strings[0]));
+  if (ctx.allowed_strings == NULL)
+    goto fail;
 
   if (parse_string (orig_str, gettext_save_allow, &ctx, 0))
     goto fail;
