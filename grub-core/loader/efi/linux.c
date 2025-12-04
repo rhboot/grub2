@@ -25,9 +25,7 @@
 #include <grub/loader.h>
 #include <grub/mm.h>
 #include <grub/types.h>
-#include <grub/efi/api.h>
 #include <grub/efi/efi.h>
-#include <grub/cpu/efi/memory.h>
 #include <grub/efi/fdtload.h>
 #include <grub/efi/memory.h>
 #include <grub/efi/linux.h>
@@ -878,10 +876,7 @@ fallback:
   grub_loader_unset();
 
   kernel_alloc_pages = GRUB_EFI_BYTES_TO_PAGES (kernel_size + align - 1);
-  kernel_alloc_addr = grub_efi_allocate_pages_real (GRUB_EFI_MAX_USABLE_ADDRESS,
-						    kernel_alloc_pages,
-						    GRUB_EFI_ALLOCATE_MAX_ADDRESS,
-						    GRUB_EFI_LOADER_CODE);
+  kernel_alloc_addr = grub_efi_allocate_any_pages (kernel_alloc_pages);
   grub_dprintf ("linux", "kernel numpages: %d\n", kernel_alloc_pages);
   if (!kernel_alloc_addr)
     {
