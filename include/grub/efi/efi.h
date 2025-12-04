@@ -200,7 +200,7 @@ grub_err_t EXPORT_FUNC(grub_efi_get_ram_base)(grub_addr_t *);
 grub_err_t grub_arch_efi_linux_load_image_header(grub_file_t file,
                                                 struct linux_arch_kernel_header *lh);
 grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
-					  char *args, int nx_enabled);
+					  char *args);
 grub_efi_status_t
 EXPORT_FUNC (grub_efi_load_image) (grub_efi_boolean_t boot_policy,
 				   grub_efi_handle_t parent_image_handle,
