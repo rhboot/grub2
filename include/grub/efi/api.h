@@ -2006,8 +2006,6 @@ struct grub_efi_block_io
 };
 typedef struct grub_efi_block_io grub_efi_block_io_t;
 
-#define GRUB_MOK_POLICY_NX_REQUIRED	0x1
-
 struct grub_efi_shim_lock_protocol
 {
   /*
