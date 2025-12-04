@@ -36,28 +36,28 @@ struct linux_arch_kernel_header {
   struct grub_pe_image_header pe_image_header;
 };
 
-struct grub_efi32_linux_pe_header
+struct grub_arm_linux_pe_header
 {
   grub_uint32_t magic;
   struct grub_pe32_coff_header coff;
   struct grub_pe32_optional_header opt;
 };
 
-struct grub_efi64_linux_pe_header
+struct grub_arm64_linux_pe_header
 {
   grub_uint32_t magic;
   struct grub_pe32_coff_header coff;
   struct grub_pe64_optional_header opt;
 };
 
-#if defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+#if defined(__arm__)
 # define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE32_MAGIC
-# define grub_efixx_linux_pe_header grub_efi32_linux_pe_header
+# define grub_armxx_linux_pe_header grub_arm_linux_pe_header
 #endif
 
-#if defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+#if defined(__aarch64__)
 # define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE64_MAGIC
-# define grub_efixx_linux_pe_header grub_efi64_linux_pe_header
+# define grub_armxx_linux_pe_header grub_arm64_linux_pe_header
 #endif
 
 #define GRUB_EFI_GRUB_VARIABLE_GUID             \
