@@ -800,9 +800,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct linux_arch_kernel_header lh;
   grub_off_t filelen;
   grub_off_t filereadlen;
+  grub_uint32_t align;
+  grub_uint32_t code_size;
   void *kernel = NULL;
   grub_err_t err;
-  int nx_supported = 1;
 
   grub_dl_ref (my_mod);
 
@@ -873,18 +874,12 @@ fallback:
 
 
 #if !defined(__i386__) && !defined(__x86_64__)
-  grub_uint32_t align;
-  grub_uint32_t code_size;
   if (parse_pe_header (kernel, &kernel_size, &handover_offset, &align, &code_size) != GRUB_ERR_NONE)
     goto fail;
   grub_dprintf ("linux", "kernel mem size     : %lld\n", (long long) kernel_size);
   grub_dprintf ("linux", "kernel entry offset : %d\n", handover_offset);
   grub_dprintf ("linux", "kernel alignment    : 0x%x\n", align);
   grub_dprintf ("linux", "kernel size         : 0x%x\n", code_size);
-
-  err = grub_efi_check_nx_image_support((grub_addr_t)kernel, filelen, &nx_supported);
-  if (err != GRUB_ERR_NONE)
-    goto fail;
 
   grub_loader_unset();
 
