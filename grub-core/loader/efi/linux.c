@@ -799,7 +799,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_file_t file = 0;
   struct linux_arch_kernel_header lh;
   grub_off_t filelen;
-  grub_off_t filereadlen;
   grub_uint32_t align;
   grub_uint32_t code_size;
   void *kernel = NULL;
@@ -833,25 +832,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   if (!file)
     goto fail;
 
-  filelen = grub_file_size (file);
-  kernel = grub_malloc(filelen);
-  if (!kernel)
-    {
-      grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("cannot allocate kernel load buffer"));
-      goto fail;
-    }
-
-  filereadlen = grub_file_read (file, kernel, filelen);
-  grub_dprintf ("linux", "filelen     : %lld\n", (long long) filelen);
-  grub_dprintf ("linux", "filereadlen : %lld\n", (long long) filereadlen);
-
-  if (filereadlen < filelen)
-    {
-      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
-		  argv[0]);
-      goto fail;
-    }
-
   if (grub_arch_efi_linux_load_image_header (file, &lh) != GRUB_ERR_NONE)
 #if !defined(__i386__) && !defined(__x86_64__)
     goto fail;
@@ -872,6 +852,20 @@ fallback:
     }
 #endif
 
+  filelen = grub_file_size (file);
+  kernel = grub_malloc(filelen);
+  if (!kernel)
+    {
+      grub_error (GRUB_ERR_OUT_OF_MEMORY, N_("cannot allocate kernel load buffer"));
+      goto fail;
+    }
+
+  if (grub_file_read (file, kernel, filelen) < (grub_ssize_t)filelen)
+    {
+      grub_error (GRUB_ERR_FILE_READ_ERROR, N_("Can't read kernel %s"),
+		  argv[0]);
+      goto fail;
+    }
 
 #if !defined(__i386__) && !defined(__x86_64__)
   if (parse_pe_header (kernel, &kernel_size, &handover_offset, &align, &code_size) != GRUB_ERR_NONE)
