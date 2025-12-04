@@ -757,12 +757,10 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
 static grub_err_t
 parse_pe_header (void *kernel, grub_uint64_t *total_size,
 		 grub_uint32_t *entry_offset,
-		 grub_uint32_t *alignment, grub_uint32_t *code_size)
+		 grub_uint32_t *alignment)
 {
   struct linux_arch_kernel_header *lh = kernel;
   struct grub_armxx_linux_pe_header *pe;
-  grub_uint16_t i;
-  struct grub_pe32_section_table *sections;
 
   pe = (void *)((unsigned long)kernel + lh->hdr_offset);
 
@@ -772,19 +770,6 @@ parse_pe_header (void *kernel, grub_uint64_t *total_size,
   *total_size   = pe->opt.image_size;
   *entry_offset = pe->opt.entry_addr;
   *alignment    = pe->opt.section_alignment;
-  *code_size    = pe->opt.section_alignment;
-
-  sections = (struct grub_pe32_section_table *) ((char *)&pe->opt +
-						 pe->coff.optional_header_size);
-  grub_dprintf ("linux", "num_sections     : %d\n",  pe->coff.num_sections );
-  for (i = 0 ; i < pe->coff.num_sections; i++)
-    {
-      grub_dprintf ("linux", "raw_size   : %lld\n",
-		    (long long) sections[i].raw_data_size);
-      grub_dprintf ("linux", "virt_size  : %lld\n",
-		    (long long) sections[i].virtual_size);
-      *code_size += sections[i].raw_data_size;
-    }
 
   return GRUB_ERR_NONE;
 }
@@ -798,7 +783,6 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   struct linux_arch_kernel_header lh;
   grub_off_t filelen;
   grub_uint32_t align;
-  grub_uint32_t code_size;
   void *kernel = NULL;
   grub_err_t err;
 
@@ -866,12 +850,11 @@ fallback:
     }
 
 #if !defined(__i386__) && !defined(__x86_64__)
-  if (parse_pe_header (kernel, &kernel_size, &handover_offset, &align, &code_size) != GRUB_ERR_NONE)
+  if (parse_pe_header (kernel, &kernel_size, &handover_offset, &align) != GRUB_ERR_NONE)
     goto fail;
   grub_dprintf ("linux", "kernel mem size     : %lld\n", (long long) kernel_size);
   grub_dprintf ("linux", "kernel entry offset : %d\n", handover_offset);
   grub_dprintf ("linux", "kernel alignment    : 0x%x\n", align);
-  grub_dprintf ("linux", "kernel size         : 0x%x\n", code_size);
 
   grub_loader_unset();
 
@@ -886,9 +869,9 @@ fallback:
   kernel_addr = (void *)ALIGN_UP((grub_uint64_t)kernel_alloc_addr, align);
 
   grub_dprintf ("linux", "kernel @ %p\n", kernel_addr);
-  grub_memcpy (kernel_addr, kernel, grub_min(code_size, kernel_size));
-  if (kernel_size > code_size)
-    grub_memset ((char *)kernel_addr + code_size, 0, kernel_size - code_size);
+  grub_memcpy (kernel_addr, kernel, grub_min(filelen, kernel_size));
+  if (kernel_size > filelen)
+    grub_memset ((char *)kernel_addr + filelen, 0, kernel_size - filelen);
   grub_free(kernel);
   kernel = NULL;
 #endif
