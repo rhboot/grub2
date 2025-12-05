@@ -104,6 +104,8 @@ make_devices (void)
 	}
 
       d->handle = *handle;
+      /* Try to get human-readable hardware name */
+      d->hw_name = get_hw_name(*handle);
       d->device_path = dp;
       d->last_device_path = ldp;
       d->block_io = bio;
@@ -368,6 +370,38 @@ name_devices (struct grub_efidisk_data *devices)
 	  add_device (&hd_devices, d);
 	}
     }
+}
+
+/* Fetch human-readable hardware name using EFI Device Path protocol */
+static char *
+get_hw_name (grub_efi_handle_t handle)
+{
+  grub_efi_device_path_t *dp;
+  grub_efi_device_path_to_text_protocol_t *dp_text;
+  grub_efi_char16_t *text_path;
+  char *hw_name = NULL;
+  grub_efi_uintn_t len;
+
+  dp = grub_efi_get_device_path (handle);
+  if (!dp)
+    return NULL;
+
+  dp_text = grub_efi_locate_protocol (&grub_efi_device_path_to_text_protocol_guid, 0);
+  if (!dp_text)
+    return NULL;
+
+  text_path = efi_call_3 (dp_text->convert_device_path_to_text, dp, 1, 1);
+  if (!text_path)
+    return NULL;
+
+  /* Convert UTF-16 to UTF-8 */
+  for (len = 0; text_path[len]; len++);
+  hw_name = grub_malloc ((len + 1) * GRUB_MAX_UTF8_PER_UTF16 + 1);
+  if (hw_name)
+    *grub_utf16_to_utf8 ((grub_uint8_t *) hw_name, text_path, len) = '\0';
+
+  efi_call_1 (grub_efi_system_table->boot_services->free_pool, text_path);
+  return hw_name;
 }
 
 static void

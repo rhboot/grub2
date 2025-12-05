@@ -48,11 +48,33 @@ static int
 grub_ls_print_devices (const char *name, void *data)
 {
   int *longlist = data;
+  grub_device_t dev = NULL; // Initialize to NULL
+
+  // Attempt to open the device
+  dev = grub_device_open(name);
+  if (!dev) {
+    // If device cannot be opened, clear the error and proceed with original behavior
+    grub_error_t err = grub_errno;
+    grub_errno = GRUB_ERR_NONE;
+  }
 
   if (*longlist)
     grub_normal_print_device_info (name);
-  else
-    grub_printf ("(%s) ", name);
+  else {
+    /* Display hardware name if available (EFI systems) */
+    if (dev && dev->disk && dev->disk->hw_name)
+      {
+        grub_printf ("(%s) ", name);
+        grub_printf ("%s\n", dev->disk->hw_name);
+      }
+    else
+      grub_printf ("(%s) ", name);
+  }
+
+  // Close the device if successfully opened
+  if (dev) {
+    grub_device_close(dev);
+  }
 
   return 0;
 }

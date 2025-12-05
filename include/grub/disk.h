@@ -147,6 +147,12 @@ struct grub_disk
 
   /* Device-specific data.  */
   void *data;
+
+  /* Human-readable hardware name (EFI only) */
+  char *hw_name;
+
+  /* Human-readable hardware name (EFI only) */
+  char *hw_name;
 };
 typedef struct grub_disk *grub_disk_t;
 
