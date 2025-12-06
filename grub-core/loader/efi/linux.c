@@ -521,7 +521,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   loaded_image->load_options =
     grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (loaded_image->load_options_size));
   if (!loaded_image->load_options)
-    return grub_errno;
+      goto unload;
 
   loaded_image->load_options_size =
     2 * grub_utf8_to_utf16 (loaded_image->load_options, len,
