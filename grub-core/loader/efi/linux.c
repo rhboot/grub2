@@ -503,6 +503,7 @@ grub_arch_efi_linux_boot_image (grub_addr_t addr, grub_size_t size, char *args)
   status = b->load_image (0, grub_efi_image_handle,
 			  (grub_efi_device_path_t *) mempath,
 			  (void *) addr, size, &image_handle);
+  grub_free (mempath);
   if (status != GRUB_EFI_SUCCESS)
     return grub_error (GRUB_ERR_BAD_OS, "cannot load image");
 
