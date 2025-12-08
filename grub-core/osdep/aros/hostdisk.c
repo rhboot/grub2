@@ -207,8 +207,8 @@ grub_util_fd_open (const char *dev, int flg)
 						 sizeof(struct IOExtTD));
   if (!ret->ioreq)
     {
-      free (ret);
       DeleteMsgPort (ret->mp);
+      free (ret);
       return NULL;
     }
 
@@ -225,9 +225,9 @@ grub_util_fd_open (const char *dev, int flg)
   if (OpenDevice ((unsigned char *) tmp, unit,
 		  (struct IORequest *) ret->ioreq, flags))
     {
-      free (tmp);
-      free (ret);
       DeleteMsgPort (ret->mp);
+      free (ret);
+      free (tmp);
       return NULL;
     }
   free (tmp);
