@@ -743,7 +743,9 @@ for LOGSECSIZE in $(range "$MINLOGSECSIZE" "$MAXLOGSECSIZE" 1); do
 		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x468)) conv=notrunc count=8
 		    MOUNTFS="hfsplus";;
 		x"hfs")
-		    "mkfs.hfs" -b $BLKSIZE -v "`echo $FSLABEL |recode utf8..macroman`" -h "${MOUNTDEVICE}"
+		    # CSMACINTOSH is an alias for MacRoman which is the
+		    # encoding used on HFS.
+		    "mkfs.hfs" -b $BLKSIZE -v "`echo $FSLABEL | recode utf8..CSMACINTOSH`" -h "${MOUNTDEVICE}"
 		    dd if=/dev/urandom of="${MOUNTDEVICE}" bs=1 seek=$((0x474)) conv=notrunc count=8
 		    MOUNTOPTS="iocharset=utf8,codepage=macroman,"
 		    ;;
