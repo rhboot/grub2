@@ -56,6 +56,7 @@ need the following.
 * Python 3 (NOTE: python 2.6 should still work, but it's not tested)
 * Autoconf 2.64 or later
 * Automake 1.14 or later
+* GNU Autoconf Archive (autoconf-archive on Debian)
 
 Your distro may package cross-compiling toolchains such as the following
 incomplete list on Debian: gcc-aarch64-linux-gnu, gcc-arm-linux-gnueabihf,
