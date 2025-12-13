@@ -803,13 +803,20 @@ copy_all (const char *srcd,
 	  || strcmp (de->d_name, "..") == 0)
 	continue;
       srcf = grub_util_path_concat (2, srcd, de->d_name);
-      if (grub_util_is_special_file (srcf)
-	  || grub_util_is_directory (srcf))
+      if (grub_util_is_special_file (srcf))
 	{
 	  free (srcf);
 	  continue;
 	}
       dstf = grub_util_path_concat (2, dstd, de->d_name);
+      if (grub_util_is_directory (srcf))
+	{
+	  grub_install_mkdir_p (dstf);
+	  copy_all (srcf, dstf);
+	  free (srcf);
+	  free (dstf);
+	  continue;
+	}
       grub_install_compress_file (srcf, dstf, 1);
       free (srcf);
       free (dstf);
