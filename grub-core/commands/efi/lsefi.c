@@ -129,6 +129,7 @@ grub_cmd_lsefi (grub_command_t cmd __attribute__ ((unused)),
 
     }
 
+  grub_free (handles);
   return 0;
 }
 

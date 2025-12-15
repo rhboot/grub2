@@ -113,6 +113,7 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       grub_tpm_version = 1;
       *protocol_version = 1;
       grub_dprintf ("tpm", "TPM handle Found, version: 1\n");
+      grub_free (handles);
       return 1;
     }
 
@@ -125,6 +126,7 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       grub_tpm_version = 2;
       *protocol_version = 2;
       grub_dprintf ("tpm", "TPM handle Found, version: 2\n");
+      grub_free (handles);
       return 1;
     }
 

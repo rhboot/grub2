@@ -94,7 +94,7 @@ check_protocol (void)
   gop_handle = 0;
 
   grub_dprintf ("video", "GOP: no usable mode\n");
-
+  grub_free (handles);
   return 0;
 }
 
