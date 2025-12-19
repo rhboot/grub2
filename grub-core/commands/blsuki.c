@@ -1231,7 +1231,7 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback, enum blsu
 	  tmp = blsuki_update_boot_device (default_dir);
 	  tmp = grub_stpcpy (tmp, cmd_dir);
 
-	  blsuki_set_find_entry_info (info, default_dir, NULL, cmd_type);
+	  blsuki_set_find_entry_info (info, default_dir, info->devid, cmd_type);
 	  grub_dprintf ("blsuki", "Entries weren't found in %s, fallback to %s\n",
 			read_entry_info.dirname, info->dirname);
 	  fallback = true;
