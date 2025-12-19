@@ -1458,9 +1458,11 @@ blsuki_cmd (grub_extcmd_context_t ctxt, enum blsuki_cmd_type cmd_type)
 }
 
 static grub_err_t
-grub_cmd_blscfg (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
+grub_cmd_blscfg (grub_extcmd_context_t ctxt, int argc,
 		 char **args __attribute__ ((unused)))
 {
+  if (argc != 0)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("unexpected argument(s) found, see --help"));
   return blsuki_cmd (ctxt, BLSUKI_BLS_CMD);
 }
 
@@ -1468,9 +1470,11 @@ static grub_extcmd_t bls_cmd;
 
 #ifdef GRUB_MACHINE_EFI
 static grub_err_t
-grub_cmd_uki (grub_extcmd_context_t ctxt, int argc __attribute__ ((unused)),
+grub_cmd_uki (grub_extcmd_context_t ctxt, int argc,
 		 char **args __attribute__ ((unused)))
 {
+  if (argc != 0)
+    return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("unexpected argument(s) found, see --help"));
   return blsuki_cmd (ctxt, BLSUKI_UKI_CMD);
 }
 
