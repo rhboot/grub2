@@ -88,7 +88,7 @@ static const struct grub_arg_option uki_opt[] =
     {"enable-fallback", 'f', 0, "Fallback to the default BLS path if --path fails to find UKI entries.", 0, ARG_TYPE_NONE},
     {"show-default", 'd', 0, N_("Allow the default UKI entry to be added to the GRUB menu."), 0, ARG_TYPE_NONE},
     {"show-non-default", 'n', 0, N_("Allow the non-default UKI entries to be added to the GRUB menu."), 0, ARG_TYPE_NONE},
-    {"entry", 'e', 0, N_("Allow specificUKII entries to be added to the GRUB menu."), N_("FILE"), ARG_TYPE_FILE},
+    {"entry", 'e', 0, N_("Allow specific UKI entries to be added to the GRUB menu."), N_("FILE"), ARG_TYPE_FILE},
     {0, 0, 0, 0, 0, 0}
   };
 #endif
