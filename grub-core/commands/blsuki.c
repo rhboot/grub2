@@ -1210,7 +1210,7 @@ blsuki_find_entry (struct find_entry_info *info, bool enable_fallback, enum blsu
 
       /*
        * If we aren't able to find BLS entries in the directory given by info->dirname,
-       * we can fallback to the default location "/boot/loader/entries/" and see if we
+       * we can fallback to the default location of "/loader/entries/" and see if we
        * can find the files there. If we can't find UKI entries, fallback to
        * "/EFI/Linux" on the EFI system partition.
        */
