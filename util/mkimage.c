@@ -56,6 +56,9 @@
 
 #pragma GCC diagnostic ignored "-Wcast-align"
 
+#define SBAT_HEADER      "sbat,1,SBAT Version,sbat,1,https://github.com/rhboot/shim/blob/main/SBAT.md"
+#define SBAT_HEADER_SIZE (sizeof (SBAT_HEADER))
+
 #define TARGET_NO_FIELD 0xffffffff
 
 /* use 2015-01-01T00:00:00+0000 as a stock timestamp */
@@ -948,6 +951,12 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
   if (sbat_path != NULL && (image_target->id != IMAGE_EFI && image_target->id != IMAGE_PPC))
     grub_util_error (_("SBAT data can be added only to EFI or powerpc-ieee1275 images"));
+  else if (sbat_path != NULL)
+    {
+      sbat_size = grub_util_get_image_size (sbat_path);
+      if (sbat_size < SBAT_HEADER_SIZE)
+        grub_util_error (_("%s file should contain at least an SBAT header"), sbat_path);
+    }
 
   if (appsig_size != 0 && image_target->id != IMAGE_PPC)
     grub_util_error (_("appended signature can be support only to powerpc-ieee1275 images"));
@@ -1382,7 +1391,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
 	if (sbat_path != NULL)
 	  {
-	    sbat_size = ALIGN_ADDR (grub_util_get_image_size (sbat_path));
+	    sbat_size = ALIGN_ADDR (sbat_size);
 	    sbat_size = ALIGN_UP (sbat_size, GRUB_PE32_FILE_ALIGNMENT);
 	  }
 
@@ -1822,7 +1831,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	char *sbat = NULL;
 	if (sbat_path != NULL)
 	  {
-	    sbat_size = grub_util_get_image_size (sbat_path);
 	    sbat = xmalloc (sbat_size);
 	    grub_util_load_image (sbat_path, sbat);
 	    layout.sbat_size = sbat_size;
