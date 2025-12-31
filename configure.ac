@@ -1543,21 +1543,6 @@ AC_SUBST(TARGET_LDFLAGS_OLDMAGIC)
 
 LDFLAGS="$TARGET_LDFLAGS"
 
-if test "$target_cpu" = x86_64 || test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64 ; then
-  # Use large model to support 4G memory
-  AC_CACHE_CHECK([whether option -mcmodel=large works], grub_cv_cc_mcmodel, [
-    CFLAGS="$TARGET_CFLAGS -mcmodel=large"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
-		      [grub_cv_cc_mcmodel=yes],
-		      [grub_cv_cc_mcmodel=no])
-  ])
-  if test "x$grub_cv_cc_mcmodel" = xyes; then
-    TARGET_CFLAGS="$TARGET_CFLAGS -mcmodel=large"
-  elif test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64; then
-    TARGET_CFLAGS="$TARGET_CFLAGS -mcmodel=medany"
-  fi
-fi
-
 if test "$target_cpu"-"$platform" = x86_64-efi; then
   # EFI writes to stack below %rsp, we must not use the red zone
   AC_CACHE_CHECK([whether option -mno-red-zone works], grub_cv_cc_no_red_zone, [
@@ -1665,6 +1650,21 @@ elif [ x"$pic_possible" = xyes ]; then
 fi]
 
 CFLAGS="$TARGET_CFLAGS"
+
+if test "$target_cpu" = x86_64 || test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64 ; then
+  # Use large model to support 4G memory
+  AC_CACHE_CHECK([whether option -mcmodel=large works], grub_cv_cc_mcmodel, [
+    CFLAGS="$TARGET_CFLAGS -mcmodel=large"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+		      [grub_cv_cc_mcmodel=yes],
+		      [grub_cv_cc_mcmodel=no])
+  ])
+  if test "x$grub_cv_cc_mcmodel" = xyes; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -mcmodel=large"
+  elif test "$target_cpu" = sparc64 || test "$target_cpu" = riscv64; then
+    TARGET_CFLAGS="$TARGET_CFLAGS -mcmodel=medany"
+  fi
+fi
 
 # Stack smashing protector.
 grub_CHECK_STACK_PROTECTOR
