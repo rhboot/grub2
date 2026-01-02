@@ -4078,6 +4078,7 @@ Modules can be loaded via the @command{insmod} (@pxref{insmod}) command.
 * cpio_be_module::
 * cpuid_module::
 * crc64_module::
+* crypto_cipher_mode_test_module::
 * crypto_module::
 * cryptodisk_module::
 * cs5536_module::
@@ -4609,6 +4610,10 @@ various CPU features. @xref{cpuid} for more information.
 @node crc64_module
 @section crc64
 This module provides support for the CRC64 operation.
+
+@node crypto_cipher_mode_test_module
+@section crypto_cipher_mode_test
+This module performs various cipher mode encryption/decryption tests
 
 @node crypto_module
 @section crypto
