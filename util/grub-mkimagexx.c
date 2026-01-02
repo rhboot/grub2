@@ -249,6 +249,7 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
     {
       phnum++;
       footer_size += ALIGN_UP (sizeof (struct grub_appended_signature_note), 4);
+      footer_size += ALIGN_UP_OVERHEAD (appsig_size, 4);
     }
 
   if (image_target->id != IMAGE_LOONGSON_ELF)
