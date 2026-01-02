@@ -247,13 +247,8 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
   if (appsig_size)
     {
       phnum++;
-      /*
-       * Rounds a appended signature size + appended signature note size up to
-       * the nearest multiple of a 4-byte alignment.
-       */
-      footer_size += ALIGN_UP (sizeof (struct grub_appended_signature_note) + appsig_size, 4);
-      /* Truncating to appended signature size. */
-      footer_size -= appsig_size;
+      footer_size += ALIGN_UP (sizeof (struct grub_appended_signature_note), 4);
+      footer_size += ALIGN_UP_OVERHEAD (appsig_size, 4);
     }
 
   if (image_target->id != IMAGE_LOONGSON_ELF)
