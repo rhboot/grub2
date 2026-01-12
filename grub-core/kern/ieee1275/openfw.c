@@ -512,7 +512,20 @@ grub_ieee1275_encode_devname (const char *path)
     }
   if (partition && partition[0])
     {
-      unsigned int partno = grub_strtoul (partition, 0, 0);
+      unsigned long partno;
+      const char *endptr;
+
+      partno = grub_strtoul (partition, &endptr, 0);
+      grub_errno = GRUB_ERR_NONE;
+      if (*endptr != '\0' || partno > 65535 ||
+          (partno == 0 && ! grub_ieee1275_test_flag (GRUB_IEEE1275_FLAG_0_BASED_PARTITIONS)))
+        {
+          grub_free (partition);
+          grub_free (device);
+          grub_free (encoding);
+          grub_error (GRUB_ERR_BAD_ARGUMENT, N_("invalid partition number"));
+          return NULL;
+        }
 
       *optr++ = ',';
 
@@ -520,7 +533,7 @@ grub_ieee1275_encode_devname (const char *path)
 	/* GRUB partition 1 is OF partition 0.  */
 	partno++;
 
-      grub_snprintf (optr, sizeof ("XXXXXXXXXXXX"), "%d", partno);
+      grub_snprintf (optr, sizeof ("XXXXXXXXXXXX"), "%lu", partno);
     }
   else
     *optr = '\0';
