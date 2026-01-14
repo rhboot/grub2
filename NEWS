@@ -1,3 +1,26 @@
+New in 2.14:
+
+* libgcrypt 1.11.
+* LVM LV integrity and cachevol support.
+* EROFS support.
+* GRUB environment block inside the Btrfs header support.
+* NX support for EFI platforms.
+* shim loader protocol support.
+* BLS and UKI support.
+* Argon2 KDF support.
+* TPM2 key protector support.
+* Appended Signature Secure Boot Support for PowerPC.
+* New option to block command line interface.
+* Support dates outside of 1901..2038 range.
+* zstdio decompression support.
+* EFI code improvements and fixes.
+* TPM driver fixes.
+* Filesystems fixes.
+* CVE and Coverity fixes.
+* Tests improvements.
+* Documentation improvements.
+* ... and tons of other fixes and cleanups...
+
 New in 2.12:
 
 * GCC 13 support.
