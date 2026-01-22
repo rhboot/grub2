@@ -22,6 +22,10 @@
 #include <grub/verify.h>
 #include <grub/dl.h>
 
+#if defined (GRUB_MACHINE_EFI) && defined (__x86_64__)
+#include <grub/efi/efi.h>
+#endif
+
 GRUB_MOD_LICENSE ("GPLv3+");
 
 struct grub_file_verifier *grub_file_verifiers;
@@ -38,7 +42,13 @@ verified_free (grub_verified_t verified)
 {
   if (verified)
     {
+#if defined (GRUB_MACHINE_EFI) && defined (__x86_64__)
+      if (verified->buf && verified->file->size)
+	grub_efi_free_pages ((grub_efi_physical_address_t)(grub_addr_t)verified->buf,
+			     GRUB_EFI_BYTES_TO_PAGES(verified->file->size));
+#else
       grub_free (verified->buf);
+#endif
       grub_free (verified);
     }
 }
@@ -145,7 +155,11 @@ grub_verifiers_open (grub_file_t io, enum grub_file_type type)
     {
       goto fail;
     }
+#if defined (GRUB_MACHINE_EFI) && defined (__x86_64__)
+  verified->buf = grub_efi_allocate_any_pages (GRUB_EFI_BYTES_TO_PAGES (ret->size));
+#else
   verified->buf = grub_malloc (ret->size);
+#endif
   if (!verified->buf)
     {
       goto fail;
