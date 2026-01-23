@@ -20,6 +20,7 @@
 #ifndef GRUB_EFI_EFI_HEADER
 #define GRUB_EFI_EFI_HEADER	1
 
+#include <grub/efi/pe32.h>
 #include <grub/types.h>
 #include <grub/dl.h>
 #include <grub/efi/api.h>
@@ -36,28 +37,26 @@ struct linux_arch_kernel_header {
   struct grub_pe_image_header pe_image_header;
 };
 
-struct grub_efi32_linux_pe_header
+struct grub_arm_linux_pe_header
 {
   grub_uint32_t magic;
   struct grub_pe32_coff_header coff;
   struct grub_pe32_optional_header opt;
 };
 
-struct grub_efi64_linux_pe_header
+struct grub_arm64_linux_pe_header
 {
   grub_uint32_t magic;
   struct grub_pe32_coff_header coff;
   struct grub_pe64_optional_header opt;
 };
 
-#if defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
-# define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE32_MAGIC
-# define grub_efixx_linux_pe_header grub_efi32_linux_pe_header
+#if defined(__arm__)
+# define grub_armxx_linux_pe_header grub_arm_linux_pe_header
 #endif
 
-#if defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
-# define GRUB_PE32_PEXX_MAGIC GRUB_PE32_PE64_MAGIC
-# define grub_efixx_linux_pe_header grub_efi64_linux_pe_header
+#if defined(__aarch64__)
+# define grub_armxx_linux_pe_header grub_arm64_linux_pe_header
 #endif
 
 #define GRUB_EFI_GRUB_VARIABLE_GUID             \
@@ -201,7 +200,7 @@ grub_err_t EXPORT_FUNC(grub_efi_get_ram_base)(grub_addr_t *);
 grub_err_t grub_arch_efi_linux_load_image_header(grub_file_t file,
                                                 struct linux_arch_kernel_header *lh);
 grub_err_t grub_arch_efi_linux_boot_image(grub_addr_t addr, grub_size_t size,
-					  char *args, int nx_enabled);
+					  char *args);
 grub_efi_status_t
 EXPORT_FUNC (grub_efi_load_image) (grub_efi_boolean_t boot_policy,
 				   grub_efi_handle_t parent_image_handle,
