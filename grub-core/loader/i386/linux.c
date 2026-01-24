@@ -685,6 +685,14 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
     goto fail;
 
   len = grub_file_size (file);
+
+  if (len < (grub_ssize_t) sizeof (lh))
+    {
+      grub_error (GRUB_ERR_BAD_OS, N_("kernel %s size = %x is too small"),
+                  argv[0], (unsigned) len);
+      goto fail;
+    }
+
   kernel = grub_malloc (len);
   if (!kernel)
     {
