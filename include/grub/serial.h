@@ -216,6 +216,7 @@ extern void grub_pciserial_init (void);
 
 struct grub_serial_port *grub_serial_find (const char *name);
 extern struct grub_serial_driver grub_ns8250_driver;
+extern struct grub_serial_driver grub_efiserial_driver;
 void EXPORT_FUNC(grub_serial_unregister_driver) (struct grub_serial_driver *driver);
 
 #ifndef GRUB_MACHINE_EMU
