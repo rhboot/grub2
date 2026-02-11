@@ -213,7 +213,7 @@ iterate_device (const char *name, void *data)
                     int ret = 0;
 
                     get_device_uuid(name, &quid_name);
-                    if (!grub_strcmp(quid_name, ctx->key))
+                    if (quid_name && !grub_strcmp(quid_name, ctx->key))
                       {
                         uuid_ctx.name = name;
                         uuid_ctx.uuid = quid_name;
