@@ -273,6 +273,11 @@ grub_tpm_measure (unsigned char *buf, grub_size_t size, grub_uint8_t pcr,
   grub_efi_handle_t tpm_handle;
   grub_efi_uint8_t protocol_version;
 
+  grub_dprintf ("tpm", "PCR %d %s\n", pcr, grub_tpm_pcr_is_enabled (pcr) ? "enabled" : "disabled");
+
+  if (!grub_tpm_pcr_is_enabled (pcr))
+    return GRUB_ERR_NONE;
+
   grub_cc_log_event(buf, size, pcr, description);
 
   if (!grub_tpm_handle_find (&tpm_handle, &protocol_version))
