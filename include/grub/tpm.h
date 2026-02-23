@@ -46,4 +46,8 @@ grub_is_tpm_fail_fatal (void)
   return grub_env_get_bool ("tpm_fail_fatal", false);
 }
 
+bool EXPORT_FUNC(grub_tpm_pcr_is_enabled) (grub_uint8_t pcr);
+void EXPORT_FUNC(grub_tpm_enable_pcr) (grub_uint8_t pcr);
+void EXPORT_FUNC(grub_tpm_disable_pcr) (grub_uint8_t pcr);
+
 #endif

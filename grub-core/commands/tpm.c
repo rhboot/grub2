@@ -29,6 +29,27 @@
 
 GRUB_MOD_LICENSE ("GPLv3+");
 
+/* By default, enable all PCR's */
+static grub_uint32_t pcr_mask = 0xffffffff;
+
+inline bool
+grub_tpm_pcr_is_enabled (grub_uint8_t pcr)
+{
+  return pcr_mask & ( 1 << pcr );
+}
+
+inline void
+grub_tpm_enable_pcr (grub_uint8_t pcr)
+{
+  pcr_mask |= ( 1 << pcr );
+}
+
+inline void
+grub_tpm_disable_pcr (grub_uint8_t pcr)
+{
+  pcr_mask &= ~( 1 << pcr );
+}
+
 static grub_err_t
 grub_tpm_verify_init (grub_file_t io,
 		      enum grub_file_type type __attribute__ ((unused)),
