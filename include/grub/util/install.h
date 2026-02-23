@@ -239,6 +239,9 @@ grub_install_register_efi (grub_device_t efidir_grub_dev,
 			   const char *efifile_path,
 			   const char *efi_distributor);
 
+char *
+add_multiple_nvme_bootdevices (const char *install_device);
+
 void
 grub_install_register_ieee1275 (int is_prep, const char *install_device,
 				int partno, const char *relpath);

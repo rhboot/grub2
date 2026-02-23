@@ -209,7 +209,7 @@ find_obppath (const char *sysfs_path_orig)
     }
 }
 
-static char *
+char *
 xrealpath (const char *in)
 {
   char *out;
@@ -697,7 +697,7 @@ of_path_get_nvme_nsid (const char* devname)
   return nsid;
 }
 
-static char *
+char *
 nvme_get_syspath (const char *nvmedev)
 {
   char *sysfs_path;

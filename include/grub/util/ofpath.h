@@ -30,5 +30,9 @@ int add_filename_to_pile (char *filename, struct ofpath_files_list_root* root);
 void find_file (char* filename, char* directory, struct ofpath_files_list_root* root, int max_depth, int depth);
 char* of_find_fc_host (char* host_wwpn);
 void free_ofpath_files_list (struct ofpath_files_list_root* root);
+char* nvme_get_syspath (const char *nvmedev);
+unsigned int of_path_get_nvme_nsid (const char* devname);
+char* xrealpath (const char *in);
+
 
 #endif /* ! GRUB_OFPATH_MACHINE_UTIL_HEADER */
