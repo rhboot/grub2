@@ -57,6 +57,11 @@ grub_tpm_verify_init (grub_file_t io,
 {
   *context = io->name;
   *flags |= GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
+
+#if DISABLE_PCR8
+  grub_tpm_disable_pcr (GRUB_STRING_PCR);
+#endif
+
   return GRUB_ERR_NONE;
 }
 

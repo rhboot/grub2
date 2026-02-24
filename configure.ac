@@ -1699,6 +1699,17 @@ else
 fi
 AC_SUBST([DEBUG_WITH_TIMESTAMPS])
 
+AC_ARG_WITH([pcr8-disabled],
+	   AS_HELP_STRING([--with-pcr8-disabled],
+                          [disable PCR8 measurements]))
+
+if test x$with_pcr8_disabled = xyes; then
+  DISABLE_PCR8=1
+else
+  DISABLE_PCR8=0
+fi
+AC_SUBST([DISABLE_PCR8])
+
 AC_ARG_ENABLE([grub-emu-sdl2],
 	      [AS_HELP_STRING([--enable-grub-emu-sdl2],
                              [build and install the `grub-emu' debugging utility with SDL2 support (default=guessed)])])
@@ -2310,6 +2321,7 @@ AM_CONDITIONAL([COND_ENABLE_EFIEMU], [test x$enable_efiemu = xyes])
 AM_CONDITIONAL([COND_ENABLE_CACHE_STATS], [test x$DISK_CACHE_STATS = x1])
 AM_CONDITIONAL([COND_ENABLE_BOOT_TIME_STATS], [test x$BOOT_TIME_STATS = x1])
 AM_CONDITIONAL([COND_DEBUG_WITH_TIMESTAMPS], [test x$DEBUG_WITH_TIMESTAMPS = x1])
+AM_CONDITIONAL([COND_DISABLE_PCR8], [test x$DISABLE_PCR8 = x1])
 
 AM_CONDITIONAL([COND_HAVE_CXX], [test x$HAVE_CXX = xyes])
 
