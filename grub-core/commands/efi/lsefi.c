@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2012  Free Software Foundation, Inc.
+ *  Copyright (C) 2025  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <grub/types.h>
 #include <grub/mm.h>
 #include <grub/misc.h>
@@ -36,7 +37,7 @@ struct known_protocol
   const char *name;
 } known_protocols[] = 
   {
-    { GRUB_EFI_DISK_IO_GUID, "disk" },
+    { GRUB_EFI_DISK_IO_PROTOCOL_GUID, "disk" },
     { GRUB_EFI_BLOCK_IO_GUID, "block" },
     { GRUB_EFI_SERIAL_IO_GUID, "serial" },
     { GRUB_EFI_SIMPLE_NETWORK_GUID, "network" },
