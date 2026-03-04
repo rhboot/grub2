@@ -10,6 +10,7 @@ transform_data = {
   installdir = noinst;
   name = genmod.sh;
   common = genmod.sh.in;
+  i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
 };
 
 transform_data = {
@@ -82,21 +83,21 @@ kernel = {
   riscv64_efi_stripflags   = '--strip-unneeded -K start -R .note -R .comment -R .note.gnu.gold-version -R .eh_frame';
 
   i386_pc_ldflags          = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags          = '$(TARGET_IMG_BASE_LDOPT),0x9000';
+  i386_pc_ldflags          = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x9000';
   i386_qemu_ldflags        = '$(TARGET_IMG_LDFLAGS)';
-  i386_qemu_ldflags        = '$(TARGET_IMG_BASE_LDOPT),0x9000';
+  i386_qemu_ldflags        = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x9000';
   i386_coreboot_ldflags    = '$(TARGET_IMG_LDFLAGS)';
-  i386_coreboot_ldflags    = '$(TARGET_IMG_BASE_LDOPT),0x9000';
+  i386_coreboot_ldflags    = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x9000';
   i386_multiboot_ldflags   = '$(TARGET_IMG_LDFLAGS)';
-  i386_multiboot_ldflags   = '$(TARGET_IMG_BASE_LDOPT),0x9000';
+  i386_multiboot_ldflags   = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x9000';
   i386_ieee1275_ldflags    = '$(TARGET_IMG_LDFLAGS)';
-  i386_ieee1275_ldflags    = '$(TARGET_IMG_BASE_LDOPT),0x10000';
+  i386_ieee1275_ldflags    = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x10000';
   i386_xen_ldflags         = '$(TARGET_IMG_LDFLAGS)';
-  i386_xen_ldflags         = '$(TARGET_IMG_BASE_LDOPT),0';
+  i386_xen_ldflags         = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0';
   x86_64_xen_ldflags       = '$(TARGET_IMG_LDFLAGS)';
   x86_64_xen_ldflags       = '$(TARGET_IMG_BASE_LDOPT),0';
   i386_xen_pvh_ldflags     = '$(TARGET_IMG_LDFLAGS)';
-  i386_xen_pvh_ldflags     = '$(TARGET_IMG_BASE_LDOPT),0x100000';
+  i386_xen_pvh_ldflags     = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x100000';
 
   mips_loongson_ldflags    = '-Wl,-Ttext,0x80200000';
   powerpc_ieee1275_ldflags = '-Wl,-Ttext,0x200000';
@@ -450,10 +451,10 @@ image = {
   sparc64_ieee1275 = boot/sparc64/ieee1275/boot.S;
 
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x7C00';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x7C00';
 
   i386_qemu_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_qemu_ldflags = '$(TARGET_IMG_BASE_LDOPT),$(GRUB_BOOT_MACHINE_LINK_ADDR)';
+  i386_qemu_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)$(GRUB_BOOT_MACHINE_LINK_ADDR)';
   i386_qemu_ccasflags = '-DGRUB_BOOT_MACHINE_LINK_ADDR=$(GRUB_BOOT_MACHINE_LINK_ADDR)';
 
   /* The entry point for a.out binaries on sparc64 starts
@@ -478,7 +479,7 @@ image = {
   cppflags = '-DHYBRID_BOOT=1';
   
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x7C00';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x7C00';
 
   objcopyflags = '-O binary';
   enable = i386_pc;
@@ -489,7 +490,7 @@ image = {
 
   i386_pc = boot/i386/pc/cdboot.S;
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x7C00';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x7C00';
 
   sparc64_ieee1275 = boot/sparc64/ieee1275/boot.S;
 
@@ -509,7 +510,7 @@ image = {
   i386_pc = boot/i386/pc/pxeboot.S;
 
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x7C00';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x7C00';
 
   objcopyflags = '-O binary';
   enable = i386_pc;
@@ -520,7 +521,7 @@ image = {
   i386_pc = boot/i386/pc/diskboot.S;
 
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x8000';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x8000';
 
   sparc64_ieee1275 = boot/sparc64/ieee1275/diskboot.S;
   sparc64_ieee1275_ldflags = '-Wl,-Ttext=0x4200';
@@ -536,7 +537,7 @@ image = {
   i386_pc = boot/i386/pc/lnxboot.S;
 
   i386_pc_ldflags = '$(TARGET_IMG_LDFLAGS)';
-  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT),0x6000';
+  i386_pc_ldflags = '$(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x6000';
 
   objcopyflags = '-O binary';
   enable = i386_pc;
@@ -578,7 +579,7 @@ image = {
   i386_pc_nodist = rs_decoder.h;
 
   objcopyflags = '-O binary';
-  ldflags = '$(TARGET_IMG_LDFLAGS) $(TARGET_IMG_BASE_LDOPT),0x8200';
+  ldflags = '$(TARGET_IMG_LDFLAGS) $(TARGET_IMG_BASE_LDOPT)$(TARGET_IMG_BASE_LDOPT_ARG_SEP)0x8200';
   enable = i386_pc;
 };
 
