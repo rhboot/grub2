@@ -1462,8 +1462,8 @@ elif test x$grub_cv_target_cc_link_format = x-mi386pe || test x$grub_cv_target_c
   TARGET_IMG_LDSCRIPT='$(top_srcdir)'"/conf/i386-cygwin-img.lds"
   TARGET_IMG_LDFLAGS="-Wl,-T${TARGET_IMG_LDSCRIPT}"
   TARGET_IMG_LDFLAGS_AC="-Wl,-T${srcdir}/conf/i386-cygwin-img.lds"
-  TARGET_IMG_BASE_LDOPT=
-  TARGET_IMG_BASE_LDOPT_ARG_SEP=","
+  TARGET_IMG_BASE_LDOPT="-Wl,--defsym=_grub_text_base"
+  TARGET_IMG_BASE_LDOPT_ARG_SEP="="
   TARGET_IMG_CFLAGS=
 else
   TARGET_APPLE_LINKER=0
