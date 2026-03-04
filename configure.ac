@@ -1472,7 +1472,18 @@ else
   TARGET_IMG_LDFLAGS='-Wl,-N'
   TARGET_IMG_LDFLAGS_AC='-Wl,-N'
   if test "x$target_cpu-$platform" != "xi386-pc"; then
-    TARGET_IMG_BASE_LDOPT="-Wl,-Ttext"
+    AX_CHECK_LINK_FLAG([-Wl,--image-base,0],
+        [TARGET_IMG_BASE_LDOPT="-Wl,--image-base,0 -Wl,-Ttext"],
+        [TARGET_IMG_BASE_LDOPT="-Wl,-Ttext"],
+        [],
+        [AC_LANG_SOURCE([
+    asm (".globl start; start:");
+    asm (".globl _start; _start:");
+    asm (".globl __start; __start:");
+    void __main (void);
+    void __main (void) {}
+    int main (void);
+        ])])
     TARGET_IMG_BASE_LDOPT_ARG_SEP=","
   else
     TARGET_IMG_BASE_LDOPT="-Wl,--defsym=_grub_text_base"

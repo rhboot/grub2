@@ -238,7 +238,8 @@ widthspec.bin
 /lzocompress_test
 /luks1_test
 /luks2_test
-/m4/
+/m4/*
+!/m4/ax_check_link_flag.m4
 /minixfs_test
 /missing
 /netboot_test
