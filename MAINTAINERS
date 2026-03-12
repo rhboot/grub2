@@ -2,7 +2,8 @@ List of current GRUB maintainers and some basic information about the project
 =============================================================================
 
 Here is the list of current GRUB maintainers:
-  - Daniel Kiper <daniel.kiper@oracle.com> and <dkiper@net-space.pl>,
+  - Leo Sandoval <lsandova@redhat.com>,
+  - Marta Lewandowska <mlewando@redhat.com>,
   - Alex Burmashev <alexander.burmashev@oracle.com>,
   - Vladimir 'phcoder' Serbinenko <phcoder@gmail.com>.
 
@@ -25,6 +26,7 @@ Here is the list, sorted alphabetically, of past GRUB maintainers and people who
 strongly contributed to the project:
   - Andrei Borzenkov,
   - Bryan Ford,
+  - Daniel Kiper,
   - Erich Stefan Boleyn,
   - Gordon Matzigkeit,
   - Yoshinori K. Okuji.
