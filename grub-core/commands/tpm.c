@@ -82,7 +82,7 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
 {
   const char *prefix = NULL;
   char *description;
-  grub_err_t status;
+  grub_err_t status = GRUB_ERR_NONE;
 
   switch (type)
     {
@@ -102,9 +102,13 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
   grub_memcpy (description, prefix, grub_strlen (prefix));
   grub_memcpy (description + grub_strlen (prefix), str,
 	       grub_strlen (str) + 1);
+#if DISABLE_PCR8
+  grub_dprintf ("tpm", "String measurement disabled for %s\n", description);
+#else
   status =
     grub_tpm_measure ((unsigned char *) str, grub_strlen (str),
 		      GRUB_STRING_PCR, description);
+#endif
   grub_free (description);
   if (status == GRUB_ERR_NONE)
     return GRUB_ERR_NONE;
