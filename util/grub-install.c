@@ -1422,7 +1422,12 @@ main (int argc, char *argv[])
               debug_image);
     }
 
-  if (!have_abstractions)
+  int is_ieee1275_raid1 = have_abstractions
+    && (platform == GRUB_INSTALL_PLATFORM_POWERPC_IEEE1275)
+    && grub_dev->disk
+    && probe_raid_level (grub_dev->disk) == 1;
+
+  if (!have_abstractions || is_ieee1275_raid1)
     {
       if ((disk_module && grub_strcmp (disk_module, "biosdisk") != 0)
 	  || grub_drives[1]
