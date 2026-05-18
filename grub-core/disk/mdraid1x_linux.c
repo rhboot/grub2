@@ -130,7 +130,7 @@ grub_mdraid_detect (grub_disk_t disk,
       struct grub_diskfilter_vg *array;
       char *uuid;
 
-#ifdef __powerpc__
+#if defined(__powerpc__) && !defined(GRUB_UTIL)
       /* Firmware will yell at us for reading too far. */
       if (minor_version == 0)
         continue;
