@@ -189,7 +189,7 @@ grub_mdraid_detect (grub_disk_t disk,
   grub_uint32_t level;
   struct grub_diskfilter_vg *ret;
 
-#ifdef __powerpc__
+#if defined(__powerpc__) && !defined(GRUB_UTIL)
   /* Firmware will yell at us for reading too far. */
   return NULL;
 #endif
