@@ -38,6 +38,20 @@ static int grub_error_stack_assert;
 #endif
 
 grub_err_t
+grub_user_error (grub_err_t n, const char *fmt, ...)
+{
+  va_list ap;
+
+  grub_errno = n;
+
+  va_start (ap, fmt);
+  grub_vsnprintf (grub_errmsg, sizeof (grub_errmsg), _(fmt), ap);
+  va_end (ap);
+
+  return n;
+}
+
+grub_err_t
 grub_error (grub_err_t n, const char *file, const char *function, const int line, const char *fmt, ...)
 {
   va_list ap;
