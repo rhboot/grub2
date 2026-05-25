@@ -35,7 +35,7 @@ check_password (const char *user, const char *entered,
 		void *password)
 {
   if (grub_crypto_memcmp (entered, password, GRUB_AUTH_MAX_PASSLEN) != 0)
-    return GRUB_ACCESS_DENIED;
+    grub_user_error(GRUB_ERR_ACCESS_DENIED, N_("Authentication error"));
 
   grub_auth_authenticate (user);
 

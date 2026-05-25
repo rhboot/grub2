@@ -58,7 +58,7 @@ check_password (const char *user, const char *entered, void *pin)
   if (err)
       ret = grub_crypto_gcry_error (err);
   else if (grub_crypto_memcmp (buf, pass->expected, pass->buflen) != 0)
-      ret = GRUB_ACCESS_DENIED;
+      ret = grub_user_error(GRUB_ERR_ACCESS_DENIED, N_("Authentication error"));
   else
     {
       grub_auth_authenticate (user);
