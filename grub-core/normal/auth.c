@@ -253,12 +253,18 @@ grub_auth_check_authentication (const char *userlist)
   grub_puts_ (N_("Enter username: "));
 
   if (!grub_username_get (login, sizeof (login) - 1))
-    goto access_denied;
+    {
+      grub_user_error(GRUB_ERR_ACCESS_DENIED, N_("Error getting user"));
+      goto access_denied;
+    }
 
   grub_puts_ (N_("Enter password: "));
 
   if (!grub_password_get (entered, GRUB_AUTH_MAX_PASSLEN))
-    goto access_denied;
+    {
+      grub_user_error(GRUB_ERR_ACCESS_DENIED, N_("Error getting password"));
+      goto access_denied;
+    }
 
   FOR_LIST_ELEMENTS (user, users)
     {
@@ -267,7 +273,10 @@ grub_auth_check_authentication (const char *userlist)
     }
 
   if (!cur || ! cur->callback)
-    goto access_denied;
+    {
+      grub_user_error(GRUB_ERR_ACCESS_DENIED, N_("Authentication error"));
+      goto access_denied;
+    }
 
   cur->callback (login, entered, cur->arg);
   if (is_authenticated (userlist))
@@ -282,7 +291,7 @@ grub_auth_check_authentication (const char *userlist)
   if (punishment_delay < GRUB_ULONG_MAX / 2)
     punishment_delay *= 2;
 
-  return GRUB_ACCESS_DENIED;
+  return GRUB_ERR_ACCESS_DENIED;
 }
 
 static grub_err_t
