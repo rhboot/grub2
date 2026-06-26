@@ -536,13 +536,34 @@ grub_memalign (grub_size_t align, grub_size_t size)
           goto again;
         }
 
-      /* fallthrough */
-
     case 2:
       /* Invalidate disk caches.  */
       grub_disk_cache_invalidate_all ();
       count++;
       goto again;
+
+
+#if defined (GRUB_MACHINE_EFI) && defined (__x86_64__)
+    case 3:
+      /* Request additional pages, anything at all, but this time
+         without the GRUB_EFI_MAX_ALLOCATION_ADDRESS limit.
+         This is a risky approach because some cannot DMA above 2GB,
+         but give it try and hope for the best.
+      */
+      count++;
+
+      if (grub_mm_add_region_fn != NULL)
+        {
+          /*
+           * Try again even if this fails, in case it was able to partially
+           * satisfy the request
+           */
+          grub_mm_add_region_fn (grow, GRUB_MM_ADD_REGION_NO_LIMIT);
+          goto again;
+        }
+#endif
+
+      /* fallthrough */
 
     default:
       break;
