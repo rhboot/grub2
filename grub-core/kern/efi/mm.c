@@ -470,10 +470,12 @@ static grub_efi_memory_descriptor_t *
 filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
 		   grub_efi_memory_descriptor_t *filtered_memory_map,
 		   grub_efi_uintn_t desc_size,
-		   grub_efi_memory_descriptor_t *memory_map_end)
+		   grub_efi_memory_descriptor_t *memory_map_end,
+		   unsigned int flags)
 {
   grub_efi_memory_descriptor_t *desc;
   grub_efi_memory_descriptor_t *filtered_desc;
+  unsigned int no_limit = flags & GRUB_MM_ADD_REGION_NO_LIMIT;
 
   for (desc = memory_map, filtered_desc = filtered_memory_map;
        desc < memory_map_end;
@@ -481,7 +483,7 @@ filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
     {
       if (desc->type == GRUB_EFI_CONVENTIONAL_MEMORY
 #if 1
-	  && desc->physical_start <= GRUB_EFI_MAX_ALLOCATION_ADDRESS
+	  && (no_limit || desc->physical_start <= GRUB_EFI_MAX_ALLOCATION_ADDRESS)
 #endif
 	  && desc->physical_start + PAGES_TO_BYTES (desc->num_pages) > 0x100000
 	  && desc->num_pages != 0)
@@ -497,12 +499,13 @@ filter_memory_map (grub_efi_memory_descriptor_t *memory_map,
 	    }
 
 #if 1
-	  if (BYTES_TO_PAGES (filtered_desc->physical_start)
-	      + filtered_desc->num_pages
-	      > BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS))
-	    filtered_desc->num_pages
-	      = (BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS)
-		 - BYTES_TO_PAGES (filtered_desc->physical_start));
+	  if (!no_limit)
+	    if (BYTES_TO_PAGES (filtered_desc->physical_start)
+		+ filtered_desc->num_pages
+		> BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS))
+	      filtered_desc->num_pages
+		= (BYTES_TO_PAGES_DOWN (GRUB_EFI_MAX_ALLOCATION_ADDRESS)
+		   - BYTES_TO_PAGES (filtered_desc->physical_start));
 #endif
 
 	  if (filtered_desc->num_pages == 0)
@@ -729,7 +732,8 @@ grub_efi_mm_add_regions (grub_size_t required_bytes, unsigned int flags)
   filtered_memory_map = memory_map_end;
 
   filtered_memory_map_end = filter_memory_map (memory_map, filtered_memory_map,
-					       desc_size, memory_map_end);
+					       desc_size, memory_map_end,
+					       flags);
 
   /* Sort the filtered descriptors, so that GRUB can allocate pages
      from smaller regions.  */

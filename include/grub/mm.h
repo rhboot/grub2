@@ -32,6 +32,7 @@
 
 #define GRUB_MM_ADD_REGION_NONE        0
 #define GRUB_MM_ADD_REGION_CONSECUTIVE (1 << 0)
+#define GRUB_MM_ADD_REGION_NO_LIMIT (1 << 1)
 
 /*
  * Function used to request memory regions of `grub_size_t` bytes. The second
