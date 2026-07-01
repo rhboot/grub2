@@ -2530,6 +2530,7 @@ module = {
   enable = i386_xen;
   enable = x86_64_xen;
   enable = arm64;
+  enable = loongarch64;
 };
 
 module = {
