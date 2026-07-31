@@ -888,7 +888,8 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     const struct grub_install_image_target_desc *image_target,
 			     int note, size_t appsig_size, grub_compression_t comp,
 			     const char *dtb_path, const char *sbat_path,
-			     int disable_shim_lock, int disable_cli)
+			     int disable_shim_lock, int disable_cli,
+			     int disable_tpm_string_pcr)
 {
   char *kernel_img, *core_img;
   size_t total_module_size, core_size;
@@ -964,6 +965,9 @@ grub_install_generate_image (const char *dir, const char *prefix,
     total_module_size += sizeof (struct grub_module_header);
 
   if (disable_cli)
+    total_module_size += sizeof (struct grub_module_header);
+
+  if (disable_tpm_string_pcr)
     total_module_size += sizeof (struct grub_module_header);
 
   if (config_path)
@@ -1138,6 +1142,16 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
       header = (struct grub_module_header *) (kernel_img + offset);
       header->type = grub_host_to_target32 (OBJ_TYPE_DISABLE_CLI);
+      header->size = grub_host_to_target32 (sizeof (*header));
+      offset += sizeof (*header);
+    }
+
+  if (disable_tpm_string_pcr)
+    {
+      struct grub_module_header *header;
+
+      header = (struct grub_module_header *) (kernel_img + offset);
+      header->type = grub_host_to_target32 (OBJ_TYPE_DISABLE_TPM_STRING_PCR);
       header->size = grub_host_to_target32 (sizeof (*header));
       offset += sizeof (*header);
     }

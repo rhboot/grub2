@@ -85,6 +85,7 @@ static struct argp_option options[] = {
   {"sbat", 's', N_("FILE"), 0, N_("SBAT metadata"), 0},
   {"disable-shim-lock", GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK, 0, 0, N_("disable shim_lock verifier"), 0},
   {"disable-cli", GRUB_INSTALL_OPTIONS_DISABLE_CLI, 0, 0, N_("disable command line interface access"), 0},
+  {"disable-tpm-string-pcr", GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR, 0, 0, N_("disable TPM string PCR measurements"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   {"appended-signature-size", 'S', N_("SIZE"), 0, N_("Add a note segment reserving SIZE bytes for an appended signature"), 0},
   { 0, 0, 0, 0, 0, 0 }
@@ -135,6 +136,7 @@ struct arguments
   int disable_shim_lock;
   size_t appsig_size;
   int disable_cli;
+  int disable_tpm_string_pcr;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
 };
@@ -265,6 +267,10 @@ argp_parser (int key, char *arg, struct argp_state *state)
       arguments->disable_cli = 1;
       break;
 
+    case GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR:
+      arguments->disable_tpm_string_pcr = 1;
+      break;
+
     case 'v':
       verbosity++;
       break;
@@ -354,7 +360,8 @@ main (int argc, char *argv[])
 			       arguments.appsig_size, arguments.comp,
 			       arguments.dtb, arguments.sbat,
 			       arguments.disable_shim_lock,
-			       arguments.disable_cli);
+			       arguments.disable_cli,
+			       arguments.disable_tpm_string_pcr);
 
   if (grub_util_file_sync (fp) < 0)
     grub_util_error (_("cannot sync `%s': %s"), arguments.output ? : "stdout",

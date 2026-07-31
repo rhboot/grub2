@@ -20,6 +20,7 @@
 
 #include <grub/err.h>
 #include <grub/i18n.h>
+#include <grub/kernel.h>
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/tpm.h>
@@ -28,6 +29,8 @@
 #include <grub/dl.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
+
+static grub_uint8_t tpm_string_pcr_disabled;
 
 static grub_err_t
 grub_tpm_verify_init (grub_file_t io,
@@ -57,6 +60,9 @@ grub_tpm_verify_string (char *str, enum grub_verify_string_type type)
   const char *prefix = NULL;
   char *description;
   grub_err_t status;
+
+  if (tpm_string_pcr_disabled)
+    return GRUB_ERR_NONE;
 
   switch (type)
     {
@@ -96,6 +102,8 @@ struct grub_file_verifier grub_tpm_verifier = {
 
 GRUB_MOD_INIT (tpm)
 {
+  struct grub_module_header *header;
+
   /*
    * Even though this now calls ibmvtpm's grub_tpm_present() from GRUB_MOD_INIT(),
    * it does seem to call it late enough in the initialization sequence so
@@ -104,6 +112,17 @@ GRUB_MOD_INIT (tpm)
    */
   if (!grub_tpm_present())
     return;
+
+  FOR_MODULES (header)
+    {
+      if (header->type == OBJ_TYPE_DISABLE_TPM_STRING_PCR)
+	{
+	  tpm_string_pcr_disabled = 1;
+	  grub_dprintf ("tpm", "String PCR measurements disabled\n");
+	  break;
+	}
+    }
+
   grub_verifier_register (&grub_tpm_verifier);
 }
 
