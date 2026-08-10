@@ -321,7 +321,7 @@ efihttp_request (grub_efi_http_t *http, char *server, char *name, int use_https,
       /* parse the length of the file from the ContentLength header */
       for (*file_size = 0, i = 0; i < (int)response_message.header_count; ++i)
 	{
-	  if (!grub_strcmp((const char*)response_message.headers[i].field_name, "Content-Length"))
+	  if (!grub_strcasecmp((const char*)response_message.headers[i].field_name, "Content-Length"))
 	    {
 	      *file_size = grub_strtoul((const char*)response_message.headers[i].field_value, 0, 10);
 	      break;
