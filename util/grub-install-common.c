@@ -471,6 +471,7 @@ static grub_compression_t compression;
 static size_t appsig_size;
 static int disable_cli;
 static int disable_tpm_string_pcr;
+static char *package_string;
 
 int
 grub_install_parse (int key, char *arg)
@@ -521,6 +522,12 @@ grub_install_parse (int key, char *arg)
       return 1;
     case GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR:
       disable_tpm_string_pcr = 1;
+      return 1;
+    case GRUB_INSTALL_OPTIONS_PACKAGE_STRING:
+      if (package_string)
+	free (package_string);
+
+      package_string = xstrdup (arg);
       return 1;
 
     case GRUB_INSTALL_OPTIONS_VERBOSITY:
@@ -723,7 +730,8 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 		  note ? " --note" : "",
 		  disable_shim_lock ? " --disable-shim-lock" : "",
 		  disable_cli ? " --disable-cli" : "",
-		  disable_tpm_string_pcr ? " --disable-tpm-string-pcr" : "", s);
+		  disable_tpm_string_pcr ? " --disable-tpm-string-pcr" : "",
+		  package_string ? " --package-string" : "", s);
   free (s);
 
   tgt = grub_install_get_image_target (mkimage_target);
@@ -737,7 +745,8 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 			       config_path, tgt,
 			       note, appsig_size, compression, dtb, sbat,
 			       disable_shim_lock, disable_cli,
-			       disable_tpm_string_pcr);
+			       disable_tpm_string_pcr,
+			       package_string);
   while (dc--)
     grub_install_pop_module ();
 }

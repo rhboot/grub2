@@ -76,6 +76,8 @@
     N_("disabled command line interface access"), 0 },			\
   { "disable-tpm-string-pcr", GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR, 0, 0, \
       N_("disable TPM string PCR measurements"), 0 },			\
+  { "package-string", GRUB_INSTALL_OPTIONS_PACKAGE_STRING, N_("STRING"), 0, \
+      N_("override the package version string embedded in the image"), 0 }, \
   { "verbose", 'v', 0, 0,						\
     N_("print verbose messages."), 1 }
 
@@ -141,7 +143,8 @@ enum grub_install_options {
   GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK,
   GRUB_INSTALL_OPTIONS_APPENDED_SIGNATURE_SIZE,
   GRUB_INSTALL_OPTIONS_DISABLE_CLI,
-  GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR
+  GRUB_INSTALL_OPTIONS_DISABLE_TPM_STRING_PCR,
+  GRUB_INSTALL_OPTIONS_PACKAGE_STRING
 };
 
 extern char *grub_install_source_directory;
@@ -206,7 +209,8 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     grub_compression_t comp, const char *dtb_file,
 			     const char *sbat_path, const int disable_shim_lock,
 			     const int disable_cli,
-			     const int disable_tpm_string_pcr);
+			     const int disable_tpm_string_pcr,
+			     const char *package_string);
 
 const struct grub_install_image_target_desc *
 grub_install_get_image_target (const char *arg);
