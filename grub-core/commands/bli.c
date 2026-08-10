@@ -28,6 +28,7 @@
 #include <grub/misc.h>
 #include <grub/mm.h>
 #include <grub/partition.h>
+#include <grub/kernel.h>
 #include <grub/types.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
@@ -129,7 +130,19 @@ set_loader_device_part_uuid (void)
 
 GRUB_MOD_INIT (bli)
 {
-  grub_efi_set_variable_to_string ("LoaderInfo", &bli_vendor_guid, PACKAGE_STRING,
+  const char *loader_info = PACKAGE_STRING;
+  struct grub_module_header *header;
+
+  FOR_MODULES (header)
+    {
+      if (header->type == OBJ_TYPE_PACKAGE_STRING)
+	{
+	  loader_info = (const char *) (header + 1);
+	  break;
+	}
+    }
+
+  grub_efi_set_variable_to_string ("LoaderInfo", &bli_vendor_guid, loader_info,
 				   GRUB_EFI_VARIABLE_BOOTSERVICE_ACCESS |
 				   GRUB_EFI_VARIABLE_RUNTIME_ACCESS);
   set_loader_device_part_uuid ();
