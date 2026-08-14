@@ -793,7 +793,7 @@ of_path_of_nvme(const char *sys_devname __attribute__((unused)),
         }
       else
         {
-          snprintf (disk, sizeof (disk), "/disk@1:%c", 'a' + (part - 1));
+          snprintf (disk, sizeof (disk), "/namespace@1:%c", 'a' + (part - 1));
         }
       free (nvmedev);
     }
@@ -834,7 +834,7 @@ of_path_of_nvme(const char *sys_devname __attribute__((unused)),
         }
       else
         {
-          snprintf (disk, sizeof (disk), "/disk@1");
+          snprintf (disk, sizeof (disk), "/namespace@1");
         }
     }
 
