@@ -144,11 +144,14 @@ grub_install_get_default_x86_platform (void)
 	return "i386-efi";
     }
 
+  /* On Fedora the kernel populates /proc/device-tree, but Fedora does not
+     ship i386-ieee1275, so return i386-pc instead.  */
   grub_util_info ("Looking for /proc/device-tree ..");
   if (is_not_empty_directory ("/proc/device-tree"))
     {
       grub_util_info ("...found");
-      return "i386-ieee1275";
+      grub_util_info ("Fedora does not support i386-ieee1275, return i386-pc instead");
+      return "i386-pc";
     }
 
   grub_util_info ("... not found");
