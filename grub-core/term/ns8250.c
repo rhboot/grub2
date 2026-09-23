@@ -347,7 +347,8 @@ grub_ns8250_hw_get_port (const unsigned int unit)
 }
 
 struct grub_serial_port *
-grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config)
+grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config,
+			     bool trusted)
 {
   struct grub_serial_port *p;
   unsigned i;
@@ -363,13 +364,22 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
 	return &com_ports[i];
       }
 
+  /*
+   * use_mmio and port share a union with the private data of every other back
+   * end, so they only mean anything on a port this driver registered.
+   */
   FOR_SERIAL_PORTS (p)
-    if (p->use_mmio == false && p->port == port)
+    if (p->driver == &grub_ns8250_driver
+	&& p->use_mmio == false && p->port == port)
       {
         if (config != NULL)
           grub_serial_port_configure (p, config);
         return p;
       }
+
+  /* No port is registered here, so going on means probing the address. */
+  if (grub_serial_reject_untrusted_address (trusted) == true)
+    return NULL;
 
   grub_outb (0x5a, port + UART_SR);
   if (grub_inb (port + UART_SR) != 0x5a)
@@ -402,7 +412,7 @@ grub_serial_ns8250_add_port (grub_port_t port, struct grub_serial_config *config
 
 struct grub_serial_port *
 grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
-                             struct grub_serial_config *config)
+                             struct grub_serial_config *config, bool trusted)
 {
   struct grub_serial_port *p;
   unsigned i;
@@ -415,13 +425,22 @@ grub_serial_ns8250_add_mmio (grub_addr_t addr, unsigned int acc_size,
         return &com_ports[i];
       }
 
+  /*
+   * use_mmio and mmio share a union with the private data of every other back
+   * end, so they only mean anything on a port this driver registered.
+   */
   FOR_SERIAL_PORTS (p)
-    if (p->use_mmio == true && p->mmio.base == addr)
+    if (p->driver == &grub_ns8250_driver
+	&& p->use_mmio == true && p->mmio.base == addr)
       {
         if (config != NULL)
           grub_serial_port_configure (p, config);
         return p;
       }
+
+  /* No port is registered here, so going on means programming the address. */
+  if (grub_serial_reject_untrusted_address (trusted) == true)
+    return NULL;
 
   p = grub_malloc (sizeof (*p));
   if (p == NULL)
