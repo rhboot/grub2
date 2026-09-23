@@ -188,14 +188,18 @@ grub_serial_config_defaults (struct grub_serial_port *port)
   return port->driver->configure (port, &config);
 }
 
+bool grub_serial_reject_untrusted_address (bool trusted);
+
 #if defined(__mips__) || defined (__i386__) || defined (__x86_64__)
 void grub_ns8250_init (void);
 struct grub_serial_port *grub_ns8250_spcr_init (void);
 struct grub_serial_port *grub_serial_ns8250_add_port (grub_port_t port,
-						      struct grub_serial_config *config);
+						      struct grub_serial_config *config,
+						      bool trusted);
 struct grub_serial_port *grub_serial_ns8250_add_mmio (grub_addr_t addr,
 						      unsigned int acc_size,
-						      struct grub_serial_config *config);
+						      struct grub_serial_config *config,
+						      bool trusted);
 #endif
 #ifdef GRUB_MACHINE_IEEE1275
 void grub_ofserial_init (void);
