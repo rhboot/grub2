@@ -131,6 +131,7 @@ grub_efi_check_nx_image_support (grub_addr_t k_add,
       break;
     case GRUB_PE32_MACHINE_ARM64:
     case GRUB_PE32_MACHINE_IA64:
+    case GRUB_PE32_MACHINE_LOONGARCH64:
     case GRUB_PE32_MACHINE_RISCV64:
     case GRUB_PE32_MACHINE_X86_64:
       is_64_bit = 1;

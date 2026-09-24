@@ -738,7 +738,8 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
   unsigned i;
   const Elf_Shdr *s;
   const Elf_Ehdr *e = ehdr;
-#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv)
+#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
+  !defined(__loongarch__)
   grub_size_t arch_addralign = grub_arch_dl_min_alignment ();
   grub_addr_t tgaddr;
   grub_size_t tgsz;
@@ -784,7 +785,8 @@ grub_dl_set_mem_attrs (grub_dl_t mod, void *ehdr)
       grub_update_mem_attrs ((grub_addr_t)(seg->addr), seg->size, set_attrs, clear_attrs);
     }
 
-#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv)
+#if !defined (__i386__) && !defined (__x86_64__) && !defined(__riscv) && \
+  !defined(__loongarch__)
   tgaddr = grub_min((grub_addr_t)mod->tramp, (grub_addr_t)mod->got);
   tgsz = grub_max((grub_addr_t)mod->trampptr, (grub_addr_t)mod->gotptr) - tgaddr;
 
