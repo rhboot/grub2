@@ -80,13 +80,20 @@ struct grub_menu_entry
 };
 typedef struct grub_menu_entry *grub_menu_entry_t;
 
+/* The orientation mode for the menu layout */
+typedef enum 
+{    
+  GRUB_MENU_ORIENTATION_VERTICAL, // Up and Down keys    
+  GRUB_MENU_ORIENTATION_HORIZONTAL, // Left and Right keys
+} grub_menu_orientation_t;
 /* The menu.  */
 struct grub_menu
-{
-  /* The size of a menu.  */
-  int size;
-
-  /* The list of menu entries.  */
+{  
+  /* The size of a menu.  */  
+  int size;  
+  /* The orientation layout of the menu (Vertical or Horizontal) */  
+  grub_menu_orientation_t orientation;  
+  /* The list of menu entries.  */  
   grub_menu_entry_t entry_list;
 };
 typedef struct grub_menu *grub_menu_t;

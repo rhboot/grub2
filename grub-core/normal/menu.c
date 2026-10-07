@@ -573,6 +573,7 @@ print_countdown (struct grub_term_coordinate *pos, int n)
    If the return value is not -1, then *AUTO_BOOT is nonzero iff the menu
    entry to be executed is a result of an automatic default selection because
    of the timeout.  */
+
 static int
 run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 {
@@ -663,6 +664,14 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 
   current_entry = default_entry;
 
+  const char* orient_str = grub_env_get ("menu_orientation");
+ 
+  /* If there is and option in grub.cfg and it is set to horizontal then change it, if not leave it as it is (Vertical) */
+  if(orient_str && grub_strcmp (orient_str, "horizontal") == 0)
+    menu->orientation = GRUB_MENU_ORIENTATION_HORIZONTAL;
+  else
+    menu->orientation = GRUB_MENU_ORIENTATION_VERTICAL;
+
  refresh:
   menu_init (current_entry, menu, nested);
 
@@ -728,18 +737,42 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 	    case GRUB_TERM_KEY_UP:
 	    case GRUB_TERM_CTRL | 'p':
 	    case '^':
-	      if (current_entry > 0)
-		current_entry--;
-	      menu_set_chosen_entry (current_entry);
-	      break;
+        if(menu->orientation == GRUB_MENU_ORIENTATION_VERTICAL)
+        {
+          if (current_entry > 0)
+		        current_entry--;
+	        menu_set_chosen_entry (current_entry);
+        }
+        break;
 
 	    case GRUB_TERM_CTRL | 'n':
 	    case GRUB_TERM_KEY_DOWN:
 	    case 'v':
-	      if (current_entry < menu->size - 1)
-		current_entry++;
-	      menu_set_chosen_entry (current_entry);
-	      break;
+        if(menu->orientation == GRUB_MENU_ORIENTATION_VERTICAL)
+        {
+          if (current_entry < menu->size - 1)
+		          current_entry++;
+	        menu_set_chosen_entry (current_entry);
+	      }  
+        break;
+
+	    case GRUB_TERM_KEY_LEFT:
+        if(menu->orientation == GRUB_MENU_ORIENTATION_HORIZONTAL)
+        {
+          if (current_entry > 0)
+		        current_entry--;
+	        menu_set_chosen_entry (current_entry);
+        }
+        break;
+
+	    case GRUB_TERM_KEY_RIGHT:
+        if(menu->orientation == GRUB_MENU_ORIENTATION_HORIZONTAL)
+        {
+          if (current_entry < menu->size - 1)
+		          current_entry++;
+	        menu_set_chosen_entry (current_entry);
+	      }  
+        break;
 
 	    case GRUB_TERM_CTRL | 'g':
 	    case GRUB_TERM_KEY_PPAGE:
@@ -759,7 +792,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
 
 	    case '\n':
 	    case '\r':
-	    case GRUB_TERM_KEY_RIGHT:
+	    //case GRUB_TERM_KEY_RIGHT: // I can use enter i dont need right arrow and it also can break my other case's
 	    case GRUB_TERM_CTRL | 'f':
 	      menu_fini ();
               *auto_boot = 0;
