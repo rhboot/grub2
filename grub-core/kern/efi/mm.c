@@ -202,9 +202,19 @@ grub_efi_allocate_pages_real (grub_efi_physical_address_t address,
 void *
 grub_efi_allocate_any_pages (grub_efi_uintn_t pages)
 {
-  return grub_efi_allocate_pages_real (GRUB_EFI_MAX_USABLE_ADDRESS,
-				       pages, GRUB_EFI_ALLOCATE_MAX_ADDRESS,
-				       GRUB_EFI_LOADER_DATA);
+  void *ret;
+
+  ret = grub_efi_allocate_pages_real (0xffffffff,
+				      pages, GRUB_EFI_ALLOCATE_MAX_ADDRESS,
+				      GRUB_EFI_LOADER_DATA);
+  if (ret == NULL)
+    {
+      grub_errno = GRUB_ERR_NONE;
+      ret = grub_efi_allocate_pages_real (GRUB_EFI_MAX_USABLE_ADDRESS,
+					  pages, GRUB_EFI_ALLOCATE_MAX_ADDRESS,
+					  GRUB_EFI_LOADER_DATA);
+    }
+  return ret;
 }
 
 void *
