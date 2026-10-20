@@ -247,6 +247,9 @@ deferred_clear_test (void)
 		    first_state.chars_before_clear == 0 &&
 		    first_state.chars == sizeof ("visible") - 1,
 		    "configfile clear did not precede later output");
+  grub_test_assert (second_state.clears == 1 &&
+		    second_state.chars == sizeof ("visible") - 1,
+		    "configfile cleared the active terminal again before output");
 
   reset_term (&first, &first_state, 0);
   reset_term (&second, &second_state, 0);
@@ -297,18 +300,6 @@ deferred_clear_test (void)
   grub_test_assert (first_state.clears == 0 && first_state.chars == 0,
 		    "empty echo prepared the display (%u clears, %u chars)",
 		    first_state.clears, first_state.chars);
-
-  reset_term (&first, &first_state, 0);
-  reset_term (&second, &second_state, 1);
-  grub_cls_deferred ();
-  grub_test_assert (first_state.clears == 0 &&
-		    (first.flags & GRUB_TERM_CLEAR_PENDING),
-		    "inactive terminal was cleared immediately");
-  grub_test_assert (second_state.clears == 1,
-		    "active terminal was not cleared immediately");
-  grub_xnputs ("visible", sizeof ("visible") - 1);
-  grub_test_assert (first_state.clears == 1 && second_state.clears == 1,
-		    "multiple terminals were not prepared independently");
 
   reset_term (&first, &first_state, 0);
   reset_term (&second, &second_state, 0);

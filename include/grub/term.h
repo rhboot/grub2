@@ -246,6 +246,7 @@ typedef struct grub_term_output *grub_term_output_t;
 /* Current color state.  */
 extern grub_uint8_t EXPORT_VAR(grub_term_normal_color);
 extern grub_uint8_t EXPORT_VAR(grub_term_highlight_color);
+
 extern struct grub_term_output *EXPORT_VAR(grub_term_outputs_disabled);
 extern struct grub_term_input *EXPORT_VAR(grub_term_inputs_disabled);
 extern struct grub_term_output *EXPORT_VAR(grub_term_outputs);
