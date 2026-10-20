@@ -102,6 +102,10 @@ grub_term_color_state;
 #define GRUB_TERM_NO_EDIT	        (1 << 1)
 /* Set when the terminal cannot do fancy things.  */
 #define GRUB_TERM_DUMB		        (1 << 2)
+/* Visible output has initialized this terminal.  */
+#define GRUB_TERM_OUTPUT_ACTIVE		(1 << 8)
+/* Clear when the terminal is prepared for visible output.  */
+#define GRUB_TERM_CLEAR_PENDING		(1 << 9)
 /* Which encoding does terminal expect stream to be.  */
 #define GRUB_TERM_CODE_TYPE_SHIFT       3
 #define GRUB_TERM_CODE_TYPE_MASK	        (7 << GRUB_TERM_CODE_TYPE_SHIFT)
@@ -184,6 +188,11 @@ struct grub_term_output
   /* Clean up the terminal.  */
   grub_err_t (*fini) (struct grub_term_output *term);
 
+  /* Prepare the terminal for visible output.  Implementations set
+     GRUB_TERM_OUTPUT_ACTIVE and consume GRUB_TERM_CLEAR_PENDING before
+     rendering.  */
+  grub_err_t (*prepare) (struct grub_term_output *term);
+
   /* Put a character. C is encoded in Unicode.  */
   void (*putchar) (struct grub_term_output *term,
 		   const struct grub_unicode_glyph *c);
@@ -237,9 +246,6 @@ typedef struct grub_term_output *grub_term_output_t;
 /* Current color state.  */
 extern grub_uint8_t EXPORT_VAR(grub_term_normal_color);
 extern grub_uint8_t EXPORT_VAR(grub_term_highlight_color);
-/* Incremented whenever a screen clear is requested.  */
-extern grub_uint32_t EXPORT_VAR(grub_cls_generation);
-
 extern struct grub_term_output *EXPORT_VAR(grub_term_outputs_disabled);
 extern struct grub_term_input *EXPORT_VAR(grub_term_inputs_disabled);
 extern struct grub_term_output *EXPORT_VAR(grub_term_outputs);
@@ -334,6 +340,8 @@ int EXPORT_FUNC(grub_getkey_noblock) (void);
 int EXPORT_FUNC(grub_getkeystatus) (void);
 int EXPORT_FUNC(grub_key_is_interrupt) (int key);
 void grub_cls (void);
+void grub_cls_deferred (void);
+void grub_term_prepare_output (void);
 void EXPORT_FUNC(grub_refresh) (void);
 void grub_puts_terminal (const char *str, struct grub_term_output *term);
 struct grub_term_coordinate *grub_term_save_pos (void);
@@ -396,8 +404,6 @@ grub_term_setcursor (struct grub_term_output *term, int on)
 static inline void
 grub_term_cls (struct grub_term_output *term)
 {
-  grub_cls_generation++;
-
   if (term->cls)
     (term->cls) (term);
   else

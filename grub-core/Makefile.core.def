@@ -2259,6 +2259,11 @@ module = {
 };
 
 module = {
+  name = deferred_clear_test;
+  common = tests/deferred_clear_test.c;
+};
+
+module = {
   name = xnu_uuid_test;
   common = tests/xnu_uuid_test.c;
 };

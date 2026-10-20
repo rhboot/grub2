@@ -80,6 +80,10 @@ grub_cmd_sleep (grub_extcmd_context_t ctxt, int argc, char **args)
 
   grub_refresh ();
 
+  /* A pending clear must happen before the countdown saves its position.  */
+  if (state[0].set)
+    grub_term_prepare_output ();
+
   pos = grub_term_save_pos ();
 
   for (; n; n--)

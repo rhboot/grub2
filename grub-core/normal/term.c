@@ -990,6 +990,9 @@ grub_print_ucs4 (const grub_uint32_t * str,
 		 int margin_left, int margin_right,
 		 struct grub_term_output *term)
 {
+  if (str == last_position)
+    return;
+
   print_ucs4_real (str, last_position, margin_left, margin_right,
 		   term, 0, 0, 1, 0, -1, 0, 0, 0);
 }
@@ -1010,6 +1013,9 @@ grub_xnputs (const char *str, grub_size_t msg_len)
   grub_uint32_t *unicode_str = NULL, *unicode_last_position;
   int backlog = 0;
   grub_term_output_t term;
+
+  if (msg_len == 0)
+    return;
 
   grub_error_push ();
 
@@ -1085,8 +1091,6 @@ grub_cls (void)
 {
   struct grub_term_output *term;
 
-  grub_cls_generation++;
-
   FOR_ACTIVE_TERM_OUTPUTS(term)
   {
     if ((term->flags & GRUB_TERM_DUMB) || (grub_env_get ("debug")))
@@ -1097,4 +1101,33 @@ grub_cls (void)
     else
       (term->cls) (term);
   }
+}
+
+void
+grub_cls_deferred (void)
+{
+  struct grub_term_output *term;
+
+  FOR_ACTIVE_TERM_OUTPUTS(term)
+  {
+    if (term->prepare && !(term->flags & GRUB_TERM_OUTPUT_ACTIVE))
+      term->flags |= GRUB_TERM_CLEAR_PENDING;
+    else if ((term->flags & GRUB_TERM_DUMB) || (grub_env_get ("debug")))
+      {
+	grub_putcode ('\n', term);
+	grub_term_refresh (term);
+      }
+    else
+      grub_term_cls (term);
+  }
+}
+
+void
+grub_term_prepare_output (void)
+{
+  struct grub_term_output *term;
+
+  FOR_ACTIVE_TERM_OUTPUTS(term)
+    if (term->prepare)
+      term->prepare (term);
 }

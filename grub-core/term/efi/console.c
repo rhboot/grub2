@@ -140,6 +140,9 @@ grub_console_setcursor (struct grub_term_output *term __attribute__ ((unused)),
 static grub_err_t
 grub_prepare_for_text_output (struct grub_term_output *term)
 {
+  grub_efi_simple_text_output_interface_t *o;
+  grub_efi_int32_t orig_attr;
+
   if (grub_efi_is_finished)
     return GRUB_ERR_BAD_DEVICE;
 
@@ -159,6 +162,18 @@ grub_prepare_for_text_output (struct grub_term_output *term)
   if (text_colorstate != GRUB_TERM_COLOR_UNDEFINED)
     grub_console_setcolorstate (term, text_colorstate);
   text_mode = GRUB_TEXT_MODE_AVAILABLE;
+  term->flags |= GRUB_TERM_OUTPUT_ACTIVE;
+
+  if (term->flags & GRUB_TERM_CLEAR_PENDING)
+    {
+      term->flags &= ~GRUB_TERM_CLEAR_PENDING;
+      o = grub_efi_system_table->con_out;
+      orig_attr = o->mode->attribute;
+      o->set_attributes (o, GRUB_EFI_BACKGROUND_BLACK);
+      o->clear_screen (o);
+      o->set_attributes (o, orig_attr);
+    }
+
   return GRUB_ERR_NONE;
 }
 
@@ -435,6 +450,7 @@ grub_console_cls (struct grub_term_output *term __attribute__ ((unused)))
   grub_efi_simple_text_output_interface_t *o;
   grub_efi_int32_t orig_attr;
 
+  term->flags &= ~GRUB_TERM_CLEAR_PENDING;
   if (grub_prepare_for_text_output (term) != GRUB_ERR_NONE)
     return;
 
@@ -448,6 +464,8 @@ grub_console_cls (struct grub_term_output *term __attribute__ ((unused)))
 static grub_err_t
 grub_efi_console_output_fini (struct grub_term_output *term)
 {
+  term->flags &= ~(GRUB_TERM_OUTPUT_ACTIVE | GRUB_TERM_CLEAR_PENDING);
+
   if (text_mode != GRUB_TEXT_MODE_AVAILABLE)
     return 0;
 
@@ -469,6 +487,7 @@ static struct grub_term_output grub_console_term_output =
   {
     .name = "console",
     .fini = grub_efi_console_output_fini,
+    .prepare = grub_prepare_for_text_output,
     .putchar = grub_console_putchar,
     .getwh = grub_console_getwh,
     .getxy = grub_console_getxy,

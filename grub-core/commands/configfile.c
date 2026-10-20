@@ -23,37 +23,13 @@
 #include <grub/normal.h>
 #include <grub/command.h>
 #include <grub/i18n.h>
-#include <grub/misc.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
-
-/* Preserve the inherited display while a configfile remains silent, but clear
-   it before the first message or other text emitted by that configfile.  A
-   direct menu or console clear satisfies the pending clear too.  */
-static void (*saved_xputs) (const char *str);
-static unsigned int configfile_depth;
-static int clear_pending;
-static grub_uint32_t clear_generation;
-
-static void
-configfile_xputs (const char *str)
-{
-  if (clear_pending && *str)
-    {
-      clear_pending = 0;
-      if (clear_generation == grub_cls_generation)
-	grub_cls ();
-    }
-
-  saved_xputs (str);
-}
 
 static grub_err_t
 grub_cmd_source (grub_command_t cmd, int argc, char **args)
 {
   int new_env, extractor;
-  int old_clear_pending;
-  grub_uint32_t old_clear_generation;
 
   if (argc != 1)
     return grub_error (GRUB_ERR_BAD_ARGUMENT, N_("filename expected"));
@@ -61,19 +37,9 @@ grub_cmd_source (grub_command_t cmd, int argc, char **args)
   extractor = (cmd->name[0] == 'e');
   new_env = (cmd->name[extractor ? sizeof ("extract_entries_") - 1 : 0] == 'c');
 
+  /* An uninitialized terminal may still be displaying a firmware splash.  */
   if (new_env)
-    {
-      if (configfile_depth++ == 0)
-	{
-	  saved_xputs = grub_xputs;
-	  grub_xputs = configfile_xputs;
-	}
-
-      old_clear_pending = clear_pending;
-      old_clear_generation = clear_generation;
-      clear_pending = 1;
-      clear_generation = grub_cls_generation;
-    }
+    grub_cls_deferred ();
 
   if (new_env && !extractor)
     grub_env_context_open ();
@@ -81,14 +47,6 @@ grub_cmd_source (grub_command_t cmd, int argc, char **args)
     grub_env_extractor_open (!new_env);
 
   grub_normal_execute (args[0], 1, ! new_env);
-
-  if (new_env)
-    {
-      clear_pending = old_clear_pending;
-      clear_generation = old_clear_generation;
-      if (--configfile_depth == 0)
-	grub_xputs = saved_xputs;
-    }
 
   if (new_env && !extractor)
     grub_env_context_close ();
