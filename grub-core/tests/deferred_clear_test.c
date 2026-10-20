@@ -20,10 +20,45 @@
 #include <grub/dl.h>
 #include <grub/misc.h>
 #include <grub/normal.h>
+#include <grub/procfs.h>
 #include <grub/test.h>
 #include <grub/term.h>
 
 GRUB_MOD_LICENSE ("GPLv3+");
+
+static const char silent_config[] = "true\n";
+static const char nested_config[] =
+  "configfile (proc)/deferred-clear-silent.cfg\n";
+static unsigned int silent_config_reads;
+static unsigned int nested_config_reads;
+
+static char *
+get_silent_config (grub_size_t *size)
+{
+  silent_config_reads++;
+  *size = sizeof (silent_config) - 1;
+  return grub_strdup (silent_config);
+}
+
+static char *
+get_nested_config (grub_size_t *size)
+{
+  nested_config_reads++;
+  *size = sizeof (nested_config) - 1;
+  return grub_strdup (nested_config);
+}
+
+static struct grub_procfs_entry silent_config_entry =
+  {
+    .name = "deferred-clear-silent.cfg",
+    .get_contents = get_silent_config
+  };
+
+static struct grub_procfs_entry nested_config_entry =
+  {
+    .name = "deferred-clear-nested.cfg",
+    .get_contents = get_nested_config
+  };
 
 struct fake_state
 {
@@ -174,7 +209,14 @@ deferred_clear_test (void)
   char *sleep_verbose[] = { sleep_verbose_option, sleep_value };
   char *sleep_quiet[] = { sleep_value };
   char *echo_empty[] = { echo_no_newline, echo_value };
+  char config_path[] = "(proc)/deferred-clear-silent.cfg";
+  char nested_config_path[] = "(proc)/deferred-clear-nested.cfg";
+  char *config[] = { config_path };
+  char *nested[] = { nested_config_path };
 
+  grub_procfs_register ("deferred-clear-silent.cfg", &silent_config_entry);
+  grub_procfs_register ("deferred-clear-nested.cfg", &nested_config_entry);
+  grub_dl_load ("configfile");
   grub_term_outputs = &first;
 
   reset_term (&first, &first_state, 0);
@@ -185,8 +227,37 @@ deferred_clear_test (void)
 		    "help did not prepare the first terminal");
   grub_test_assert (first_state.chars_before_clear == 0,
 		    "help output was cleared after rendering started");
-  grub_test_assert (second_state.chars_before_clear == 0,
+  grub_test_assert (second_state.clears == 1 && second_state.chars > 0 &&
+		    second_state.chars_before_clear == 0,
 		    "help output was cleared late on the second terminal");
+
+  reset_term (&first, &first_state, 0);
+  reset_term (&second, &second_state, 1);
+  silent_config_reads = 0;
+  run_command ("configfile", ARRAY_SIZE (config), config);
+  grub_test_assert (silent_config_reads == 1,
+		    "configfile did not read its target configuration");
+  grub_test_assert (first_state.clears == 0 && first_state.chars == 0 &&
+		    (first.flags & GRUB_TERM_CLEAR_PENDING),
+		    "silent configfile cleared the untouched terminal");
+  grub_test_assert (second_state.clears == 1 && second_state.chars == 0,
+		    "silent configfile did not clear the active terminal");
+  grub_xnputs ("visible", sizeof ("visible") - 1);
+  grub_test_assert (first_state.clears == 1 &&
+		    first_state.chars_before_clear == 0 &&
+		    first_state.chars == sizeof ("visible") - 1,
+		    "configfile clear did not precede later output");
+
+  reset_term (&first, &first_state, 0);
+  reset_term (&second, &second_state, 0);
+  silent_config_reads = 0;
+  nested_config_reads = 0;
+  run_command ("configfile", ARRAY_SIZE (nested), nested);
+  grub_test_assert (nested_config_reads == 1 && silent_config_reads == 1,
+		    "nested configfile redirect did not read both configurations");
+  grub_test_assert (first_state.clears == 0 && first_state.chars == 0 &&
+		    (first.flags & GRUB_TERM_CLEAR_PENDING),
+		    "nested silent configfile cleared the untouched terminal");
 
   reset_term (&first, &first_state, 0);
   reset_term (&second, &second_state, 0);
@@ -247,6 +318,8 @@ deferred_clear_test (void)
 		    !(first.flags & GRUB_TERM_CLEAR_PENDING),
 		    "explicit clear did not replace the deferred clear");
 
+  grub_procfs_unregister (&nested_config_entry);
+  grub_procfs_unregister (&silent_config_entry);
   grub_term_outputs = saved_outputs;
 }
 
