@@ -237,6 +237,8 @@ typedef struct grub_term_output *grub_term_output_t;
 /* Current color state.  */
 extern grub_uint8_t EXPORT_VAR(grub_term_normal_color);
 extern grub_uint8_t EXPORT_VAR(grub_term_highlight_color);
+/* Incremented whenever a screen clear is requested.  */
+extern grub_uint32_t EXPORT_VAR(grub_cls_generation);
 
 extern struct grub_term_output *EXPORT_VAR(grub_term_outputs_disabled);
 extern struct grub_term_input *EXPORT_VAR(grub_term_inputs_disabled);
@@ -394,6 +396,8 @@ grub_term_setcursor (struct grub_term_output *term, int on)
 static inline void
 grub_term_cls (struct grub_term_output *term)
 {
+  grub_cls_generation++;
+
   if (term->cls)
     (term->cls) (term);
   else

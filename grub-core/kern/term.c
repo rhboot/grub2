@@ -31,6 +31,7 @@ struct grub_term_input *grub_term_inputs;
 /* Current color state.  */
 grub_uint8_t grub_term_normal_color = GRUB_TERM_DEFAULT_NORMAL_COLOR;
 grub_uint8_t grub_term_highlight_color = GRUB_TERM_DEFAULT_HIGHLIGHT_COLOR;
+grub_uint32_t grub_cls_generation;
 
 void (*grub_term_poll_usb) (int wait_for_completion) = NULL;
 void (*grub_net_poll_cards_idle) (void) = NULL;

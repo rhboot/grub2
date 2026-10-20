@@ -1085,6 +1085,8 @@ grub_cls (void)
 {
   struct grub_term_output *term;
 
+  grub_cls_generation++;
+
   FOR_ACTIVE_TERM_OUTPUTS(term)
   {
     if ((term->flags & GRUB_TERM_DUMB) || (grub_env_get ("debug")))
